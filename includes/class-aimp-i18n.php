@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin languages (Dutch and English), independent of the WordPress site language.
+ * Plugin languages (Dutch, French and English), independent of the WordPress site language.
  *
  * All strings in the plugin keep using __() / esc_html__() with the plugin text domain.
- * The "gettext_atelier-irisee-master-plugin" filter swaps in the Dutch text from
- * includes/languages/nl.php when the active language is Dutch.
+ * The "gettext_atelier-irisee-master-plugin" filter swaps in the translated text from
+ * includes/languages/{code}.php (nl.php, fr.php) for the active language.
  *
  * Active language:
  *   - WordPress admin: the "Plugin language" setting (WooCommerce > Atelier Irisee).
@@ -20,8 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class AIMP_I18n {
 
-	const DOMAIN  = 'atelier-irisee-master-plugin';
-	const COOKIE  = 'aimp_lang';
+	const DOMAIN       = 'atelier-irisee-master-plugin';
+	const COOKIE       = 'aimp_lang';
 	const DEFAULT_LANG = 'nl';
 
 	/** @var string|null Detected language for this request. */
@@ -30,29 +30,41 @@ class AIMP_I18n {
 	/** @var string|null Temporary language set by with_language(). */
 	private static $override = null;
 
-	/** @var array|null Dutch dictionary. */
-	private static $nl = null;
+	/** @var array Loaded dictionaries: language code => [ English => translation ]. */
+	private static $dictionaries = array();
 
 	public static function init() {
 		add_filter( 'gettext_' . self::DOMAIN, array( __CLASS__, 'translate' ), 10, 2 );
 	}
 
 	/**
-	 * Supported languages: code => [ name, locale, flag ].
+	 * Supported languages, in the order of the flag switcher: code => [ name, locale, flag, decimal, thousand ].
+	 * Every language except English has a dictionary in includes/languages/{code}.php.
 	 *
 	 * @return array
 	 */
 	public static function languages() {
 		return array(
 			'nl' => array(
-				'name'   => 'Nederlands',
-				'locale' => 'nl-BE',
-				'flag'   => AIMP_PLUGIN_URL . 'assets/images/flags/be.svg',
+				'name'     => 'Nederlands',
+				'locale'   => 'nl-BE',
+				'flag'     => AIMP_PLUGIN_URL . 'assets/images/flags/be.svg',
+				'decimal'  => ',',
+				'thousand' => '.',
+			),
+			'fr' => array(
+				'name'     => 'Français',
+				'locale'   => 'fr',
+				'flag'     => AIMP_PLUGIN_URL . 'assets/images/flags/fr.svg',
+				'decimal'  => ',',
+				'thousand' => "\u{00A0}",
 			),
 			'en' => array(
-				'name'   => 'English',
-				'locale' => 'en',
-				'flag'   => AIMP_PLUGIN_URL . 'assets/images/flags/gb.svg',
+				'name'     => 'English',
+				'locale'   => 'en',
+				'flag'     => AIMP_PLUGIN_URL . 'assets/images/flags/gb.svg',
+				'decimal'  => '.',
+				'thousand' => ',',
 			),
 		);
 	}
@@ -128,25 +140,37 @@ class AIMP_I18n {
 	 * @return string
 	 */
 	public static function translate( $translation, $text ) {
-		if ( 'nl' !== self::current() ) {
-			return $text;
-		}
-		if ( null === self::$nl ) {
-			self::$nl = require AIMP_PLUGIN_DIR . 'includes/languages/nl.php';
-		}
-		return isset( self::$nl[ $text ] ) ? self::$nl[ $text ] : $translation;
+		$dictionary = self::dictionary( self::current() );
+		return isset( $dictionary[ $text ] ) ? $dictionary[ $text ] : $text;
 	}
 
 	/**
-	 * Number with the decimal separator of the active language (1.20 / 1,20).
+	 * Dictionary for a language (empty for English, the source language).
+	 *
+	 * @param string $lang Language code.
+	 * @return array
+	 */
+	private static function dictionary( $lang ) {
+		if ( 'en' === $lang ) {
+			return array();
+		}
+		if ( ! isset( self::$dictionaries[ $lang ] ) ) {
+			$file                        = AIMP_PLUGIN_DIR . 'includes/languages/' . $lang . '.php';
+			self::$dictionaries[ $lang ] = file_exists( $file ) ? (array) require $file : array();
+		}
+		return self::$dictionaries[ $lang ];
+	}
+
+	/**
+	 * Number with the separators of the active language (1.20 / 1,20).
 	 *
 	 * @param float $number   Number.
 	 * @param int   $decimals Decimals.
 	 * @return string
 	 */
 	public static function number( $number, $decimals = 0 ) {
-		return 'nl' === self::current()
-			? number_format( (float) $number, $decimals, ',', '.' )
-			: number_format( (float) $number, $decimals, '.', ',' );
+		$languages = self::languages();
+		$language  = $languages[ self::current() ];
+		return number_format( (float) $number, $decimals, $language['decimal'], $language['thousand'] );
 	}
 }

@@ -46,7 +46,8 @@ class AIMP_Settings {
 			'fabric_cat'  => 0,
 			'button_cat'  => 0,
 			'zip_cat'     => 0,
-			'per_page'    => 9,
+			'per_page'        => 9,
+			'fabric_per_page' => 16,
 		);
 		$options = wp_parse_args( (array) get_option( self::OPTION, array() ), $defaults );
 		return isset( $options[ $key ] ) ? absint( $options[ $key ] ) : 0;
@@ -117,13 +118,38 @@ class AIMP_Settings {
 			);
 		}
 
-		add_settings_field(
-			'aimp_per_page',
-			__( 'Items per page', 'atelier-irisee-master-plugin' ),
-			array( __CLASS__, 'render_per_page_field' ),
-			self::PAGE,
-			'aimp_categories',
-			array( 'label_for' => 'aimp_per_page' )
+		foreach ( self::per_page_fields() as $key => $field ) {
+			add_settings_field(
+				'aimp_' . $key,
+				$field['label'],
+				array( __CLASS__, 'render_per_page_field' ),
+				self::PAGE,
+				'aimp_categories',
+				array(
+					'key'       => $key,
+					'label_for' => 'aimp_' . $key,
+				)
+			);
+		}
+	}
+
+	/**
+	 * Page size settings: key => [ label, default, description ].
+	 *
+	 * @return array
+	 */
+	private static function per_page_fields() {
+		return array(
+			'per_page'        => array(
+				'label'       => __( 'Items per page', 'atelier-irisee-master-plugin' ),
+				'default'     => 9,
+				'description' => __( 'Patterns, buttons and zips per page. 9 fills a 3x3 grid.', 'atelier-irisee-master-plugin' ),
+			),
+			'fabric_per_page' => array(
+				'label'       => __( 'Fabrics per page', 'atelier-irisee-master-plugin' ),
+				'default'     => 16,
+				'description' => __( 'Number of fabrics per page in the fabric step. 16 fills a 4x4 grid.', 'atelier-irisee-master-plugin' ),
+			),
 		);
 	}
 
@@ -133,9 +159,11 @@ class AIMP_Settings {
 		foreach ( array_keys( self::category_fields() ) as $key ) {
 			$sanitized[ $key ] = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : 0;
 		}
-		$per_page              = isset( $input['per_page'] ) ? absint( $input['per_page'] ) : 9;
-		$sanitized['per_page'] = ( $per_page < 1 || $per_page > 60 ) ? 9 : $per_page;
-		$language              = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
+		foreach ( self::per_page_fields() as $key => $field ) {
+			$value             = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : $field['default'];
+			$sanitized[ $key ] = ( $value < 1 || $value > 60 ) ? $field['default'] : $value;
+		}
+		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;
 		return $sanitized;
 	}
@@ -177,12 +205,16 @@ class AIMP_Settings {
 		echo '<p class="description">' . esc_html__( 'Used for these settings, the product fields and as the starting language of the configurator. Customers can switch language at any time with the flags in the configurator.', 'atelier-irisee-master-plugin' ) . '</p>';
 	}
 
-	public static function render_per_page_field() {
+	public static function render_per_page_field( $args ) {
+		$key    = $args['key'];
+		$fields = self::per_page_fields();
 		printf(
-			'<input type="number" min="1" max="60" id="aimp_per_page" name="%s[per_page]" value="%d" class="small-text"> <p class="description">%s</p>',
+			'<input type="number" min="1" max="60" id="%s" name="%s[%s]" value="%d" class="small-text"> <p class="description">%s</p>',
+			esc_attr( 'aimp_' . $key ),
 			esc_attr( self::OPTION ),
-			(int) self::get( 'per_page' ),
-			esc_html__( 'Products per page in the configurator grids. 9 fills a 3x3 grid.', 'atelier-irisee-master-plugin' )
+			esc_attr( $key ),
+			(int) self::get( $key ),
+			esc_html( $fields[ $key ]['description'] )
 		);
 	}
 

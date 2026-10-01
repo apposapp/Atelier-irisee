@@ -32,6 +32,32 @@
 	margin-bottom: 0.5em;
 }
 
+.aimp-priority {
+	padding: 0 12px 12px;
+}
+
+.aimp-priority h4 {
+	margin: 1em 0 0.5em;
+}
+
+.aimp-priority .description {
+	display: block;
+	margin: 0 0 1em;
+}
+
+.aimp-priority-table {
+	max-width: 480px;
+}
+
+.aimp-priority-table td {
+	vertical-align: middle;
+}
+
+.woocommerce_options_panel .aimp-priority-table input[type="number"] {
+	float: none;
+	width: 6em;
+}
+
 .aimp-fabric-cats label {
 	display: inline-block;
 	margin: 0 1.25em 0.4em 0;

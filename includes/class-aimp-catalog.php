@@ -15,17 +15,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class AIMP_Catalog {
 
-	const META_FABRIC_UNITS = '_aimp_fabric_units';
-	const META_FABRIC_CATS  = '_aimp_fabric_cats';
-	const META_BUTTON_COUNT = '_aimp_button_count';
-	const META_ZIP_COUNT    = '_aimp_zip_count';
-	const META_ZIP_LENGTH   = '_aimp_zip_length';
-	const META_BUST         = '_aimp_bust';
-	const META_WAIST        = '_aimp_waist';
-	const META_HEIGHT       = '_aimp_height';
+	const META_FABRIC_UNITS    = '_aimp_fabric_units';
+	const META_FABRIC_CATS     = '_aimp_fabric_cats';
+	const META_BUTTON_COUNT    = '_aimp_button_count';
+	const META_ZIP_COUNT       = '_aimp_zip_count';
+	const META_ZIP_LENGTH      = '_aimp_zip_length';
+	const META_BUST            = '_aimp_bust';
+	const META_WAIST           = '_aimp_waist';
+	const META_HEIGHT          = '_aimp_height';
+	const META_FABRIC_PRIORITY = '_aimp_fabric_priority';
 
 	/** Length of one fabric unit in cm. */
 	const FABRIC_UNIT_CM = 10;
+
+	/** Sort options for the fabric step. */
+	const FABRIC_SORTS = array( 'recommended', 'name_asc', 'name_desc', 'price_asc', 'price_desc', 'newest' );
 
 	/* ------------------------------------------------------------------
 	 * Category helpers
@@ -96,7 +100,7 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * All subcategories of the Fabrics category (for the admin checkboxes).
+	 * All subcategories of the Fabrics category (for the admin fields).
 	 *
 	 * @return WP_Term[]
 	 */
@@ -116,29 +120,39 @@ class AIMP_Catalog {
 		return is_wp_error( $terms ) ? array() : $terms;
 	}
 
+	/**
+	 * Fabric category positions set on a pattern: term ID => position (1 = shown first).
+	 *
+	 * @param WC_Product $pattern Pattern product.
+	 * @return int[]
+	 */
+	public static function get_fabric_priority( $pattern ) {
+		$priority = $pattern->get_meta( self::META_FABRIC_PRIORITY );
+		$clean    = array();
+		if ( is_array( $priority ) ) {
+			foreach ( $priority as $term_id => $position ) {
+				if ( absint( $term_id ) && absint( $position ) ) {
+					$clean[ absint( $term_id ) ] = absint( $position );
+				}
+			}
+		}
+		asort( $clean );
+		return $clean;
+	}
+
 	/* ------------------------------------------------------------------
 	 * Querying
 	 * ------------------------------------------------------------------ */
 
 	/**
-	 * Paginated product IDs in the given categories.
+	 * WP_Query arguments for published, visible products of a type in some categories.
 	 *
 	 * @param int[]  $term_ids   Category IDs (children are included automatically).
 	 * @param string $type       Product type slug (variable, simple).
-	 * @param int    $page       1-based page.
 	 * @param array  $meta_query Optional extra meta query.
-	 * @return array [ ids => int[], page => int, pages => int ]
+	 * @return array
 	 */
-	private static function query_products( $term_ids, $type, $page, $meta_query = array() ) {
-		$empty = array(
-			'ids'   => array(),
-			'page'  => 1,
-			'pages' => 0,
-		);
-		if ( empty( $term_ids ) ) {
-			return $empty;
-		}
-
+	private static function base_query_args( $term_ids, $type, $meta_query = array() ) {
 		$tax_query = array(
 			'relation' => 'AND',
 			array(
@@ -172,25 +186,59 @@ class AIMP_Catalog {
 		$args = array(
 			'post_type'           => 'product',
 			'post_status'         => 'publish',
-			'posts_per_page'      => max( 1, AIMP_Settings::get( 'per_page' ) ),
-			'paged'               => max( 1, absint( $page ) ),
+			'fields'              => 'ids',
+			'ignore_sticky_posts' => true,
 			'orderby'             => array(
 				'menu_order' => 'ASC',
 				'title'      => 'ASC',
 			),
-			'fields'              => 'ids',
-			'ignore_sticky_posts' => true,
 			'tax_query'           => $tax_query, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 		);
 		if ( $meta_query ) {
 			$args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 		}
+		return $args;
+	}
+
+	private static function empty_page() {
+		return array(
+			'items'    => array(),
+			'page'     => 1,
+			'pages'    => 0,
+			'total'    => 0,
+			'per_page' => 0,
+		);
+	}
+
+	/**
+	 * One page of product IDs in the given categories.
+	 *
+	 * @param int[]  $term_ids   Category IDs.
+	 * @param string $type       Product type slug.
+	 * @param int    $page       1-based page.
+	 * @param int    $per_page   Items per page.
+	 * @param array  $meta_query Optional extra meta query.
+	 * @return array [ ids, page, pages, total ]
+	 */
+	private static function query_products( $term_ids, $type, $page, $per_page, $meta_query = array() ) {
+		if ( empty( $term_ids ) ) {
+			return array(
+				'ids'   => array(),
+				'page'  => 1,
+				'pages' => 0,
+				'total' => 0,
+			);
+		}
+		$args                   = self::base_query_args( $term_ids, $type, $meta_query );
+		$args['posts_per_page'] = max( 1, $per_page );
+		$args['paged']          = max( 1, absint( $page ) );
 
 		$query = new WP_Query( $args );
 		return array(
 			'ids'   => array_map( 'absint', $query->posts ),
 			'page'  => max( 1, absint( $page ) ),
 			'pages' => (int) $query->max_num_pages,
+			'total' => (int) $query->found_posts,
 		);
 	}
 
@@ -203,15 +251,50 @@ class AIMP_Catalog {
 	private static function card( $product ) {
 		$image_id = $product->get_image_id();
 		return array(
-			'id'          => $product->get_id(),
-			'name'        => wp_strip_all_tags( $product->get_name() ),
-			'image'       => $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : wc_placeholder_img_src( 'woocommerce_thumbnail' ),
-			'image_large' => $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_single' ) : wc_placeholder_img_src( 'woocommerce_single' ),
-			'image_alt'   => $image_id ? (string) get_post_meta( $image_id, '_wp_attachment_image_alt', true ) : '',
-			'price'       => (float) wc_get_price_to_display( $product ),
-			'price_html'  => $product->get_price_html(),
-			'permalink'   => $product->get_permalink(),
+			'id'         => $product->get_id(),
+			'name'       => wp_strip_all_tags( $product->get_name() ),
+			'image'      => $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : wc_placeholder_img_src( 'woocommerce_thumbnail' ),
+			'image_alt'  => $image_id ? (string) get_post_meta( $image_id, '_wp_attachment_image_alt', true ) : '',
+			'price'      => (float) wc_get_price_to_display( $product ),
+			'price_html' => $product->get_price_html(),
+			'permalink'  => $product->get_permalink(),
 		);
+	}
+
+	/**
+	 * All pictures of a product: main image, gallery images, then any extra images.
+	 *
+	 * @param WC_Product $product   Product.
+	 * @param int[]      $extra_ids Extra attachment IDs (e.g. variation images).
+	 * @return array[] List of [ id, thumb, large, alt ].
+	 */
+	private static function images( $product, $extra_ids = array() ) {
+		$ids    = array_merge( array( $product->get_image_id() ), $product->get_gallery_image_ids(), $extra_ids );
+		$ids    = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
+		$name   = wp_strip_all_tags( $product->get_name() );
+		$images = array();
+		foreach ( $ids as $id ) {
+			$large = wp_get_attachment_image_url( $id, 'woocommerce_single' );
+			if ( ! $large ) {
+				continue;
+			}
+			$alt      = (string) get_post_meta( $id, '_wp_attachment_image_alt', true );
+			$images[] = array(
+				'id'    => $id,
+				'thumb' => wp_get_attachment_image_url( $id, 'woocommerce_gallery_thumbnail' ),
+				'large' => $large,
+				'alt'   => '' !== $alt ? $alt : $name,
+			);
+		}
+		if ( ! $images ) {
+			$images[] = array(
+				'id'    => 0,
+				'thumb' => wc_placeholder_img_src( 'woocommerce_gallery_thumbnail' ),
+				'large' => wc_placeholder_img_src( 'woocommerce_single' ),
+				'alt'   => $name,
+			);
+		}
+		return $images;
 	}
 
 	/**
@@ -227,7 +310,7 @@ class AIMP_Catalog {
 		$cat  = absint( $cat_id );
 		$cats = ( $cat && in_array( $cat, $tree, true ) ) ? array( $cat ) : ( $root ? array( $root ) : array() );
 
-		$result = self::query_products( $cats, 'variable', $page );
+		$result = self::query_products( $cats, 'variable', $page, AIMP_Settings::get( 'per_page' ) );
 		$items  = array();
 		foreach ( $result['ids'] as $id ) {
 			$product = wc_get_product( $id );
@@ -236,9 +319,11 @@ class AIMP_Catalog {
 			}
 		}
 		return array(
-			'items' => $items,
-			'page'  => $result['page'],
-			'pages' => $result['pages'],
+			'items'    => $items,
+			'page'     => $result['page'],
+			'pages'    => $result['pages'],
+			'total'    => $result['total'],
+			'per_page' => AIMP_Settings::get( 'per_page' ),
 		);
 	}
 
@@ -323,7 +408,7 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * Pattern details and its sizes with measurements and requirements.
+	 * Pattern details (with all its pictures) and its sizes with measurements and requirements.
 	 *
 	 * @param int $pattern_id Pattern product ID.
 	 * @return array|null
@@ -334,16 +419,19 @@ class AIMP_Catalog {
 			return null;
 		}
 
-		$sizes = array();
+		$sizes            = array();
+		$variation_images = array();
 		foreach ( $pattern->get_children() as $child_id ) {
 			$req = self::get_requirements( $child_id );
 			if ( ! $req ) {
 				continue;
 			}
-			$variation = $req['variation'];
-			$sizes[]   = array(
+			$variation          = $req['variation'];
+			$variation_images[] = absint( $variation->get_image_id() );
+			$sizes[]            = array(
 				'id'           => $variation->get_id(),
 				'label'        => $req['size'],
+				'image_id'     => absint( $variation->get_image_id() ),
 				'price'        => (float) wc_get_price_to_display( $variation ),
 				'price_html'   => $variation->get_price_html(),
 				'available'    => $variation->is_purchasable() && $variation->is_in_stock(),
@@ -358,8 +446,22 @@ class AIMP_Catalog {
 			);
 		}
 
+		$gallery = self::images( $pattern, $variation_images );
+
+		// Which picture to show when a size is chosen (its own variation image, if it has one).
+		$index_of = array();
+		foreach ( $gallery as $index => $image ) {
+			$index_of[ $image['id'] ] = $index;
+		}
+		foreach ( $sizes as &$size ) {
+			$size['image_index'] = ( $size['image_id'] && isset( $index_of[ $size['image_id'] ] ) ) ? $index_of[ $size['image_id'] ] : -1;
+			unset( $size['image_id'] );
+		}
+		unset( $size );
+
 		$card                      = self::card( $pattern );
 		$card['short_description'] = wp_kses_post( wpautop( $pattern->get_short_description() ) );
+		$card['gallery']           = $gallery;
 
 		return array(
 			'pattern' => $card,
@@ -465,7 +567,18 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * Card plus availability and detail info for a material that is needed $qty times.
+	 * Whether a material can be bought in the required quantity.
+	 *
+	 * @param WC_Product $product Product.
+	 * @param int        $qty     Required quantity.
+	 * @return bool
+	 */
+	private static function is_available( $product, $qty ) {
+		return $product->is_purchasable() && $product->is_in_stock() && $product->has_enough_stock( $qty );
+	}
+
+	/**
+	 * Card plus availability, pictures and detail info for a material that is needed $qty times.
 	 *
 	 * @param WC_Product $product Product.
 	 * @param int        $qty     Required quantity.
@@ -475,10 +588,11 @@ class AIMP_Catalog {
 	private static function material_card( $product, $qty, $fabric ) {
 		$card                = self::card( $product );
 		$card['qty']         = $qty;
-		$card['available']   = $product->is_purchasable() && $product->is_in_stock() && $product->has_enough_stock( $qty );
+		$card['available']   = self::is_available( $product, $qty );
 		$card['total_html']  = wc_price( $card['price'] * $qty );
 		$card['description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
 		$card['attributes']  = self::attributes( $product );
+		$card['gallery']     = self::images( $product );
 		$card['stock_text']  = '';
 
 		if ( $product->managing_stock() ) {
@@ -501,30 +615,195 @@ class AIMP_Catalog {
 		return $card;
 	}
 
+	/* ------------------------------------------------------------------
+	 * Fabrics: filter, sort, paginate
+	 * ------------------------------------------------------------------ */
+
 	/**
-	 * Fabrics allowed for a size.
+	 * The allowed fabric categories of a size, as filter chips: the pattern's prioritised
+	 * categories first (by position), then the others alphabetically.
 	 *
-	 * @param int $variation_id Size variation.
-	 * @param int $page         Page.
+	 * @param array $req      Requirements.
+	 * @param int[] $priority Term ID => position.
+	 * @return array[] List of [ id, name ].
+	 */
+	private static function fabric_filter_categories( $req, $priority ) {
+		$list = array();
+		foreach ( $req['fabric_cats'] as $term_id ) {
+			$term = get_term( $term_id, 'product_cat' );
+			if ( $term && ! is_wp_error( $term ) ) {
+				$list[] = array(
+					'id'       => (int) $term->term_id,
+					'name'     => $term->name,
+					'position' => isset( $priority[ $term->term_id ] ) ? $priority[ $term->term_id ] : PHP_INT_MAX,
+				);
+			}
+		}
+		usort(
+			$list,
+			function ( $a, $b ) {
+				if ( $a['position'] !== $b['position'] ) {
+					return $a['position'] < $b['position'] ? -1 : 1;
+				}
+				return strcasecmp( $a['name'], $b['name'] );
+			}
+		);
+		return array_map(
+			function ( $item ) {
+				unset( $item['position'] );
+				return $item;
+			},
+			$list
+		);
+	}
+
+	/**
+	 * Reorder product IDs so fabrics from the pattern's prioritised categories come first.
+	 * Products keep their existing order within the same position (stable sort).
+	 *
+	 * @param int[] $ids      Product IDs in their base order.
+	 * @param int[] $priority Term ID => position.
+	 * @return int[]
+	 */
+	private static function sort_by_category_priority( $ids, $priority ) {
+		if ( ! $ids || ! $priority ) {
+			return $ids;
+		}
+
+		// A product in a subcategory of a prioritised category gets that category's position.
+		$term_position = array();
+		foreach ( $priority as $term_id => $position ) {
+			foreach ( self::category_tree( $term_id ) as $tree_term ) {
+				if ( ! isset( $term_position[ $tree_term ] ) || $position < $term_position[ $tree_term ] ) {
+					$term_position[ $tree_term ] = $position;
+				}
+			}
+		}
+
+		$product_position = array();
+		$terms            = wp_get_object_terms( $ids, 'product_cat', array( 'fields' => 'all_with_object_id' ) );
+		if ( ! is_wp_error( $terms ) ) {
+			foreach ( $terms as $term ) {
+				if ( isset( $term_position[ $term->term_id ] ) ) {
+					$object_id                      = (int) $term->object_id;
+					$current                        = isset( $product_position[ $object_id ] ) ? $product_position[ $object_id ] : PHP_INT_MAX;
+					$product_position[ $object_id ] = min( $current, $term_position[ $term->term_id ] );
+				}
+			}
+		}
+
+		$rows = array();
+		foreach ( array_values( $ids ) as $index => $id ) {
+			$rows[] = array( isset( $product_position[ $id ] ) ? $product_position[ $id ] : PHP_INT_MAX, $index, $id );
+		}
+		usort(
+			$rows,
+			function ( $a, $b ) {
+				if ( $a[0] !== $b[0] ) {
+					return $a[0] < $b[0] ? -1 : 1;
+				}
+				return $a[1] - $b[1];
+			}
+		);
+		return array_column( $rows, 2 );
+	}
+
+	/**
+	 * Fabrics allowed for a size, filtered, sorted and paginated.
+	 *
+	 * @param int   $variation_id Size variation.
+	 * @param array $args         [ page, category, search, in_stock, sort ].
 	 * @return array|null
 	 */
-	public static function get_fabrics( $variation_id, $page ) {
+	public static function get_fabrics( $variation_id, $args ) {
 		$req = self::get_requirements( $variation_id );
 		if ( ! $req ) {
 			return null;
 		}
-		$result = self::query_products( $req['fabric_cats'], 'simple', $page );
-		$items  = array();
-		foreach ( $result['ids'] as $id ) {
+
+		$priority   = self::get_fabric_priority( $req['pattern'] );
+		$categories = self::fabric_filter_categories( $req, $priority );
+		$result     = self::empty_page();
+
+		$result['categories'] = $categories;
+		if ( ! $req['fabric_cats'] ) {
+			return $result;
+		}
+
+		// Category filter: only one of the allowed categories (or a subcategory of one).
+		$allowed_tree = array();
+		foreach ( $req['fabric_cats'] as $cat ) {
+			$allowed_tree = array_merge( $allowed_tree, self::category_tree( $cat ) );
+		}
+		$category = absint( $args['category'] );
+		$cats     = ( $category && in_array( $category, $allowed_tree, true ) ) ? array( $category ) : $req['fabric_cats'];
+
+		$query_args                   = self::base_query_args( $cats, 'simple' );
+		$query_args['posts_per_page'] = -1;
+		$query_args['no_found_rows']  = true;
+		if ( '' !== $args['search'] ) {
+			$query_args['s'] = $args['search'];
+		}
+
+		$sort = in_array( $args['sort'], self::FABRIC_SORTS, true ) ? $args['sort'] : 'recommended';
+		switch ( $sort ) {
+			case 'name_asc':
+			case 'name_desc':
+				$query_args['orderby'] = array( 'title' => 'name_asc' === $sort ? 'ASC' : 'DESC' );
+				break;
+			case 'price_asc':
+			case 'price_desc':
+				$query_args['meta_key'] = '_price'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				$query_args['orderby']  = array(
+					'meta_value_num' => 'price_asc' === $sort ? 'ASC' : 'DESC',
+					'title'          => 'ASC',
+				);
+				break;
+			case 'newest':
+				$query_args['orderby'] = array(
+					'date' => 'DESC',
+					'ID'   => 'DESC',
+				);
+				break;
+		}
+
+		$ids = array_map( 'absint', ( new WP_Query( $query_args ) )->posts );
+		if ( 'recommended' === $sort ) {
+			$ids = self::sort_by_category_priority( $ids, $priority );
+		}
+
+		if ( $args['in_stock'] ) {
+			$ids = array_values(
+				array_filter(
+					$ids,
+					function ( $id ) use ( $req ) {
+						$product = wc_get_product( $id );
+						return $product && self::is_available( $product, $req['fabric_units'] );
+					}
+				)
+			);
+		}
+
+		$per_page = max( 1, AIMP_Settings::get( 'fabric_per_page' ) );
+		$total    = count( $ids );
+		$pages    = (int) ceil( $total / $per_page );
+		$page     = min( max( 1, absint( $args['page'] ) ), max( 1, $pages ) );
+
+		$items = array();
+		foreach ( array_slice( $ids, ( $page - 1 ) * $per_page, $per_page ) as $id ) {
 			$product = wc_get_product( $id );
 			if ( $product && $product->is_visible() ) {
 				$items[] = self::material_card( $product, $req['fabric_units'], true );
 			}
 		}
+
 		return array(
-			'items' => $items,
-			'page'  => $result['page'],
-			'pages' => $result['pages'],
+			'items'      => $items,
+			'page'       => $page,
+			'pages'      => $pages,
+			'total'      => $total,
+			'per_page'   => $per_page,
+			'categories' => $categories,
 		);
 	}
 
@@ -542,19 +821,14 @@ class AIMP_Catalog {
 			return null;
 		}
 		$count = self::notion_count( $type, $req );
-		$empty = array(
-			'items' => array(),
-			'page'  => 1,
-			'pages' => 0,
-		);
 		if ( 0 === $count ) {
-			return $empty;
+			return self::empty_page();
 		}
 
 		$meta_query = array();
 		if ( 'zips' === $type ) {
 			if ( '' === $req['zip_length'] ) {
-				return $empty;
+				return self::empty_page();
 			}
 			$meta_query[] = array(
 				'key'     => self::META_ZIP_LENGTH,
@@ -564,7 +838,7 @@ class AIMP_Catalog {
 			);
 		}
 
-		$result = self::query_products( array( self::notion_category( $type ) ), 'simple', $page, $meta_query );
+		$result = self::query_products( array( self::notion_category( $type ) ), 'simple', $page, AIMP_Settings::get( 'per_page' ), $meta_query );
 		$items  = array();
 		foreach ( $result['ids'] as $id ) {
 			$product = wc_get_product( $id );
@@ -573,9 +847,11 @@ class AIMP_Catalog {
 			}
 		}
 		return array(
-			'items' => $items,
-			'page'  => $result['page'],
-			'pages' => $result['pages'],
+			'items'    => $items,
+			'page'     => $result['page'],
+			'pages'    => $result['pages'],
+			'total'    => $result['total'],
+			'per_page' => AIMP_Settings::get( 'per_page' ),
 		);
 	}
 }

@@ -57,10 +57,11 @@ class AIMP_Shortcode {
 		$list = array();
 		foreach ( AIMP_I18n::languages() as $code => $language ) {
 			$list[] = array(
-				'code'   => $code,
-				'name'   => $language['name'],
-				'locale' => $language['locale'],
-				'flag'   => $language['flag'],
+				'code'    => $code,
+				'name'    => $language['name'],
+				'locale'  => $language['locale'],
+				'flag'    => $language['flag'],
+				'decimal' => $language['decimal'],
 			);
 		}
 		return $list;
@@ -99,7 +100,6 @@ class AIMP_Shortcode {
 			'noNotions'       => __( 'Nothing available at the moment. You can continue without.', 'atelier-irisee-master-plugin' ),
 			'previous'        => __( 'Previous', 'atelier-irisee-master-plugin' ),
 			'next'            => __( 'Next', 'atelier-irisee-master-plugin' ),
-			'pageOf'          => __( 'Page %1$d of %2$d', 'atelier-irisee-master-plugin' ),
 			'back'            => __( 'Back', 'atelier-irisee-master-plugin' ),
 			'chooseSize'      => __( 'Choose your size', 'atelier-irisee-master-plugin' ),
 			'sizeHelp'        => __( 'Compare your own measurements with the measurements below to pick the right size for this pattern.', 'atelier-irisee-master-plugin' ),
@@ -142,6 +142,24 @@ class AIMP_Shortcode {
 			'viewCart'        => __( 'View cart', 'atelier-irisee-master-plugin' ),
 			'configureAnother' => __( 'Configure another pattern', 'atelier-irisee-master-plugin' ),
 			'selected'        => __( 'Selected', 'atelier-irisee-master-plugin' ),
+			'selectPatternHint' => __( 'Select a pattern to see its pictures, sizes and measurements.', 'atelier-irisee-master-plugin' ),
+			'selectFabricHint'  => __( 'Select a fabric to see its pictures and details.', 'atelier-irisee-master-plugin' ),
+			'selectItemHint'    => __( 'Select an item to see its pictures and details.', 'atelier-irisee-master-plugin' ),
+			'fabricCategory'    => __( 'Fabric category', 'atelier-irisee-master-plugin' ),
+			'searchFabrics'     => __( 'Search fabrics…', 'atelier-irisee-master-plugin' ),
+			'sortBy'            => __( 'Sort by', 'atelier-irisee-master-plugin' ),
+			'sortRecommended'   => __( 'Recommended', 'atelier-irisee-master-plugin' ),
+			'sortNameAsc'       => __( 'Name (A–Z)', 'atelier-irisee-master-plugin' ),
+			'sortNameDesc'      => __( 'Name (Z–A)', 'atelier-irisee-master-plugin' ),
+			'sortPriceAsc'      => __( 'Price (low to high)', 'atelier-irisee-master-plugin' ),
+			'sortPriceDesc'     => __( 'Price (high to low)', 'atelier-irisee-master-plugin' ),
+			'sortNewest'        => __( 'Newest', 'atelier-irisee-master-plugin' ),
+			'inStockOnly'       => __( 'Only show fabrics in stock', 'atelier-irisee-master-plugin' ),
+			'showing'           => __( 'Showing %1$d–%2$d of %3$d', 'atelier-irisee-master-plugin' ),
+			'noFabricsMatch'    => __( 'No fabrics match your filters.', 'atelier-irisee-master-plugin' ),
+			'showPicture'       => __( 'Show picture %d', 'atelier-irisee-master-plugin' ),
+			'pagination'        => __( 'Pagination', 'atelier-irisee-master-plugin' ),
+			'per10cm'           => __( 'per 10 cm', 'atelier-irisee-master-plugin' ),
 		);
 	}
 

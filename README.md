@@ -45,6 +45,10 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
    - zip count
    - zip length (cm)
    - bust, waist and height (cm)
+
+   The pattern's **Atelier Irisee** tab (in Product data) lets you choose which fabric categories customers see first: give a category position 1, 2, 3… and those fabrics are listed first under the "Recommended" sort.
+
+   All pictures of the pattern are shown in the configurator: the main image, the product gallery, and the variation images. When a customer picks a size that has its own picture, that picture is shown.
 3. **Fabrics, buttons and zips** are *simple* products.
    - A fabric's price and stock are **per 10 cm**.
    - Zips have a **Zip length (cm)** field in the General tab. The configurator only offers zips whose length matches what the size needs.
@@ -52,19 +56,28 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
 
 ## Languages
 
-The plugin speaks **Dutch** and **English**, independent of the WordPress site language.
+The plugin speaks **Dutch**, **French** and **English**, independent of the WordPress site language.
 
 - **Admin**: the settings page and product fields use the **Plugin language** setting under WooCommerce → Atelier Irisee. The default is Dutch.
-- **Customers**: the configurator starts in that same language. Customers can switch at any time with the flags in the top right: 🇧🇪 Nederlands / 🇬🇧 English.
+- **Customers**: the configurator starts in that same language. Customers can switch at any time with the flags in the top right: 🇧🇪 Nederlands / 🇫🇷 Français / 🇬🇧 English.
   - Their choice is remembered in a cookie (`aimp_lang`).
   - The cart and checkout texts from this plugin use the same language.
 - Product names, descriptions and category names are your own shop content, so they are shown as you wrote them.
 
 ### Adding or changing a text
 
-All strings in the code are written in English with `__( '…', 'atelier-irisee-master-plugin' )`. The Dutch version lives in [includes/languages/nl.php](includes/languages/nl.php), as `'English text' => 'Nederlandse tekst'`.
+All strings in the code are written in English with `__( '…', 'atelier-irisee-master-plugin' )`. The translations live in:
 
-When you add a new string to the code, add a line for it there too. Any string without a Dutch entry is shown in English.
+- [includes/languages/nl.php](includes/languages/nl.php) (Dutch)
+- [includes/languages/fr.php](includes/languages/fr.php) (French)
+
+Each line has the form `'English text' => 'translation'`. When you add a new string to the code, add a line for it in both files. Any string without a translation is shown in English.
+
+To add another language:
+
+1. Add it to `AIMP_I18n::languages()` in [includes/class-aimp-i18n.php](includes/class-aimp-i18n.php).
+2. Create `includes/languages/{code}.php`.
+3. Add a flag SVG in `assets/images/flags/`.
 
 ## How the cart behaves
 
@@ -88,5 +101,5 @@ When you add a new string to the code, add a line for it there too. Any string w
 | `includes/class-aimp-shortcode.php` | Shortcode and front-end assets |
 | `includes/class-aimp-updater.php` | Checks GitHub releases for updates |
 | `includes/class-aimp-i18n.php` | Picks the active language (Dutch/English) and translates the plugin's texts |
-| `includes/languages/nl.php` | Dutch translations |
+| `includes/languages/nl.php`, `fr.php` | Dutch and French translations |
 | `assets/js/configurator.js` | Configurator UI (vanilla JS, no build step) |

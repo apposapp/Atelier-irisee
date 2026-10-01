@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,18 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 1.2.0 =
+* French translation, with the French flag added to the language switcher.
+* Fabric step:
+  * filter by fabric category,
+  * search,
+  * show only fabrics in stock,
+  * sort by recommended, name, price or newest.
+* Fabric step: smaller fabric pictures, 16 per page (adjustable), numbered pagination and a "showing x–y of z" count.
+* New "Atelier Irisee" tab on pattern products to choose which fabric categories are shown first.
+* Pattern details show all pictures: one large picture with selectable thumbnails underneath. Choosing a size shows its own picture.
+* Details of the selected pattern, fabric, buttons or zip now appear on the right next to the grid, and stay in view while scrolling.
 
 = 1.1.0 =
 * Complete Dutch translation: settings, product fields, configurator, cart, checkout and order texts.

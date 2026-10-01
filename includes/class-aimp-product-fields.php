@@ -16,6 +16,9 @@ class AIMP_Product_Fields {
 		add_action( 'woocommerce_admin_process_variation_object', array( __CLASS__, 'save_variation_fields' ), 10, 2 );
 		add_action( 'woocommerce_product_options_general_product_data', array( __CLASS__, 'render_zip_length_field' ) );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_zip_length_field' ) );
+		add_filter( 'woocommerce_product_data_tabs', array( __CLASS__, 'add_pattern_tab' ) );
+		add_action( 'woocommerce_product_data_panels', array( __CLASS__, 'render_pattern_panel' ) );
+		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_fabric_priority' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
 	}
 
@@ -139,6 +142,89 @@ class AIMP_Product_Fields {
 		$cats = isset( $_POST[ $name ][ $i ] ) ? array_map( 'absint', (array) wp_unslash( $_POST[ $name ][ $i ] ) ) : array();
 		// phpcs:enable
 		$variation->update_meta_data( AIMP_Catalog::META_FABRIC_CATS, array_values( array_filter( $cats ) ) );
+	}
+
+	/**
+	 * "Atelier Irisee" tab on variable (pattern) products.
+	 *
+	 * @param array $tabs Product data tabs.
+	 * @return array
+	 */
+	public static function add_pattern_tab( $tabs ) {
+		$tabs['aimp_pattern'] = array(
+			'label'    => __( 'Atelier Irisee', 'atelier-irisee-master-plugin' ),
+			'target'   => 'aimp_pattern_data',
+			'class'    => array( 'show_if_variable' ),
+			'priority' => 65,
+		);
+		return $tabs;
+	}
+
+	public static function render_pattern_panel() {
+		global $product_object;
+		$priority = $product_object instanceof WC_Product ? AIMP_Catalog::get_fabric_priority( $product_object ) : array();
+		$terms    = AIMP_Catalog::get_fabric_categories();
+		?>
+		<div id="aimp_pattern_data" class="panel woocommerce_options_panel hidden">
+			<div class="options_group aimp-priority">
+				<h4><?php esc_html_e( 'Fabric categories shown first', 'atelier-irisee-master-plugin' ); ?></h4>
+				<p class="description"><?php esc_html_e( 'Choose which fabric categories customers see first when they pick a fabric for this pattern. Give them a position: 1 is shown first, then 2, and so on. Categories without a position come after them. Only the categories allowed for the chosen size are shown.', 'atelier-irisee-master-plugin' ); ?></p>
+				<?php if ( ! $terms ) : ?>
+					<p class="description"><?php esc_html_e( 'No fabric subcategories found. Set the Fabrics category under WooCommerce > Atelier Irisee and give it subcategories.', 'atelier-irisee-master-plugin' ); ?></p>
+				<?php else : ?>
+					<table class="widefat striped aimp-priority-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Fabric category', 'atelier-irisee-master-plugin' ); ?></th>
+								<th><?php esc_html_e( 'Position', 'atelier-irisee-master-plugin' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $terms as $term ) : ?>
+								<?php $id = 'aimp_priority_' . (int) $term->term_id; ?>
+								<tr>
+									<td><label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $term->name ); ?></label></td>
+									<td>
+										<input type="number" min="1" step="1" class="small-text" id="<?php echo esc_attr( $id ); ?>"
+											name="aimp_fabric_priority[<?php echo (int) $term->term_id; ?>]"
+											value="<?php echo isset( $priority[ $term->term_id ] ) ? (int) $priority[ $term->term_id ] : ''; ?>">
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+					<input type="hidden" name="aimp_priority_present" value="1">
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Runs inside WooCommerce's product save, which already verified its nonce.
+	 *
+	 * @param WC_Product $product Product.
+	 */
+	public static function save_fabric_priority( $product ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
+		if ( empty( $_POST['aimp_priority_present'] ) || ! current_user_can( 'edit_products' ) ) {
+			return;
+		}
+		$input = isset( $_POST['aimp_fabric_priority'] ) ? (array) wp_unslash( $_POST['aimp_fabric_priority'] ) : array();
+		// phpcs:enable
+		$priority = array();
+		foreach ( $input as $term_id => $position ) {
+			$term_id  = absint( $term_id );
+			$position = absint( $position );
+			if ( $term_id && $position ) {
+				$priority[ $term_id ] = $position;
+			}
+		}
+		if ( $priority ) {
+			$product->update_meta_data( AIMP_Catalog::META_FABRIC_PRIORITY, $priority );
+		} else {
+			$product->delete_meta_data( AIMP_Catalog::META_FABRIC_PRIORITY );
+		}
 	}
 
 	public static function render_zip_length_field() {

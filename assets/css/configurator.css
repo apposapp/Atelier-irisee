@@ -7,6 +7,10 @@
 	--aimp-surface: #fafafa;
 	--aimp-radius: 6px;
 	--aimp-gap: 1.25rem;
+	/* Distance of the sticky details panel from the top of the screen (raise it if your theme has a sticky header). */
+	--aimp-sticky-top: 1.5rem;
+	container-type: inline-size;
+	container-name: aimp;
 	margin: 2rem 0;
 }
 
@@ -14,6 +18,10 @@
 .aimp-configurator *::before,
 .aimp-configurator *::after {
 	box-sizing: border-box;
+}
+
+.aimp-configurator img {
+	max-width: 100%;
 }
 
 /* Language switcher (top right) */
@@ -113,7 +121,45 @@
 	color: var(--aimp-accent-text);
 }
 
-/* Filters */
+/* Grid on the left, details of the selection on the right */
+.aimp-split {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+	gap: calc(var(--aimp-gap) * 1.5);
+	align-items: start;
+}
+
+.aimp-split-side {
+	position: sticky;
+	top: var(--aimp-sticky-top);
+	max-height: calc(100vh - var(--aimp-sticky-top) * 2);
+	overflow-y: auto;
+	padding: var(--aimp-gap);
+	border: 1px solid var(--aimp-border);
+	border-radius: var(--aimp-radius);
+	background: var(--aimp-surface);
+}
+
+/* Narrow containers: stack the details under the grid. */
+@container aimp (max-width: 760px) {
+	.aimp-split {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-split-side {
+		position: static;
+		max-height: none;
+		overflow: visible;
+	}
+}
+
+.aimp-side-placeholder {
+	padding: 3rem 1rem;
+	color: var(--aimp-muted);
+	text-align: center;
+}
+
+/* Filters & fabric toolbar */
 .aimp-filters {
 	display: flex;
 	flex-wrap: wrap;
@@ -150,22 +196,65 @@
 	text-decoration: line-through;
 }
 
-/* 3x3 grid */
+.aimp-toolbar .aimp-filters {
+	margin-bottom: 0.75rem;
+}
+
+.aimp-toolbar-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem 1.25rem;
+	margin-bottom: var(--aimp-gap);
+}
+
+.aimp-search {
+	flex: 1 1 14rem;
+	min-width: 0;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--aimp-border);
+	border-radius: var(--aimp-radius);
+	font: inherit;
+}
+
+.aimp-check,
+.aimp-sort {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0;
+	font-size: 0.95em;
+}
+
+.aimp-sort select {
+	padding: 0.4rem 0.5rem;
+	border: 1px solid var(--aimp-border);
+	border-radius: var(--aimp-radius);
+	font: inherit;
+}
+
+/* Product grids: 3 columns for patterns, 4 smaller columns for fabrics, buttons and zips */
 .aimp-grid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: var(--aimp-gap);
 }
 
-@media (max-width: 900px) {
-	.aimp-grid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+.aimp-grid--compact {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+
+@container aimp (max-width: 980px) {
+	.aimp-grid--compact {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }
 
-@media (max-width: 520px) {
-	.aimp-grid {
-		grid-template-columns: minmax(0, 1fr);
+@container aimp (max-width: 560px) {
+	.aimp-grid,
+	.aimp-grid--compact {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
@@ -184,6 +273,12 @@
 	text-align: left;
 	cursor: pointer;
 	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.aimp-grid--compact .aimp-card {
+	padding: 0.4rem;
+	gap: 0.2rem;
+	font-size: 0.9em;
 }
 
 .aimp-card:hover,
@@ -213,12 +308,12 @@
 	display: block;
 	width: 100%;
 	height: 100%;
-	max-width: 100%;
 	object-fit: cover;
 }
 
 .aimp-card-name {
 	font-weight: 600;
+	line-height: 1.3;
 }
 
 .aimp-card-price {
@@ -226,21 +321,25 @@
 	font-size: 0.95em;
 }
 
+.aimp-card-price small {
+	font-size: 0.85em;
+}
+
 .aimp-badge {
 	position: absolute;
-	top: 1rem;
-	left: 1rem;
+	top: 0.75rem;
+	left: 0.75rem;
 	padding: 0.15rem 0.5rem;
 	border-radius: 999px;
 	background: #fff;
 	color: #1f1f1f;
-	font-size: 0.8em;
+	font-size: 0.75em;
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .aimp-badge--selected {
 	left: auto;
-	right: 1rem;
+	right: 0.75rem;
 	background: var(--aimp-accent);
 	color: var(--aimp-accent-text);
 }
@@ -248,46 +347,111 @@
 /* Pagination */
 .aimp-pagination {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: center;
-	gap: 1rem;
+	gap: 0.35rem;
 	margin-top: var(--aimp-gap);
 }
 
-/* Panels */
-.aimp-panel {
-	display: grid;
-	grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-	gap: var(--aimp-gap);
-	margin-top: 2rem;
-	padding: var(--aimp-gap);
+.aimp-page {
+	min-width: 2.25rem;
+	height: 2.25rem;
+	padding: 0 0.5rem;
 	border: 1px solid var(--aimp-border);
 	border-radius: var(--aimp-radius);
-	background: var(--aimp-surface);
+	background: #fff;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
 }
 
-.aimp-panel > .aimp-loading,
-.aimp-size-chart-wrap,
-.aimp-panel > .aimp-actions {
-	grid-column: 1 / -1;
+.aimp-page:hover:not(:disabled) {
+	border-color: var(--aimp-muted);
 }
 
-@media (max-width: 700px) {
-	.aimp-panel {
-		grid-template-columns: minmax(0, 1fr);
-	}
+.aimp-page.is-current {
+	background: var(--aimp-accent);
+	border-color: var(--aimp-accent);
+	color: var(--aimp-accent-text);
+	cursor: default;
 }
 
-.aimp-panel-media img {
+.aimp-page--nav:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+.aimp-page-gap {
+	padding: 0 0.25rem;
+	color: var(--aimp-muted);
+}
+
+.aimp-results-count {
+	margin: 0.5rem 0 0;
+	color: var(--aimp-muted);
+	font-size: 0.9em;
+	text-align: center;
+}
+
+/* Details panel */
+.aimp-details-title {
+	margin: 1rem 0 0.5rem;
+}
+
+.aimp-details h4 {
+	margin: 1.25rem 0 0.4rem;
+}
+
+/* Gallery: one big picture with selectable thumbnails underneath */
+.aimp-gallery-main {
+	aspect-ratio: 1 / 1;
+	overflow: hidden;
+	border-radius: var(--aimp-radius);
+	background: #fff;
+}
+
+.aimp-gallery-main img {
 	display: block;
 	width: 100%;
-	max-width: 100%;
-	height: auto;
-	border-radius: var(--aimp-radius);
+	height: 100%;
+	object-fit: contain;
 }
 
-.aimp-panel-title {
-	margin-top: 0;
+.aimp-gallery-thumbs {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+	gap: 0.5rem;
+	margin-top: 0.5rem;
+}
+
+.aimp-thumb {
+	display: block;
+	aspect-ratio: 1 / 1;
+	padding: 0;
+	overflow: hidden;
+	border: 2px solid transparent;
+	border-radius: calc(var(--aimp-radius) - 2px);
+	background: #fff;
+	cursor: pointer;
+	opacity: 0.75;
+}
+
+.aimp-thumb img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.aimp-thumb:hover,
+.aimp-thumb:focus-visible {
+	opacity: 1;
+}
+
+.aimp-thumb.is-active {
+	border-color: var(--aimp-accent);
+	opacity: 1;
 }
 
 .aimp-help {
@@ -328,7 +492,7 @@
 
 .aimp-measurements dd {
 	margin: 0;
-	font-size: 1.25em;
+	font-size: 1.2em;
 	font-weight: 600;
 }
 
@@ -420,8 +584,13 @@
 	background: var(--aimp-accent);
 	color: var(--aimp-accent-text);
 	font: inherit;
+	text-align: center;
 	text-decoration: none;
 	cursor: pointer;
+}
+
+.aimp-button--block {
+	width: 100%;
 }
 
 .aimp-button:hover {

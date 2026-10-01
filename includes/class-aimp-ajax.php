@@ -45,7 +45,16 @@ class AIMP_Ajax {
 	}
 
 	public static function fabrics() {
-		$data = AIMP_Catalog::get_fabrics( self::int_param( 'variation' ), max( 1, self::int_param( 'page' ) ) );
+		$data = AIMP_Catalog::get_fabrics(
+			self::int_param( 'variation' ),
+			array(
+				'page'     => max( 1, self::int_param( 'page' ) ),
+				'category' => self::int_param( 'category' ),
+				'search'   => isset( $_POST['search'] ) ? substr( sanitize_text_field( wp_unslash( $_POST['search'] ) ), 0, 100 ) : '',
+				'in_stock' => 1 === self::int_param( 'in_stock' ),
+				'sort'     => isset( $_POST['sort'] ) ? sanitize_key( wp_unslash( $_POST['sort'] ) ) : 'recommended',
+			)
+		);
 		if ( null === $data ) {
 			self::not_found();
 		}

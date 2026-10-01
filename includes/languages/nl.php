@@ -33,7 +33,9 @@ return array(
 	'Choose which product categories hold your patterns and materials. The subcategories of the Fabrics category are the fabric categories you can allow per pattern size. The subcategories of the Patterns category become the filter tabs in the configurator.' => 'Kies in welke productcategorieën je patronen en materialen staan. De subcategorieën van de categorie stoffen zijn de stofcategorieën die je per patroonmaat kunt toestaan. De subcategorieën van de categorie patronen worden de filtertabs in de configurator.',
 	'Place the configurator on any page with the shortcode %s.' => 'Plaats de configurator op een pagina met de shortcode %s.',
 	'— Select —' => '— Kies —',
-	'Products per page in the configurator grids. 9 fills a 3x3 grid.' => 'Producten per pagina in de rasters van de configurator. Met 9 vul je een raster van 3x3.',
+	'Patterns, buttons and zips per page. 9 fills a 3x3 grid.' => 'Patronen, knopen en ritsen per pagina. Met 9 vul je een raster van 3x3.',
+	'Fabrics per page' => 'Stoffen per pagina',
+	'Number of fabrics per page in the fabric step. 16 fills a 4x4 grid.' => 'Aantal stoffen per pagina in de stap stof. Met 16 vul je een raster van 4x4.',
 	'Save settings' => 'Instellingen opslaan',
 
 	// Product fields.
@@ -47,6 +49,10 @@ return array(
 	'Height (cm)' => 'Lichaamslengte (cm)',
 	'Fabric categories allowed' => 'Toegestane stofcategorieën',
 	'No fabric subcategories found. Set the Fabrics category under WooCommerce > Atelier Irisee and give it subcategories.' => 'Geen stofsubcategorieën gevonden. Stel de categorie stoffen in onder WooCommerce > Atelier Irisee en geef ze subcategorieën.',
+	'Fabric categories shown first' => 'Stofcategorieën die eerst getoond worden',
+	'Choose which fabric categories customers see first when they pick a fabric for this pattern. Give them a position: 1 is shown first, then 2, and so on. Categories without a position come after them. Only the categories allowed for the chosen size are shown.' => 'Kies welke stofcategorieën klanten eerst zien wanneer ze een stof kiezen voor dit patroon. Geef ze een positie: 1 wordt eerst getoond, dan 2, enzovoort. Categorieën zonder positie komen daarna. Enkel de categorieën die voor de gekozen maat zijn toegestaan, worden getoond.',
+	'Fabric category' => 'Stofcategorie',
+	'Position' => 'Positie',
 	'Only used for products in the Zips category. The configurator only offers zips whose length equals the length a pattern size needs.' => 'Wordt enkel gebruikt voor producten in de categorie ritsen. De configurator toont enkel ritsen waarvan de lengte gelijk is aan de lengte die een patroonmaat nodig heeft.',
 
 	// Catalog.
@@ -69,7 +75,6 @@ return array(
 	'Nothing available at the moment. You can continue without.' => 'Momenteel niets beschikbaar. Je kunt zonder verdergaan.',
 	'Previous' => 'Vorige',
 	'Next' => 'Volgende',
-	'Page %1$d of %2$d' => 'Pagina %1$d van %2$d',
 	'Back' => 'Terug',
 	'Choose your size' => 'Kies je maat',
 	'Compare your own measurements with the measurements below to pick the right size for this pattern.' => 'Vergelijk je eigen maten met de maten hieronder om de juiste maat voor dit patroon te kiezen.',
@@ -111,6 +116,23 @@ return array(
 	'View cart' => 'Bekijk winkelmandje',
 	'Configure another pattern' => 'Nog een patroon samenstellen',
 	'Selected' => 'Gekozen',
+	'Select a pattern to see its pictures, sizes and measurements.' => 'Kies een patroon om de foto\'s, maten en afmetingen te bekijken.',
+	'Select a fabric to see its pictures and details.' => 'Kies een stof om de foto\'s en details te bekijken.',
+	'Select an item to see its pictures and details.' => 'Kies een item om de foto\'s en details te bekijken.',
+	'Search fabrics…' => 'Zoek stoffen…',
+	'Sort by' => 'Sorteren op',
+	'Recommended' => 'Aanbevolen',
+	'Name (A–Z)' => 'Naam (A–Z)',
+	'Name (Z–A)' => 'Naam (Z–A)',
+	'Price (low to high)' => 'Prijs (laag naar hoog)',
+	'Price (high to low)' => 'Prijs (hoog naar laag)',
+	'Newest' => 'Nieuwste',
+	'Only show fabrics in stock' => 'Toon enkel stoffen op voorraad',
+	'Showing %1$d–%2$d of %3$d' => '%1$d–%2$d van %3$d getoond',
+	'No fabrics match your filters.' => 'Geen stoffen gevonden met deze filters.',
+	'Show picture %d' => 'Toon foto %d',
+	'Pagination' => 'Paginering',
+	'per 10 cm' => 'per 10 cm',
 	'Please enable JavaScript to use the pattern configurator.' => 'Schakel JavaScript in om de patroonconfigurator te gebruiken.',
 
 	// Cart, checkout and orders.

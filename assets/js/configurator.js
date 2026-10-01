@@ -2,6 +2,7 @@
  * Atelier Irisee pattern configurator.
  *
  * Steps: pattern & size -> fabric -> buttons & zips -> summary -> add to cart.
+ * Pattern and fabric steps show a grid on the left and the details of the selection on the right.
  * All rules (allowed fabrics, quantities, stock) are enforced again on the server.
  */
 (function () {
@@ -11,6 +12,7 @@
 	if (!cfg) {
 		return;
 	}
+
 	/* ---------------------------------------------------------------
 	 * Language
 	 * ------------------------------------------------------------- */
@@ -57,9 +59,10 @@
 	 * Helpers
 	 * ------------------------------------------------------------- */
 
-	// Decimal comma in Dutch: 20.5 -> 20,5.
+	// Decimal separator of the active language: 20.5 -> 20,5 in Dutch and French.
 	function num(value) {
-		return lang === 'nl' ? String(value).replace('.', ',') : String(value);
+		var info = languageInfo(lang);
+		return String(value).replace('.', info && info.decimal ? info.decimal : '.');
 	}
 
 	function esc(value) {
@@ -82,16 +85,16 @@
 		var c = cfg.currency;
 		var parts = Number(amount).toFixed(c.decimals).split('.');
 		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, c.thousand);
-		var num = parts.join(c.decimal);
+		var value = parts.join(c.decimal);
 		switch (c.position) {
 			case 'right':
-				return num + c.symbol;
+				return value + c.symbol;
 			case 'left_space':
-				return c.symbol + ' ' + num;
+				return c.symbol + ' ' + value;
 			case 'right_space':
-				return num + ' ' + c.symbol;
+				return value + ' ' + c.symbol;
 			default:
-				return c.symbol + num;
+				return c.symbol + value;
 		}
 	}
 
@@ -137,6 +140,34 @@
 		}
 	}
 
+	function findById(items, id) {
+		return (items || []).filter(function (item) {
+			return item.id === id;
+		})[0];
+	}
+
+	// Replace a selected item with its freshly loaded copy (new language, current stock).
+	function rebind(selected, items) {
+		return selected ? findById(items, selected.id) || selected : selected;
+	}
+
+	// Page numbers with gaps: 1 … 4 5 6 … 12.
+	function pageList(page, pages) {
+		var list = [];
+		for (var p = 1; p <= pages; p++) {
+			if (p === 1 || p === pages || Math.abs(p - page) <= 1) {
+				list.push(p);
+			} else if (list[list.length - 1] !== '…') {
+				list.push('…');
+			}
+		}
+		return list;
+	}
+
+	function defaultFabricFilters() {
+		return { category: 0, search: '', inStock: false, sort: 'recommended' };
+	}
+
 	/* ---------------------------------------------------------------
 	 * Configurator
 	 * ------------------------------------------------------------- */
@@ -154,6 +185,40 @@
 		this.renderLanguages();
 		this.render();
 	}
+
+	Configurator.prototype.reset = function () {
+		this.state = {
+			step: 'pattern',
+			category: 0,
+			patternPage: 1,
+			patterns: null,
+			pattern: null,
+			patternImage: 0,
+			sizesData: null,
+			size: null,
+			added: false
+		};
+		this.resetMaterials();
+	};
+
+	// Clears every choice that depends on the selected size.
+	Configurator.prototype.resetMaterials = function () {
+		var s = this.state;
+		s.fabricPage = 1;
+		s.fabrics = null;
+		s.fabric = null;
+		s.fabricImage = 0;
+		s.fabricFilters = defaultFabricFilters();
+		s.fabricCategories = null;
+		s.notions = {
+			buttons: { page: 1, data: null, selected: null, image: 0 },
+			zips: { page: 1, data: null, selected: null, image: 0 }
+		};
+	};
+
+	/* ---------------------------------------------------------------
+	 * Language switcher
+	 * ------------------------------------------------------------- */
 
 	Configurator.prototype.renderLanguages = function () {
 		var self = this;
@@ -207,11 +272,7 @@
 						return;
 					}
 					s.sizesData = data;
-					if (s.size) {
-						s.size = data.sizes.filter(function (sz) {
-							return sz.id === s.size.id;
-						})[0] || s.size;
-					}
+					s.size = rebind(s.size, data.sizes);
 					if (s.step === 'pattern') {
 						self.renderSizePanel();
 					} else if (s.step === 'summary' && !s.added) {
@@ -241,45 +302,9 @@
 		}
 	};
 
-	// Replace a selected item with its freshly loaded copy (new language, current stock).
-	function rebind(selected, items) {
-		if (!selected) {
-			return selected;
-		}
-		return items.filter(function (item) {
-			return item.id === selected.id;
-		})[0] || selected;
-	}
-
-	Configurator.prototype.reset = function () {
-		this.state = {
-			step: 'pattern',
-			category: 0,
-			patternPage: 1,
-			patterns: null,
-			pattern: null,
-			sizesData: null,
-			size: null,
-			fabricPage: 1,
-			fabrics: null,
-			fabric: null,
-			notions: {
-				buttons: { page: 1, data: null, selected: null },
-				zips: { page: 1, data: null, selected: null }
-			},
-			added: false
-		};
-	};
-
-	// Clears every choice that depends on the selected size.
-	Configurator.prototype.resetMaterials = function () {
-		var s = this.state;
-		s.fabricPage = 1;
-		s.fabrics = null;
-		s.fabric = null;
-		s.notions.buttons = { page: 1, data: null, selected: null };
-		s.notions.zips = { page: 1, data: null, selected: null };
-	};
+	/* ---------------------------------------------------------------
+	 * Steps
+	 * ------------------------------------------------------------- */
 
 	Configurator.prototype.steps = function () {
 		var size = this.state.size;
@@ -365,13 +390,42 @@
 	};
 
 	/* ---------------------------------------------------------------
-	 * Shared grid
+	 * Shared building blocks: grid, pagination, gallery, details
 	 * ------------------------------------------------------------- */
+
+	Configurator.prototype.paginationHtml = function (data) {
+		var html = '';
+		if (data.pages > 1) {
+			html += '<nav class="aimp-pagination" aria-label="' + esc(t.pagination) + '">';
+			html +=
+				'<button type="button" class="aimp-page aimp-page--nav" data-page="' + (data.page - 1) + '"' +
+				(data.page <= 1 ? ' disabled' : '') + ' aria-label="' + esc(t.previous) + '">‹</button>';
+			pageList(data.page, data.pages).forEach(function (p) {
+				if (p === '…') {
+					html += '<span class="aimp-page-gap" aria-hidden="true">…</span>';
+				} else if (p === data.page) {
+					html += '<button type="button" class="aimp-page is-current" aria-current="page" disabled>' + p + '</button>';
+				} else {
+					html += '<button type="button" class="aimp-page" data-page="' + p + '">' + p + '</button>';
+				}
+			});
+			html +=
+				'<button type="button" class="aimp-page aimp-page--nav" data-page="' + (data.page + 1) + '"' +
+				(data.page >= data.pages ? ' disabled' : '') + ' aria-label="' + esc(t.next) + '">›</button>';
+			html += '</nav>';
+		}
+		if (data.total > 0 && data.per_page > 0) {
+			var from = (data.page - 1) * data.per_page + 1;
+			var to = Math.min(data.total, from + data.items.length - 1);
+			html += '<p class="aimp-results-count">' + esc(fmt(t.showing, from, to, data.total)) + '</p>';
+		}
+		return html;
+	};
 
 	/**
 	 * @param {Element} container
-	 * @param {Object}  data        { items, page, pages }
-	 * @param {Object}  opts        { selectedId, onSelect(item), onPage(page), emptyText, unavailableText, toggle }
+	 * @param {Object}  data   { items, page, pages, total, per_page }
+	 * @param {Object}  opts   { selectedId, onSelect(item), onPage(page), emptyText, unavailableText, compact, priceSuffix }
 	 */
 	Configurator.prototype.renderGrid = function (container, data, opts) {
 		if (!data) {
@@ -383,7 +437,7 @@
 			return;
 		}
 
-		var html = '<div class="aimp-grid">';
+		var html = '<div class="aimp-grid' + (opts.compact ? ' aimp-grid--compact' : '') + '">';
 		data.items.forEach(function (item) {
 			var selected = opts.selectedId === item.id;
 			var unavailable = item.available === false;
@@ -393,40 +447,102 @@
 				(unavailable ? ' disabled' : '') + '>' +
 				'<span class="aimp-card-image"><img src="' + esc(item.image) + '" alt="' + esc(item.image_alt || item.name) + '" loading="lazy"></span>' +
 				'<span class="aimp-card-name">' + esc(item.name) + '</span>' +
-				'<span class="aimp-card-price">' + (item.price_html || '') + '</span>' +
+				'<span class="aimp-card-price">' + (item.price_html || '') +
+				(opts.priceSuffix ? ' <small>' + esc(opts.priceSuffix) + '</small>' : '') + '</span>' +
 				(unavailable ? '<span class="aimp-badge">' + esc(opts.unavailableText || '') + '</span>' : '') +
 				(selected ? '<span class="aimp-badge aimp-badge--selected">' + esc(t.selected) + '</span>' : '') +
 				'</button>';
 		});
 		html += '</div>';
-
-		if (data.pages > 1) {
-			html +=
-				'<nav class="aimp-pagination">' +
-				'<button type="button" class="aimp-button aimp-button--ghost" data-page="' + (data.page - 1) + '"' + (data.page <= 1 ? ' disabled' : '') + '>' + esc(t.previous) + '</button>' +
-				'<span>' + esc(fmt(t.pageOf, data.page, data.pages)) + '</span>' +
-				'<button type="button" class="aimp-button aimp-button--ghost" data-page="' + (data.page + 1) + '"' + (data.page >= data.pages ? ' disabled' : '') + '>' + esc(t.next) + '</button>' +
-				'</nav>';
-		}
-
+		html += this.paginationHtml(data);
 		container.innerHTML = html;
 
 		container.querySelectorAll('.aimp-card').forEach(function (card) {
 			card.addEventListener('click', function () {
-				var id = parseInt(card.getAttribute('data-id'), 10);
-				for (var i = 0; i < data.items.length; i++) {
-					if (data.items[i].id === id) {
-						opts.onSelect(data.items[i]);
-						return;
-					}
+				var item = findById(data.items, parseInt(card.getAttribute('data-id'), 10));
+				if (item) {
+					opts.onSelect(item);
 				}
 			});
 		});
 		container.querySelectorAll('[data-page]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				opts.onPage(parseInt(btn.getAttribute('data-page'), 10));
+				scrollIntoViewIfNeeded(container);
 			});
 		});
+	};
+
+	// One big picture with the other pictures as selectable thumbnails underneath.
+	Configurator.prototype.galleryHtml = function (images, index) {
+		images = images && images.length ? images : [];
+		if (!images.length) {
+			return '';
+		}
+		var current = images[index] || images[0];
+		var html =
+			'<div class="aimp-gallery">' +
+			'<div class="aimp-gallery-main"><img src="' + esc(current.large) + '" alt="' + esc(current.alt) + '"></div>';
+		if (images.length > 1) {
+			html += '<div class="aimp-gallery-thumbs">';
+			images.forEach(function (image, i) {
+				var active = image === current;
+				html +=
+					'<button type="button" class="aimp-thumb' + (active ? ' is-active' : '') + '" data-index="' + i + '"' +
+					' aria-pressed="' + (active ? 'true' : 'false') + '" aria-label="' + esc(fmt(t.showPicture, i + 1)) + '">' +
+					'<img src="' + esc(image.thumb) + '" alt="" loading="lazy">' +
+					'</button>';
+			});
+			html += '</div>';
+		}
+		return html + '</div>';
+	};
+
+	Configurator.prototype.bindGallery = function (container, images, onChange) {
+		var gallery = container.querySelector('.aimp-gallery');
+		if (!gallery) {
+			return;
+		}
+		var main = gallery.querySelector('.aimp-gallery-main img');
+		gallery.querySelectorAll('.aimp-thumb').forEach(function (thumb) {
+			thumb.addEventListener('click', function () {
+				var i = parseInt(thumb.getAttribute('data-index'), 10);
+				var image = images[i];
+				if (!image) {
+					return;
+				}
+				main.src = image.large;
+				main.alt = image.alt;
+				gallery.querySelectorAll('.aimp-thumb').forEach(function (other) {
+					var active = other === thumb;
+					other.classList.toggle('is-active', active);
+					other.setAttribute('aria-pressed', active ? 'true' : 'false');
+				});
+				onChange(i);
+			});
+		});
+	};
+
+	// Details of a fabric, button or zip: gallery, description, attributes, prices and stock.
+	Configurator.prototype.materialDetailsHtml = function (item, imageIndex, unitLabel, needText) {
+		var html = '<div class="aimp-details">';
+		html += this.galleryHtml(item.gallery, imageIndex);
+		html += '<h3 class="aimp-details-title">' + esc(item.name) + '</h3>';
+		if (item.description) {
+			html += '<div class="aimp-description">' + item.description + '</div>';
+		}
+		html += '<dl class="aimp-info-list">';
+		(item.attributes || []).forEach(function (attr) {
+			html += '<div><dt>' + esc(attr.label) + '</dt><dd>' + esc(attr.value) + '</dd></div>';
+		});
+		html += '<div><dt>' + esc(unitLabel) + '</dt><dd>' + item.price_html + '</dd></div>';
+		html += '<div><dt>' + esc(t.youNeed) + '</dt><dd>' + esc(needText) + '</dd></div>';
+		html += '<div><dt>' + esc(t.totalForSize) + '</dt><dd>' + item.total_html + '</dd></div>';
+		if (item.stock_text) {
+			html += '<div><dt>' + esc(t.stock) + '</dt><dd>' + esc(item.stock_text) + '</dd></div>';
+		}
+		html += '</dl></div>';
+		return html;
 	};
 
 	Configurator.prototype.showError = function (container, err) {
@@ -460,9 +576,11 @@
 			html += '</div>';
 		}
 
-		html += '<div class="aimp-grid-wrap" data-role="patterns"></div>';
-		html += '<div data-role="size-panel"></div>';
-		html += '</div>';
+		html +=
+			'<div class="aimp-split">' +
+			'<div class="aimp-split-main" data-role="patterns"></div>' +
+			'<aside class="aimp-split-side" data-role="size-panel"></aside>' +
+			'</div></div>';
 		this.body.innerHTML = html;
 
 		this.body.querySelectorAll('[data-cat]').forEach(function (btn) {
@@ -490,7 +608,7 @@
 		this.renderPatternGrid();
 		request('patterns', { category: s.category, page: s.patternPage })
 			.then(function (data) {
-				// Ignore stale responses after a quick filter change.
+				// Ignore stale responses after a quick filter or language change.
 				if (wanted !== lang + ':' + s.category + ':' + s.patternPage) {
 					return;
 				}
@@ -523,7 +641,6 @@
 			onPage: function (page) {
 				s.patternPage = page;
 				self.loadPatterns();
-				scrollIntoViewIfNeeded(container);
 			}
 		});
 	};
@@ -535,12 +652,14 @@
 			return;
 		}
 		s.pattern = item;
+		s.patternImage = 0;
 		s.sizesData = null;
 		s.size = null;
 		this.resetMaterials();
 		this.renderPatternGrid();
 		this.renderSizePanel();
 		this.renderSteps();
+		scrollIntoViewIfNeeded(this.body.querySelector('[data-role="size-panel"]'));
 
 		var reqLang = lang;
 		request('sizes', { pattern: item.id })
@@ -550,7 +669,6 @@
 				}
 				s.sizesData = data;
 				self.renderSizePanel();
-				scrollIntoViewIfNeeded(self.body.querySelector('[data-role="size-panel"]'));
 			})
 			.catch(function (err) {
 				var panel = self.body.querySelector('[data-role="size-panel"]');
@@ -582,11 +700,11 @@
 			return;
 		}
 		if (!s.pattern) {
-			panel.innerHTML = '';
+			panel.innerHTML = '<div class="aimp-side-placeholder">' + esc(t.selectPatternHint) + '</div>';
 			return;
 		}
 		if (!s.sizesData) {
-			panel.innerHTML = '<div class="aimp-panel"><p class="aimp-loading">' + esc(t.loading) + '</p></div>';
+			panel.innerHTML = '<div class="aimp-details"><p class="aimp-loading">' + esc(t.loading) + '</p></div>';
 			return;
 		}
 
@@ -594,10 +712,9 @@
 		var sizes = s.sizesData.sizes;
 		var size = s.size;
 
-		var html = '<div class="aimp-panel aimp-size-panel">';
-		html += '<div class="aimp-panel-media"><img src="' + esc(pattern.image_large) + '" alt="' + esc(pattern.image_alt || pattern.name) + '"></div>';
-		html += '<div class="aimp-panel-info">';
-		html += '<h3 class="aimp-panel-title">' + esc(pattern.name) + '</h3>';
+		var html = '<div class="aimp-details">';
+		html += this.galleryHtml(pattern.gallery, s.patternImage);
+		html += '<h3 class="aimp-details-title">' + esc(pattern.name) + '</h3>';
 		if (pattern.short_description) {
 			html += '<div class="aimp-description">' + pattern.short_description + '</div>';
 		}
@@ -615,7 +732,6 @@
 		html += '</div>';
 
 		if (size) {
-			html += '<div class="aimp-size-details">';
 			html +=
 				'<dl class="aimp-measurements">' +
 				'<div><dt>' + esc(t.bust) + '</dt><dd>' + measure(size.bust) + '</dd></div>' +
@@ -624,11 +740,9 @@
 				'</dl>';
 			html += '<p class="aimp-needs-title">' + esc(t.needs) + ':</p>' + this.needsHtml(size);
 			html += '<p class="aimp-size-price">' + size.price_html + '</p>';
-			html += '</div>';
 		}
-		html += '</div>'; // info
 
-		html += '<div class="aimp-size-chart-wrap"><h4>' + esc(t.sizeChart) + '</h4><div class="aimp-table-scroll"><table class="aimp-size-chart">';
+		html += '<h4>' + esc(t.sizeChart) + '</h4><div class="aimp-table-scroll"><table class="aimp-size-chart">';
 		html += '<thead><tr><th>' + esc(t.size) + '</th><th>' + esc(t.bust) + '</th><th>' + esc(t.waist) + '</th><th>' + esc(t.height) + '</th></tr></thead><tbody>';
 		sizes.forEach(function (sz) {
 			html +=
@@ -637,25 +751,31 @@
 				'<td>' + measure(sz.bust) + '</td><td>' + measure(sz.waist) + '</td><td>' + measure(sz.height) + '</td>' +
 				'</tr>';
 		});
-		html += '</tbody></table></div></div>';
+		html += '</tbody></table></div>';
 
 		html +=
 			'<div class="aimp-actions">' +
-			'<button type="button" class="aimp-button" data-action="confirm"' + (size ? '' : ' disabled') + '>' + esc(t.confirmPattern) + '</button>' +
+			'<button type="button" class="aimp-button aimp-button--block" data-action="confirm"' + (size ? '' : ' disabled') + '>' + esc(t.confirmPattern) + '</button>' +
 			'</div>';
 		html += '</div>';
 		panel.innerHTML = html;
 
+		this.bindGallery(panel, pattern.gallery, function (i) {
+			s.patternImage = i;
+		});
+
 		panel.querySelectorAll('[data-size]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				var id = parseInt(btn.getAttribute('data-size'), 10);
-				var chosen = sizes.filter(function (sz) {
-					return sz.id === id;
-				})[0];
+				var chosen = findById(sizes, id);
 				if (!chosen || (s.size && s.size.id === id)) {
 					return;
 				}
 				s.size = chosen;
+				// Show the size's own picture when it has one.
+				if (chosen.image_index >= 0) {
+					s.patternImage = chosen.image_index;
+				}
 				self.resetMaterials();
 				self.renderSizePanel();
 				self.renderSteps();
@@ -688,27 +808,72 @@
 	Configurator.prototype.renderFabricStep = function () {
 		var self = this;
 		var s = this.state;
+		var f = s.fabricFilters;
+		var sorts = [
+			['recommended', t.sortRecommended],
+			['name_asc', t.sortNameAsc],
+			['name_desc', t.sortNameDesc],
+			['price_asc', t.sortPriceAsc],
+			['price_desc', t.sortPriceDesc],
+			['newest', t.sortNewest]
+		];
+
 		this.body.innerHTML =
 			'<div class="aimp-step aimp-step--fabric">' +
 			this.recapHtml() +
 			'<h3>' + esc(t.chooseFabric) + '</h3>' +
-			'<div class="aimp-grid-wrap" data-role="fabrics"></div>' +
-			'<div data-role="fabric-panel"></div>' +
+			'<div class="aimp-split">' +
+			'<div class="aimp-split-main">' +
+			'<div class="aimp-toolbar">' +
+			'<div class="aimp-filters" data-role="fabric-cats" role="group" aria-label="' + esc(t.fabricCategory) + '"></div>' +
+			'<div class="aimp-toolbar-row">' +
+			'<input type="search" class="aimp-search" data-role="search" value="' + esc(f.search) + '" placeholder="' + esc(t.searchFabrics) + '" aria-label="' + esc(t.searchFabrics) + '">' +
+			'<label class="aimp-check"><input type="checkbox" data-role="in-stock"' + (f.inStock ? ' checked' : '') + '> ' + esc(t.inStockOnly) + '</label>' +
+			'<label class="aimp-sort"><span>' + esc(t.sortBy) + '</span> <select data-role="sort">' +
+			sorts.map(function (o) {
+				return '<option value="' + o[0] + '"' + (f.sort === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
+			}).join('') +
+			'</select></label>' +
+			'</div>' +
+			'</div>' +
+			'<div data-role="fabrics"></div>' +
+			'</div>' +
+			'<aside class="aimp-split-side" data-role="fabric-panel"></aside>' +
+			'</div>' +
 			'<div class="aimp-actions">' +
 			'<button type="button" class="aimp-button aimp-button--ghost" data-action="back">' + esc(t.back) + '</button>' +
-			'<button type="button" class="aimp-button" data-action="confirm"' + (s.fabric ? '' : ' disabled') + '>' + esc(t.confirmFabric) + '</button>' +
 			'</div>' +
 			'</div>';
 
 		this.body.querySelector('[data-action="back"]').addEventListener('click', function () {
 			self.prev();
 		});
-		this.body.querySelector('[data-action="confirm"]').addEventListener('click', function () {
-			if (s.fabric) {
-				self.next();
-			}
+
+		var reload = function () {
+			s.fabricPage = 1;
+			self.loadFabrics();
+		};
+		var searchTimer = null;
+		this.body.querySelector('[data-role="search"]').addEventListener('input', function (e) {
+			var value = e.target.value;
+			clearTimeout(searchTimer);
+			searchTimer = setTimeout(function () {
+				if (value.trim() !== f.search) {
+					f.search = value.trim();
+					reload();
+				}
+			}, 350);
+		});
+		this.body.querySelector('[data-role="in-stock"]').addEventListener('change', function (e) {
+			f.inStock = e.target.checked;
+			reload();
+		});
+		this.body.querySelector('[data-role="sort"]').addEventListener('change', function (e) {
+			f.sort = e.target.value;
+			reload();
 		});
 
+		this.renderFabricCategories();
 		this.renderFabricGrid();
 		this.renderFabricPanel();
 		if (!s.fabrics) {
@@ -716,28 +881,78 @@
 		}
 	};
 
+	Configurator.prototype.renderFabricCategories = function () {
+		var self = this;
+		var s = this.state;
+		var container = this.body.querySelector('[data-role="fabric-cats"]');
+		if (!container) {
+			return;
+		}
+		var cats = s.fabricCategories || [];
+		if (cats.length < 2) {
+			container.innerHTML = '';
+			container.hidden = true;
+			return;
+		}
+		container.hidden = false;
+		container.innerHTML = [{ id: 0, name: t.all }]
+			.concat(cats)
+			.map(function (cat) {
+				var active = s.fabricFilters.category === cat.id;
+				return (
+					'<button type="button" class="aimp-filter' + (active ? ' is-active' : '') + '" data-fabric-cat="' + esc(cat.id) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' +
+					esc(cat.name) +
+					'</button>'
+				);
+			})
+			.join('');
+		container.querySelectorAll('[data-fabric-cat]').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				s.fabricFilters.category = parseInt(btn.getAttribute('data-fabric-cat'), 10);
+				s.fabricPage = 1;
+				self.renderFabricCategories();
+				self.loadFabrics();
+			});
+		});
+	};
+
 	Configurator.prototype.loadFabrics = function () {
 		var self = this;
 		var s = this.state;
-		var sizeId = s.size.id;
-		var page = s.fabricPage;
-		var reqLang = lang;
+		var f = s.fabricFilters;
+		var params = {
+			variation: s.size.id,
+			page: s.fabricPage,
+			category: f.category,
+			search: f.search,
+			in_stock: f.inStock ? 1 : 0,
+			sort: f.sort
+		};
+		var key = lang + JSON.stringify(params);
+		this.fabricRequestKey = key;
 		s.fabrics = null;
 		this.renderFabricGrid();
-		request('fabrics', { variation: sizeId, page: page })
+		request('fabrics', params)
 			.then(function (data) {
-				if (!s.size || s.size.id !== sizeId || s.fabricPage !== page || lang !== reqLang) {
+				if (self.fabricRequestKey !== key) {
 					return;
 				}
 				s.fabrics = data;
+				s.fabricPage = data.page;
 				s.fabric = rebind(s.fabric, data.items);
+				var hadCategories = s.fabricCategories !== null;
+				s.fabricCategories = data.categories || [];
 				if (s.step === 'fabric') {
 					self.renderFabricGrid();
+					self.renderFabricPanel();
+					if (!hadCategories) {
+						self.renderFabricCategories();
+					}
 				}
 			})
 			.catch(function (err) {
 				var container = self.body.querySelector('[data-role="fabrics"]');
-				if (container) {
+				if (container && self.fabricRequestKey === key) {
 					self.showError(container, err);
 				}
 			});
@@ -750,54 +965,53 @@
 		if (!container) {
 			return;
 		}
+		var filtered = s.fabricFilters.category || s.fabricFilters.search || s.fabricFilters.inStock;
 		this.renderGrid(container, s.fabrics, {
 			selectedId: s.fabric ? s.fabric.id : null,
-			emptyText: t.noFabrics,
+			emptyText: filtered ? t.noFabricsMatch : t.noFabrics,
 			unavailableText: t.notEnoughStock,
+			compact: true,
+			priceSuffix: t.per10cm,
 			onSelect: function (item) {
-				s.fabric = item;
+				if (!s.fabric || s.fabric.id !== item.id) {
+					s.fabric = item;
+					s.fabricImage = 0;
+				}
 				self.renderFabricGrid();
 				self.renderFabricPanel();
-				self.body.querySelector('[data-action="confirm"]').disabled = false;
 				scrollIntoViewIfNeeded(self.body.querySelector('[data-role="fabric-panel"]'));
 			},
 			onPage: function (page) {
 				s.fabricPage = page;
 				self.loadFabrics();
-				scrollIntoViewIfNeeded(container);
 			}
 		});
 	};
 
-	Configurator.prototype.materialInfoHtml = function (item, unitLabel, needText) {
-		var html = '<div class="aimp-panel aimp-material-panel">';
-		html += '<div class="aimp-panel-media"><img src="' + esc(item.image_large) + '" alt="' + esc(item.image_alt || item.name) + '"></div>';
-		html += '<div class="aimp-panel-info">';
-		html += '<h3 class="aimp-panel-title">' + esc(item.name) + '</h3>';
-		if (item.description) {
-			html += '<div class="aimp-description">' + item.description + '</div>';
-		}
-		html += '<dl class="aimp-info-list">';
-		(item.attributes || []).forEach(function (attr) {
-			html += '<div><dt>' + esc(attr.label) + '</dt><dd>' + esc(attr.value) + '</dd></div>';
-		});
-		html += '<div><dt>' + esc(unitLabel) + '</dt><dd>' + item.price_html + '</dd></div>';
-		html += '<div><dt>' + esc(t.youNeed) + '</dt><dd>' + esc(needText) + '</dd></div>';
-		html += '<div><dt>' + esc(t.totalForSize) + '</dt><dd>' + item.total_html + '</dd></div>';
-		if (item.stock_text) {
-			html += '<div><dt>' + esc(t.stock) + '</dt><dd>' + esc(item.stock_text) + '</dd></div>';
-		}
-		html += '</dl></div></div>';
-		return html;
-	};
-
 	Configurator.prototype.renderFabricPanel = function () {
+		var self = this;
 		var s = this.state;
 		var panel = this.body.querySelector('[data-role="fabric-panel"]');
 		if (!panel) {
 			return;
 		}
-		panel.innerHTML = s.fabric ? this.materialInfoHtml(s.fabric, t.pricePerUnit, s.size.fabric_text) : '';
+		if (!s.fabric) {
+			panel.innerHTML = '<div class="aimp-side-placeholder">' + esc(t.selectFabricHint) + '</div>';
+			return;
+		}
+		var html = this.materialDetailsHtml(s.fabric, s.fabricImage, t.pricePerUnit, s.size.fabric_text);
+		html +=
+			'<div class="aimp-actions">' +
+			'<button type="button" class="aimp-button aimp-button--block" data-action="confirm-fabric">' + esc(t.confirmFabric) + '</button>' +
+			'</div>';
+		panel.innerHTML = html;
+
+		this.bindGallery(panel, s.fabric.gallery, function (i) {
+			s.fabricImage = i;
+		});
+		panel.querySelector('[data-action="confirm-fabric"]').addEventListener('click', function () {
+			self.next();
+		});
 	};
 
 	/* ---------------------------------------------------------------
@@ -827,8 +1041,10 @@
 				'<section class="aimp-notion-section">' +
 				'<h3>' + esc(type === 'zips' ? t.chooseZip : t.chooseButtons) + '</h3>' +
 				'<p class="aimp-help">' + esc(willAdd) + ' ' + esc(t.deselectHint) + '</p>' +
-				'<div class="aimp-grid-wrap" data-role="notions-' + type + '"></div>' +
-				'<div data-role="notion-panel-' + type + '"></div>' +
+				'<div class="aimp-split">' +
+				'<div class="aimp-split-main" data-role="notions-' + type + '"></div>' +
+				'<aside class="aimp-split-side" data-role="notion-panel-' + type + '"></aside>' +
+				'</div>' +
 				'</section>';
 		});
 
@@ -895,9 +1111,14 @@
 			selectedId: bucket.selected ? bucket.selected.id : null,
 			emptyText: t.noNotions,
 			unavailableText: t.notEnoughStock,
+			compact: true,
 			onSelect: function (item) {
 				bucket.selected = bucket.selected && bucket.selected.id === item.id ? null : item;
+				bucket.image = 0;
 				self.renderNotionGrid(type);
+				if (bucket.selected) {
+					scrollIntoViewIfNeeded(panel);
+				}
 			},
 			onPage: function (page) {
 				bucket.page = page;
@@ -905,8 +1126,15 @@
 			}
 		});
 		if (panel) {
+			if (!bucket.selected) {
+				panel.innerHTML = '<div class="aimp-side-placeholder">' + esc(t.selectItemHint) + '</div>';
+				return;
+			}
 			var count = type === 'zips' ? s.size.zip_count : s.size.button_count;
-			panel.innerHTML = bucket.selected ? this.materialInfoHtml(bucket.selected, t.pricePerPiece, String(count)) : '';
+			panel.innerHTML = this.materialDetailsHtml(bucket.selected, bucket.image, t.pricePerPiece, String(count));
+			this.bindGallery(panel, bucket.selected.gallery, function (i) {
+				bucket.image = i;
+			});
 		}
 	};
 
@@ -984,6 +1212,7 @@
 				s.added = true;
 				button.hidden = true;
 				back.hidden = true;
+				self.renderSteps();
 				messages.innerHTML =
 					'<div class="aimp-notice aimp-notice--success"><p>' + esc(data.message) + '</p>' +
 					'<p class="aimp-actions">' +
