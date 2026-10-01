@@ -1,0 +1,38 @@
+.aimp-variation-fields {
+	clear: both;
+	margin: 1em 0;
+	padding: 0.5em 1em 1em;
+	border: 1px solid #dcdcde;
+	background: #f6f7f7;
+}
+
+.aimp-variation-fields h4 {
+	margin: 0.5em 0 1em;
+}
+
+.aimp-variation-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 0 1em;
+}
+
+.woocommerce_variation .aimp-variation-fields .form-field {
+	float: none;
+	width: auto;
+	margin: 0 0 0.75em;
+	padding: 0;
+}
+
+.woocommerce_variation .aimp-variation-fields .form-field input[type="number"] {
+	width: 100%;
+}
+
+.aimp-fabric-cats legend {
+	font-weight: 600;
+	margin-bottom: 0.5em;
+}
+
+.aimp-fabric-cats label {
+	display: inline-block;
+	margin: 0 1.25em 0.4em 0;
+}

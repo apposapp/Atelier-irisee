@@ -1,0 +1,75 @@
+# Creates a GitHub release (with the installable plugin zip) whenever the plugin Version is bumped on main.
+# Live sites check the latest release and show "Update available" on their Plugins page.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      PLUGIN_SLUG: atelier-irisee-master-plugin
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: none
+
+      - name: Lint PHP (7.4)
+        run: find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Lint PHP (8.3)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: none
+      - run: find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Read version
+        id: version
+        run: |
+          HEADER=$(grep -Po '^\s*\*\s*Version:\s*\K[0-9A-Za-z.\-]+' "$PLUGIN_SLUG.php" | head -n1)
+          CONSTANT=$(grep -Po "define\(\s*'AIMP_VERSION',\s*'\K[^']+" "$PLUGIN_SLUG.php" | head -n1)
+          STABLE=$(grep -Po '^Stable tag:\s*\K\S+' readme.txt | head -n1)
+          echo "Header: $HEADER, constant: $CONSTANT, readme stable tag: $STABLE"
+          if [ -z "$HEADER" ] || [ "$HEADER" != "$CONSTANT" ] || [ "$HEADER" != "$STABLE" ]; then
+            echo "::error::Version mismatch. Make 'Version:' in $PLUGIN_SLUG.php, AIMP_VERSION and 'Stable tag:' in readme.txt identical."
+            exit 1
+          fi
+          echo "version=$HEADER" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether this version is already released
+        id: exists
+        run: |
+          if gh release view "v${{ steps.version.outputs.version }}" > /dev/null 2>&1; then
+            echo "Release v${{ steps.version.outputs.version }} already exists. Bump the version to publish an update."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build zip
+        if: steps.exists.outputs.exists == 'false'
+        run: git archive --format=zip --prefix="$PLUGIN_SLUG/" -o "$PLUGIN_SLUG.zip" HEAD
+
+      - name: Create release
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" "$PLUGIN_SLUG.zip" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --target "$GITHUB_SHA" \
+            --generate-notes
