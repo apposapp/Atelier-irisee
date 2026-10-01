@@ -12,8 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class AIMP_Plugin {
 
 	public static function init() {
-		load_plugin_textdomain( 'atelier-irisee-master-plugin', false, dirname( AIMP_PLUGIN_BASENAME ) . '/languages' );
-
+		// Translations come from AIMP_I18n (includes/languages/), not from .mo files.
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			add_action( 'admin_notices', array( __CLASS__, 'missing_woocommerce_notice' ) );
 			return;

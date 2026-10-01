@@ -81,6 +81,22 @@ class AIMP_Settings {
 		);
 
 		add_settings_section(
+			'aimp_general',
+			__( 'General', 'atelier-irisee-master-plugin' ),
+			'__return_false',
+			self::PAGE
+		);
+
+		add_settings_field(
+			'aimp_language',
+			__( 'Plugin language', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_language_field' ),
+			self::PAGE,
+			'aimp_general',
+			array( 'label_for' => 'aimp_language' )
+		);
+
+		add_settings_section(
 			'aimp_categories',
 			__( 'Product categories', 'atelier-irisee-master-plugin' ),
 			array( __CLASS__, 'section_intro' ),
@@ -119,6 +135,8 @@ class AIMP_Settings {
 		}
 		$per_page              = isset( $input['per_page'] ) ? absint( $input['per_page'] ) : 9;
 		$sanitized['per_page'] = ( $per_page < 1 || $per_page > 60 ) ? 9 : $per_page;
+		$language              = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
+		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;
 		return $sanitized;
 	}
 
@@ -149,6 +167,16 @@ class AIMP_Settings {
 		);
 	}
 
+	public static function render_language_field() {
+		$current = AIMP_I18n::default_language();
+		echo '<select id="aimp_language" name="' . esc_attr( self::OPTION ) . '[language]">';
+		foreach ( AIMP_I18n::languages() as $code => $language ) {
+			printf( '<option value="%s" %s>%s</option>', esc_attr( $code ), selected( $current, $code, false ), esc_html( $language['name'] ) );
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__( 'Used for these settings, the product fields and as the starting language of the configurator. Customers can switch language at any time with the flags in the configurator.', 'atelier-irisee-master-plugin' ) . '</p>';
+	}
+
 	public static function render_per_page_field() {
 		printf(
 			'<input type="number" min="1" max="60" id="aimp_per_page" name="%s[per_page]" value="%d" class="small-text"> <p class="description">%s</p>',
@@ -169,7 +197,7 @@ class AIMP_Settings {
 				<?php
 				settings_fields( 'aimp_settings_group' );
 				do_settings_sections( self::PAGE );
-				submit_button();
+				submit_button( __( 'Save settings', 'atelier-irisee-master-plugin' ) );
 				?>
 			</form>
 		</div>

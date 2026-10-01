@@ -318,7 +318,7 @@ class AIMP_Catalog {
 			__( '%1$d × %2$d cm (%3$s m)', 'atelier-irisee-master-plugin' ),
 			$units,
 			self::FABRIC_UNIT_CM,
-			number_format_i18n( $units * self::FABRIC_UNIT_CM / 100, 2 )
+			AIMP_I18n::number( $units * self::FABRIC_UNIT_CM / 100, 2 )
 		);
 	}
 
@@ -488,7 +488,7 @@ class AIMP_Catalog {
 					/* translators: 1: units in stock, 2: metres in stock */
 					__( '%1$d × 10 cm in stock (%2$s m)', 'atelier-irisee-master-plugin' ),
 					$stock,
-					number_format_i18n( $stock * self::FABRIC_UNIT_CM / 100, 2 )
+					AIMP_I18n::number( $stock * self::FABRIC_UNIT_CM / 100, 2 )
 				)
 				: sprintf(
 					/* translators: %d: pieces in stock */

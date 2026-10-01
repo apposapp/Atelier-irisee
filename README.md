@@ -50,6 +50,22 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
    - Zips have a **Zip length (cm)** field in the General tab. The configurator only offers zips whose length matches what the size needs.
 4. Put the shortcode `[atelier_irisee_configurator]` on a page.
 
+## Languages
+
+The plugin speaks **Dutch** and **English**, independent of the WordPress site language.
+
+- **Admin**: the settings page and product fields use the **Plugin language** setting under WooCommerce → Atelier Irisee. The default is Dutch.
+- **Customers**: the configurator starts in that same language. Customers can switch at any time with the flags in the top right: 🇧🇪 Nederlands / 🇬🇧 English.
+  - Their choice is remembered in a cookie (`aimp_lang`).
+  - The cart and checkout texts from this plugin use the same language.
+- Product names, descriptions and category names are your own shop content, so they are shown as you wrote them.
+
+### Adding or changing a text
+
+All strings in the code are written in English with `__( '…', 'atelier-irisee-master-plugin' )`. The Dutch version lives in [includes/languages/nl.php](includes/languages/nl.php), as `'English text' => 'Nederlandse tekst'`.
+
+When you add a new string to the code, add a line for it there too. Any string without a Dutch entry is shown in English.
+
 ## How the cart behaves
 
 - Stock is checked for every item, including what is already in the cart, **before** anything is added. If one item fails, nothing is added.
@@ -71,4 +87,6 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
 | `includes/class-aimp-settings.php` | WooCommerce → Atelier Irisee settings page |
 | `includes/class-aimp-shortcode.php` | Shortcode and front-end assets |
 | `includes/class-aimp-updater.php` | Checks GitHub releases for updates |
+| `includes/class-aimp-i18n.php` | Picks the active language (Dutch/English) and translates the plugin's texts |
+| `includes/languages/nl.php` | Dutch translations |
 | `assets/js/configurator.js` | Configurator UI (vanilla JS, no build step) |

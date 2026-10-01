@@ -16,6 +16,54 @@
 	box-sizing: border-box;
 }
 
+/* Language switcher (top right) */
+.aimp-topbar {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 1rem;
+}
+
+.aimp-languages {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 0.5rem;
+}
+
+.aimp-language {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.35rem 0.75rem;
+	border: 1px solid var(--aimp-border);
+	border-radius: 999px;
+	background: #fff;
+	color: inherit;
+	font: inherit;
+	font-size: 0.9em;
+	line-height: 1.2;
+	cursor: pointer;
+}
+
+.aimp-language img {
+	display: block;
+	width: 24px;
+	height: 16px;
+	object-fit: cover;
+	border-radius: 2px;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.aimp-language:hover {
+	border-color: var(--aimp-muted);
+}
+
+.aimp-language.is-active {
+	border-color: var(--aimp-accent);
+	font-weight: 600;
+	box-shadow: inset 0 0 0 1px var(--aimp-accent);
+}
+
 /* Step indicator */
 .aimp-steps {
 	display: flex;

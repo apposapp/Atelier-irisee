@@ -11,11 +11,56 @@
 	if (!cfg) {
 		return;
 	}
-	var t = cfg.i18n;
+	/* ---------------------------------------------------------------
+	 * Language
+	 * ------------------------------------------------------------- */
+
+	var LANG_KEY = 'aimp_lang';
+
+	function validLang(code) {
+		return !!(code && cfg.i18n[code]);
+	}
+
+	function initialLang() {
+		var match = document.cookie.match(/(?:^|;\s*)aimp_lang=([a-z]+)/);
+		if (match && validLang(match[1])) {
+			return match[1];
+		}
+		try {
+			var stored = window.localStorage.getItem(LANG_KEY);
+			if (validLang(stored)) {
+				return stored;
+			}
+		} catch (e) {}
+		return validLang(cfg.defaultLanguage) ? cfg.defaultLanguage : Object.keys(cfg.i18n)[0];
+	}
+
+	// The cookie lets the cart and checkout show the plugin's texts in the same language.
+	function persistLang(code) {
+		document.cookie = LANG_KEY + '=' + code + '; path=/; max-age=31536000; SameSite=Lax';
+		try {
+			window.localStorage.setItem(LANG_KEY, code);
+		} catch (e) {}
+	}
+
+	var lang = initialLang();
+	var t = cfg.i18n[lang];
+	persistLang(lang);
+
+	function languageInfo(code) {
+		return (cfg.languages || []).filter(function (l) {
+			return l.code === code;
+		})[0];
+	}
 
 	/* ---------------------------------------------------------------
 	 * Helpers
 	 * ------------------------------------------------------------- */
+
+	// Decimal comma in Dutch: 20.5 -> 20,5.
+	function num(value) {
+		return lang === 'nl' ? String(value).replace('.', ',') : String(value);
+	}
 
 	function esc(value) {
 		return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function (c) {
@@ -51,7 +96,7 @@
 	}
 
 	function measure(value) {
-		return value === '' || value === null || value === undefined ? '–' : esc(value) + ' ' + esc(t.cm);
+		return value === '' || value === null || value === undefined ? '–' : esc(num(value)) + ' ' + esc(t.cm);
 	}
 
 	function request(action, data) {
@@ -59,6 +104,7 @@
 		Object.keys(data || {}).forEach(function (key) {
 			body.append(key, data[key]);
 		});
+		body.append('aimp_lang', lang);
 		return fetch(cfg.endpoint.replace('%%endpoint%%', 'aimp_' + action), {
 			method: 'POST',
 			credentials: 'same-origin',
@@ -99,11 +145,110 @@
 		this.root = root;
 		this.reset();
 		this.root.innerHTML =
+			'<div class="aimp-topbar"><div class="aimp-languages" role="group"></div></div>' +
 			'<ol class="aimp-steps"></ol>' +
 			'<div class="aimp-body" aria-live="polite"></div>';
+		this.languagesEl = root.querySelector('.aimp-languages');
 		this.stepsEl = root.querySelector('.aimp-steps');
 		this.body = root.querySelector('.aimp-body');
+		this.renderLanguages();
 		this.render();
+	}
+
+	Configurator.prototype.renderLanguages = function () {
+		var self = this;
+		var info = languageInfo(lang);
+		this.root.lang = info ? info.locale : lang;
+		this.languagesEl.setAttribute('aria-label', t.language);
+		this.languagesEl.innerHTML = (cfg.languages || [])
+			.map(function (l) {
+				var active = l.code === lang;
+				return (
+					'<button type="button" class="aimp-language' + (active ? ' is-active' : '') + '" data-lang="' + esc(l.code) + '"' +
+					' lang="' + esc(l.locale) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' +
+					'<img src="' + esc(l.flag) + '" alt="" width="24" height="16">' +
+					'<span>' + esc(l.name) + '</span>' +
+					'</button>'
+				);
+			})
+			.join('');
+		this.languagesEl.querySelectorAll('[data-lang]').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				self.setLanguage(btn.getAttribute('data-lang'));
+			});
+		});
+	};
+
+	/**
+	 * Switch language without losing the customer's choices. Interface texts switch instantly;
+	 * texts that come from the server (stock, lengths, errors) are fetched again in the new language.
+	 */
+	Configurator.prototype.setLanguage = function (code) {
+		var self = this;
+		var s = this.state;
+		if (!validLang(code) || code === lang) {
+			return;
+		}
+		lang = code;
+		t = cfg.i18n[code];
+		persistLang(code);
+
+		s.patterns = null;
+		s.fabrics = null;
+		s.notions.buttons.data = null;
+		s.notions.zips.data = null;
+
+		if (s.pattern) {
+			var patternId = s.pattern.id;
+			s.sizesData = null;
+			request('sizes', { pattern: patternId })
+				.then(function (data) {
+					if (!s.pattern || s.pattern.id !== patternId || lang !== code) {
+						return;
+					}
+					s.sizesData = data;
+					if (s.size) {
+						s.size = data.sizes.filter(function (sz) {
+							return sz.id === s.size.id;
+						})[0] || s.size;
+					}
+					if (s.step === 'pattern') {
+						self.renderSizePanel();
+					} else if (s.step === 'summary' && !s.added) {
+						self.renderSummaryStep();
+					} else {
+						var recap = self.body.querySelector('.aimp-recap');
+						if (recap && s.size) {
+							recap.outerHTML = self.recapHtml();
+						}
+					}
+				})
+				.catch(function () {});
+		}
+
+		this.renderLanguages();
+		if (s.step === 'summary' && s.added) {
+			// Keep the success message visible; only the step labels change.
+			this.renderSteps();
+		} else {
+			this.render();
+		}
+
+		// The switcher was rebuilt: keep keyboard focus on the chosen language.
+		var activeButton = this.languagesEl.querySelector('.is-active');
+		if (activeButton) {
+			activeButton.focus();
+		}
+	};
+
+	// Replace a selected item with its freshly loaded copy (new language, current stock).
+	function rebind(selected, items) {
+		if (!selected) {
+			return selected;
+		}
+		return items.filter(function (item) {
+			return item.id === selected.id;
+		})[0] || selected;
 	}
 
 	Configurator.prototype.reset = function () {
@@ -340,13 +485,13 @@
 	Configurator.prototype.loadPatterns = function () {
 		var self = this;
 		var s = this.state;
-		var wanted = s.category + ':' + s.patternPage;
+		var wanted = lang + ':' + s.category + ':' + s.patternPage;
 		s.patterns = null;
 		this.renderPatternGrid();
 		request('patterns', { category: s.category, page: s.patternPage })
 			.then(function (data) {
 				// Ignore stale responses after a quick filter change.
-				if (wanted !== s.category + ':' + s.patternPage) {
+				if (wanted !== lang + ':' + s.category + ':' + s.patternPage) {
 					return;
 				}
 				s.patterns = data;
@@ -397,9 +542,10 @@
 		this.renderSizePanel();
 		this.renderSteps();
 
+		var reqLang = lang;
 		request('sizes', { pattern: item.id })
 			.then(function (data) {
-				if (!s.pattern || s.pattern.id !== item.id) {
+				if (!s.pattern || s.pattern.id !== item.id || lang !== reqLang) {
 					return;
 				}
 				s.sizesData = data;
@@ -422,7 +568,7 @@
 		rows.push('<li><strong>' + esc(t.buttons) + ':</strong> ' + (size.button_count > 0 ? esc(size.button_count) : esc(t.none)) + '</li>');
 		rows.push(
 			'<li><strong>' + esc(t.zips) + ':</strong> ' +
-			(size.zip_count > 0 ? esc(fmt(t.zipOf, size.zip_count, size.zip_length)) : esc(t.none)) +
+			(size.zip_count > 0 ? esc(fmt(t.zipOf, size.zip_count, num(size.zip_length))) : esc(t.none)) +
 			'</li>'
 		);
 		return '<ul class="aimp-needs">' + rows.join('') + '</ul>';
@@ -575,14 +721,16 @@
 		var s = this.state;
 		var sizeId = s.size.id;
 		var page = s.fabricPage;
+		var reqLang = lang;
 		s.fabrics = null;
 		this.renderFabricGrid();
 		request('fabrics', { variation: sizeId, page: page })
 			.then(function (data) {
-				if (!s.size || s.size.id !== sizeId || s.fabricPage !== page) {
+				if (!s.size || s.size.id !== sizeId || s.fabricPage !== page || lang !== reqLang) {
 					return;
 				}
 				s.fabrics = data;
+				s.fabric = rebind(s.fabric, data.items);
 				if (s.step === 'fabric') {
 					self.renderFabricGrid();
 				}
@@ -674,7 +822,7 @@
 		var html = '<div class="aimp-step aimp-step--notions">' + this.recapHtml();
 
 		this.notionTypes().forEach(function (type) {
-			var willAdd = type === 'zips' ? fmt(t.zipsWillAdd, s.size.zip_count, s.size.zip_length) : fmt(t.buttonsWillAdd, s.size.button_count);
+			var willAdd = type === 'zips' ? fmt(t.zipsWillAdd, s.size.zip_count, num(s.size.zip_length)) : fmt(t.buttonsWillAdd, s.size.button_count);
 			html +=
 				'<section class="aimp-notion-section">' +
 				'<h3>' + esc(type === 'zips' ? t.chooseZip : t.chooseButtons) + '</h3>' +
@@ -712,14 +860,16 @@
 		var sizeId = s.size.id;
 		var bucket = s.notions[type];
 		var page = bucket.page;
+		var reqLang = lang;
 		bucket.data = null;
 		this.renderNotionGrid(type);
 		request('notions', { variation: sizeId, type: type, page: page })
 			.then(function (data) {
-				if (!s.size || s.size.id !== sizeId || s.notions[type].page !== page) {
+				if (!s.size || s.size.id !== sizeId || s.notions[type].page !== page || lang !== reqLang) {
 					return;
 				}
 				s.notions[type].data = data;
+				s.notions[type].selected = rebind(s.notions[type].selected, data.items);
 				if (s.step === 'notions') {
 					self.renderNotionGrid(type);
 				}
