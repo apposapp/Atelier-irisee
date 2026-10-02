@@ -42,6 +42,7 @@ class AIMP_Shortcode {
 				'decimal'   => wc_get_price_decimal_separator(),
 				'thousand'  => wc_get_price_thousand_separator(),
 			),
+			'measureImage'    => AIMP_PLUGIN_URL . 'assets/images/lichaamsmaten.png',
 			'defaultLanguage' => AIMP_I18n::default_language(),
 			'languages'       => self::languages_data(),
 			'i18n'            => self::all_strings(),
@@ -160,6 +161,10 @@ class AIMP_Shortcode {
 			'showPicture'       => __( 'Show picture %d', 'atelier-irisee-master-plugin' ),
 			'pagination'        => __( 'Pagination', 'atelier-irisee-master-plugin' ),
 			'per10cm'           => __( 'per 10 cm', 'atelier-irisee-master-plugin' ),
+			'hip'               => __( 'Hip', 'atelier-irisee-master-plugin' ),
+			'insideLeg'         => __( 'Inside leg', 'atelier-irisee-master-plugin' ),
+			'howToMeasure'      => __( 'How to measure your body measurements', 'atelier-irisee-master-plugin' ),
+			'close'             => __( 'Close', 'atelier-irisee-master-plugin' ),
 		);
 	}
 

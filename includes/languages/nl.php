@@ -47,6 +47,8 @@ return array(
 	'Bust (cm)' => 'Borstomtrek (cm)',
 	'Waist (cm)' => 'Taille (cm)',
 	'Height (cm)' => 'Lichaamslengte (cm)',
+	'Hip (cm)' => 'Heupomtrek (cm)',
+	'Inside leg (cm)' => 'Binnenbeenlengte (cm)',
 	'Fabric categories allowed' => 'Toegestane stofcategorieën',
 	'No fabric subcategories found. Set the Fabrics category under WooCommerce > Atelier Irisee and give it subcategories.' => 'Geen stofsubcategorieën gevonden. Stel de categorie stoffen in onder WooCommerce > Atelier Irisee en geef ze subcategorieën.',
 	'Fabric categories shown first' => 'Stofcategorieën die eerst getoond worden',
@@ -134,6 +136,10 @@ return array(
 	'Show picture %d' => 'Toon foto %d',
 	'Pagination' => 'Paginering',
 	'per 10 cm' => 'per 10 cm',
+	'Hip' => 'Heupomtrek',
+	'Inside leg' => 'Binnenbeenlengte',
+	'How to measure your body measurements' => 'Hoe meet je je lichaamsmaten?',
+	'Close' => 'Sluiten',
 	'Please enable JavaScript to use the pattern configurator.' => 'Schakel JavaScript in om de patroonconfigurator te gebruiken.',
 
 	// Cart, checkout and orders.

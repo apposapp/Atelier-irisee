@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.2
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,14 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 1.3.0 =
+* New Atelier Irisee look: all text, titles and links in #b38f4f, and round gold double-border buttons, tiles and thumbnails. Selected items are filled gold.
+* Step indicator shows only the circle number (no duplicate list number), in gold.
+* New measurements on pattern sizes: hip and inside leg. The configurator only shows measurements that are filled in.
+* The size chart is now a separate box under the patterns and details, so it stays in place when you choose a size. Click a row to choose that size.
+* "How to measure your body measurements" button opens the measuring guide picture in a lightbox.
+* Details panel, measurement boxes, recap and summary: transparent backgrounds with gold lines.
 
 = 1.2.2 =
 * Fix: fabric category names were hidden in the "Fabric categories shown first" table (WooCommerce panel label styling).

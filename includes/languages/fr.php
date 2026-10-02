@@ -47,6 +47,8 @@ return array(
 	'Bust (cm)' => 'Tour de poitrine (cm)',
 	'Waist (cm)' => 'Tour de taille (cm)',
 	'Height (cm)' => 'Stature (cm)',
+	'Hip (cm)' => 'Tour de hanches (cm)',
+	'Inside leg (cm)' => 'Longueur d\'entrejambe (cm)',
 	'Fabric categories allowed' => 'Catégories de tissus autorisées',
 	'No fabric subcategories found. Set the Fabrics category under WooCommerce > Atelier Irisee and give it subcategories.' => 'Aucune sous-catégorie de tissu trouvée. Définissez la catégorie des tissus sous WooCommerce > Atelier Irisee et ajoutez-lui des sous-catégories.',
 	'Fabric categories shown first' => 'Catégories de tissus affichées en premier',
@@ -134,6 +136,10 @@ return array(
 	'Show picture %d' => 'Afficher la photo %d',
 	'Pagination' => 'Pagination',
 	'per 10 cm' => 'par 10 cm',
+	'Hip' => 'Tour de hanches',
+	'Inside leg' => 'Longueur d\'entrejambe',
+	'How to measure your body measurements' => 'Comment prendre vos mensurations ?',
+	'Close' => 'Fermer',
 	'Please enable JavaScript to use the pattern configurator.' => 'Veuillez activer JavaScript pour utiliser le configurateur de patrons.',
 
 	// Cart, checkout and orders.

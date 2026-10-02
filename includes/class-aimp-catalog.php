@@ -23,6 +23,8 @@ class AIMP_Catalog {
 	const META_BUST            = '_aimp_bust';
 	const META_WAIST           = '_aimp_waist';
 	const META_HEIGHT          = '_aimp_height';
+	const META_HIP             = '_aimp_hip';
+	const META_INSIDE_LEG      = '_aimp_inside_leg';
 	const META_FABRIC_PRIORITY = '_aimp_fabric_priority';
 
 	/** Length of one fabric unit in cm. */
@@ -377,6 +379,8 @@ class AIMP_Catalog {
 			'bust'         => (string) $variation->get_meta( self::META_BUST ),
 			'waist'        => (string) $variation->get_meta( self::META_WAIST ),
 			'height'       => (string) $variation->get_meta( self::META_HEIGHT ),
+			'hip'          => (string) $variation->get_meta( self::META_HIP ),
+			'inside_leg'   => (string) $variation->get_meta( self::META_INSIDE_LEG ),
 		);
 	}
 
@@ -438,6 +442,8 @@ class AIMP_Catalog {
 				'bust'         => $req['bust'],
 				'waist'        => $req['waist'],
 				'height'       => $req['height'],
+				'hip'          => $req['hip'],
+				'inside_leg'   => $req['inside_leg'],
 				'fabric_units' => $req['fabric_units'],
 				'fabric_text'  => self::fabric_text( $req['fabric_units'] ),
 				'button_count' => $req['button_count'],

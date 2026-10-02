@@ -98,6 +98,28 @@
 		}
 	}
 
+	// Body measurements in display order: [ data key, i18n key ].
+	var MEASURES = [
+		['bust', 'bust'],
+		['waist', 'waist'],
+		['hip', 'hip'],
+		['inside_leg', 'insideLeg'],
+		['height', 'height']
+	];
+
+	function hasValue(value) {
+		return value !== '' && value !== null && value !== undefined;
+	}
+
+	// Only the measurements that are filled in for at least one of the given sizes.
+	function usedMeasures(sizes) {
+		return MEASURES.filter(function (m) {
+			return sizes.some(function (sz) {
+				return hasValue(sz[m[0]]);
+			});
+		});
+	}
+
 	function measure(value) {
 		return value === '' || value === null || value === undefined ? '–' : esc(num(value)) + ' ' + esc(t.cm);
 	}
@@ -580,7 +602,9 @@
 			'<div class="aimp-split">' +
 			'<div class="aimp-split-main" data-role="patterns"></div>' +
 			'<aside class="aimp-split-side" data-role="size-panel"></aside>' +
-			'</div></div>';
+			'</div>' +
+			'<section class="aimp-size-chart-box" data-role="size-chart" hidden></section>' +
+			'</div>';
 		this.body.innerHTML = html;
 
 		this.body.querySelectorAll('[data-cat]').forEach(function (btn) {
@@ -699,6 +723,7 @@
 		if (!panel) {
 			return;
 		}
+		this.renderSizeChart();
 		if (!s.pattern) {
 			panel.innerHTML = '<div class="aimp-side-placeholder">' + esc(t.selectPatternHint) + '</div>';
 			return;
@@ -732,26 +757,17 @@
 		html += '</div>';
 
 		if (size) {
-			html +=
-				'<dl class="aimp-measurements">' +
-				'<div><dt>' + esc(t.bust) + '</dt><dd>' + measure(size.bust) + '</dd></div>' +
-				'<div><dt>' + esc(t.waist) + '</dt><dd>' + measure(size.waist) + '</dd></div>' +
-				'<div><dt>' + esc(t.height) + '</dt><dd>' + measure(size.height) + '</dd></div>' +
-				'</dl>';
+			var measures = usedMeasures([size]);
+			if (measures.length) {
+				html += '<dl class="aimp-measurements">';
+				measures.forEach(function (m) {
+					html += '<div><dt>' + esc(t[m[1]]) + '</dt><dd>' + measure(size[m[0]]) + '</dd></div>';
+				});
+				html += '</dl>';
+			}
 			html += '<p class="aimp-needs-title">' + esc(t.needs) + ':</p>' + this.needsHtml(size);
 			html += '<p class="aimp-size-price">' + size.price_html + '</p>';
 		}
-
-		html += '<h4>' + esc(t.sizeChart) + '</h4><div class="aimp-table-scroll"><table class="aimp-size-chart">';
-		html += '<thead><tr><th>' + esc(t.size) + '</th><th>' + esc(t.bust) + '</th><th>' + esc(t.waist) + '</th><th>' + esc(t.height) + '</th></tr></thead><tbody>';
-		sizes.forEach(function (sz) {
-			html +=
-				'<tr' + (size && size.id === sz.id ? ' class="is-selected"' : '') + '>' +
-				'<th scope="row">' + esc(sz.label) + '</th>' +
-				'<td>' + measure(sz.bust) + '</td><td>' + measure(sz.waist) + '</td><td>' + measure(sz.height) + '</td>' +
-				'</tr>';
-		});
-		html += '</tbody></table></div>';
 
 		html +=
 			'<div class="aimp-actions">' +
@@ -767,18 +783,7 @@
 		panel.querySelectorAll('[data-size]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				var id = parseInt(btn.getAttribute('data-size'), 10);
-				var chosen = findById(sizes, id);
-				if (!chosen || (s.size && s.size.id === id)) {
-					return;
-				}
-				s.size = chosen;
-				// Show the size's own picture when it has one.
-				if (chosen.image_index >= 0) {
-					s.patternImage = chosen.image_index;
-				}
-				self.resetMaterials();
-				self.renderSizePanel();
-				self.renderSteps();
+				self.selectSize(id);
 				var again = panel.querySelector('[data-size="' + id + '"]');
 				if (again) {
 					again.focus();
@@ -790,6 +795,120 @@
 				self.next();
 			}
 		});
+	};
+
+	// Used by the size buttons in the details panel and the rows of the size chart.
+	Configurator.prototype.selectSize = function (id) {
+		var s = this.state;
+		var chosen = s.sizesData ? findById(s.sizesData.sizes, id) : null;
+		if (!chosen || !chosen.available || (s.size && s.size.id === id)) {
+			return;
+		}
+		s.size = chosen;
+		// Show the size's own picture when it has one.
+		if (chosen.image_index >= 0) {
+			s.patternImage = chosen.image_index;
+		}
+		this.resetMaterials();
+		this.renderSizePanel();
+		this.renderSteps();
+	};
+
+	// Size chart in its own box under the patterns and details, so it stays in place when a size is chosen.
+	Configurator.prototype.renderSizeChart = function () {
+		var self = this;
+		var s = this.state;
+		var box = this.body.querySelector('[data-role="size-chart"]');
+		if (!box) {
+			return;
+		}
+		if (!s.pattern || !s.sizesData || !s.sizesData.sizes.length) {
+			box.hidden = true;
+			box.innerHTML = '';
+			return;
+		}
+
+		var sizes = s.sizesData.sizes;
+		var measures = usedMeasures(sizes);
+		var html =
+			'<div class="aimp-size-chart-head">' +
+			'<h4>' + esc(t.sizeChart) + '</h4>' +
+			'<button type="button" class="aimp-button aimp-measure-button" data-action="measure-guide">' + esc(t.howToMeasure) + '</button>' +
+			'</div>';
+		html += '<div class="aimp-table-scroll"><table class="aimp-size-chart"><thead><tr><th>' + esc(t.size) + '</th>';
+		measures.forEach(function (m) {
+			html += '<th>' + esc(t[m[1]]) + '</th>';
+		});
+		html += '</tr></thead><tbody>';
+		sizes.forEach(function (sz) {
+			var selected = s.size && s.size.id === sz.id;
+			html +=
+				'<tr data-size-row="' + esc(sz.id) + '" class="' + (selected ? 'is-selected' : '') + (sz.available ? ' is-clickable' : ' is-unavailable') + '">' +
+				'<th scope="row">' + esc(sz.label) + '</th>';
+			measures.forEach(function (m) {
+				html += '<td>' + measure(sz[m[0]]) + '</td>';
+			});
+			html += '</tr>';
+		});
+		html += '</tbody></table></div>';
+
+		box.innerHTML = html;
+		box.hidden = false;
+
+		box.querySelector('[data-action="measure-guide"]').addEventListener('click', function () {
+			self.openMeasureGuide();
+		});
+		box.querySelectorAll('tr[data-size-row]').forEach(function (row) {
+			row.addEventListener('click', function () {
+				self.selectSize(parseInt(row.getAttribute('data-size-row'), 10));
+			});
+		});
+	};
+
+	// "How to measure" picture in a lightbox. The image is only downloaded the first time it is opened.
+	Configurator.prototype.openMeasureGuide = function () {
+		var dialog = this.measureDialog;
+		if (!dialog) {
+			dialog = document.createElement('dialog');
+			dialog.className = 'aimp-lightbox';
+			dialog.innerHTML =
+				'<button type="button" class="aimp-button aimp-lightbox-close" data-action="close-guide">×</button>' +
+				'<img class="aimp-lightbox-image" alt="">';
+			this.root.appendChild(dialog);
+			this.measureDialog = dialog;
+
+			var close = function () {
+				if (typeof dialog.close === 'function') {
+					dialog.close();
+				} else {
+					dialog.removeAttribute('open');
+				}
+			};
+			dialog.querySelector('[data-action="close-guide"]').addEventListener('click', close);
+			// A click on the dark backdrop lands on the dialog element itself.
+			dialog.addEventListener('click', function (e) {
+				if (e.target === dialog) {
+					close();
+				}
+			});
+		}
+
+		// Texts follow the current language.
+		var closeButton = dialog.querySelector('[data-action="close-guide"]');
+		closeButton.setAttribute('aria-label', t.close);
+		closeButton.title = t.close;
+		dialog.setAttribute('aria-label', t.howToMeasure);
+		var image = dialog.querySelector('.aimp-lightbox-image');
+		image.alt = t.howToMeasure;
+		if (!image.getAttribute('src')) {
+			image.src = cfg.measureImage;
+		}
+
+		if (typeof dialog.showModal === 'function') {
+			dialog.showModal();
+		} else {
+			dialog.setAttribute('open', '');
+		}
 	};
 
 	/* ---------------------------------------------------------------

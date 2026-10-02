@@ -44,7 +44,7 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
    - button count
    - zip count
    - zip length (cm)
-   - bust, waist and height (cm)
+   - bust, waist, hip, inside leg and height (cm). Only the ones you fill in are shown to customers.
 
    The pattern's **Atelier Irisee** tab (in Product data) lets you choose which fabric categories customers see first. It lists the fabric categories ticked under "Fabric categories allowed" on the sizes. Give a category position 1, 2, 3… and those fabrics are listed first under the "Recommended" sort.
 

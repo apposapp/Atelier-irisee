@@ -44,6 +44,8 @@ class AIMP_Product_Fields {
 			AIMP_Catalog::META_ZIP_LENGTH   => array( __( 'Zip length (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
 			AIMP_Catalog::META_BUST         => array( __( 'Bust (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
 			AIMP_Catalog::META_WAIST        => array( __( 'Waist (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
+			AIMP_Catalog::META_HIP          => array( __( 'Hip (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
+			AIMP_Catalog::META_INSIDE_LEG   => array( __( 'Inside leg (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
 			AIMP_Catalog::META_HEIGHT       => array( __( 'Height (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
 		);
 	}
