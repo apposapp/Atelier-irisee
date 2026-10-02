@@ -46,7 +46,7 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
    - zip length (cm)
    - bust, waist and height (cm)
 
-   The pattern's **Atelier Irisee** tab (in Product data) lets you choose which fabric categories customers see first: give a category position 1, 2, 3… and those fabrics are listed first under the "Recommended" sort.
+   The pattern's **Atelier Irisee** tab (in Product data) lets you choose which fabric categories customers see first. It lists the fabric categories ticked under "Fabric categories allowed" on the sizes. Give a category position 1, 2, 3… and those fabrics are listed first under the "Recommended" sort.
 
    All pictures of the pattern are shown in the configurator: the main image, the product gallery, and the variation images. When a customer picks a size that has its own picture, that picture is shown.
 3. **Fabrics, buttons and zips** are *simple* products.

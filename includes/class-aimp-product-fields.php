@@ -28,6 +28,7 @@ class AIMP_Product_Fields {
 			return;
 		}
 		wp_enqueue_style( 'aimp-admin', AIMP_PLUGIN_URL . 'assets/css/admin.css', array(), AIMP_VERSION );
+		wp_enqueue_script( 'aimp-admin', AIMP_PLUGIN_URL . 'assets/js/admin.js', array( 'jquery' ), AIMP_VERSION, true );
 	}
 
 	/**
@@ -101,7 +102,7 @@ class AIMP_Product_Fields {
 				}
 				foreach ( $terms as $term ) {
 					printf(
-						'<label><input type="checkbox" name="%s[]" value="%d" %s> %s</label>',
+						'<label><input type="checkbox" class="aimp-fabric-cat-checkbox" name="%s[]" value="%d" %s> %s</label>',
 						esc_attr( 'aimp' . AIMP_Catalog::META_FABRIC_CATS . '[' . $loop . ']' ),
 						(int) $term->term_id,
 						checked( in_array( (int) $term->term_id, $selected, true ), true, false ),
@@ -160,19 +161,45 @@ class AIMP_Product_Fields {
 		return $tabs;
 	}
 
+	/**
+	 * Saved "Fabric categories allowed" of each size of a pattern: variation ID => term IDs.
+	 *
+	 * @param WC_Product $product Pattern product.
+	 * @return array
+	 */
+	private static function checked_fabric_categories( $product ) {
+		$map = array();
+		foreach ( $product->get_children() as $variation_id ) {
+			$variation = wc_get_product( $variation_id );
+			$cats      = $variation ? $variation->get_meta( AIMP_Catalog::META_FABRIC_CATS ) : array();
+			$map[ (int) $variation_id ] = is_array( $cats ) ? array_values( array_filter( array_map( 'absint', $cats ) ) ) : array();
+		}
+		return $map;
+	}
+
+	/**
+	 * Position table. It lists the fabric categories ticked on the sizes of this pattern;
+	 * assets/js/admin.js adds categories as soon as they are ticked on a size, before saving.
+	 */
 	public static function render_pattern_panel() {
 		global $product_object;
-		$priority = $product_object instanceof WC_Product ? AIMP_Catalog::get_fabric_priority( $product_object ) : array();
-		$terms    = AIMP_Catalog::get_fabric_categories();
+		$is_product = $product_object instanceof WC_Product;
+		$priority   = $is_product ? AIMP_Catalog::get_fabric_priority( $product_object ) : array();
+		$saved      = $is_product ? self::checked_fabric_categories( $product_object ) : array();
+		$checked    = $saved ? array_values( array_unique( array_merge( ...array_values( $saved ) ) ) ) : array();
+		$terms      = AIMP_Catalog::get_fabric_categories();
 		?>
 		<div id="aimp_pattern_data" class="panel woocommerce_options_panel hidden">
 			<div class="options_group aimp-priority">
 				<h4><?php esc_html_e( 'Fabric categories shown first', 'atelier-irisee-master-plugin' ); ?></h4>
-				<p class="description"><?php esc_html_e( 'Choose which fabric categories customers see first when they pick a fabric for this pattern. Give them a position: 1 is shown first, then 2, and so on. Categories without a position come after them. Only the categories allowed for the chosen size are shown.', 'atelier-irisee-master-plugin' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Choose which fabric categories customers see first when they pick a fabric for this pattern. The list shows the fabric categories ticked under "Fabric categories allowed" on the sizes of this pattern. Give them a position: 1 is shown first, then 2, and so on. Categories without a position come after them.', 'atelier-irisee-master-plugin' ); ?></p>
 				<?php if ( ! $terms ) : ?>
 					<p class="description"><?php esc_html_e( 'No fabric subcategories found. Set the Fabrics category under WooCommerce > Atelier Irisee and give it subcategories.', 'atelier-irisee-master-plugin' ); ?></p>
 				<?php else : ?>
-					<table class="widefat striped aimp-priority-table">
+					<p class="description aimp-priority-empty"<?php echo $checked ? ' style="display:none"' : ''; ?>>
+						<?php esc_html_e( 'No fabric categories are ticked yet. Tick the allowed fabric categories on the sizes first (Variations tab, "Fabric categories allowed"). They will then appear here.', 'atelier-irisee-master-plugin' ); ?>
+					</p>
+					<table class="widefat aimp-priority-table" data-saved="<?php echo esc_attr( wp_json_encode( (object) $saved ) ); ?>"<?php echo $checked ? '' : ' style="display:none"'; ?>>
 						<thead>
 							<tr>
 								<th><?php esc_html_e( 'Fabric category', 'atelier-irisee-master-plugin' ); ?></th>
@@ -182,7 +209,7 @@ class AIMP_Product_Fields {
 						<tbody>
 							<?php foreach ( $terms as $term ) : ?>
 								<?php $id = 'aimp_priority_' . (int) $term->term_id; ?>
-								<tr>
+								<tr data-term="<?php echo (int) $term->term_id; ?>"<?php echo in_array( (int) $term->term_id, $checked, true ) ? '' : ' style="display:none"'; ?>>
 									<td><label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $term->name ); ?></label></td>
 									<td>
 										<input type="number" min="1" step="1" class="small-text" id="<?php echo esc_attr( $id ); ?>"
