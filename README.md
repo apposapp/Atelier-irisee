@@ -72,6 +72,23 @@ To set up the favorites page:
 1. Create a page, e.g. "My favorites", with the shortcode `[atelier_irisee_favorites]`.
 2. Choose that page under WooCommerce → Atelier Irisee → **Favorites page**. Customers then get a link to it after adding a favorite.
 
+## Login & registration
+
+Settings are under **WooCommerce → Login & registration**. The full step-by-step setup is in the separate setup guide.
+
+- **Shortcodes**
+  - `[aimp_login_popup type="login|register|lostpw" display="link|button" text="…" change_to="logout|myaccount|none" redirect_to="same|<url>"]`
+  - `[aimp_login_form active="login|register" login_redirect="…" register_redirect="…"]`
+  - `[aimp_profile]`
+- **Trigger classes:** `aimp-login-tgr`, `aimp-reg-tgr` and `aimp-lostpw-tgr`, on any link, button or menu item.
+- **Menu items:** in Appearance → Menus, use the box "Atelier Irisee login". It offers Log in, Register, Log in / Log out, and Log in / My account.
+- **Redirect parameter:** `?aimp_redirect=<url>` on any page decides where the visitor goes after logging in.
+- **Social login callback URLs:** `https://your-site/aimp-social/{google|facebook|apple|linkedin|microsoft|line|x}/`. They are also shown in the settings.
+- **Templates:** copy `templates/forms/*.php` to `yourtheme/atelier-irisee/forms/` to change the markup.
+- **Hooks**
+  - Actions: `aimp_el_before_form`, `aimp_el_after_form`, `aimp_el_register_user`, `aimp_el_login_success`.
+  - Filters: `aimp_el_redirect`, `aimp_el_fields`.
+
 ## Languages
 
 The plugin speaks **Dutch**, **French** and **English**, independent of the WordPress site language.

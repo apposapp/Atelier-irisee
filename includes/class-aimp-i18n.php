@@ -35,6 +35,7 @@ class AIMP_I18n {
 
 	public static function init() {
 		add_filter( 'gettext_' . self::DOMAIN, array( __CLASS__, 'translate' ), 10, 2 );
+		add_filter( 'ngettext_' . self::DOMAIN, array( __CLASS__, 'translate_plural' ), 10, 4 );
 	}
 
 	/**
@@ -142,6 +143,20 @@ class AIMP_I18n {
 	public static function translate( $translation, $text ) {
 		$dictionary = self::dictionary( self::current() );
 		return isset( $dictionary[ $text ] ) ? $dictionary[ $text ] : $text;
+	}
+
+	/**
+	 * ngettext filter: the dictionaries hold the singular and the plural English text as separate entries.
+	 *
+	 * @param string $translation Translation from WordPress (if any).
+	 * @param string $single      Singular English text.
+	 * @param string $plural      Plural English text.
+	 * @param int    $number      Number deciding singular or plural.
+	 * @return string
+	 */
+	public static function translate_plural( $translation, $single, $plural, $number ) {
+		$text = 1 === (int) $number ? $single : $plural;
+		return self::translate( $translation, $text );
 	}
 
 	/**

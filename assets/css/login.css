@@ -1,0 +1,789 @@
+/* Atelier Irisee login & registration. Colors and sizes come from the "Style" settings (CSS variables). */
+:root {
+	--aimp-el-primary: #b38f4f;
+	--aimp-el-button-text: #ffffff;
+	--aimp-el-text: #b38f4f;
+	--aimp-el-border: #b38f4f;
+	--aimp-el-bg: #ffffff;
+	--aimp-el-overlay: rgba(0, 0, 0, 0.6);
+	--aimp-el-font-size: 16px;
+	--aimp-el-width: 480px;
+	--aimp-el-error: #b3261e;
+	--aimp-el-success: #2e6b3a;
+}
+
+html.aimp-el-open {
+	overflow: hidden;
+}
+
+/* ------------------------------------------------------------------
+ * Popup & slider
+ * ------------------------------------------------------------------ */
+.aimp-el-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 999999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+}
+
+.aimp-el-modal[hidden] {
+	display: none;
+}
+
+.aimp-el-overlay {
+	position: absolute;
+	inset: 0;
+	background: var(--aimp-el-overlay);
+	opacity: 0;
+	transition: opacity 0.25s ease;
+}
+
+.aimp-el-dialog {
+	position: relative;
+	display: flex;
+	width: 100%;
+	max-width: var(--aimp-el-width);
+	max-height: calc(100vh - 2rem);
+	overflow: hidden;
+	background: var(--aimp-el-bg);
+	border: 5px double var(--aimp-el-primary);
+	border-radius: 24px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+	opacity: 0;
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.aimp-el-modal--image .aimp-el-dialog {
+	max-width: calc(var(--aimp-el-width) + 320px);
+}
+
+.aimp-el-dialog-body {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow-y: auto;
+	padding: 2rem 1.75rem 1.75rem;
+}
+
+.aimp-el-image {
+	flex: 0 0 320px;
+	background-size: cover;
+	background-position: center;
+}
+
+.aimp-el-close {
+	position: absolute;
+	top: 0.5rem;
+	inset-inline-end: 0.6rem;
+	z-index: 2;
+	width: 2.5rem;
+	height: 2.5rem;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--aimp-el-text);
+	font-size: 1.8rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.aimp-el-close:hover,
+.aimp-el-close:focus-visible {
+	background: rgba(179, 143, 79, 0.12);
+}
+
+.aimp-el-modal.is-open .aimp-el-overlay,
+.aimp-el-modal.is-open .aimp-el-dialog {
+	opacity: 1;
+}
+
+/* Animations */
+.aimp-el-anim--slide .aimp-el-dialog {
+	transform: translateY(2rem);
+}
+
+.aimp-el-anim--zoom .aimp-el-dialog {
+	transform: scale(0.92);
+}
+
+.aimp-el-modal.is-open .aimp-el-dialog {
+	transform: none;
+}
+
+/* Slider: a panel from the side */
+.aimp-el-modal--slider {
+	justify-content: flex-end;
+	padding: 0;
+}
+
+.aimp-el-modal--slider .aimp-el-dialog {
+	height: 100%;
+	max-height: none;
+	border-radius: 0;
+	border-width: 0 0 0 5px;
+	border-inline-start-style: double;
+	transform: translateX(100%);
+}
+
+[dir="rtl"] .aimp-el-modal--slider .aimp-el-dialog {
+	transform: translateX(-100%);
+}
+
+.aimp-el-modal--slider .aimp-el-image {
+	flex-basis: 40%;
+}
+
+@media (max-width: 720px) {
+	.aimp-el-image {
+		display: none;
+	}
+
+	.aimp-el-modal {
+		padding: 0;
+		align-items: stretch;
+	}
+
+	.aimp-el-dialog,
+	.aimp-el-modal--image .aimp-el-dialog {
+		max-width: none;
+		max-height: none;
+		height: 100%;
+		border-radius: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-el-overlay,
+	.aimp-el-dialog {
+		transition: none;
+	}
+}
+
+/* ------------------------------------------------------------------
+ * Forms
+ * ------------------------------------------------------------------ */
+.aimp-el {
+	color: var(--aimp-el-text);
+	font-size: var(--aimp-el-font-size);
+	line-height: 1.5;
+}
+
+.aimp-el *,
+.aimp-el *::before,
+.aimp-el *::after {
+	box-sizing: border-box;
+}
+
+.aimp-el--inline,
+.aimp-el--myaccount {
+	max-width: var(--aimp-el-width);
+	margin: 0 auto 2rem;
+	padding: 1.75rem;
+	border: 5px double var(--aimp-el-primary);
+	border-radius: 24px;
+	background: var(--aimp-el-bg);
+}
+
+.aimp-el--profile {
+	max-width: 640px;
+}
+
+.aimp-el h2.aimp-el-title,
+.aimp-el .aimp-el-title {
+	margin: 0 0 1rem;
+	color: var(--aimp-el-text);
+	font-size: 1.5em;
+	text-align: center;
+}
+
+.aimp-el-logo {
+	margin-bottom: 1rem;
+	text-align: center;
+}
+
+.aimp-el-logo img {
+	max-width: 180px;
+	max-height: 90px;
+	width: auto;
+	height: auto;
+}
+
+.aimp-el-help,
+.aimp-el p,
+.aimp-el label,
+.aimp-el legend {
+	color: var(--aimp-el-text);
+}
+
+.aimp-el-help {
+	margin: 0 0 1rem;
+	font-size: 0.95em;
+	text-align: center;
+}
+
+.aimp-el-fields {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 1rem;
+}
+
+.aimp-el-fields > .aimp-el-field {
+	flex: 1 1 100%;
+}
+
+.aimp-el-fields > .aimp-el-field--half {
+	flex: 1 1 calc(50% - 0.5rem);
+	min-width: 12rem;
+}
+
+.aimp-el-field {
+	margin: 0 0 1rem;
+}
+
+.aimp-el-label {
+	display: block;
+	margin-bottom: 0.3rem;
+	font-weight: 600;
+	font-size: 0.95em;
+}
+
+.aimp-el-required {
+	color: var(--aimp-el-primary);
+}
+
+.aimp-el input[type="text"],
+.aimp-el input[type="email"],
+.aimp-el input[type="password"],
+.aimp-el input[type="number"],
+.aimp-el input[type="date"],
+.aimp-el input[type="tel"],
+.aimp-el select,
+.aimp-el textarea {
+	display: block;
+	width: 100%;
+	min-height: 2.9em;
+	padding: 0.6em 0.9em;
+	border: 1px solid var(--aimp-el-border);
+	border-radius: 12px;
+	background: #fff;
+	color: #333;
+	font: inherit;
+	box-shadow: none;
+}
+
+.aimp-el input:focus,
+.aimp-el select:focus,
+.aimp-el textarea:focus {
+	outline: 2px solid var(--aimp-el-primary);
+	outline-offset: 1px;
+}
+
+.aimp-el .has-error input,
+.aimp-el .has-error select,
+.aimp-el .has-error textarea {
+	border-color: var(--aimp-el-error);
+}
+
+.aimp-el-field-error {
+	display: block;
+	color: var(--aimp-el-error);
+	font-size: 0.85em;
+}
+
+.aimp-el-field-error:empty {
+	display: none;
+}
+
+.aimp-el-check {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: 0.5em;
+	font-weight: normal;
+	cursor: pointer;
+}
+
+.aimp-el-check input {
+	margin-top: 0.3em;
+	accent-color: var(--aimp-el-primary);
+}
+
+.aimp-el-radios {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.aimp-el-radios label {
+	display: block;
+	font-weight: normal;
+}
+
+.aimp-el-radios input {
+	accent-color: var(--aimp-el-primary);
+}
+
+.aimp-el-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem 1rem;
+	margin: -0.25rem 0 1rem;
+}
+
+.aimp-el-fieldset {
+	margin: 1rem 0;
+	padding: 1rem 1rem 0;
+	border: 1px solid var(--aimp-el-border);
+	border-radius: 16px;
+}
+
+.aimp-el-fieldset legend {
+	padding: 0 0.5rem;
+	font-weight: 600;
+}
+
+/* Honeypot: invisible for people, filled in by bots. */
+.aimp-el-hp {
+	position: absolute !important;
+	left: -9999px !important;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+.aimp-el .screen-reader-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+	white-space: nowrap;
+}
+
+/* Password */
+.aimp-el-password {
+	position: relative;
+	display: block;
+}
+
+.aimp-el-password input {
+	padding-inline-end: 3em;
+}
+
+.aimp-el-toggle-pw {
+	position: absolute;
+	top: 50%;
+	inset-inline-end: 0.4em;
+	width: 2.2em;
+	height: 2.2em;
+	padding: 0.35em;
+	border: 0;
+	background: transparent;
+	color: var(--aimp-el-primary);
+	cursor: pointer;
+	transform: translateY(-50%);
+}
+
+.aimp-el-toggle-pw svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	fill: currentColor;
+}
+
+.aimp-el-toggle-pw[aria-pressed="true"] {
+	opacity: 0.6;
+}
+
+.aimp-el-strength {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin-top: 0.35rem;
+	font-size: 0.85em;
+}
+
+.aimp-el-strength-bar {
+	flex: 1 1 auto;
+	height: 6px;
+	border-radius: 3px;
+	background: #eee;
+	overflow: hidden;
+	position: relative;
+}
+
+.aimp-el-strength-bar::after {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 0;
+	background: var(--aimp-el-error);
+	transition: width 0.2s ease, background 0.2s ease;
+}
+
+.aimp-el-strength.is-0 .aimp-el-strength-bar::after,
+.aimp-el-strength.is-1 .aimp-el-strength-bar::after {
+	width: 20%;
+}
+
+.aimp-el-strength.is-2 .aimp-el-strength-bar::after {
+	width: 45%;
+	background: #d9822b;
+}
+
+.aimp-el-strength.is-3 .aimp-el-strength-bar::after {
+	width: 75%;
+	background: #c2a14a;
+}
+
+.aimp-el-strength.is-4 .aimp-el-strength-bar::after {
+	width: 100%;
+	background: var(--aimp-el-success);
+}
+
+.aimp-el-strength:not([class*="is-"]) {
+	display: none;
+}
+
+/* Uploads */
+.aimp-el input[type="file"] {
+	display: block;
+	width: 100%;
+	font-size: 0.9em;
+}
+
+.aimp-el-avatar-preview {
+	display: block;
+	margin-bottom: 0.5rem;
+}
+
+.aimp-el-avatar-preview img {
+	display: block;
+	width: 72px;
+	height: 72px;
+	object-fit: cover;
+	border-radius: 50%;
+	border: 3px double var(--aimp-el-primary);
+}
+
+.aimp-el-file-current {
+	display: inline-block;
+	margin-bottom: 0.4rem;
+	color: var(--aimp-el-primary);
+}
+
+/* ------------------------------------------------------------------
+ * Buttons
+ * ------------------------------------------------------------------ */
+.aimp-el-button,
+.aimp-el .aimp-el-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+	padding: 0.75em 1.6em;
+	background-color: transparent;
+	border: 5px double var(--aimp-el-primary);
+	border-radius: 100px;
+	color: var(--aimp-el-primary);
+	font: inherit;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+	transition-property: background-color, color, mask-position, mask-size;
+	transition-duration: 300ms;
+	transition-timing-function: ease;
+	transition-delay: 0ms;
+}
+
+.aimp-el-button:hover,
+.aimp-el-button:focus-visible {
+	background-color: var(--aimp-el-primary);
+	color: var(--aimp-el-button-text);
+}
+
+.aimp-el--buttons-square .aimp-el-button {
+	border: 0;
+	border-radius: 6px;
+	background-color: var(--aimp-el-primary);
+	color: var(--aimp-el-button-text);
+}
+
+.aimp-el--buttons-square .aimp-el-button:hover {
+	opacity: 0.9;
+}
+
+.aimp-el .aimp-el-submit {
+	width: 100%;
+	margin-top: 0.25rem;
+}
+
+.aimp-el-button:disabled {
+	cursor: wait;
+	opacity: 0.6;
+}
+
+.aimp-el-link,
+.aimp-el .aimp-el-link {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--aimp-el-primary);
+	font: inherit;
+	font-size: 0.95em;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.aimp-el-switch {
+	margin: 1.25rem 0 0;
+	font-size: 0.95em;
+	text-align: center;
+}
+
+/* Tabs */
+.aimp-el-tabs {
+	display: flex;
+	gap: 0.5rem;
+	margin: 0 0 1.5rem;
+	padding: 4px;
+	border: 1px solid var(--aimp-el-border);
+	border-radius: 100px;
+}
+
+.aimp-el-tab {
+	flex: 1 1 50%;
+	padding: 0.55em 1em;
+	border: 0;
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-el-primary);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.aimp-el-tab[aria-selected="true"] {
+	background: var(--aimp-el-primary);
+	color: var(--aimp-el-button-text);
+}
+
+.aimp-el-tabs[hidden] {
+	display: none;
+}
+
+/* Notices */
+.aimp-el-notice {
+	margin: 0 0 1rem;
+	padding: 0.75rem 1rem;
+	border-radius: 12px;
+	font-size: 0.95em;
+}
+
+.aimp-el-notice[hidden] {
+	display: none;
+}
+
+.aimp-el-notice--error {
+	background: #fdecea;
+	color: var(--aimp-el-error);
+}
+
+.aimp-el-notice--success {
+	background: transparent;
+	border: 3px double var(--aimp-el-primary);
+	color: var(--aimp-el-text);
+}
+
+.aimp-el-message-text {
+	padding: 1rem;
+	border: 3px double var(--aimp-el-primary);
+	border-radius: 16px;
+	text-align: center;
+}
+
+.aimp-el-info {
+	color: var(--aimp-el-text);
+}
+
+/* ------------------------------------------------------------------
+ * Social login
+ * ------------------------------------------------------------------ */
+.aimp-el-divider {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin: 1.25rem 0 1rem;
+	font-size: 0.9em;
+}
+
+.aimp-el-divider::before,
+.aimp-el-divider::after {
+	content: "";
+	flex: 1 1 auto;
+	height: 1px;
+	background: var(--aimp-el-border);
+	opacity: 0.6;
+}
+
+.aimp-el-social {
+	display: grid;
+	gap: 0.6rem;
+}
+
+.aimp-el-social--icons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.aimp-el-social-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.7rem;
+	padding: 0.6em 1.2em;
+	border: 1px solid #d8d8d8;
+	border-radius: 100px;
+	background: #fff;
+	color: #222;
+	font-weight: 600;
+	font-size: 0.95em;
+	text-decoration: none;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.aimp-el-social-btn:hover,
+.aimp-el-social-btn:focus-visible {
+	border-color: var(--aimp-el-primary);
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+	color: #222;
+}
+
+.aimp-el-social-btn svg {
+	flex: 0 0 auto;
+	width: 1.25em;
+	height: 1.25em;
+}
+
+.aimp-el-social--icons .aimp-el-social-btn {
+	width: 3em;
+	height: 3em;
+	padding: 0;
+}
+
+.aimp-el-social-btn--apple,
+.aimp-el-social-btn--x {
+	background: #000;
+	border-color: #000;
+	color: #fff;
+}
+
+.aimp-el-social-btn--apple:hover,
+.aimp-el-social-btn--x:hover {
+	color: #fff;
+}
+
+/* Connected accounts */
+.aimp-el-connections {
+	margin: 1.5rem 0 0;
+	padding: 1rem;
+	border: 1px solid var(--aimp-el-border);
+	border-radius: 16px;
+}
+
+.aimp-el-connections legend {
+	padding: 0 0.5rem;
+	font-weight: 600;
+	color: var(--aimp-el-text);
+}
+
+.aimp-el-connections ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-el-connections li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 1rem;
+	padding: 0.4rem 0;
+	color: var(--aimp-el-text);
+}
+
+.aimp-el-connection-name {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-width: 9rem;
+	font-weight: 600;
+}
+
+.aimp-el-connection-name svg {
+	width: 1.2em;
+	height: 1.2em;
+}
+
+.aimp-el-connected {
+	font-size: 0.9em;
+}
+
+.aimp-el-link-button {
+	padding: 0.3em 1em;
+	border: 3px double var(--aimp-el-primary);
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-el-primary);
+	font: inherit;
+	font-size: 0.9em;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+/* ------------------------------------------------------------------
+ * Address suggestions
+ * ------------------------------------------------------------------ */
+.aimp-address-list {
+	position: fixed;
+	z-index: 1000000;
+	max-height: 260px;
+	margin: 4px 0 0;
+	padding: 0.25rem 0;
+	overflow-y: auto;
+	list-style: none;
+	background: #fff;
+	border: 1px solid #b38f4f;
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+	font-size: 0.95em;
+}
+
+.aimp-address-list[hidden] {
+	display: none;
+}
+
+.aimp-address-list li {
+	padding: 0.55em 0.9em;
+	color: #333;
+	cursor: pointer;
+}
+
+.aimp-address-list li.is-active,
+.aimp-address-list li:hover {
+	background: rgba(179, 143, 79, 0.14);
+}
+
+.aimp-address-list .aimp-address-empty {
+	color: #777;
+	cursor: default;
+}

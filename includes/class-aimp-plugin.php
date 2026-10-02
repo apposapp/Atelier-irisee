@@ -25,6 +25,7 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-ajax.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-shortcode.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-favorites.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/login/class-aimp-login.php';
 
 		AIMP_Settings::init();
 		AIMP_Product_Fields::init();
@@ -32,6 +33,7 @@ class AIMP_Plugin {
 		AIMP_Ajax::init();
 		AIMP_Shortcode::init();
 		AIMP_Favorites::init();
+		AIMP_Login::init();
 	}
 
 	public static function missing_woocommerce_notice() {
