@@ -52,13 +52,12 @@ class AIMP_Cart {
 	/**
 	 * Validate and add a complete set. Nothing is added when any check fails.
 	 *
-	 * @param int $variation_id Size variation ID.
-	 * @param int $fabric_id    Fabric product ID.
-	 * @param int $button_id    Button product ID (0 = none).
-	 * @param int $zip_id       Zip product ID (0 = none).
+	 * @param int   $variation_id Size variation ID.
+	 * @param int   $fabric_id    Fabric product ID.
+	 * @param array $notions      Chosen haberdashery: notion type (buttons, zips, ribbons, bias) => product ID (0 = none).
 	 * @return true|WP_Error WP_Error carries one message per problem.
 	 */
-	public static function add_group( $variation_id, $fabric_id, $button_id, $zip_id ) {
+	public static function add_group( $variation_id, $fabric_id, $notions ) {
 		$errors = new WP_Error();
 		$req    = AIMP_Catalog::get_requirements( $variation_id );
 		if ( ! $req ) {
@@ -91,23 +90,22 @@ class AIMP_Cart {
 			}
 		}
 
-		// Buttons and zips: optional, but if chosen they must be allowed.
-		foreach ( array(
-			'button' => array( 'buttons', $button_id ),
-			'zip'    => array( 'zips', $zip_id ),
-		) as $role => $choice ) {
-			list( $type, $id ) = $choice;
+		// Haberdashery (buttons, zips, ribbons, bias tape): optional, but if chosen it must be allowed.
+		$not_allowed = array(
+			'buttons' => __( 'These buttons cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ),
+			'zips'    => __( 'This zip cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ),
+			'ribbons' => __( 'This ribbon cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ),
+			'bias'    => __( 'This bias tape cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ),
+		);
+		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
+			$role = $info['role'];
+			$id   = isset( $notions[ $type ] ) ? absint( $notions[ $type ] ) : 0;
 			if ( ! $id ) {
 				continue;
 			}
 			$product = AIMP_Catalog::get_allowed_notion( $id, $type, $req );
 			if ( ! $product ) {
-				$errors->add(
-					'aimp_' . $role,
-					'zips' === $type
-						? __( 'This zip cannot be used with this pattern size.', 'atelier-irisee-master-plugin' )
-						: __( 'These buttons cannot be used with this pattern size.', 'atelier-irisee-master-plugin' )
-				);
+				$errors->add( 'aimp_' . $role, $not_allowed[ $type ] );
 				continue;
 			}
 			$lines[] = array(
@@ -408,7 +406,7 @@ class AIMP_Cart {
 				'key'   => __( 'For', 'atelier-irisee-master-plugin' ),
 				'value' => $meta['label'],
 			);
-			if ( 'fabric' === $meta['role'] ) {
+			if ( in_array( $meta['role'], array( 'fabric', 'ribbon', 'bias' ), true ) ) {
 				$item_data[] = array(
 					'key'   => __( 'Length', 'atelier-irisee-master-plugin' ),
 					'value' => AIMP_Catalog::fabric_text( (int) $meta['qty'] ),
@@ -443,7 +441,7 @@ class AIMP_Cart {
 			sprintf( '%s (#%s)', $meta['label'], strtoupper( substr( str_replace( '-', '', $meta['group'] ), 0, 6 ) ) ),
 			true
 		);
-		if ( 'fabric' === $meta['role'] ) {
+		if ( in_array( $meta['role'], array( 'fabric', 'ribbon', 'bias' ), true ) ) {
 			$item->add_meta_data( 'aimp_length', AIMP_Catalog::fabric_text( (int) $meta['qty'] ), true );
 		}
 	}

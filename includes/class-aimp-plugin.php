@@ -24,12 +24,14 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-cart.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-ajax.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-shortcode.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-favorites.php';
 
 		AIMP_Settings::init();
 		AIMP_Product_Fields::init();
 		AIMP_Cart::init();
 		AIMP_Ajax::init();
 		AIMP_Shortcode::init();
+		AIMP_Favorites::init();
 	}
 
 	public static function missing_woocommerce_notice() {

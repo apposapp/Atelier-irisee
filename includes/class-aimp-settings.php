@@ -25,6 +25,8 @@ class AIMP_Settings {
 			'fabric_cat'  => __( 'Fabrics category', 'atelier-irisee-master-plugin' ),
 			'button_cat'  => __( 'Buttons category', 'atelier-irisee-master-plugin' ),
 			'zip_cat'     => __( 'Zips category', 'atelier-irisee-master-plugin' ),
+			'ribbon_cat'  => __( 'Ribbons category', 'atelier-irisee-master-plugin' ),
+			'bias_cat'    => __( 'Bias tape category', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -42,12 +44,15 @@ class AIMP_Settings {
 	 */
 	public static function get( $key ) {
 		$defaults = array(
-			'pattern_cat' => 0,
-			'fabric_cat'  => 0,
-			'button_cat'  => 0,
-			'zip_cat'     => 0,
+			'pattern_cat'     => 0,
+			'fabric_cat'      => 0,
+			'button_cat'      => 0,
+			'zip_cat'         => 0,
+			'ribbon_cat'      => 0,
+			'bias_cat'        => 0,
 			'per_page'        => 9,
 			'fabric_per_page' => 16,
+			'favorites_page'  => 0,
 		);
 		$options = wp_parse_args( (array) get_option( self::OPTION, array() ), $defaults );
 		return isset( $options[ $key ] ) ? absint( $options[ $key ] ) : 0;
@@ -97,6 +102,15 @@ class AIMP_Settings {
 			array( 'label_for' => 'aimp_language' )
 		);
 
+		add_settings_field(
+			'aimp_favorites_page',
+			__( 'Favorites page', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_favorites_page_field' ),
+			self::PAGE,
+			'aimp_general',
+			array( 'label_for' => 'aimp_favorites_page' )
+		);
+
 		add_settings_section(
 			'aimp_categories',
 			__( 'Product categories', 'atelier-irisee-master-plugin' ),
@@ -143,7 +157,7 @@ class AIMP_Settings {
 			'per_page'        => array(
 				'label'       => __( 'Items per page', 'atelier-irisee-master-plugin' ),
 				'default'     => 9,
-				'description' => __( 'Patterns, buttons and zips per page. 9 fills a 3x3 grid.', 'atelier-irisee-master-plugin' ),
+				'description' => __( 'Patterns and haberdashery per page. 9 fills a 3x3 grid.', 'atelier-irisee-master-plugin' ),
 			),
 			'fabric_per_page' => array(
 				'label'       => __( 'Fabrics per page', 'atelier-irisee-master-plugin' ),
@@ -163,6 +177,8 @@ class AIMP_Settings {
 			$value             = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : $field['default'];
 			$sanitized[ $key ] = ( $value < 1 || $value > 60 ) ? $field['default'] : $value;
 		}
+		$sanitized['favorites_page'] = isset( $input['favorites_page'] ) ? absint( $input['favorites_page'] ) : 0;
+
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;
 		return $sanitized;
@@ -193,6 +209,25 @@ class AIMP_Settings {
 				'option_none_value' => 0,
 			)
 		);
+	}
+
+	public static function render_favorites_page_field() {
+		wp_dropdown_pages(
+			array(
+				'name'              => self::OPTION . '[favorites_page]',
+				'id'                => 'aimp_favorites_page',
+				'selected'          => self::get( 'favorites_page' ),
+				'show_option_none'  => __( '— Select —', 'atelier-irisee-master-plugin' ),
+				'option_none_value' => 0,
+			)
+		);
+		echo '<p class="description">' . wp_kses_post(
+			sprintf(
+				/* translators: %s: shortcode */
+				__( 'The page with the shortcode %s. Customers get a link to it after adding a favorite.', 'atelier-irisee-master-plugin' ),
+				'<code>[atelier_irisee_favorites]</code>'
+			)
+		) . '</p>';
 	}
 
 	public static function render_language_field() {

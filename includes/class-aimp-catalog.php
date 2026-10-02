@@ -1,6 +1,6 @@
 <?php
 /**
- * Catalog rules: which patterns, sizes, fabrics, buttons and zips are eligible.
+ * Catalog rules: which patterns, sizes, fabrics and haberdashery (buttons, zips, ribbons, bias tape) are eligible.
  *
  * Both the configurator endpoints and the cart validation use these methods,
  * so the rules shown to the customer and the rules enforced on add-to-cart
@@ -20,6 +20,8 @@ class AIMP_Catalog {
 	const META_BUTTON_COUNT    = '_aimp_button_count';
 	const META_ZIP_COUNT       = '_aimp_zip_count';
 	const META_ZIP_LENGTH      = '_aimp_zip_length';
+	const META_RIBBON_LENGTH   = '_aimp_ribbon_length';
+	const META_BIAS_LENGTH     = '_aimp_bias_length';
 	const META_BUST            = '_aimp_bust';
 	const META_WAIST           = '_aimp_waist';
 	const META_HEIGHT          = '_aimp_height';
@@ -32,6 +34,62 @@ class AIMP_Catalog {
 
 	/** Sort options for the fabric step. */
 	const FABRIC_SORTS = array( 'recommended', 'name_asc', 'name_desc', 'price_asc', 'price_desc', 'newest' );
+
+	/**
+	 * Haberdashery types offered in step 3: type => [ role (cart line), setting (category), unit ].
+	 * "piece" products are counted per piece; "10cm" products are sold per 10 cm, like fabric.
+	 *
+	 * @return array
+	 */
+	public static function notion_types() {
+		return array(
+			'buttons' => array(
+				'role'    => 'button',
+				'setting' => 'button_cat',
+				'unit'    => 'piece',
+			),
+			'zips'    => array(
+				'role'    => 'zip',
+				'setting' => 'zip_cat',
+				'unit'    => 'piece',
+			),
+			'ribbons' => array(
+				'role'    => 'ribbon',
+				'setting' => 'ribbon_cat',
+				'unit'    => '10cm',
+			),
+			'bias'    => array(
+				'role'    => 'bias',
+				'setting' => 'bias_cat',
+				'unit'    => '10cm',
+			),
+		);
+	}
+
+	/**
+	 * Number of 10 cm units needed for a length in cm, rounded up (120 cm -> 12, 85 cm -> 9).
+	 *
+	 * @param int $cm Length in cm.
+	 * @return int
+	 */
+	public static function units_for_cm( $cm ) {
+		return (int) ceil( absint( $cm ) / self::FABRIC_UNIT_CM );
+	}
+
+	/**
+	 * "120 cm (12 × 10 cm)".
+	 *
+	 * @param int $cm Length in cm.
+	 * @return string
+	 */
+	public static function length_text( $cm ) {
+		return sprintf(
+			/* translators: 1: length in cm, 2: number of 10 cm units */
+			__( '%1$d cm (%2$d × 10 cm)', 'atelier-irisee-master-plugin' ),
+			absint( $cm ),
+			self::units_for_cm( $cm )
+		);
+	}
 
 	/* ------------------------------------------------------------------
 	 * Category helpers
@@ -376,6 +434,10 @@ class AIMP_Catalog {
 			'button_count' => absint( $variation->get_meta( self::META_BUTTON_COUNT ) ),
 			'zip_count'    => absint( $variation->get_meta( self::META_ZIP_COUNT ) ),
 			'zip_length'   => (string) $variation->get_meta( self::META_ZIP_LENGTH ),
+			'ribbon_length' => absint( $variation->get_meta( self::META_RIBBON_LENGTH ) ),
+			'bias_length'  => absint( $variation->get_meta( self::META_BIAS_LENGTH ) ),
+			'ribbon_qty'   => self::units_for_cm( $variation->get_meta( self::META_RIBBON_LENGTH ) ),
+			'bias_qty'     => self::units_for_cm( $variation->get_meta( self::META_BIAS_LENGTH ) ),
 			'bust'         => (string) $variation->get_meta( self::META_BUST ),
 			'waist'        => (string) $variation->get_meta( self::META_WAIST ),
 			'height'       => (string) $variation->get_meta( self::META_HEIGHT ),
@@ -449,6 +511,10 @@ class AIMP_Catalog {
 				'button_count' => $req['button_count'],
 				'zip_count'    => $req['zip_count'],
 				'zip_length'   => $req['zip_length'],
+				'ribbon_qty'   => $req['ribbon_qty'],
+				'ribbon_text'  => self::length_text( $req['ribbon_length'] ),
+				'bias_qty'     => $req['bias_qty'],
+				'bias_text'    => self::length_text( $req['bias_length'] ),
 			);
 		}
 
@@ -506,10 +572,10 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * The button or zip product if it is allowed for these requirements.
+	 * The haberdashery product if it is allowed for these requirements.
 	 *
 	 * @param int    $product_id Product ID.
-	 * @param string $type       'buttons' or 'zips'.
+	 * @param string $type       A key of notion_types().
 	 * @param array  $req        Requirements.
 	 * @return WC_Product|null
 	 */
@@ -525,18 +591,29 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * Required quantity for buttons or zips.
+	 * Locked cart quantity of a haberdashery type for a size (pieces, or 10 cm units).
 	 *
-	 * @param string $type 'buttons' or 'zips'.
+	 * @param string $type A key of notion_types().
 	 * @param array  $req  Requirements.
 	 * @return int
 	 */
 	public static function notion_count( $type, $req ) {
-		return 'zips' === $type ? $req['zip_count'] : $req['button_count'];
+		switch ( $type ) {
+			case 'buttons':
+				return $req['button_count'];
+			case 'zips':
+				return $req['zip_count'];
+			case 'ribbons':
+				return $req['ribbon_qty'];
+			case 'bias':
+				return $req['bias_qty'];
+		}
+		return 0;
 	}
 
 	private static function notion_category( $type ) {
-		return 'zips' === $type ? AIMP_Settings::get( 'zip_cat' ) : AIMP_Settings::get( 'button_cat' );
+		$types = self::notion_types();
+		return isset( $types[ $type ] ) ? AIMP_Settings::get( $types[ $type ]['setting'] ) : 0;
 	}
 
 	private static function zip_length_matches( $product, $required ) {
@@ -588,10 +665,11 @@ class AIMP_Catalog {
 	 *
 	 * @param WC_Product $product Product.
 	 * @param int        $qty     Required quantity.
-	 * @param bool       $fabric  Whether stock is shown in fabric units.
+	 * @param string     $unit    'piece', or '10cm' for products sold per 10 cm (fabric, ribbon, bias tape).
 	 * @return array
 	 */
-	private static function material_card( $product, $qty, $fabric ) {
+	private static function material_card( $product, $qty, $unit ) {
+		$per_10cm            = '10cm' === $unit;
 		$card                = self::card( $product );
 		$card['qty']         = $qty;
 		$card['available']   = self::is_available( $product, $qty );
@@ -603,7 +681,7 @@ class AIMP_Catalog {
 
 		if ( $product->managing_stock() ) {
 			$stock              = (int) $product->get_stock_quantity();
-			$card['stock_text'] = $fabric
+			$card['stock_text'] = $per_10cm
 				? sprintf(
 					/* translators: 1: units in stock, 2: metres in stock */
 					__( '%1$d × 10 cm in stock (%2$s m)', 'atelier-irisee-master-plugin' ),
@@ -799,7 +877,7 @@ class AIMP_Catalog {
 		foreach ( array_slice( $ids, ( $page - 1 ) * $per_page, $per_page ) as $id ) {
 			$product = wc_get_product( $id );
 			if ( $product && $product->is_visible() ) {
-				$items[] = self::material_card( $product, $req['fabric_units'], true );
+				$items[] = self::material_card( $product, $req['fabric_units'], '10cm' );
 			}
 		}
 
@@ -814,16 +892,17 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * Buttons or zips allowed for a size.
+	 * Haberdashery (buttons, zips, ribbons, bias tape) allowed for a size.
 	 *
 	 * @param int    $variation_id Size variation.
-	 * @param string $type         'buttons' or 'zips'.
+	 * @param string $type         A key of notion_types().
 	 * @param int    $page         Page.
 	 * @return array|null
 	 */
 	public static function get_notions( $variation_id, $type, $page ) {
-		$req = self::get_requirements( $variation_id );
-		if ( ! $req ) {
+		$types = self::notion_types();
+		$req   = self::get_requirements( $variation_id );
+		if ( ! $req || ! isset( $types[ $type ] ) ) {
 			return null;
 		}
 		$count = self::notion_count( $type, $req );
@@ -849,7 +928,7 @@ class AIMP_Catalog {
 		foreach ( $result['ids'] as $id ) {
 			$product = wc_get_product( $id );
 			if ( $product && $product->is_visible() ) {
-				$items[] = self::material_card( $product, $count, false );
+				$items[] = self::material_card( $product, $count, $types[ $type ]['unit'] );
 			}
 		}
 		return array(

@@ -1,0 +1,220 @@
+/* Atelier Irisee favorites: heart buttons and the favorites page. */
+
+/* Heart button (same round double gold border as the configurator buttons) */
+.aimp-fav {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.45rem;
+	width: 2.75rem;
+	height: 2.75rem;
+	margin: 0;
+	padding: 0;
+	background-color: rgba(255, 255, 255, 0.9);
+	border-top-left-radius: 100px;
+	border-top-right-radius: 100px;
+	border-bottom-left-radius: 100px;
+	border-bottom-right-radius: 100px;
+	border-width: 5px;
+	border-color: #b38f4f;
+	border-style: double;
+	color: #b38f4f;
+	font: inherit;
+	line-height: 1;
+	box-shadow: none;
+	cursor: pointer;
+	transition-property: background-color, mask-position, mask-size;
+	transition-duration: 300ms;
+	transition-timing-function: ease;
+	transition-delay: 0ms;
+}
+
+.aimp-fav:hover,
+.aimp-fav:focus-visible {
+	background-color: #f6efe3;
+	color: #b38f4f;
+}
+
+.aimp-fav:disabled {
+	cursor: wait;
+	opacity: 0.7;
+}
+
+.aimp-fav-icon {
+	display: block;
+	width: 1.2rem;
+	height: 1.2rem;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+}
+
+.aimp-fav.is-favorite .aimp-fav-icon {
+	fill: currentColor;
+}
+
+/* On product pictures: top right corner */
+.woocommerce ul.products li.product,
+.aimp-fav-wrap,
+.aimp-fav-card {
+	position: relative;
+}
+
+.aimp-fav--overlay {
+	position: absolute;
+	top: 0.6rem;
+	right: 0.6rem;
+	z-index: 5;
+}
+
+/* Single product page: heart with text */
+.aimp-fav-single {
+	margin: 1rem 0;
+}
+
+.aimp-fav.aimp-fav--labeled {
+	width: auto;
+	height: auto;
+	padding: 0.55rem 1.3rem;
+	background-color: transparent;
+}
+
+.aimp-fav.aimp-fav--labeled:hover {
+	background-color: rgba(179, 143, 79, 0.12);
+}
+
+/* Toast */
+.aimp-fav-toast {
+	position: fixed;
+	left: 50%;
+	bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+	z-index: 99999;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 1rem;
+	max-width: calc(100vw - 2rem);
+	padding: 0.75rem 1.4rem;
+	border: 5px double #b38f4f;
+	border-radius: 100px;
+	background: #fff;
+	color: #b38f4f;
+	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+	opacity: 0;
+	pointer-events: none;
+	transform: translate(-50%, 1rem);
+	transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.aimp-fav-toast.is-visible {
+	opacity: 1;
+	pointer-events: auto;
+	transform: translate(-50%, 0);
+}
+
+.aimp-fav-toast a {
+	color: #b38f4f;
+	font-weight: 600;
+	text-decoration: underline;
+}
+
+/* Favorites page */
+.aimp-favorites,
+.aimp-favorites p,
+.aimp-favorites a {
+	color: #b38f4f;
+}
+
+.aimp-favorites .aimp-favorites-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1.25rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+@media (max-width: 1000px) {
+	.aimp-favorites .aimp-favorites-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	.aimp-favorites .aimp-favorites-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.aimp-favorites .aimp-fav-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0;
+	padding: 0.9rem 0.9rem 1.3rem;
+	border: 5px double #b38f4f;
+	border-radius: 24px;
+	text-align: center;
+}
+
+.aimp-fav-card-image {
+	display: block;
+	width: 100%;
+}
+
+.aimp-fav-card-image img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 1 / 1;
+	object-fit: cover;
+	border-radius: 16px;
+}
+
+.aimp-favorites .aimp-fav-card-name {
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.aimp-favorites .aimp-fav-card-price,
+.aimp-favorites .aimp-fav-card-price * {
+	color: #b38f4f;
+}
+
+.aimp-favorites .aimp-fav-card-action,
+.aimp-favorites .aimp-fav-card-action.button {
+	display: inline-block;
+	margin-top: auto;
+	padding: 0.55rem 1.3rem;
+	background-color: transparent;
+	border-top-left-radius: 100px;
+	border-top-right-radius: 100px;
+	border-bottom-left-radius: 100px;
+	border-bottom-right-radius: 100px;
+	border-width: 5px;
+	border-color: #b38f4f;
+	border-style: double;
+	color: #b38f4f;
+	text-decoration: none;
+	transition-property: background-color, mask-position, mask-size;
+	transition-duration: 300ms;
+	transition-timing-function: ease;
+	transition-delay: 0ms;
+}
+
+.aimp-favorites .aimp-fav-card-action:hover {
+	background-color: rgba(179, 143, 79, 0.12);
+	color: #b38f4f;
+}
+
+/* WooCommerce's "View cart" link after an ajax add to cart */
+.aimp-favorites .added_to_cart {
+	display: block;
+	color: #b38f4f;
+}
+
+.aimp-fav-empty,
+.aimp-fav-loading {
+	padding: 1.5rem 0;
+}

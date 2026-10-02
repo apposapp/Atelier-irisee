@@ -1,7 +1,7 @@
 /**
  * Atelier Irisee pattern configurator.
  *
- * Steps: pattern & size -> fabric -> buttons & zips -> summary -> add to cart.
+ * Steps: pattern & size -> fabric -> haberdashery (buttons, zips, ribbons, bias tape) -> summary -> add to cart.
  * Pattern and fabric steps show a grid on the left and the details of the selection on the right.
  * All rules (allowed fabrics, quantities, stock) are enforced again on the server.
  */
@@ -107,6 +107,43 @@
 		['height', 'height']
 	];
 
+	/**
+	 * Haberdashery types of step 3, in display order.
+	 * qty(size): locked cart quantity; need(size): what the size needs, as text; willAdd(size): hint above the grid.
+	 */
+	var NOTIONS = [
+		{
+			type: 'buttons', role: 'button', title: 'chooseButtons', label: 'buttons', unitLabel: 'pricePerPiece',
+			qty: function (size) { return size.button_count; },
+			need: function (size) { return String(size.button_count); },
+			willAdd: function (size) { return fmt(t.buttonsWillAdd, size.button_count); }
+		},
+		{
+			type: 'zips', role: 'zip', title: 'chooseZip', label: 'zips', unitLabel: 'pricePerPiece',
+			qty: function (size) { return size.zip_count; },
+			need: function (size) { return fmt(t.zipOf, size.zip_count, num(size.zip_length)); },
+			willAdd: function (size) { return fmt(t.zipsWillAdd, size.zip_count, num(size.zip_length)); }
+		},
+		{
+			type: 'ribbons', role: 'ribbon', title: 'chooseRibbon', label: 'ribbon', unitLabel: 'pricePerUnit',
+			qty: function (size) { return size.ribbon_qty; },
+			need: function (size) { return size.ribbon_text; },
+			willAdd: function (size) { return fmt(t.lengthWillAdd, size.ribbon_text); }
+		},
+		{
+			type: 'bias', role: 'bias', title: 'chooseBias', label: 'biasTape', unitLabel: 'pricePerUnit',
+			qty: function (size) { return size.bias_qty; },
+			need: function (size) { return size.bias_text; },
+			willAdd: function (size) { return fmt(t.lengthWillAdd, size.bias_text); }
+		}
+	];
+
+	function notionInfo(type) {
+		return NOTIONS.filter(function (n) {
+			return n.type === type;
+		})[0];
+	}
+
 	function hasValue(value) {
 		return value !== '' && value !== null && value !== undefined;
 	}
@@ -162,6 +199,16 @@
 		}
 	}
 
+	// Favorite (heart) button from favorites.js; its state is filled in by aimpFavorites.refresh().
+	function favButton(productId) {
+		return window.aimpFavorites ? window.aimpFavorites.button(productId) : '';
+	}
+
+	// Title of a details panel with the favorite heart next to it.
+	function detailsTitle(name, productId) {
+		return '<div class="aimp-details-head"><h3 class="aimp-details-title">' + esc(name) + '</h3>' + favButton(productId) + '</div>';
+	}
+
 	function findById(items, id) {
 		return (items || []).filter(function (item) {
 			return item.id === id;
@@ -206,7 +253,48 @@
 		this.body = root.querySelector('.aimp-body');
 		this.renderLanguages();
 		this.render();
+		this.watchLayout();
 	}
+
+	/**
+	 * After every change inside the configurator (and when pictures load or the window resizes):
+	 * fit the side panels and mark the favorite hearts.
+	 */
+	Configurator.prototype.watchLayout = function () {
+		var self = this;
+		var scheduled = false;
+		var schedule = function () {
+			if (scheduled) {
+				return;
+			}
+			scheduled = true;
+			window.requestAnimationFrame(function () {
+				scheduled = false;
+				self.fitSidePanels();
+				if (window.aimpFavorites) {
+					window.aimpFavorites.refresh(self.root);
+				}
+			});
+		};
+		if (window.MutationObserver) {
+			new MutationObserver(schedule).observe(this.root, { childList: true, subtree: true });
+		}
+		// "load" does not bubble, so listen in the capture phase for pictures inside the configurator.
+		this.root.addEventListener('load', schedule, true);
+		window.addEventListener('resize', schedule);
+		schedule();
+	};
+
+	/**
+	 * Side panels have no scrollbar of their own: they follow the page while scrolling only when they
+	 * fit on the screen; taller panels scroll along with the page.
+	 */
+	Configurator.prototype.fitSidePanels = function () {
+		this.root.querySelectorAll('.aimp-split-side').forEach(function (panel) {
+			var top = parseFloat(window.getComputedStyle(panel).top) || 0;
+			panel.classList.toggle('is-tall', panel.offsetHeight > window.innerHeight - top * 2);
+		});
+	};
 
 	Configurator.prototype.reset = function () {
 		this.state = {
@@ -232,10 +320,18 @@
 		s.fabricImage = 0;
 		s.fabricFilters = defaultFabricFilters();
 		s.fabricCategories = null;
-		s.notions = {
-			buttons: { page: 1, data: null, selected: null, image: 0 },
-			zips: { page: 1, data: null, selected: null, image: 0 }
-		};
+		s.notions = {};
+		NOTIONS.forEach(function (n) {
+			s.notions[n.type] = { page: 1, data: null, selected: null, image: 0 };
+		});
+	};
+
+	// Forget loaded haberdashery lists (new language or changed stock); choices are kept.
+	Configurator.prototype.clearNotionData = function () {
+		var s = this.state;
+		NOTIONS.forEach(function (n) {
+			s.notions[n.type].data = null;
+		});
 	};
 
 	/* ---------------------------------------------------------------
@@ -282,8 +378,7 @@
 
 		s.patterns = null;
 		s.fabrics = null;
-		s.notions.buttons.data = null;
-		s.notions.zips.data = null;
+		self.clearNotionData();
 
 		if (s.pattern) {
 			var patternId = s.pattern.id;
@@ -334,7 +429,7 @@
 		if (!size || size.fabric_units > 0) {
 			steps.push({ key: 'fabric', label: t.stepFabric });
 		}
-		if (!size || size.button_count > 0 || size.zip_count > 0) {
+		if (!size || this.notionTypes().length) {
 			steps.push({ key: 'notions', label: t.stepNotions });
 		}
 		steps.push({ key: 'summary', label: t.stepSummary });
@@ -549,7 +644,7 @@
 	Configurator.prototype.materialDetailsHtml = function (item, imageIndex, unitLabel, needText) {
 		var html = '<div class="aimp-details">';
 		html += this.galleryHtml(item.gallery, imageIndex);
-		html += '<h3 class="aimp-details-title">' + esc(item.name) + '</h3>';
+		html += detailsTitle(item.name, item.id);
 		if (item.description) {
 			html += '<div class="aimp-description">' + item.description + '</div>';
 		}
@@ -707,12 +802,14 @@
 		if (size.fabric_units > 0) {
 			rows.push('<li><strong>' + esc(t.fabricNeeded) + ':</strong> ' + esc(size.fabric_text) + '</li>');
 		}
-		rows.push('<li><strong>' + esc(t.buttons) + ':</strong> ' + (size.button_count > 0 ? esc(size.button_count) : esc(t.none)) + '</li>');
-		rows.push(
-			'<li><strong>' + esc(t.zips) + ':</strong> ' +
-			(size.zip_count > 0 ? esc(fmt(t.zipOf, size.zip_count, num(size.zip_length))) : esc(t.none)) +
-			'</li>'
-		);
+		NOTIONS.forEach(function (n) {
+			if (n.qty(size) > 0) {
+				rows.push('<li><strong>' + esc(t[n.label]) + ':</strong> ' + esc(n.need(size)) + '</li>');
+			}
+		});
+		if (!rows.length) {
+			rows.push('<li>' + esc(t.none) + '</li>');
+		}
 		return '<ul class="aimp-needs">' + rows.join('') + '</ul>';
 	};
 
@@ -739,7 +836,7 @@
 
 		var html = '<div class="aimp-details">';
 		html += this.galleryHtml(pattern.gallery, s.patternImage);
-		html += '<h3 class="aimp-details-title">' + esc(pattern.name) + '</h3>';
+		html += detailsTitle(pattern.name, pattern.id);
 		if (pattern.short_description) {
 			html += '<div class="aimp-description">' + pattern.short_description + '</div>';
 		}
@@ -1134,19 +1231,20 @@
 	};
 
 	/* ---------------------------------------------------------------
-	 * Step 3: buttons & zips
+	 * Step 3: haberdashery (buttons, zips, ribbons, bias tape)
 	 * ------------------------------------------------------------- */
 
+	// The haberdashery types the chosen size needs.
 	Configurator.prototype.notionTypes = function () {
 		var size = this.state.size;
-		var types = [];
-		if (size.button_count > 0) {
-			types.push('buttons');
+		if (!size) {
+			return [];
 		}
-		if (size.zip_count > 0) {
-			types.push('zips');
-		}
-		return types;
+		return NOTIONS.filter(function (n) {
+			return n.qty(size) > 0;
+		}).map(function (n) {
+			return n.type;
+		});
 	};
 
 	Configurator.prototype.renderNotionsStep = function () {
@@ -1155,11 +1253,11 @@
 		var html = '<div class="aimp-step aimp-step--notions">' + this.recapHtml();
 
 		this.notionTypes().forEach(function (type) {
-			var willAdd = type === 'zips' ? fmt(t.zipsWillAdd, s.size.zip_count, num(s.size.zip_length)) : fmt(t.buttonsWillAdd, s.size.button_count);
+			var info = notionInfo(type);
 			html +=
 				'<section class="aimp-notion-section">' +
-				'<h3>' + esc(type === 'zips' ? t.chooseZip : t.chooseButtons) + '</h3>' +
-				'<p class="aimp-help">' + esc(willAdd) + ' ' + esc(t.deselectHint) + '</p>' +
+				'<h3>' + esc(t[info.title]) + '</h3>' +
+				'<p class="aimp-help">' + esc(info.willAdd(s.size)) + ' ' + esc(t.deselectHint) + '</p>' +
 				'<div class="aimp-split">' +
 				'<div class="aimp-split-main" data-role="notions-' + type + '"></div>' +
 				'<aside class="aimp-split-side" data-role="notion-panel-' + type + '"></aside>' +
@@ -1249,8 +1347,8 @@
 				panel.innerHTML = '<div class="aimp-side-placeholder">' + esc(t.selectItemHint) + '</div>';
 				return;
 			}
-			var count = type === 'zips' ? s.size.zip_count : s.size.button_count;
-			panel.innerHTML = this.materialDetailsHtml(bucket.selected, bucket.image, t.pricePerPiece, String(count));
+			var info = notionInfo(type);
+			panel.innerHTML = this.materialDetailsHtml(bucket.selected, bucket.image, t[info.unitLabel], info.need(s.size));
 			this.bindGallery(panel, bucket.selected.gallery, function (i) {
 				bucket.image = i;
 			});
@@ -1267,12 +1365,17 @@
 		if (s.size.fabric_units > 0 && s.fabric) {
 			lines.push({ name: s.fabric.name, detail: s.size.fabric_text, qty: s.size.fabric_units, price: s.fabric.price });
 		}
-		if (s.size.button_count > 0 && s.notions.buttons.selected) {
-			lines.push({ name: s.notions.buttons.selected.name, qty: s.size.button_count, price: s.notions.buttons.selected.price });
-		}
-		if (s.size.zip_count > 0 && s.notions.zips.selected) {
-			lines.push({ name: s.notions.zips.selected.name, qty: s.size.zip_count, price: s.notions.zips.selected.price });
-		}
+		NOTIONS.forEach(function (n) {
+			var selected = s.notions[n.type].selected;
+			if (n.qty(s.size) > 0 && selected) {
+				lines.push({
+					name: selected.name,
+					detail: n.unitLabel === 'pricePerUnit' ? n.need(s.size) : '',
+					qty: n.qty(s.size),
+					price: selected.price
+				});
+			}
+		});
 		return lines;
 	};
 
@@ -1320,13 +1423,18 @@
 		button.textContent = t.adding;
 		messages.innerHTML = '';
 
-		request('add_to_cart', {
+		var params = {
 			nonce: cfg.nonce,
 			variation: s.size.id,
-			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0,
-			button: s.size.button_count > 0 && s.notions.buttons.selected ? s.notions.buttons.selected.id : 0,
-			zip: s.size.zip_count > 0 && s.notions.zips.selected ? s.notions.zips.selected.id : 0
-		})
+			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0
+		};
+		// One parameter per haberdashery role: button, zip, ribbon, bias.
+		NOTIONS.forEach(function (n) {
+			var selected = s.notions[n.type].selected;
+			params[n.role] = n.qty(s.size) > 0 && selected ? selected.id : 0;
+		});
+
+		request('add_to_cart', params)
 			.then(function (data) {
 				s.added = true;
 				button.hidden = true;
@@ -1357,8 +1465,7 @@
 				self.showError(messages, err);
 				// Stock may have changed: reload material lists next time they are shown.
 				s.fabrics = null;
-				s.notions.buttons.data = null;
-				s.notions.zips.data = null;
+				self.clearNotionData();
 			});
 	};
 

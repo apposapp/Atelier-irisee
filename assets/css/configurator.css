@@ -255,15 +255,19 @@
 	align-items: start;
 }
 
+/* No scrollbar of its own: it follows the page while scrolling when it fits on the screen.
+ * configurator.js adds .is-tall when it doesn't fit; then it simply scrolls along with the page. */
 .aimp-split-side {
 	position: sticky;
 	top: var(--aimp-sticky-top);
-	max-height: calc(100vh - var(--aimp-sticky-top) * 2);
-	overflow-y: auto;
 	padding: 1.5rem;
 	background: transparent;
 	border: 5px double var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-split-side.is-tall {
+	position: static;
 }
 
 /* Narrow containers: stack the details under the grid. */
@@ -274,8 +278,6 @@
 
 	.aimp-split-side {
 		position: static;
-		max-height: none;
-		overflow: visible;
 	}
 }
 
@@ -523,8 +525,20 @@
 /* ------------------------------------------------------------------
  * Details panel
  * ------------------------------------------------------------------ */
-.aimp-details-title {
+.aimp-details-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 0.75rem;
 	margin: 1rem 0 0.5rem;
+}
+
+.aimp-configurator .aimp-details-title {
+	margin: 0;
+}
+
+.aimp-details-head .aimp-fav {
+	flex: 0 0 auto;
 }
 
 .aimp-details h4 {

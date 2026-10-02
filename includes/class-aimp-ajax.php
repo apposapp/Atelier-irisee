@@ -63,7 +63,7 @@ class AIMP_Ajax {
 
 	public static function notions() {
 		$type = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
-		if ( ! in_array( $type, array( 'buttons', 'zips' ), true ) ) {
+		if ( ! array_key_exists( $type, AIMP_Catalog::notion_types() ) ) {
 			self::not_found();
 		}
 		$data = AIMP_Catalog::get_notions( self::int_param( 'variation' ), $type, max( 1, self::int_param( 'page' ) ) );
@@ -80,11 +80,16 @@ class AIMP_Ajax {
 			wp_send_json_error( array( 'errors' => array( __( 'Your session has expired. Please reload the page and try again.', 'atelier-irisee-master-plugin' ) ) ), 403 );
 		}
 
+		// One request parameter per haberdashery role: button, zip, ribbon, bias.
+		$notions = array();
+		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
+			$notions[ $type ] = self::int_param( $info['role'] );
+		}
+
 		$result = AIMP_Cart::add_group(
 			self::int_param( 'variation' ),
 			self::int_param( 'fabric' ),
-			self::int_param( 'button' ),
-			self::int_param( 'zip' )
+			$notions
 		);
 
 		// WooCommerce may have queued its own notices while adding; we report errors in the configurator instead.

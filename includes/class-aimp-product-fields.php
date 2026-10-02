@@ -42,6 +42,8 @@ class AIMP_Product_Fields {
 			AIMP_Catalog::META_BUTTON_COUNT => array( __( 'Button count', 'atelier-irisee-master-plugin' ), '1' ),
 			AIMP_Catalog::META_ZIP_COUNT    => array( __( 'Zip count', 'atelier-irisee-master-plugin' ), '1' ),
 			AIMP_Catalog::META_ZIP_LENGTH   => array( __( 'Zip length (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
+			AIMP_Catalog::META_RIBBON_LENGTH => array( __( 'Ribbon length (cm)', 'atelier-irisee-master-plugin' ), '1' ),
+			AIMP_Catalog::META_BIAS_LENGTH  => array( __( 'Bias tape length (cm)', 'atelier-irisee-master-plugin' ), '1' ),
 			AIMP_Catalog::META_BUST         => array( __( 'Bust (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
 			AIMP_Catalog::META_WAIST        => array( __( 'Waist (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
 			AIMP_Catalog::META_HIP          => array( __( 'Hip (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
@@ -51,7 +53,17 @@ class AIMP_Product_Fields {
 	}
 
 	private static function is_integer_field( $key ) {
-		return in_array( $key, array( AIMP_Catalog::META_FABRIC_UNITS, AIMP_Catalog::META_BUTTON_COUNT, AIMP_Catalog::META_ZIP_COUNT ), true );
+		return in_array(
+			$key,
+			array(
+				AIMP_Catalog::META_FABRIC_UNITS,
+				AIMP_Catalog::META_BUTTON_COUNT,
+				AIMP_Catalog::META_ZIP_COUNT,
+				AIMP_Catalog::META_RIBBON_LENGTH,
+				AIMP_Catalog::META_BIAS_LENGTH,
+			),
+			true
+		);
 	}
 
 	/**

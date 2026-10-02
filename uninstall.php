@@ -13,4 +13,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 delete_option( 'aimp_settings' );
+
+// Customers' favorites (guests' favorites live in their own browser cookie).
+delete_metadata( 'user', 0, '_aimp_favorites', '', true );
 delete_site_transient( 'aimp_github_release' );

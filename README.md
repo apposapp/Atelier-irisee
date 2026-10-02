@@ -33,26 +33,44 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
 
 ## Setup in WooCommerce
 
-1. Go to **WooCommerce → Atelier Irisee** and choose four categories:
+1. Go to **WooCommerce → Atelier Irisee** and choose the categories:
    - **Patterns**: the parent category of all pattern products. Its subcategories become the filter tabs.
    - **Fabrics**: the parent category of all fabrics. Its subcategories (e.g. Cotton, Linen) are the "fabric categories" you allow per size.
    - **Buttons**
    - **Zips**
+   - **Ribbons**
+   - **Bias tape**
 2. **Patterns** are *variable* products with one variation per size. Each variation has an *Atelier Irisee* box with these fields:
    - fabric needed (units of 10 cm)
    - allowed fabric categories
    - button count
    - zip count
    - zip length (cm)
+   - ribbon length (cm) and bias tape length (cm)
    - bust, waist, hip, inside leg and height (cm). Only the ones you fill in are shown to customers.
 
    The pattern's **Atelier Irisee** tab (in Product data) lets you choose which fabric categories customers see first. It lists the fabric categories ticked under "Fabric categories allowed" on the sizes. Give a category position 1, 2, 3… and those fabrics are listed first under the "Recommended" sort.
 
    All pictures of the pattern are shown in the configurator: the main image, the product gallery, and the variation images. When a customer picks a size that has its own picture, that picture is shown.
-3. **Fabrics, buttons and zips** are *simple* products.
-   - A fabric's price and stock are **per 10 cm**.
+3. **Fabrics, buttons, zips, ribbons and bias tape** are *simple* products.
+   - Fabric, ribbon and bias tape prices and stock are **per 10 cm**. A size that needs 85 cm of bias tape adds 9 × 10 cm to the cart, because lengths are rounded up.
    - Zips have a **Zip length (cm)** field in the General tab. The configurator only offers zips whose length matches what the size needs.
 4. Put the shortcode `[atelier_irisee_configurator]` on a page.
+
+## Favorites
+
+Customers can save any product as a favorite with the heart button. The heart appears:
+
+- on shop, category and search grids, including product blocks,
+- on product pages,
+- in the configurator details.
+
+Logged-in customers' favorites are saved in their account. Guests' favorites are kept in their browser and moved into their account when they log in.
+
+To set up the favorites page:
+
+1. Create a page, e.g. "My favorites", with the shortcode `[atelier_irisee_favorites]`.
+2. Choose that page under WooCommerce → Atelier Irisee → **Favorites page**. Customers then get a link to it after adding a favorite.
 
 ## Languages
 

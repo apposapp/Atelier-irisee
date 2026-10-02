@@ -20,7 +20,7 @@ class AIMP_Shortcode {
 
 	public static function register_assets() {
 		wp_register_style( 'aimp-configurator', AIMP_PLUGIN_URL . 'assets/css/configurator.css', array(), AIMP_VERSION );
-		wp_register_script( 'aimp-configurator', AIMP_PLUGIN_URL . 'assets/js/configurator.js', array(), AIMP_VERSION, true );
+		wp_register_script( 'aimp-configurator', AIMP_PLUGIN_URL . 'assets/js/configurator.js', array( 'aimp-favorites' ), AIMP_VERSION, true );
 
 		// Load the stylesheet in <head> when we can already tell the page uses the shortcode.
 		$post = get_post();
@@ -91,7 +91,7 @@ class AIMP_Shortcode {
 			'language'        => __( 'Language', 'atelier-irisee-master-plugin' ),
 			'stepPattern'     => __( 'Pattern & size', 'atelier-irisee-master-plugin' ),
 			'stepFabric'      => __( 'Fabric', 'atelier-irisee-master-plugin' ),
-			'stepNotions'     => __( 'Buttons & zips', 'atelier-irisee-master-plugin' ),
+			'stepNotions'     => __( 'Choose your haberdashery', 'atelier-irisee-master-plugin' ),
 			'stepSummary'     => __( 'Summary', 'atelier-irisee-master-plugin' ),
 			'all'             => __( 'All', 'atelier-irisee-master-plugin' ),
 			'loading'         => __( 'Loading…', 'atelier-irisee-master-plugin' ),
@@ -114,6 +114,8 @@ class AIMP_Shortcode {
 			'fabricNeeded'    => __( 'Fabric', 'atelier-irisee-master-plugin' ),
 			'buttons'         => __( 'Buttons', 'atelier-irisee-master-plugin' ),
 			'zips'            => __( 'Zips', 'atelier-irisee-master-plugin' ),
+			'ribbon'          => __( 'Ribbon', 'atelier-irisee-master-plugin' ),
+			'biasTape'        => __( 'Bias tape', 'atelier-irisee-master-plugin' ),
 			'zipOf'           => __( '%1$d × zip of %2$s cm', 'atelier-irisee-master-plugin' ),
 			'none'            => __( 'None', 'atelier-irisee-master-plugin' ),
 			'unavailable'     => __( 'Not available in this size', 'atelier-irisee-master-plugin' ),
@@ -128,6 +130,9 @@ class AIMP_Shortcode {
 			'confirmFabric'   => __( 'Confirm fabric', 'atelier-irisee-master-plugin' ),
 			'chooseButtons'   => __( 'Choose your buttons (optional)', 'atelier-irisee-master-plugin' ),
 			'chooseZip'       => __( 'Choose your zip (optional)', 'atelier-irisee-master-plugin' ),
+			'chooseRibbon'    => __( 'Choose your ribbon (optional)', 'atelier-irisee-master-plugin' ),
+			'chooseBias'      => __( 'Choose your bias tape (optional)', 'atelier-irisee-master-plugin' ),
+			'lengthWillAdd'   => __( '%s will be added.', 'atelier-irisee-master-plugin' ),
 			'buttonsWillAdd'  => __( '%d buttons of the chosen design will be added.', 'atelier-irisee-master-plugin' ),
 			'zipsWillAdd'     => __( '%1$d zip(s) of %2$s cm will be added.', 'atelier-irisee-master-plugin' ),
 			'deselectHint'    => __( 'Click a selected item again to remove it.', 'atelier-irisee-master-plugin' ),
