@@ -53,6 +53,14 @@
 	vertical-align: middle;
 }
 
+/* WooCommerce floats panel labels 150px to the left (for its label/field rows); inside our table that hides them. */
+.woocommerce_options_panel .aimp-priority-table label {
+	float: none;
+	width: auto;
+	margin: 0;
+	padding: 0;
+}
+
 .woocommerce_options_panel .aimp-priority-table input[type="number"] {
 	float: none;
 	width: 6em;
