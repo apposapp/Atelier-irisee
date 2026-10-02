@@ -1,5 +1,7 @@
 # Atelier Irisee Master Plugin
 
+GUIDE WEBPAGE: https://claude.ai/artifact/HeQ9WZ2QD4wY8RbT1PTz7h
+
 A WooCommerce pattern configurator for Atelier Irisee. Customers pick a pattern and size, then a fabric, then buttons and zips, and add the whole set to the cart as one linked set.
 
 ## Releasing an update
