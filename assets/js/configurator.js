@@ -9,7 +9,8 @@
 	'use strict';
 
 	var cfg = window.aimpConfig;
-	if (!cfg) {
+	var UI = window.aimpUI;
+	if (!cfg || !UI) {
 		return;
 	}
 
@@ -17,32 +18,17 @@
 	 * Language
 	 * ------------------------------------------------------------- */
 
-	var LANG_KEY = 'aimp_lang';
-
 	function validLang(code) {
 		return !!(code && cfg.i18n[code]);
 	}
 
 	function initialLang() {
-		var match = document.cookie.match(/(?:^|;\s*)aimp_lang=([a-z]+)/);
-		if (match && validLang(match[1])) {
-			return match[1];
-		}
-		try {
-			var stored = window.localStorage.getItem(LANG_KEY);
-			if (validLang(stored)) {
-				return stored;
-			}
-		} catch (e) {}
-		return validLang(cfg.defaultLanguage) ? cfg.defaultLanguage : Object.keys(cfg.i18n)[0];
+		return UI.initialLang(cfg.i18n, cfg.defaultLanguage);
 	}
 
 	// The cookie lets the cart and checkout show the plugin's texts in the same language.
 	function persistLang(code) {
-		document.cookie = LANG_KEY + '=' + code + '; path=/; max-age=31536000; SameSite=Lax';
-		try {
-			window.localStorage.setItem(LANG_KEY, code);
-		} catch (e) {}
+		UI.persistLang(code);
 	}
 
 	var lang = initialLang();
@@ -50,9 +36,7 @@
 	persistLang(lang);
 
 	function languageInfo(code) {
-		return (cfg.languages || []).filter(function (l) {
-			return l.code === code;
-		})[0];
+		return UI.languageInfo(cfg.languages, code);
 	}
 
 	/* ---------------------------------------------------------------
@@ -65,37 +49,12 @@
 		return String(value).replace('.', info && info.decimal ? info.decimal : '.');
 	}
 
-	function esc(value) {
-		return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function (c) {
-			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-		});
-	}
+	var esc = UI.esc;
 
-	// Minimal sprintf for "%s", "%d", "%1$s", "%2$d".
-	function fmt(str) {
-		var args = Array.prototype.slice.call(arguments, 1);
-		var i = 0;
-		return String(str).replace(/%(\d+\$)?[ds]/g, function (m, pos) {
-			var idx = pos ? parseInt(pos, 10) - 1 : i++;
-			return args[idx];
-		});
-	}
+	var fmt = UI.fmt;
 
 	function money(amount) {
-		var c = cfg.currency;
-		var parts = Number(amount).toFixed(c.decimals).split('.');
-		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, c.thousand);
-		var value = parts.join(c.decimal);
-		switch (c.position) {
-			case 'right':
-				return value + c.symbol;
-			case 'left_space':
-				return c.symbol + ' ' + value;
-			case 'right_space':
-				return value + ' ' + c.symbol;
-			default:
-				return c.symbol + value;
-		}
+		return UI.money(amount, cfg.currency);
 	}
 
 	// Body measurements in display order: [ data key, i18n key ].
@@ -162,46 +121,14 @@
 	}
 
 	function request(action, data) {
-		var body = new URLSearchParams();
-		Object.keys(data || {}).forEach(function (key) {
-			body.append(key, data[key]);
-		});
-		body.append('aimp_lang', lang);
-		return fetch(cfg.endpoint.replace('%%endpoint%%', 'aimp_' + action), {
-			method: 'POST',
-			credentials: 'same-origin',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-			body: body.toString()
-		})
-			.then(function (response) {
-				return response.json().catch(function () {
-					return null;
-				});
-			})
-			.then(function (json) {
-				if (!json || !json.success) {
-					var errors = (json && json.data && json.data.errors) || [t.error];
-					var error = new Error(errors.join(' '));
-					error.errors = errors;
-					throw error;
-				}
-				return json.data;
-			});
+		return UI.request(cfg.endpoint, action, data, lang, t.error);
 	}
 
-	function scrollIntoViewIfNeeded(el) {
-		if (!el) {
-			return;
-		}
-		var rect = el.getBoundingClientRect();
-		if (rect.top < 0 || rect.top > window.innerHeight * 0.6) {
-			el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-		}
-	}
+	var scrollIntoViewIfNeeded = UI.scrollIntoViewIfNeeded;
 
 	// Favorite (heart) button from favorites.js; its state is filled in by aimpFavorites.refresh().
 	function favButton(productId) {
-		return window.aimpFavorites ? window.aimpFavorites.button(productId) : '';
+		return UI.favButton(productId);
 	}
 
 	// Title of a details panel with the favorite heart next to it.
@@ -209,29 +136,13 @@
 		return '<div class="aimp-details-head"><h3 class="aimp-details-title">' + esc(name) + '</h3>' + favButton(productId) + '</div>';
 	}
 
-	function findById(items, id) {
-		return (items || []).filter(function (item) {
-			return item.id === id;
-		})[0];
-	}
+	var findById = UI.findById;
 
 	// Replace a selected item with its freshly loaded copy (new language, current stock).
 	function rebind(selected, items) {
 		return selected ? findById(items, selected.id) || selected : selected;
 	}
 
-	// Page numbers with gaps: 1 … 4 5 6 … 12.
-	function pageList(page, pages) {
-		var list = [];
-		for (var p = 1; p <= pages; p++) {
-			if (p === 1 || p === pages || Math.abs(p - page) <= 1) {
-				list.push(p);
-			} else if (list[list.length - 1] !== '…') {
-				list.push('…');
-			}
-		}
-		return list;
-	}
 
 	function defaultFabricFilters() {
 		return { category: 0, search: '', inStock: false, sort: 'recommended' };
@@ -254,46 +165,38 @@
 		this.renderLanguages();
 		this.render();
 		this.watchLayout();
+		this.openFromLink();
 	}
 
-	/**
-	 * After every change inside the configurator (and when pictures load or the window resizes):
-	 * fit the side panels and mark the favorite hearts.
-	 */
-	Configurator.prototype.watchLayout = function () {
-		var self = this;
-		var scheduled = false;
-		var schedule = function () {
-			if (scheduled) {
-				return;
-			}
-			scheduled = true;
-			window.requestAnimationFrame(function () {
-				scheduled = false;
-				self.fitSidePanels();
-				if (window.aimpFavorites) {
-					window.aimpFavorites.refresh(self.root);
-				}
-			});
-		};
-		if (window.MutationObserver) {
-			new MutationObserver(schedule).observe(this.root, { childList: true, subtree: true });
+	// "Complete it in the configurator" on a product page links here with ?aimp_pattern=ID: start with that pattern selected.
+	Configurator.prototype.openFromLink = function () {
+		var match = window.location.search.match(/[?&]aimp_pattern=(\d+)/);
+		if (!match) {
+			return;
 		}
-		// "load" does not bubble, so listen in the capture phase for pictures inside the configurator.
-		this.root.addEventListener('load', schedule, true);
-		window.addEventListener('resize', schedule);
-		schedule();
+		var self = this;
+		var s = this.state;
+		request('sizes', { pattern: parseInt(match[1], 10) })
+			.then(function (data) {
+				if (s.pattern || s.step !== 'pattern') {
+					return;
+				}
+				s.pattern = data.pattern;
+				s.patternImage = 0;
+				s.sizesData = data;
+				s.size = null;
+				self.resetMaterials();
+				self.renderPatternGrid();
+				self.renderSizePanel();
+				self.renderSteps();
+				scrollIntoViewIfNeeded(self.body.querySelector('[data-role="size-panel"]'));
+			})
+			.catch(function () {});
 	};
 
-	/**
-	 * Side panels have no scrollbar of their own: they follow the page while scrolling only when they
-	 * fit on the screen; taller panels scroll along with the page.
-	 */
-	Configurator.prototype.fitSidePanels = function () {
-		this.root.querySelectorAll('.aimp-split-side').forEach(function (panel) {
-			var top = parseFloat(window.getComputedStyle(panel).top) || 0;
-			panel.classList.toggle('is-tall', panel.offsetHeight > window.innerHeight - top * 2);
-		});
+	// Fit the side panels and mark the favorite hearts after every change (see ui.js).
+	Configurator.prototype.watchLayout = function () {
+		UI.watchLayout(this.root);
 	};
 
 	Configurator.prototype.reset = function () {
@@ -343,18 +246,7 @@
 		var info = languageInfo(lang);
 		this.root.lang = info ? info.locale : lang;
 		this.languagesEl.setAttribute('aria-label', t.language);
-		this.languagesEl.innerHTML = (cfg.languages || [])
-			.map(function (l) {
-				var active = l.code === lang;
-				return (
-					'<button type="button" class="aimp-language' + (active ? ' is-active' : '') + '" data-lang="' + esc(l.code) + '"' +
-					' lang="' + esc(l.locale) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' +
-					'<img src="' + esc(l.flag) + '" alt="" width="24" height="16">' +
-					'<span>' + esc(l.name) + '</span>' +
-					'</button>'
-				);
-			})
-			.join('');
+		this.languagesEl.innerHTML = UI.languagesHtml(cfg.languages, lang);
 		this.languagesEl.querySelectorAll('[data-lang]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				self.setLanguage(btn.getAttribute('data-lang'));
@@ -511,133 +403,21 @@
 	 * ------------------------------------------------------------- */
 
 	Configurator.prototype.paginationHtml = function (data) {
-		var html = '';
-		if (data.pages > 1) {
-			html += '<nav class="aimp-pagination" aria-label="' + esc(t.pagination) + '">';
-			html +=
-				'<button type="button" class="aimp-page aimp-page--nav" data-page="' + (data.page - 1) + '"' +
-				(data.page <= 1 ? ' disabled' : '') + ' aria-label="' + esc(t.previous) + '">‹</button>';
-			pageList(data.page, data.pages).forEach(function (p) {
-				if (p === '…') {
-					html += '<span class="aimp-page-gap" aria-hidden="true">…</span>';
-				} else if (p === data.page) {
-					html += '<button type="button" class="aimp-page is-current" aria-current="page" disabled>' + p + '</button>';
-				} else {
-					html += '<button type="button" class="aimp-page" data-page="' + p + '">' + p + '</button>';
-				}
-			});
-			html +=
-				'<button type="button" class="aimp-page aimp-page--nav" data-page="' + (data.page + 1) + '"' +
-				(data.page >= data.pages ? ' disabled' : '') + ' aria-label="' + esc(t.next) + '">›</button>';
-			html += '</nav>';
-		}
-		if (data.total > 0 && data.per_page > 0) {
-			var from = (data.page - 1) * data.per_page + 1;
-			var to = Math.min(data.total, from + data.items.length - 1);
-			html += '<p class="aimp-results-count">' + esc(fmt(t.showing, from, to, data.total)) + '</p>';
-		}
-		return html;
+		return UI.paginationHtml(data, t);
 	};
 
-	/**
-	 * @param {Element} container
-	 * @param {Object}  data   { items, page, pages, total, per_page }
-	 * @param {Object}  opts   { selectedId, onSelect(item), onPage(page), emptyText, unavailableText, compact, priceSuffix }
-	 */
+	// Product cards with pagination (see ui.js for the options).
 	Configurator.prototype.renderGrid = function (container, data, opts) {
-		if (!data) {
-			container.innerHTML = '<p class="aimp-loading">' + esc(t.loading) + '</p>';
-			return;
-		}
-		if (!data.items.length) {
-			container.innerHTML = '<p class="aimp-empty">' + esc(opts.emptyText) + '</p>';
-			return;
-		}
-
-		var html = '<div class="aimp-grid' + (opts.compact ? ' aimp-grid--compact' : '') + '">';
-		data.items.forEach(function (item) {
-			var selected = opts.selectedId === item.id;
-			var unavailable = item.available === false;
-			html +=
-				'<button type="button" class="aimp-card' + (selected ? ' is-selected' : '') + (unavailable ? ' is-unavailable' : '') + '"' +
-				' data-id="' + esc(item.id) + '" aria-pressed="' + (selected ? 'true' : 'false') + '"' +
-				(unavailable ? ' disabled' : '') + '>' +
-				'<span class="aimp-card-image"><img src="' + esc(item.image) + '" alt="' + esc(item.image_alt || item.name) + '" loading="lazy"></span>' +
-				'<span class="aimp-card-name">' + esc(item.name) + '</span>' +
-				'<span class="aimp-card-price">' + (item.price_html || '') +
-				(opts.priceSuffix ? ' <small>' + esc(opts.priceSuffix) + '</small>' : '') + '</span>' +
-				(unavailable ? '<span class="aimp-badge">' + esc(opts.unavailableText || '') + '</span>' : '') +
-				(selected ? '<span class="aimp-badge aimp-badge--selected">' + esc(t.selected) + '</span>' : '') +
-				'</button>';
-		});
-		html += '</div>';
-		html += this.paginationHtml(data);
-		container.innerHTML = html;
-
-		container.querySelectorAll('.aimp-card').forEach(function (card) {
-			card.addEventListener('click', function () {
-				var item = findById(data.items, parseInt(card.getAttribute('data-id'), 10));
-				if (item) {
-					opts.onSelect(item);
-				}
-			});
-		});
-		container.querySelectorAll('[data-page]').forEach(function (btn) {
-			btn.addEventListener('click', function () {
-				opts.onPage(parseInt(btn.getAttribute('data-page'), 10));
-				scrollIntoViewIfNeeded(container);
-			});
-		});
+		UI.renderGrid(container, data, opts, t);
 	};
 
 	// One big picture with the other pictures as selectable thumbnails underneath.
 	Configurator.prototype.galleryHtml = function (images, index) {
-		images = images && images.length ? images : [];
-		if (!images.length) {
-			return '';
-		}
-		var current = images[index] || images[0];
-		var html =
-			'<div class="aimp-gallery">' +
-			'<div class="aimp-gallery-main"><img src="' + esc(current.large) + '" alt="' + esc(current.alt) + '"></div>';
-		if (images.length > 1) {
-			html += '<div class="aimp-gallery-thumbs">';
-			images.forEach(function (image, i) {
-				var active = image === current;
-				html +=
-					'<button type="button" class="aimp-thumb' + (active ? ' is-active' : '') + '" data-index="' + i + '"' +
-					' aria-pressed="' + (active ? 'true' : 'false') + '" aria-label="' + esc(fmt(t.showPicture, i + 1)) + '">' +
-					'<img src="' + esc(image.thumb) + '" alt="" loading="lazy">' +
-					'</button>';
-			});
-			html += '</div>';
-		}
-		return html + '</div>';
+		return UI.galleryHtml(images, index, t);
 	};
 
 	Configurator.prototype.bindGallery = function (container, images, onChange) {
-		var gallery = container.querySelector('.aimp-gallery');
-		if (!gallery) {
-			return;
-		}
-		var main = gallery.querySelector('.aimp-gallery-main img');
-		gallery.querySelectorAll('.aimp-thumb').forEach(function (thumb) {
-			thumb.addEventListener('click', function () {
-				var i = parseInt(thumb.getAttribute('data-index'), 10);
-				var image = images[i];
-				if (!image) {
-					return;
-				}
-				main.src = image.large;
-				main.alt = image.alt;
-				gallery.querySelectorAll('.aimp-thumb').forEach(function (other) {
-					var active = other === thumb;
-					other.classList.toggle('is-active', active);
-					other.setAttribute('aria-pressed', active ? 'true' : 'false');
-				});
-				onChange(i);
-			});
-		});
+		UI.bindGallery(container, images, onChange);
 	};
 
 	// Details of a fabric, button or zip: gallery, description, attributes, prices and stock.
@@ -964,66 +744,26 @@
 
 	// "How to measure" picture in a lightbox. The image is only downloaded the first time it is opened.
 	Configurator.prototype.openMeasureGuide = function () {
-		var dialog = this.measureDialog;
-		if (!dialog) {
-			dialog = document.createElement('dialog');
-			dialog.className = 'aimp-lightbox';
-			dialog.innerHTML =
-				'<button type="button" class="aimp-button aimp-lightbox-close" data-action="close-guide">×</button>' +
-				'<img class="aimp-lightbox-image" alt="">';
-			this.root.appendChild(dialog);
-			this.measureDialog = dialog;
-
-			var close = function () {
-				if (typeof dialog.close === 'function') {
-					dialog.close();
-				} else {
-					dialog.removeAttribute('open');
-				}
-			};
-			dialog.querySelector('[data-action="close-guide"]').addEventListener('click', close);
-			// A click on the dark backdrop lands on the dialog element itself.
-			dialog.addEventListener('click', function (e) {
-				if (e.target === dialog) {
-					close();
-				}
-			});
-		}
-
-		// Texts follow the current language.
-		var closeButton = dialog.querySelector('[data-action="close-guide"]');
-		closeButton.setAttribute('aria-label', t.close);
-		closeButton.title = t.close;
+		var dialog = UI.openLightbox(this.root, [{ src: cfg.measureImage, alt: t.howToMeasure }], 0, t);
 		dialog.setAttribute('aria-label', t.howToMeasure);
-		var image = dialog.querySelector('.aimp-lightbox-image');
-		image.alt = t.howToMeasure;
-		if (!image.getAttribute('src')) {
-			image.src = cfg.measureImage;
-		}
-
-		if (typeof dialog.showModal === 'function') {
-			dialog.showModal();
-		} else {
-			dialog.setAttribute('open', '');
-		}
 	};
 
 	/* ---------------------------------------------------------------
 	 * Step 2: fabric
 	 * ------------------------------------------------------------- */
 
-	// Recap at the top of the later steps: small pictures of what has been chosen so far.
+	// Recap at the top of the later steps: small pictures and names of what has been chosen so far (and the size).
 	Configurator.prototype.recapHtml = function () {
 		var s = this.state;
 		var items = [{ image: s.pattern.image, name: s.pattern.name, detail: t.size + ' ' + s.size.label }];
 		if (s.step !== 'fabric' && s.fabric && s.size.fabric_units > 0) {
-			items.push({ image: s.fabric.image, name: s.fabric.name, detail: s.size.fabric_text });
+			items.push({ image: s.fabric.image, name: s.fabric.name });
 		}
 		if (s.step === 'summary') {
 			NOTIONS.forEach(function (n) {
 				var selected = s.notions[n.type].selected;
 				if (n.qty(s.size) > 0 && selected) {
-					items.push({ image: selected.image, name: selected.name, detail: n.need(s.size) });
+					items.push({ image: selected.image, name: selected.name });
 				}
 			});
 		}
@@ -1032,14 +772,10 @@
 			html +=
 				'<li class="aimp-recap-item">' +
 				'<img src="' + esc(item.image) + '" alt="" width="44" height="44" loading="lazy">' +
-				'<span><strong>' + esc(item.name) + '</strong><small>' + esc(item.detail) + '</small></span>' +
+				'<span><strong>' + esc(item.name) + '</strong>' + (item.detail ? '<small>' + esc(item.detail) + '</small>' : '') + '</span>' +
 				'</li>';
 		});
-		html += '</ul>';
-		if (s.step !== 'summary') {
-			html += this.needsHtml(s.size);
-		}
-		return html + '</div>';
+		return html + '</ul></div>';
 	};
 
 	Configurator.prototype.renderFabricStep = function () {

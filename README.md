@@ -121,6 +121,27 @@ Put `[atelier_irisee_account]` on a page, for example "My account". Logged-out v
 - **Paying with a card:** the gift card field in the cart and at checkout lowers the order total after VAT, like a payment. The order gets a VAT-free negative line per card. The balance is deducted when the order is created and comes back when it is cancelled, fails or is refunded.
 - **Not allowed:** gift cards cannot be used to buy other gift cards.
 
+## Shop pages
+
+`[atelier_irisee_shop type="all|patterns|fabrics|haberdashery"]` shows a filter sidebar, the product grid and a details panel.
+
+- **Filter sidebar:** opens and closes with the Filters button, and the choice is remembered per browser. On phones it is a drawer.
+- **Filters:** search, sort, category, price, every product attribute used on that page (automatically), and in stock.
+- **Address bar:** the filters are kept as `aimp_*` parameters, so a filtered page can be shared.
+- **Products per page:** a setting in WooCommerce → Atelier Irisee.
+- **Speed:** the filter options are cached and refreshed automatically when a product or category is saved.
+
+## Product pages
+
+With **Use the Atelier Irisee design on product pages** on (WooCommerce → Atelier Irisee), WooCommerce's product pages use the plugin's design:
+
+- **Classic themes:** through the `content-single-product` template part.
+- **Block themes:** through the Single Product template, which keeps the theme's header and footer.
+
+`[atelier_irisee_product id="123"]` shows one product on any page. To change the markup, copy `templates/product/single.php` to `yourtheme/atelier-irisee/product/single.php`.
+
+The **Complete it in the configurator** button on patterns uses the **Configurator page** setting and opens `?aimp_pattern=ID`.
+
 ## Languages
 
 The plugin speaks **Dutch**, **French** and **English**, independent of the WordPress site language.
@@ -169,6 +190,10 @@ To add another language:
 | `includes/class-aimp-updater.php` | Checks GitHub releases for updates |
 | `includes/class-aimp-i18n.php` | Picks the active language (Dutch/English) and translates the plugin's texts |
 | `includes/languages/nl.php`, `fr.php` | Dutch and French translations |
+| `includes/class-aimp-shop.php` | Shop page shortcode, the `aimp_shop` endpoint and its cached filter options |
+| `includes/class-aimp-product-page.php` | Product page design, the product shortcode and the block template swap |
+| `templates/product/` | Product page markup |
+| `assets/js/ui.js` | Shared front-end pieces: cards, gallery, pagination, lightbox, language flags |
 | `includes/class-aimp-account.php` | Account page shortcode, refund requests, account removal |
 | `includes/giftcards/` | Gift cards: storage and emails, product form, redeeming, admin screens |
 | `templates/giftcards/` | Gift card product form and the card used in emails and print |

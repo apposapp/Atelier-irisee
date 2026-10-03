@@ -19,8 +19,9 @@ class AIMP_Shortcode {
 	}
 
 	public static function register_assets() {
+		wp_register_script( 'aimp-ui', AIMP_PLUGIN_URL . 'assets/js/ui.js', array(), AIMP_VERSION, true );
 		wp_register_style( 'aimp-configurator', AIMP_PLUGIN_URL . 'assets/css/configurator.css', array(), AIMP_VERSION );
-		wp_register_script( 'aimp-configurator', AIMP_PLUGIN_URL . 'assets/js/configurator.js', array( 'aimp-favorites' ), AIMP_VERSION, true );
+		wp_register_script( 'aimp-configurator', AIMP_PLUGIN_URL . 'assets/js/configurator.js', array( 'aimp-ui', 'aimp-favorites' ), AIMP_VERSION, true );
 
 		// Load the stylesheet in <head> when we can already tell the page uses the shortcode.
 		$post = get_post();
@@ -54,7 +55,7 @@ class AIMP_Shortcode {
 	 *
 	 * @return array[]
 	 */
-	private static function languages_data() {
+	public static function languages_data() {
 		$list = array();
 		foreach ( AIMP_I18n::languages() as $code => $language ) {
 			$list[] = array(

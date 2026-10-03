@@ -49,4 +49,14 @@ foreach ( $aimp_gift_cards as $aimp_gift_card ) {
 	wp_delete_post( $aimp_gift_card, true );
 }
 wp_unschedule_hook( 'aimp_gc_send' );
+
+// Shop pages and product pages: cached filter options and "fits these patterns" lists.
+delete_option( 'aimp_shop_cache_version' );
+$wpdb->query(
+	$wpdb->prepare(
+		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+		$wpdb->esc_like( '_transient_aimp_shop_' ) . '%',
+		$wpdb->esc_like( '_transient_timeout_aimp_shop_' ) . '%'
+	)
+);
 // phpcs:enable

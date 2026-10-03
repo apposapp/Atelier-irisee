@@ -1,0 +1,322 @@
+/* Atelier Irisee product pages. Builds on configurator.css (gallery, cards, buttons, info lists). */
+
+.aimp-configurator.aimp-product {
+	margin-top: 1rem;
+}
+
+/* Breadcrumb on the left, language flags on the right */
+.aimp-product-topbar {
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+}
+
+.aimp-configurator .woocommerce-breadcrumb {
+	margin: 0;
+	color: var(--aimp-gold);
+	font-size: 0.95em;
+}
+
+.aimp-configurator .aimp-language {
+	text-decoration: none;
+}
+
+/* ------------------------------------------------------------------
+ * Pictures | information
+ * ------------------------------------------------------------------ */
+.aimp-product-main {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: calc(var(--aimp-gap) * 2);
+	align-items: start;
+}
+
+.aimp-product-media {
+	position: sticky;
+	top: var(--aimp-sticky-top);
+}
+
+.aimp-product .aimp-gallery-main {
+	position: relative;
+	border: 5px double var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-product .aimp-gallery-main img {
+	border-radius: calc(var(--aimp-panel-radius) - 6px);
+}
+
+.aimp-gallery-main img.is-zoomable {
+	cursor: zoom-in;
+}
+
+.aimp-product .aimp-fav--overlay {
+	top: 0.9rem;
+	right: 0.9rem;
+}
+
+.aimp-configurator .aimp-details-eyebrow {
+	margin: 0 0 0.3rem;
+	font-size: 0.8em;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.aimp-configurator .aimp-details-eyebrow a {
+	text-decoration: none;
+}
+
+.aimp-configurator .aimp-product-title {
+	margin: 0 0 0.5rem;
+	color: var(--aimp-gold);
+	font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+	line-height: 1.15;
+	text-wrap: balance;
+}
+
+.aimp-product-rating {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin-bottom: 0.5rem;
+}
+
+.aimp-configurator .aimp-details-price {
+	margin: 0.25rem 0 1rem;
+	color: var(--aimp-gold);
+	font-size: 1.4em;
+	font-weight: 700;
+}
+
+.aimp-configurator .aimp-details-price small {
+	font-size: 0.65em;
+}
+
+.aimp-product-summary .aimp-description {
+	margin-bottom: 1rem;
+}
+
+.aimp-configurator .aimp-info-list dd.is-out {
+	color: #a3352b;
+}
+
+/* ------------------------------------------------------------------
+ * Add to cart (WooCommerce's own form)
+ * ------------------------------------------------------------------ */
+.aimp-product-buy {
+	margin: 1.25rem 0;
+}
+
+.aimp-configurator .aimp-product-buy form.cart {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+	margin: 0;
+}
+
+.aimp-configurator .aimp-product-buy form.variations_form,
+.aimp-configurator .aimp-product-buy form.cart:has(.aimp-gc-form) {
+	display: block;
+}
+
+.aimp-configurator .aimp-product-buy .woocommerce-variation-add-to-cart {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.aimp-configurator .aimp-product-buy table.variations {
+	width: 100%;
+	margin: 0 0 1rem;
+	border: 0;
+}
+
+.aimp-configurator .aimp-product-buy table.variations th,
+.aimp-configurator .aimp-product-buy table.variations td {
+	padding: 0.3rem 0.5rem 0.3rem 0;
+	border: 0;
+	background: transparent;
+	vertical-align: middle;
+}
+
+.aimp-configurator .aimp-product-buy select,
+.aimp-configurator .aimp-product-buy .quantity input.qty {
+	padding: 0.55rem 0.75rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-radius);
+	background: transparent;
+	color: var(--aimp-body-text);
+	font: inherit;
+}
+
+.aimp-configurator .aimp-product-buy .quantity input.qty {
+	width: 5.5em;
+	text-align: center;
+}
+
+.aimp-configurator .aimp-product-buy .single_add_to_cart_button,
+.aimp-configurator .aimp-button--solid {
+	flex: 1 1 12rem;
+	padding: 0.8rem 1.8rem;
+	border: 5px double #fff;
+	border-radius: 100px;
+	outline: 1px solid var(--aimp-gold);
+	background: var(--aimp-gold);
+	color: #fff;
+	font: inherit;
+	font-weight: 700;
+	text-align: center;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-configurator .aimp-product-buy .single_add_to_cart_button:hover,
+.aimp-configurator .aimp-button.aimp-button--solid:hover:not(:disabled) {
+	background: #9a7a41;
+	color: #fff;
+}
+
+.aimp-configurator .aimp-product-buy .single_add_to_cart_button.disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.aimp-configurator .aimp-product-buy .reset_variations {
+	margin-left: 0.5rem;
+	color: var(--aimp-gold);
+}
+
+.aimp-configurator .aimp-unit-help {
+	margin: 0.5rem 0 0;
+}
+
+.aimp-configurator .aimp-product-buy .stock {
+	color: var(--aimp-body-text);
+	font-weight: 600;
+}
+
+.aimp-product-configure {
+	margin: 1.25rem 0;
+	padding: 1rem 1.25rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-configurator .aimp-product-configure .aimp-help {
+	margin: 0 0 0.75rem;
+}
+
+.aimp-configurator .aimp-product-configure .aimp-button--solid {
+	display: block;
+}
+
+/* ------------------------------------------------------------------
+ * Size chart
+ * ------------------------------------------------------------------ */
+.aimp-product-sizes {
+	margin-top: 1.5rem;
+}
+
+.aimp-product-sizes-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+
+.aimp-configurator .aimp-product-sizes h2 {
+	margin: 0;
+	font-size: 1.25em;
+}
+
+.aimp-configurator .aimp-measure-button {
+	padding: 0.4rem 1.1rem;
+	font-size: 0.9em;
+}
+
+/* ------------------------------------------------------------------
+ * Sections under the product
+ * ------------------------------------------------------------------ */
+.aimp-product-section {
+	margin-top: calc(var(--aimp-gap) * 2.5);
+	padding-top: calc(var(--aimp-gap) * 1.5);
+	border-top: 1px solid var(--aimp-gold);
+}
+
+.aimp-configurator .aimp-product-section > h2 {
+	margin: 0 0 1rem;
+}
+
+.aimp-product-description {
+	max-width: 75ch;
+}
+
+.aimp-configurator .shop_attributes {
+	width: 100%;
+	max-width: 48rem;
+	border-collapse: collapse;
+	border: 0;
+}
+
+.aimp-configurator .shop_attributes th,
+.aimp-configurator .shop_attributes td {
+	padding: 0.5rem 0.75rem 0.5rem 0;
+	border: 0;
+	border-bottom: 1px solid var(--aimp-gold);
+	background: transparent;
+	text-align: left;
+	vertical-align: top;
+}
+
+.aimp-configurator .shop_attributes td p {
+	margin: 0;
+}
+
+/* Cards that link to other products */
+.aimp-configurator .aimp-product-cards {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.aimp-configurator .aimp-product-card {
+	position: relative;
+	margin: 0;
+}
+
+.aimp-configurator a.aimp-card {
+	height: 100%;
+	text-decoration: none;
+}
+
+/* ------------------------------------------------------------------
+ * Narrow screens
+ * ------------------------------------------------------------------ */
+@container aimp (max-width: 980px) {
+	.aimp-configurator .aimp-product-cards {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@container aimp (max-width: 820px) {
+	.aimp-product-main {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-product-media {
+		position: static;
+	}
+}
+
+@container aimp (max-width: 560px) {
+	.aimp-configurator .aimp-product-cards {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}

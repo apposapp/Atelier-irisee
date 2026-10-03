@@ -205,6 +205,76 @@ class AIMP_Catalog {
 	 * ------------------------------------------------------------------ */
 
 	/**
+	 * Tax query clause that hides products excluded from the catalog (and out-of-stock products
+	 * when WooCommerce is set to hide them).
+	 *
+	 * @return array Empty when nothing has to be hidden.
+	 */
+	public static function visibility_tax_query() {
+		$visibility = wc_get_product_visibility_term_ids();
+		$hidden     = array( $visibility['exclude-from-catalog'] ?? 0 );
+		if ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' ) ) {
+			$hidden[] = $visibility['outofstock'] ?? 0;
+		}
+		$hidden = array_values( array_filter( $hidden ) );
+		if ( ! $hidden ) {
+			return array();
+		}
+		return array(
+			'taxonomy' => 'product_visibility',
+			'field'    => 'term_taxonomy_id',
+			'terms'    => $hidden,
+			'operator' => 'NOT IN',
+		);
+	}
+
+	/**
+	 * Whether a product is sold per 10 cm: fabric, ribbon and bias tape.
+	 *
+	 * @param WC_Product $product Product (or variation).
+	 * @return bool
+	 */
+	public static function sold_per_10cm( $product ) {
+		$terms = array();
+		foreach ( array( 'fabric_cat', 'ribbon_cat', 'bias_cat' ) as $setting ) {
+			$terms = array_merge( $terms, self::category_tree( AIMP_Settings::get( $setting ) ) );
+		}
+		return self::in_categories( $product, $terms );
+	}
+
+	/**
+	 * "12 × 10 cm in stock (1,2 m)", "5 in stock" or "In stock".
+	 *
+	 * @param WC_Product $product  Product.
+	 * @param bool       $per_10cm Sold per 10 cm.
+	 * @return string
+	 */
+	public static function stock_text( $product, $per_10cm ) {
+		if ( $product->managing_stock() ) {
+			$stock = (int) $product->get_stock_quantity();
+			if ( $stock <= 0 ) {
+				return $product->backorders_allowed() ? __( 'Available on backorder', 'atelier-irisee-master-plugin' ) : __( 'Out of stock', 'atelier-irisee-master-plugin' );
+			}
+			return $per_10cm
+				? sprintf(
+					/* translators: 1: units in stock, 2: metres in stock */
+					__( '%1$d × 10 cm in stock (%2$s m)', 'atelier-irisee-master-plugin' ),
+					$stock,
+					AIMP_I18n::number( $stock * self::FABRIC_UNIT_CM / 100, 2 )
+				)
+				: sprintf(
+					/* translators: %d: pieces in stock */
+					__( '%d in stock', 'atelier-irisee-master-plugin' ),
+					$stock
+				);
+		}
+		if ( $product->is_on_backorder() ) {
+			return __( 'Available on backorder', 'atelier-irisee-master-plugin' );
+		}
+		return $product->is_in_stock() ? __( 'In stock', 'atelier-irisee-master-plugin' ) : __( 'Out of stock', 'atelier-irisee-master-plugin' );
+	}
+
+	/**
 	 * WP_Query arguments for published, visible products of a type in some categories.
 	 *
 	 * @param int[]  $term_ids   Category IDs (children are included automatically).
@@ -228,19 +298,9 @@ class AIMP_Catalog {
 			),
 		);
 
-		$visibility = wc_get_product_visibility_term_ids();
-		$hidden     = array( $visibility['exclude-from-catalog'] ?? 0 );
-		if ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' ) ) {
-			$hidden[] = $visibility['outofstock'] ?? 0;
-		}
-		$hidden = array_filter( $hidden );
-		if ( $hidden ) {
-			$tax_query[] = array(
-				'taxonomy' => 'product_visibility',
-				'field'    => 'term_taxonomy_id',
-				'terms'    => $hidden,
-				'operator' => 'NOT IN',
-			);
+		$visibility = self::visibility_tax_query();
+		if ( $visibility ) {
+			$tax_query[] = $visibility;
 		}
 
 		$args = array(
@@ -308,7 +368,7 @@ class AIMP_Catalog {
 	 * @param WC_Product $product Product.
 	 * @return array
 	 */
-	private static function card( $product ) {
+	public static function card( $product ) {
 		$image_id = $product->get_image_id();
 		return array(
 			'id'         => $product->get_id(),
@@ -328,7 +388,7 @@ class AIMP_Catalog {
 	 * @param int[]      $extra_ids Extra attachment IDs (e.g. variation images).
 	 * @return array[] List of [ id, thumb, large, alt ].
 	 */
-	private static function images( $product, $extra_ids = array() ) {
+	public static function images( $product, $extra_ids = array() ) {
 		$ids    = array_merge( array( $product->get_image_id() ), $product->get_gallery_image_ids(), $extra_ids );
 		$ids    = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
 		$name   = wp_strip_all_tags( $product->get_name() );
@@ -630,7 +690,7 @@ class AIMP_Catalog {
 	 * @param WC_Product $product Product.
 	 * @return array[]
 	 */
-	private static function attributes( $product ) {
+	public static function attributes( $product ) {
 		$rows = array();
 		foreach ( $product->get_attributes() as $attribute ) {
 			if ( ! $attribute->get_visible() ) {

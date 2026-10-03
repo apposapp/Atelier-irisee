@@ -55,6 +55,9 @@ class AIMP_Settings {
 			'favorites_page'  => 0,
 			'refund_days'     => 14,
 			'account_delete'  => 1,
+			'shop_per_page'     => 12,
+			'configurator_page' => 0,
+			'product_design'    => 1,
 		);
 		$options = wp_parse_args( (array) get_option( self::OPTION, array() ), $defaults );
 		return isset( $options[ $key ] ) ? absint( $options[ $key ] ) : 0;
@@ -122,6 +125,15 @@ class AIMP_Settings {
 			array( 'label_for' => 'aimp_refund_days' )
 		);
 
+		add_settings_field(
+			'aimp_configurator_page',
+			__( 'Shop and product pages', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_shop_fields' ),
+			self::PAGE,
+			'aimp_general',
+			array( 'label_for' => 'aimp_configurator_page' )
+		);
+
 		add_settings_section(
 			'aimp_categories',
 			__( 'Product categories', 'atelier-irisee-master-plugin' ),
@@ -175,6 +187,11 @@ class AIMP_Settings {
 				'default'     => 16,
 				'description' => __( 'Number of fabrics per page in the fabric step. 16 fills a 4x4 grid.', 'atelier-irisee-master-plugin' ),
 			),
+			'shop_per_page'   => array(
+				'label'       => __( 'Products per page on shop pages', 'atelier-irisee-master-plugin' ),
+				'default'     => 12,
+				'description' => __( 'Number of products per page on the shop pages. 12 fills a 3x4 grid.', 'atelier-irisee-master-plugin' ),
+			),
 		);
 	}
 
@@ -191,6 +208,8 @@ class AIMP_Settings {
 		$sanitized['favorites_page'] = isset( $input['favorites_page'] ) ? absint( $input['favorites_page'] ) : 0;
 		$sanitized['refund_days']    = isset( $input['refund_days'] ) ? min( 365, max( 1, absint( $input['refund_days'] ) ) ) : 14;
 		$sanitized['account_delete'] = empty( $input['account_delete'] ) ? 0 : 1;
+		$sanitized['configurator_page'] = isset( $input['configurator_page'] ) ? absint( $input['configurator_page'] ) : 0;
+		$sanitized['product_design']    = empty( $input['product_design'] ) ? 0 : 1;
 
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;
@@ -239,6 +258,34 @@ class AIMP_Settings {
 				/* translators: %s: shortcode */
 				__( 'Place the account page on any page with the shortcode %s.', 'atelier-irisee-master-plugin' ),
 				'<code>[atelier_irisee_account]</code>'
+			)
+		) . '</p>';
+	}
+
+	public static function render_shop_fields() {
+		echo '<label for="aimp_configurator_page">' . esc_html__( 'Configurator page', 'atelier-irisee-master-plugin' ) . '</label><br>';
+		wp_dropdown_pages(
+			array(
+				'name'              => self::OPTION . '[configurator_page]',
+				'id'                => 'aimp_configurator_page',
+				'selected'          => self::get( 'configurator_page' ),
+				'show_option_none'  => __( '— Select —', 'atelier-irisee-master-plugin' ),
+				'option_none_value' => 0,
+			)
+		);
+		echo '<p class="description">' . esc_html__( 'The page with the configurator. Pattern pages get a button that opens it with that pattern already chosen.', 'atelier-irisee-master-plugin' ) . '</p>';
+		printf(
+			'<p><label><input type="checkbox" name="%1$s[product_design]" value="1" %2$s> %3$s</label></p>',
+			esc_attr( self::OPTION ),
+			checked( 1, self::get( 'product_design' ), false ),
+			esc_html__( 'Use the Atelier Irisee design on product pages', 'atelier-irisee-master-plugin' )
+		);
+		echo '<p class="description">' . wp_kses_post(
+			sprintf(
+				/* translators: 1: shop shortcode, 2: product shortcode */
+				__( 'Shop pages: %1$s with type="all", "patterns", "fabrics" or "haberdashery". One product anywhere: %2$s.', 'atelier-irisee-master-plugin' ),
+				'<code>[atelier_irisee_shop type="fabrics"]</code>',
+				'<code>[atelier_irisee_product id="123"]</code>'
 			)
 		) . '</p>';
 	}
