@@ -26,6 +26,8 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-shortcode.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-favorites.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/login/class-aimp-login.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/giftcards/class-aimp-giftcards.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-account.php';
 
 		AIMP_Settings::init();
 		AIMP_Product_Fields::init();
@@ -34,6 +36,8 @@ class AIMP_Plugin {
 		AIMP_Shortcode::init();
 		AIMP_Favorites::init();
 		AIMP_Login::init();
+		AIMP_Giftcards::init();
+		AIMP_Account::init();
 	}
 
 	public static function missing_woocommerce_notice() {

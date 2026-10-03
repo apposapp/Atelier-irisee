@@ -1,0 +1,283 @@
+/* Atelier Irisee account page ([atelier_irisee_account]). */
+.aimp-account {
+	--aimp-acc-gold: #b38f4f;
+	--aimp-acc-text: #613907;
+	--aimp-acc-tint: rgba(179, 143, 79, 0.12);
+	--aimp-acc-danger: #a3352b;
+	max-width: 980px;
+	margin: 0 auto 3rem;
+	color: var(--aimp-acc-text);
+	font-size: 17px;
+	font-weight: 600;
+}
+
+.aimp-account p,
+.aimp-account li,
+.aimp-account td,
+.aimp-account label,
+.aimp-account address {
+	color: var(--aimp-acc-text);
+}
+
+.aimp-account-hello {
+	margin: 0 0 1rem;
+}
+
+.aimp-account a {
+	color: var(--aimp-acc-gold);
+}
+
+/* Tabs */
+.aimp-account-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0 0 1.5rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid var(--aimp-acc-gold);
+}
+
+.aimp-account .aimp-account-tab {
+	padding: 0.55rem 1.2rem;
+	border: 5px double var(--aimp-acc-gold);
+	border-radius: 100px;
+	color: var(--aimp-acc-gold);
+	font-weight: 700;
+	text-decoration: none;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-account .aimp-account-tab:hover {
+	background: var(--aimp-acc-tint);
+}
+
+.aimp-account .aimp-account-tab.is-active {
+	background: var(--aimp-acc-gold);
+	color: #fff;
+}
+
+.aimp-account-panel {
+	padding: 1.5rem;
+	border: 5px double var(--aimp-acc-gold);
+	border-radius: 24px;
+}
+
+.aimp-account .aimp-account-title {
+	margin: 0 0 1rem;
+	color: var(--aimp-acc-gold);
+}
+
+.aimp-account .aimp-account-title--danger {
+	margin-top: 2.5rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid var(--aimp-acc-gold);
+	color: var(--aimp-acc-danger);
+}
+
+.aimp-account .aimp-account-subtitle {
+	margin: 2rem 0 0.75rem;
+	color: var(--aimp-acc-gold);
+}
+
+.aimp-account-text,
+.aimp-account-empty {
+	max-width: 70ch;
+}
+
+.aimp-account-notice {
+	margin: 0 0 1.25rem;
+	padding: 0.8rem 1rem;
+	border-radius: 14px;
+}
+
+.aimp-account-notice--success {
+	border: 3px double var(--aimp-acc-gold);
+}
+
+.aimp-account-notice--error {
+	background: #fdecea;
+	color: var(--aimp-acc-danger);
+}
+
+/* Buttons */
+.aimp-account .aimp-account-button,
+.aimp-account button.aimp-account-button {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.6em 1.4em;
+	border: 5px double var(--aimp-acc-gold);
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-acc-gold);
+	font: inherit;
+	font-weight: 700;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-account .aimp-account-button:hover {
+	background: var(--aimp-acc-gold);
+	color: #fff;
+}
+
+.aimp-account .aimp-account-button--danger {
+	border-color: var(--aimp-acc-danger);
+	color: var(--aimp-acc-danger);
+}
+
+.aimp-account .aimp-account-button--danger:hover {
+	background: var(--aimp-acc-danger);
+	color: #fff;
+}
+
+/* Addresses */
+.aimp-account-addresses {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 1rem;
+}
+
+.aimp-account-address {
+	padding: 1rem;
+	border: 1px solid var(--aimp-acc-gold);
+	border-radius: 16px;
+}
+
+.aimp-account-address h4 {
+	margin: 0 0 0.5rem;
+	color: var(--aimp-acc-gold);
+}
+
+.aimp-account-address address {
+	margin: 0 0 0.75rem;
+	font-style: normal;
+}
+
+/* Forms */
+.aimp-account-form {
+	display: grid;
+	gap: 1rem;
+	max-width: 640px;
+}
+
+.aimp-account-field {
+	margin: 0;
+}
+
+.aimp-account-field > label {
+	display: block;
+	margin-bottom: 0.3rem;
+}
+
+.aimp-account-field input[type="password"],
+.aimp-account-field input[type="email"],
+.aimp-account-field select,
+.aimp-account-field textarea {
+	width: 100%;
+	padding: 0.6em 0.9em;
+	border: 1px solid var(--aimp-acc-gold);
+	border-radius: 12px;
+	font: inherit;
+	font-weight: 400;
+}
+
+.aimp-account-check {
+	display: inline-flex;
+	gap: 0.5rem;
+	align-items: flex-start;
+}
+
+.aimp-account-check input,
+.aimp-refund-item input[type="checkbox"] {
+	accent-color: var(--aimp-acc-gold);
+}
+
+.aimp-refund-items {
+	margin: 0;
+	padding: 1rem;
+	border: 1px solid var(--aimp-acc-gold);
+	border-radius: 16px;
+}
+
+.aimp-refund-items[hidden] {
+	display: none;
+}
+
+.aimp-refund-items legend {
+	padding: 0 0.4rem;
+	color: var(--aimp-acc-gold);
+}
+
+.aimp-refund-item {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.4rem 1rem;
+	padding: 0.4rem 0;
+	border-bottom: 1px solid var(--aimp-acc-tint);
+}
+
+.aimp-refund-item:last-child {
+	border-bottom: 0;
+}
+
+.aimp-refund-item.is-disabled {
+	opacity: 0.6;
+}
+
+.aimp-refund-qty input {
+	width: 4.5em;
+	padding: 0.3em 0.5em;
+	border: 1px solid var(--aimp-acc-gold);
+	border-radius: 8px;
+}
+
+.aimp-account-requests {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-account-requests li {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem 1rem;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid var(--aimp-acc-tint);
+}
+
+.aimp-request-status {
+	padding: 0 0.6rem;
+	border: 1px solid var(--aimp-acc-gold);
+	border-radius: 100px;
+}
+
+.aimp-request-status--approved {
+	background: var(--aimp-acc-gold);
+	color: #fff;
+}
+
+.aimp-request-status--rejected {
+	border-color: var(--aimp-acc-danger);
+	color: var(--aimp-acc-danger);
+}
+
+/* WooCommerce order tables inside the panel */
+.aimp-account .woocommerce-orders-table,
+.aimp-account .woocommerce-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.aimp-account .woocommerce-orders-table th,
+.aimp-account .woocommerce-table th {
+	color: var(--aimp-acc-gold);
+}
+
+@media (max-width: 600px) {
+	.aimp-account-panel {
+		padding: 1rem;
+	}
+}

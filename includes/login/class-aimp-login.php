@@ -402,6 +402,7 @@ class AIMP_Login {
 				'account_unverified' => __( 'Please verify your email address first. Check your inbox (and spam folder).', 'atelier-irisee-master-plugin' ),
 				'account_pending'    => __( 'Your account is waiting for approval. You will get an email as soon as it is approved.', 'atelier-irisee-master-plugin' ),
 				'account_rejected'   => __( 'Your account has not been approved.', 'atelier-irisee-master-plugin' ),
+				'account_removed'    => __( 'Your account has been removed. Thank you for having been our customer.', 'atelier-irisee-master-plugin' ),
 			),
 		);
 	}

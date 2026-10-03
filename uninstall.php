@@ -35,4 +35,18 @@ $wpdb->query(
 		$wpdb->esc_like( '_transient_timeout_aimp_el_' ) . '%'
 	)
 );
+// Gift cards: settings and the cards themselves (codes in sent emails stop working).
+delete_option( 'aimp_giftcards' );
+$aimp_gift_cards = get_posts(
+	array(
+		'post_type'      => 'aimp_gift_card',
+		'post_status'    => 'any',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+	)
+);
+foreach ( $aimp_gift_cards as $aimp_gift_card ) {
+	wp_delete_post( $aimp_gift_card, true );
+}
+wp_unschedule_hook( 'aimp_gc_send' );
 // phpcs:enable

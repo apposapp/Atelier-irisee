@@ -1,0 +1,350 @@
+/* Atelier Irisee gift cards: product form, gift card code field and the gift card list. */
+.aimp-gc-form,
+.aimp-gc-redeem,
+.aimp-gc-list,
+.aimp-gc-check {
+	--aimp-gc-gold: #b38f4f;
+	--aimp-gc-text: #613907;
+	--aimp-gc-tint: rgba(179, 143, 79, 0.12);
+	color: var(--aimp-gc-text);
+}
+
+/* ------------------------------------------------------------------
+ * Product page form
+ * ------------------------------------------------------------------ */
+.aimp-gc-form {
+	display: grid;
+	gap: 1.5rem;
+	width: 100%;
+	margin: 0 0 1.5rem;
+}
+
+.aimp-gc-group {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+
+.aimp-gc-group legend {
+	margin-bottom: 0.6rem;
+	color: var(--aimp-gc-gold);
+	font-size: 1.1em;
+	font-weight: 700;
+}
+
+.aimp-gc-designs {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 0.75rem;
+}
+
+.aimp-gc-design {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	padding: 0.5rem;
+	border: 3px double var(--aimp-gc-gold);
+	border-radius: 16px;
+	cursor: pointer;
+	text-align: center;
+	font-weight: 600;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-gc-design img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 8 / 5;
+	object-fit: cover;
+	border-radius: 10px;
+}
+
+.aimp-gc-design input,
+.aimp-gc-chip input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.aimp-gc-design:has(input:checked) {
+	background: var(--aimp-gc-gold);
+	color: #fff;
+}
+
+.aimp-gc-design:has(input:focus-visible),
+.aimp-gc-chip:has(input:focus-visible) {
+	outline: 2px solid var(--aimp-gc-gold);
+	outline-offset: 2px;
+}
+
+.aimp-gc-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.aimp-gc-chip {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	padding: 0.5rem 1.2rem;
+	border: 5px double var(--aimp-gc-gold);
+	border-radius: 100px;
+	color: var(--aimp-gc-gold);
+	font-weight: 700;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-gc-chip:hover {
+	background: var(--aimp-gc-tint);
+}
+
+.aimp-gc-chip:has(input:checked) {
+	background: var(--aimp-gc-gold);
+	color: #fff;
+}
+
+.aimp-gc-chip:has(input:checked) .amount,
+.aimp-gc-chip:has(input:checked) bdi {
+	color: #fff;
+}
+
+.aimp-gc-options {
+	display: grid;
+	gap: 0.5rem;
+}
+
+.aimp-gc-option {
+	display: flex;
+	gap: 0.75rem;
+	align-items: flex-start;
+	padding: 0.75rem 1rem;
+	border: 1px solid var(--aimp-gc-gold);
+	border-radius: 14px;
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.45;
+	cursor: pointer;
+}
+
+.aimp-gc-option:has(input:checked) {
+	background: var(--aimp-gc-tint);
+	border-width: 2px;
+}
+
+.aimp-gc-option input {
+	margin-top: 0.3em;
+	accent-color: var(--aimp-gc-gold);
+}
+
+.aimp-gc-option strong {
+	display: block;
+	color: var(--aimp-gc-gold);
+}
+
+.aimp-gc-field {
+	margin: 0.75rem 0 0;
+}
+
+.aimp-gc-field[hidden] {
+	display: none;
+}
+
+.aimp-gc-field label {
+	display: block;
+	margin-bottom: 0.3rem;
+	font-weight: 600;
+}
+
+.aimp-gc-field input,
+.aimp-gc-field textarea {
+	width: 100%;
+	padding: 0.6em 0.9em;
+	border: 1px solid var(--aimp-gc-gold);
+	border-radius: 12px;
+	font: inherit;
+}
+
+.aimp-gc-total {
+	margin: 0;
+	font-size: 1.1em;
+	font-weight: 600;
+}
+
+.aimp-gc-total strong {
+	color: var(--aimp-gc-gold);
+	font-size: 1.2em;
+}
+
+/* ------------------------------------------------------------------
+ * Gift card code field (cart / checkout)
+ * ------------------------------------------------------------------ */
+.aimp-gc-redeem {
+	margin: 0 0 1.5rem;
+	padding: 1rem 1.25rem;
+	border: 5px double var(--aimp-gc-gold);
+	border-radius: 24px;
+}
+
+.aimp-gc-redeem-title {
+	margin: 0 0 0.6rem;
+	color: var(--aimp-gc-gold);
+	font-weight: 700;
+}
+
+.aimp-gc-redeem-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.aimp-gc-redeem-row input,
+.aimp-gc-check input {
+	flex: 1 1 14rem;
+	min-width: 0;
+	padding: 0.6em 0.9em;
+	border: 1px solid var(--aimp-gc-gold);
+	border-radius: 12px;
+	font-family: ui-monospace, Consolas, monospace;
+	text-transform: uppercase;
+}
+
+.aimp-gc-redeem .aimp-gc-button,
+.aimp-gc-check .aimp-account-button {
+	padding: 0.6em 1.3em;
+	border: 5px double var(--aimp-gc-gold);
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-gc-gold);
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.aimp-gc-redeem .aimp-gc-button:hover {
+	background: var(--aimp-gc-gold);
+	color: #fff;
+}
+
+.aimp-gc-applied {
+	margin: 0 0 0.75rem;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-gc-applied li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 1rem;
+	font-weight: 600;
+}
+
+.aimp-gc-link {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--aimp-gc-gold);
+	font: inherit;
+	font-size: 0.9em;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.aimp-gc-redeem-msg {
+	margin: 0.6rem 0 0;
+	font-weight: 600;
+}
+
+.aimp-gc-redeem-msg.is-error {
+	color: #b3261e;
+}
+
+.aimp-gc-redeem-note {
+	margin: 0;
+}
+
+/* ------------------------------------------------------------------
+ * Gift card list (account page)
+ * ------------------------------------------------------------------ */
+.aimp-gc-list {
+	display: grid;
+	gap: 1rem;
+	margin: 0 0 2rem;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-gc-item {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1rem 1.25rem;
+	padding: 1rem;
+	border: 5px double var(--aimp-gc-gold);
+	border-radius: 24px;
+}
+
+.aimp-gc-item.is-inactive {
+	opacity: 0.6;
+}
+
+.aimp-gc-item-image {
+	width: 120px;
+	aspect-ratio: 8 / 5;
+	object-fit: cover;
+	border-radius: 12px;
+}
+
+.aimp-gc-item-info {
+	flex: 1 1 14rem;
+	min-width: 0;
+}
+
+.aimp-gc-item-info p {
+	margin: 0 0 0.3rem;
+	font-size: 17px;
+	font-weight: 600;
+}
+
+.aimp-gc-item-value {
+	color: var(--aimp-gc-gold);
+	font-size: 1.3em !important;
+}
+
+.aimp-gc-item-value small {
+	color: var(--aimp-gc-text);
+	font-size: 0.65em;
+}
+
+.aimp-gc-item-code code {
+	font-size: 1em;
+	letter-spacing: 1px;
+	overflow-wrap: anywhere;
+}
+
+.aimp-gc-item-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.3rem 0.9rem;
+	font-size: 0.9em !important;
+}
+
+.aimp-gc-badge {
+	padding: 0 0.6rem;
+	border: 1px solid var(--aimp-gc-gold);
+	border-radius: 100px;
+}
+
+.aimp-gc-check {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0 0 1.5rem;
+}
+
+.aimp-gc-check .aimp-gc-redeem-msg {
+	flex-basis: 100%;
+}

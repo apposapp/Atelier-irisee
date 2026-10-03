@@ -5,6 +5,8 @@
 	--aimp-accent: var(--aimp-gold);
 	--aimp-accent-text: #fff;
 	--aimp-text: var(--aimp-gold);
+	--aimp-body-text: #613907;
+	--aimp-body-size: 17px;
 	--aimp-muted: var(--aimp-gold);
 	--aimp-border: var(--aimp-gold);
 	--aimp-radius: 6px;
@@ -29,18 +31,10 @@
 }
 
 /* ------------------------------------------------------------------
- * Text, titles and links: always gold
+ * Titles, table headers and links: gold
  * ------------------------------------------------------------------ */
 .aimp-configurator,
-.aimp-configurator p,
-.aimp-configurator li,
-.aimp-configurator dt,
-.aimp-configurator dd,
 .aimp-configurator th,
-.aimp-configurator td,
-.aimp-configurator label,
-.aimp-configurator small,
-.aimp-configurator strong,
 .aimp-configurator h1,
 .aimp-configurator h2,
 .aimp-configurator h3,
@@ -49,11 +43,36 @@
 .aimp-configurator h6,
 .aimp-configurator a,
 .aimp-configurator a:hover,
-.aimp-configurator a:visited,
+.aimp-configurator a:visited {
+	color: var(--aimp-text);
+}
+
+/* Normal text (everything that is not a title, header or button): brown, 17px, semi-bold */
+.aimp-configurator p,
+.aimp-configurator li,
+.aimp-configurator dt,
+.aimp-configurator dd,
+.aimp-configurator td,
+.aimp-configurator label,
+.aimp-configurator strong,
 .aimp-configurator .aimp-help,
 .aimp-configurator .aimp-description,
-.aimp-configurator .aimp-description * {
-	color: var(--aimp-text);
+.aimp-configurator .aimp-description *,
+.aimp-configurator .aimp-card-name,
+.aimp-configurator .aimp-card-price,
+.aimp-configurator .aimp-results-count,
+.aimp-configurator .aimp-side-placeholder,
+.aimp-configurator .aimp-loading,
+.aimp-configurator .aimp-empty,
+.aimp-configurator .aimp-recap {
+	color: var(--aimp-body-text);
+	font-size: var(--aimp-body-size);
+	font-weight: 600;
+}
+
+.aimp-configurator small {
+	color: var(--aimp-body-text);
+	font-weight: 600;
 }
 
 /* WooCommerce price HTML follows the surrounding text colour. */
@@ -342,6 +361,12 @@
 
 .aimp-toolbar .aimp-filters {
 	margin-bottom: 0.75rem;
+}
+
+/* Fabric category chips: a single thin line instead of the double border. */
+.aimp-configurator .aimp-toolbar .aimp-filter {
+	border-width: 1px;
+	border-style: solid;
 }
 
 .aimp-toolbar-row {
@@ -651,11 +676,48 @@
 	padding: 0.75rem 1rem;
 	border-left: 3px solid var(--aimp-gold);
 	background: transparent;
-	color: var(--aimp-gold);
+	color: var(--aimp-body-text);
 }
 
 .aimp-recap .aimp-needs {
 	margin-bottom: 0;
+}
+
+/* Thumbnails of what has been chosen so far */
+.aimp-recap-items {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem 1.5rem;
+	margin: 0 0 0.5rem;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-recap-item {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin: 0;
+}
+
+.aimp-recap-item img {
+	flex: 0 0 auto;
+	width: 44px;
+	height: 44px;
+	object-fit: cover;
+	border: 2px solid var(--aimp-gold);
+	border-radius: 50%;
+}
+
+.aimp-recap-item span {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.25;
+}
+
+.aimp-configurator .aimp-recap-item small {
+	font-size: 0.85em;
+	font-weight: 600;
 }
 
 /* ------------------------------------------------------------------
@@ -685,6 +747,11 @@
 	text-align: left;
 }
 
+.aimp-configurator .aimp-size-chart td,
+.aimp-configurator .aimp-summary td {
+	color: var(--aimp-body-text);
+}
+
 .aimp-configurator .aimp-size-chart tr.is-clickable {
 	cursor: pointer;
 }
@@ -705,9 +772,12 @@
 	font-weight: 600;
 }
 
-.aimp-configurator .aimp-step--summary h3,
-.aimp-configurator .aimp-step--summary .aimp-help {
+.aimp-configurator .aimp-step--summary h3 {
 	color: var(--aimp-gold);
+}
+
+.aimp-configurator .aimp-step--summary .aimp-help {
+	color: var(--aimp-body-text);
 }
 
 .aimp-configurator .aimp-summary thead th {

@@ -1012,13 +1012,34 @@
 	 * Step 2: fabric
 	 * ------------------------------------------------------------- */
 
+	// Recap at the top of the later steps: small pictures of what has been chosen so far.
 	Configurator.prototype.recapHtml = function () {
 		var s = this.state;
-		return (
-			'<div class="aimp-recap"><strong>' + esc(s.pattern.name) + '</strong> – ' + esc(t.size) + ' ' + esc(s.size.label) +
-			this.needsHtml(s.size) +
-			'</div>'
-		);
+		var items = [{ image: s.pattern.image, name: s.pattern.name, detail: t.size + ' ' + s.size.label }];
+		if (s.step !== 'fabric' && s.fabric && s.size.fabric_units > 0) {
+			items.push({ image: s.fabric.image, name: s.fabric.name, detail: s.size.fabric_text });
+		}
+		if (s.step === 'summary') {
+			NOTIONS.forEach(function (n) {
+				var selected = s.notions[n.type].selected;
+				if (n.qty(s.size) > 0 && selected) {
+					items.push({ image: selected.image, name: selected.name, detail: n.need(s.size) });
+				}
+			});
+		}
+		var html = '<div class="aimp-recap"><ul class="aimp-recap-items">';
+		items.forEach(function (item) {
+			html +=
+				'<li class="aimp-recap-item">' +
+				'<img src="' + esc(item.image) + '" alt="" width="44" height="44" loading="lazy">' +
+				'<span><strong>' + esc(item.name) + '</strong><small>' + esc(item.detail) + '</small></span>' +
+				'</li>';
+		});
+		html += '</ul>';
+		if (s.step !== 'summary') {
+			html += this.needsHtml(s.size);
+		}
+		return html + '</div>';
 	};
 
 	Configurator.prototype.renderFabricStep = function () {
@@ -1385,7 +1406,7 @@
 		var lines = this.summaryLines();
 		var total = 0;
 
-		var html = '<div class="aimp-step aimp-step--summary"><h3>' + esc(t.summaryTitle) + '</h3>';
+		var html = '<div class="aimp-step aimp-step--summary">' + this.recapHtml() + '<h3>' + esc(t.summaryTitle) + '</h3>';
 		html += '<div class="aimp-table-scroll"><table class="aimp-summary"><thead><tr><th>' + esc(t.product) + '</th><th>' + esc(t.quantity) + '</th><th>' + esc(t.price) + '</th></tr></thead><tbody>';
 		lines.forEach(function (line) {
 			var subtotal = line.price * line.qty;

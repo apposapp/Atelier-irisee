@@ -91,6 +91,36 @@ Settings are under **WooCommerce → Login & registration**. The full step-by-st
   - Actions: `aimp_el_before_form`, `aimp_el_after_form`, `aimp_el_register_user`, `aimp_el_login_success`.
   - Filters: `aimp_el_redirect`, `aimp_el_fields`.
 
+## Account page
+
+Put `[atelier_irisee_account]` on a page, for example "My account". Logged-out visitors see the login and registration forms. Logged-in customers get four tabs (`?tab=personal|orders|refund|giftcards`):
+
+- **Personal data:** the profile form and the saved billing and shipping addresses.
+- **Orders:** WooCommerce's own order list and order view.
+- **Refund or remove account:**
+  - Refund requests are possible up to N days after an order (setting in WooCommerce → Atelier Irisee).
+  - You approve or reject a request in the "Atelier Irisee refund request" box on the order. Approving refunds through the payment method when it supports refunds.
+  - Customers can remove their account. They confirm with their password, and orders stay as guest orders.
+- **Gift cards:** the cards the customer bought or received, with a copy button, "Use in my cart" and a balance check.
+
+## Gift cards
+
+**Admin:** WooCommerce → Gift cards (the list), Add gift card (manual cards) and Gift card settings.
+
+**Settings:**
+- designs;
+- preset amounts, plus a custom amount with min and max;
+- validity;
+- delivery options and the printing fee;
+- the code prefix;
+- the **Create gift card product** button.
+
+**How it works:**
+- **The product:** a simple product with "This is a gift card" ticked. Customers choose the amount, a design and the delivery: email to me, email to someone else (optionally on a date), or by post.
+- **Codes:** created when the order is processing or completed. Email cards are sent by WP-Cron. For post cards you get an email with a print link.
+- **Paying with a card:** the gift card field in the cart and at checkout lowers the order total after VAT, like a payment. The order gets a VAT-free negative line per card. The balance is deducted when the order is created and comes back when it is cancelled, fails or is refunded.
+- **Not allowed:** gift cards cannot be used to buy other gift cards.
+
 ## Languages
 
 The plugin speaks **Dutch**, **French** and **English**, independent of the WordPress site language.
@@ -139,4 +169,7 @@ To add another language:
 | `includes/class-aimp-updater.php` | Checks GitHub releases for updates |
 | `includes/class-aimp-i18n.php` | Picks the active language (Dutch/English) and translates the plugin's texts |
 | `includes/languages/nl.php`, `fr.php` | Dutch and French translations |
+| `includes/class-aimp-account.php` | Account page shortcode, refund requests, account removal |
+| `includes/giftcards/` | Gift cards: storage and emails, product form, redeeming, admin screens |
+| `templates/giftcards/` | Gift card product form and the card used in emails and print |
 | `assets/js/configurator.js` | Configurator UI (vanilla JS, no build step) |
