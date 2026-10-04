@@ -243,18 +243,12 @@
 /* ------------------------------------------------------------------
  * Details panel
  * ------------------------------------------------------------------ */
-.aimp-gallery-main.aimp-fav-wrap {
-	position: relative;
-}
-
 .aimp-gallery-main img.is-zoomable {
 	cursor: zoom-in;
 }
 
-.aimp-configurator .aimp-details-eyebrow {
+.aimp-shop .aimp-details-eyebrow {
 	margin: 1rem 0 0.2rem;
-	color: var(--aimp-gold);
-	font-size: 0.8em;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 }
@@ -267,19 +261,8 @@
 	margin-top: 1rem;
 }
 
-.aimp-configurator .aimp-details-price {
+.aimp-shop .aimp-details-price {
 	margin: 0.4rem 0 0.75rem;
-	color: var(--aimp-gold);
-	font-size: 1.25em;
-	font-weight: 700;
-}
-
-.aimp-configurator .aimp-details-price small {
-	font-size: 0.7em;
-}
-
-.aimp-configurator .aimp-info-list dd.is-out {
-	color: #a3352b;
 }
 
 /* ------------------------------------------------------------------

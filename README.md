@@ -142,6 +142,17 @@ With **Use the Atelier Irisee design on product pages** on (WooCommerce → Atel
 
 The **Complete it in the configurator** button on patterns uses the **Configurator page** setting and opens `?aimp_pattern=ID`.
 
+**Fabric texts:** fabric products get a "Fabric texts" box on the edit screen. It holds:
+- **Inspiration** and **Order information**, two free texts;
+- **Specifications:** composition, type, colour, width and weight;
+- **Washing instructions:** washing, drying, ironing, and optional tips.
+
+Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_info`, `_aimp_spec_*`, `_aimp_wash_*`, see `AIMP_Catalog::fabric_text_fields()`).
+
+Products sold per 10 cm get a cm field (steps of 10) that sets WooCommerce's quantity in 10 cm units, and the price shows the total for the chosen length.
+
+**Styling:** the product and shop pages share one style block at the end of `configurator.css`, so WooCommerce and theme styles can't change them.
+
 ## Languages
 
 The plugin speaks **Dutch**, **French** and **English**, independent of the WordPress site language.
@@ -191,6 +202,7 @@ To add another language:
 | `includes/class-aimp-i18n.php` | Picks the active language (Dutch/English) and translates the plugin's texts |
 | `includes/languages/nl.php`, `fr.php` | Dutch and French translations |
 | `includes/class-aimp-shop.php` | Shop page shortcode, the `aimp_shop` endpoint and its cached filter options |
+| `includes/class-aimp-fabric-fields.php` | "Fabric texts" box on fabric products |
 | `includes/class-aimp-product-page.php` | Product page design, the product shortcode and the block template swap |
 | `templates/product/` | Product page markup |
 | `assets/js/ui.js` | Shared front-end pieces: cards, gallery, pagination, lightbox, language flags |

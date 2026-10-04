@@ -562,8 +562,8 @@
 	margin: 0;
 }
 
-.aimp-details-head .aimp-fav {
-	flex: 0 0 auto;
+.aimp-gallery-main.aimp-fav-wrap {
+	position: relative;
 }
 
 .aimp-details h4 {
@@ -911,4 +911,162 @@
 
 .aimp-lightbox-nav--next {
 	right: 0.6rem;
+}
+
+/* ==================================================================
+ * Product pages and shop pages: the configurator's look, also where WooCommerce and the theme style
+ * the same elements. Their selectors are often stronger (".woocommerce div.product p.price" and
+ * similar), so these rules start with
+ *     .aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity)
+ * The #aimp-specificity part never matches anything; it only gives the selector the weight of an ID,
+ * so these rules win without !important.
+ * ================================================================== */
+
+/* Normal text: brown, 17px, semi-bold */
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(p, li, dd, td, label:not([class*="aimp-gc-"]), address, figcaption, .stock, .woocommerce-breadcrumb, .woocommerce-variation-description, .woocommerce-variation-availability, .aimp-description, .aimp-description *) {
+	color: var(--aimp-body-text);
+	font-size: var(--aimp-body-size);
+	font-weight: 600;
+}
+
+/* Titles and table headers: gold */
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6, th, legend, summary) {
+	color: var(--aimp-gold);
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6) {
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+/* Links: gold */
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(p, li, dd, td, .woocommerce-breadcrumb, nav) a:not([class*="aimp-"]):not(.button) {
+	color: var(--aimp-gold);
+}
+
+/* Prices: brown and semi-bold like the configurator prices; the main price a little larger */
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.aimp-details-price, .aimp-details-price :not(small), .woocommerce-variation-price .price, .woocommerce-variation-price .price *) {
+	color: var(--aimp-body-text);
+	font-size: calc(var(--aimp-body-size) * 1.3);
+	font-weight: 700;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.aimp-details-price small, .aimp-price-unit, .aimp-details-eyebrow) {
+	color: var(--aimp-body-text);
+	font-size: calc(var(--aimp-body-size) * 0.85);
+	font-weight: 600;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-info-list dt {
+	color: var(--aimp-body-text);
+	font-size: calc(var(--aimp-body-size) * 0.85);
+	font-weight: 600;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-details-eyebrow a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(del, del *) {
+	opacity: 0.6;
+	font-weight: 600;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.out-of-stock, .is-out) {
+	color: #a3352b;
+}
+
+/* WooCommerce's own buttons (add to cart, review submit): the configurator button */
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.single_add_to_cart_button, .button, button.button, input[type="submit"]) {
+	display: inline-block;
+	width: auto;
+	margin: 0;
+	padding: 0.7rem 1.6rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: 100px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--aimp-gold);
+	font: inherit;
+	font-weight: 700;
+	line-height: 1.2;
+	text-align: center;
+	text-decoration: none;
+	text-shadow: none;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.single_add_to_cart_button, .button, button.button, input[type="submit"]):is(:hover, :focus-visible):not(:disabled):not(.disabled) {
+	background: var(--aimp-gold-tint);
+	color: var(--aimp-gold);
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.single_add_to_cart_button, .button):is(:disabled, .disabled) {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* Fields: thin gold line, like the configurator search */
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(input[type="text"], input[type="email"], input[type="number"], input[type="search"], input[type="tel"], input[type="url"], input[type="password"], select, textarea) {
+	max-width: 100%;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-radius);
+	background: transparent;
+	box-shadow: none;
+	color: var(--aimp-gold);
+	font: inherit;
+	font-weight: 600;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(input[type="checkbox"], input[type="radio"]) {
+	accent-color: var(--aimp-gold);
+}
+
+/* Rating stars: gold */
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .star-rating,
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .star-rating span::before,
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) p.stars a {
+	color: var(--aimp-gold);
+}
+
+/* Reviews: WooCommerce styles these through IDs, so these rules need IDs as well. */
+#aimp-reviews :is(#reviews, #aimp-specificity) :is(#comments, #review_form_wrapper, #aimp-specificity) :is(p, label, li, .meta, .woocommerce-review__author, .woocommerce-review__published-date, .comment-notes) {
+	color: var(--aimp-body-text);
+	font-size: var(--aimp-body-size);
+	font-weight: 600;
+}
+
+#aimp-reviews :is(#reviews, #aimp-specificity) :is(#comments, #review_form_wrapper, #aimp-specificity) :is(h2, h3, .comment-reply-title) {
+	color: var(--aimp-gold);
+}
+
+#aimp-reviews :is(#reviews, #aimp-specificity) :is(#review_form, #aimp-specificity) :is(#respond, #aimp-specificity) :is(input[type="text"], input[type="email"], textarea, select) {
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-radius);
+	background: transparent;
+	color: var(--aimp-gold);
+	font: inherit;
+}
+
+#aimp-reviews :is(#reviews, #aimp-specificity) :is(#review_form, #aimp-specificity) :is(#respond, #aimp-specificity) .form-submit input {
+	padding: 0.7rem 1.6rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-gold);
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+#aimp-reviews :is(#reviews, #aimp-specificity) :is(#review_form, #aimp-specificity) :is(#respond, #aimp-specificity) .form-submit input:hover {
+	background: var(--aimp-gold-tint);
+}
+
+#aimp-reviews :is(#reviews, #aimp-specificity) :is(#comments, #aimp-specificity) ol.commentlist li .comment-text {
+	border-color: var(--aimp-gold);
+	border-radius: var(--aimp-radius);
 }

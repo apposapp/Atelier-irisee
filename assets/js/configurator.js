@@ -126,14 +126,9 @@
 
 	var scrollIntoViewIfNeeded = UI.scrollIntoViewIfNeeded;
 
-	// Favorite (heart) button from favorites.js; its state is filled in by aimpFavorites.refresh().
-	function favButton(productId) {
-		return UI.favButton(productId);
-	}
-
-	// Title of a details panel with the favorite heart next to it.
-	function detailsTitle(name, productId) {
-		return '<div class="aimp-details-head"><h3 class="aimp-details-title">' + esc(name) + '</h3>' + favButton(productId) + '</div>';
+	// Title of a details panel (the favorite heart sits on the picture, see galleryHtml).
+	function detailsTitle(name) {
+		return '<div class="aimp-details-head"><h3 class="aimp-details-title">' + esc(name) + '</h3></div>';
 	}
 
 	var findById = UI.findById;
@@ -411,9 +406,9 @@
 		UI.renderGrid(container, data, opts, t);
 	};
 
-	// One big picture with the other pictures as selectable thumbnails underneath.
-	Configurator.prototype.galleryHtml = function (images, index) {
-		return UI.galleryHtml(images, index, t);
+	// One big picture with the other pictures as selectable thumbnails underneath, and the favorite heart in its corner.
+	Configurator.prototype.galleryHtml = function (images, index, productId) {
+		return UI.galleryHtml(images, index, t, productId ? UI.favButton(productId, 'aimp-fav--overlay') : '');
 	};
 
 	Configurator.prototype.bindGallery = function (container, images, onChange) {
@@ -423,8 +418,8 @@
 	// Details of a fabric, button or zip: gallery, description, attributes, prices and stock.
 	Configurator.prototype.materialDetailsHtml = function (item, imageIndex, unitLabel, needText) {
 		var html = '<div class="aimp-details">';
-		html += this.galleryHtml(item.gallery, imageIndex);
-		html += detailsTitle(item.name, item.id);
+		html += this.galleryHtml(item.gallery, imageIndex, item.id);
+		html += detailsTitle(item.name);
 		if (item.description) {
 			html += '<div class="aimp-description">' + item.description + '</div>';
 		}
@@ -615,8 +610,8 @@
 		var size = s.size;
 
 		var html = '<div class="aimp-details">';
-		html += this.galleryHtml(pattern.gallery, s.patternImage);
-		html += detailsTitle(pattern.name, pattern.id);
+		html += this.galleryHtml(pattern.gallery, s.patternImage, pattern.id);
+		html += detailsTitle(pattern.name);
 		if (pattern.short_description) {
 			html += '<div class="aimp-description">' + pattern.short_description + '</div>';
 		}

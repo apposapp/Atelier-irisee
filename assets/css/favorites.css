@@ -67,22 +67,6 @@
 	z-index: 5;
 }
 
-/* Single product page: heart with text */
-.aimp-fav-single {
-	margin: 1rem 0;
-}
-
-.aimp-fav.aimp-fav--labeled {
-	width: auto;
-	height: auto;
-	padding: 0.55rem 1.3rem;
-	background-color: transparent;
-}
-
-.aimp-fav.aimp-fav--labeled:hover {
-	background-color: rgba(179, 143, 79, 0.12);
-}
-
 /* Toast */
 .aimp-fav-toast {
 	position: fixed;

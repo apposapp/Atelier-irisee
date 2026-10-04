@@ -52,3 +52,30 @@ jQuery(function ($) {
 	$('#woocommerce-product-data').on('click', '.aimp_pattern_options a, li.aimp_pattern_tab a', refresh);
 	refresh();
 });
+
+/**
+ * "Fabric texts" box: only for products in the Fabrics category (or one of its subcategories).
+ * Follows the category checkboxes live, also before saving.
+ */
+jQuery(function ($) {
+	'use strict';
+
+	var $texts = $('.aimp-fabric-texts');
+	var $box = $('#aimp-fabric-texts');
+	if (!$texts.length || !$box.length) {
+		return;
+	}
+	var terms = ($texts.data('fabric-terms') || []).map(function (id) {
+		return parseInt(id, 10);
+	});
+
+	function refresh() {
+		var isFabric = $('#product_catchecklist input[type="checkbox"]:checked').filter(function () {
+			return terms.indexOf(parseInt(this.value, 10)) !== -1;
+		}).length > 0;
+		$box.toggle(isFabric);
+	}
+
+	$(document).on('change', '#product_catchecklist input[type="checkbox"]', refresh);
+	refresh();
+});

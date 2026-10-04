@@ -154,8 +154,9 @@ class AIMP_Product_Page {
 			'previous'    => __( 'Previous', 'atelier-irisee-master-plugin' ),
 			'next'        => __( 'Next', 'atelier-irisee-master-plugin' ),
 			'showPicture' => __( 'Show picture %d', 'atelier-irisee-master-plugin' ),
-			/* translators: 1: number of 10 cm units, 2: total length in cm */
-			'unitHelp'    => __( '%1$d × 10 cm = %2$d cm', 'atelier-irisee-master-plugin' ),
+			'cm'          => __( 'cm', 'atelier-irisee-master-plugin' ),
+			'length'      => __( 'Length in cm', 'atelier-irisee-master-plugin' ),
+			'per10cm'     => __( 'per 10 cm', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -174,8 +175,14 @@ class AIMP_Product_Page {
 				'aimp-product',
 				'aimpProduct',
 				array(
-					'measureImage' => AIMP_PLUGIN_URL . 'assets/images/lichaamsmaten.png',
-					'i18n'         => self::strings(),
+					'currency' => array(
+						'symbol'   => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
+						'position' => get_option( 'woocommerce_currency_pos', 'left' ),
+						'decimals' => wc_get_price_decimals(),
+						'decimal'  => wc_get_price_decimal_separator(),
+						'thousand' => wc_get_price_thousand_separator(),
+					),
+					'i18n'     => self::strings(),
 				)
 			);
 		}
@@ -261,19 +268,15 @@ class AIMP_Product_Page {
 	public static function data( $product ) {
 		$per_10cm = AIMP_Catalog::sold_per_10cm( $product );
 		$pattern  = AIMP_Catalog::get_pattern( $product->get_id() );
-		$sizes    = $pattern ? AIMP_Catalog::get_sizes( $product->get_id() ) : null;
+		$fabric   = AIMP_Catalog::in_categories( $product, AIMP_Catalog::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
 
-		if ( $sizes ) {
-			$gallery = $sizes['pattern']['gallery'];
-		} else {
-			$extra = array();
-			if ( $product->is_type( 'variable' ) ) {
-				foreach ( $product->get_children() as $child_id ) {
-					$extra[] = (int) get_post_thumbnail_id( $child_id );
-				}
+		$extra = array();
+		if ( $product->is_type( 'variable' ) ) {
+			foreach ( $product->get_children() as $child_id ) {
+				$extra[] = (int) get_post_thumbnail_id( $child_id );
 			}
-			$gallery = AIMP_Catalog::images( $product, $extra );
 		}
+		$gallery = AIMP_Catalog::images( $product, $extra );
 
 		$category = null;
 		$terms    = get_the_terms( $product->get_id(), 'product_cat' );
@@ -285,17 +288,16 @@ class AIMP_Product_Page {
 
 		return array(
 			'per_10cm'         => $per_10cm,
+			'unit_price'       => $per_10cm ? (float) wc_get_price_to_display( $product ) : 0,
+			'fabric'           => $fabric ? AIMP_Catalog::fabric_texts( $product ) : null,
 			'gallery'          => $gallery,
 			'category'         => $category,
 			'stock_text'       => $product->is_type( 'simple' ) ? AIMP_Catalog::stock_text( $product, $per_10cm ) : '',
 			'attributes'       => AIMP_Catalog::attributes( $product ),
-			'sizes'            => $sizes ? $sizes['sizes'] : array(),
 			'configurator_url' => ( $pattern && $configurator && 'publish' === get_post_status( $configurator ) )
 				? add_query_arg( 'aimp_pattern', $product->get_id(), get_permalink( $configurator ) )
 				: '',
-			'fitting'          => AIMP_Catalog::in_categories( $product, AIMP_Catalog::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) )
-				? self::fitting_patterns( $product )
-				: array(),
+			'fitting'          => $fabric ? self::fitting_patterns( $product ) : array(),
 			'related'          => array_filter( array_map( 'wc_get_product', wc_get_related_products( $product->get_id(), self::RELATED ) ) ),
 		);
 	}

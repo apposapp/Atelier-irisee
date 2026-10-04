@@ -1,6 +1,6 @@
 /**
- * Atelier Irisee product pages: gallery with lightbox, size pictures, measuring guide,
- * the "× 10 cm" helper next to the quantity, and remembering the chosen language.
+ * Atelier Irisee product pages: gallery with lightbox, size pictures, the length field in cm
+ * (with the price for the chosen length) and remembering the chosen language.
  */
 (function () {
 	'use strict';
@@ -53,32 +53,78 @@
 		}
 	}
 
-	function setupMeasureGuide(root) {
-		var button = root.querySelector('[data-aimp-measure]');
-		if (!button) {
-			return;
-		}
-		button.addEventListener('click', function () {
-			var dialog = UI.openLightbox(root, [{ src: cfg.measureImage, alt: button.textContent.trim() }], 0, t);
-			dialog.setAttribute('aria-label', button.textContent.trim());
-		});
-	}
-
-	// Fabric, ribbon and bias tape are sold per 10 cm: "3 × 10 cm = 30 cm".
-	function setupUnitHelp(root) {
+	/**
+	 * Fabric, ribbon and bias tape are sold per 10 cm. The cart counts units of 10 cm, so WooCommerce's
+	 * quantity field stays (hidden) and a field in cm, stepping by 10, sets it. The price shows the
+	 * total for the chosen length. Without JavaScript the normal quantity field is used.
+	 */
+	function setupLength(root) {
 		var buy = root.querySelector('[data-aimp-per-10cm]');
-		var help = buy ? buy.querySelector('[data-aimp-unit-help]') : null;
-		var input = buy ? buy.querySelector('input.qty') : null;
-		if (!help || !input) {
+		var qty = buy ? buy.querySelector('form.cart input.qty') : null;
+		if (!qty || qty.type === 'hidden') {
 			return;
 		}
-		var update = function () {
-			var qty = Math.max(0, parseInt(input.value, 10) || 0);
-			help.textContent = qty ? UI.fmt(t.unitHelp, qty, qty * 10) : '';
+		var quantity = qty.closest('.quantity') || qty;
+		var unitPrice = parseFloat(buy.getAttribute('data-unit-price')) || 0;
+		var minUnits = Math.max(1, parseInt(qty.getAttribute('min'), 10) || 1);
+		var maxUnits = parseInt(qty.getAttribute('max'), 10) || 0;
+		var stepUnits = Math.max(1, parseInt(qty.getAttribute('step'), 10) || 1);
+
+		var wrap = document.createElement('div');
+		wrap.className = 'aimp-length';
+		wrap.innerHTML =
+			'<input type="number" class="aimp-length-input" inputmode="numeric"' +
+			' min="' + minUnits * 10 + '" step="' + stepUnits * 10 + '"' + (maxUnits > 0 ? ' max="' + maxUnits * 10 + '"' : '') +
+			' aria-label="' + UI.esc(t.length) + '">' +
+			'<span class="aimp-length-unit" aria-hidden="true">' + UI.esc(t.cm) + '</span>';
+		quantity.parentNode.insertBefore(wrap, quantity);
+		quantity.hidden = true;
+
+		var field = wrap.querySelector('input');
+		var price = root.querySelector('[data-aimp-price]');
+		var unitLine = root.querySelector('[data-aimp-unit-line]');
+
+		var units = function (cm) {
+			var n = Math.ceil((parseFloat(cm) || 0) / 10);
+			n = Math.max(minUnits, Math.ceil(n / stepUnits) * stepUnits);
+			return maxUnits > 0 ? Math.min(maxUnits, n) : n;
 		};
-		input.addEventListener('input', update);
-		input.addEventListener('change', update);
-		update();
+		var showPrice = function (n) {
+			if (!unitPrice) {
+				return;
+			}
+			if (price) {
+				price.innerHTML = '<span class="woocommerce-Price-amount amount">' + UI.esc(UI.money(unitPrice * n, cfg.currency)) + '</span>';
+			}
+			if (unitLine) {
+				unitLine.textContent = UI.money(unitPrice, cfg.currency) + ' ' + t.per10cm;
+			}
+		};
+		var apply = function (normalize) {
+			var n = units(field.value);
+			if (String(qty.value) !== String(n)) {
+				qty.value = n;
+				qty.dispatchEvent(new Event('change', { bubbles: true }));
+			}
+			if (normalize) {
+				field.value = n * 10;
+			}
+			showPrice(n);
+		};
+
+		field.value = units((parseInt(qty.value, 10) || minUnits) * 10) * 10;
+		field.addEventListener('input', function () {
+			if (field.value !== '') {
+				apply(false);
+			}
+		});
+		field.addEventListener('change', function () {
+			apply(true);
+		});
+		field.addEventListener('blur', function () {
+			apply(true);
+		});
+		apply(true);
 	}
 
 	// The flags are links (?aimp_lang=…); remember the choice so the next pages follow.
@@ -97,8 +143,7 @@
 			}
 			root.aimpProductReady = true;
 			setupGallery(root);
-			setupMeasureGuide(root);
-			setupUnitHelp(root);
+			setupLength(root);
 			setupLanguages(root);
 		});
 	}

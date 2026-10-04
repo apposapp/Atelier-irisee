@@ -7,8 +7,9 @@
  * Available variables:
  *
  * @var WC_Product $the_product The product (also the global $product).
- * @var array      $data        From AIMP_Product_Page::data(): per_10cm, gallery, category, stock_text,
- *                              attributes, sizes, configurator_url, fitting, related.
+ * @var array      $data        From AIMP_Product_Page::data(): per_10cm, unit_price, gallery, category, stock_text,
+ *                              attributes, fabric (texts, or null for other products), configurator_url,
+ *                              fitting, related.
  * @var array      $args        [ breadcrumb: bool ].
  *
  * @package AtelierIriseeMasterPlugin
@@ -16,34 +17,35 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$aimp_gallery = $data['gallery'];
-$aimp_first   = $aimp_gallery ? $aimp_gallery[0] : null;
-$aimp_id      = $the_product->get_id();
+$aimp_gallery     = $data['gallery'];
+$aimp_first       = $aimp_gallery ? $aimp_gallery[0] : null;
+$aimp_id          = $the_product->get_id();
+$aimp_fabric      = $data['fabric'];
+$aimp_description = $the_product->get_description();
+$aimp_has_desc    = '' !== trim( wp_strip_all_tags( $aimp_description ) );
+$aimp_show_short  = $the_product->get_short_description() && ! ( $aimp_fabric && '' !== trim( wp_strip_all_tags( $aimp_fabric['inspiration'] ) ) );
+$aimp_attributes  = $aimp_fabric ? array() : $data['attributes']; // Fabrics show their specifications instead.
+$aimp_show_detail = ! $aimp_fabric && ( $the_product->has_attributes() || apply_filters( 'wc_product_enable_dimensions_display', $the_product->has_weight() || $the_product->has_dimensions() ) );
+$aimp_show_review = wc_reviews_enabled() && comments_open( $aimp_id ) && is_singular( 'product' ) && (int) get_queried_object_id() === $aimp_id;
 
-// Body measurements that are filled in for at least one size.
-$aimp_measures = array();
-foreach (
-	array(
-		'bust'       => __( 'Bust', 'atelier-irisee-master-plugin' ),
-		'waist'      => __( 'Waist', 'atelier-irisee-master-plugin' ),
-		'hip'        => __( 'Hip', 'atelier-irisee-master-plugin' ),
-		'inside_leg' => __( 'Inside leg', 'atelier-irisee-master-plugin' ),
-		'height'     => __( 'Height', 'atelier-irisee-master-plugin' ),
-	) as $aimp_key => $aimp_label
-) {
-	foreach ( $data['sizes'] as $aimp_size ) {
-		if ( '' !== (string) $aimp_size[ $aimp_key ] ) {
-			$aimp_measures[ $aimp_key ] = $aimp_label;
-			break;
-		}
+/**
+ * A titled bullet list: "Label: value".
+ *
+ * @param string $aimp_title Title.
+ * @param array  $aimp_items Label => value.
+ */
+$aimp_bullets = function ( $aimp_title, $aimp_items ) {
+	if ( ! $aimp_items ) {
+		return;
 	}
-}
-
-$aimp_show_details = $the_product->has_attributes() || apply_filters( 'wc_product_enable_dimensions_display', $the_product->has_weight() || $the_product->has_dimensions() );
-$aimp_show_reviews = wc_reviews_enabled() && comments_open( $aimp_id ) && is_singular( 'product' ) && (int) get_queried_object_id() === $aimp_id;
-$aimp_description  = $the_product->get_description();
+	echo '<div class="aimp-product-bullets"><h4 class="aimp-product-subtitle">' . esc_html( $aimp_title ) . '</h4><ul>';
+	foreach ( $aimp_items as $aimp_label => $aimp_value ) {
+		echo '<li><strong>' . esc_html( $aimp_label ) . ':</strong> ' . nl2br( esc_html( $aimp_value ) ) . '</li>';
+	}
+	echo '</ul></div>';
+};
 ?>
-<div class="aimp-configurator aimp-product alignwide" data-aimp-product="<?php echo esc_attr( $aimp_id ); ?>">
+<div class="aimp-configurator aimp-product alignwide<?php echo $aimp_fabric ? ' aimp-product--fabric' : ''; ?>" data-aimp-product="<?php echo esc_attr( $aimp_id ); ?>">
 
 	<div class="aimp-topbar aimp-product-topbar">
 		<?php
@@ -88,7 +90,7 @@ $aimp_description  = $the_product->get_description();
 			<?php if ( wc_review_ratings_enabled() && $the_product->get_rating_count() > 0 ) : ?>
 				<div class="aimp-product-rating">
 					<?php echo wc_get_rating_html( $the_product->get_average_rating(), $the_product->get_rating_count() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WooCommerce HTML. ?>
-					<?php if ( $aimp_show_reviews ) : ?>
+					<?php if ( $aimp_show_review ) : ?>
 						<a href="#aimp-reviews">
 							<?php
 							/* translators: %d: number of reviews */
@@ -100,21 +102,33 @@ $aimp_description  = $the_product->get_description();
 			<?php endif; ?>
 
 			<?php if ( '' !== $the_product->get_price_html() ) : ?>
-				<p class="aimp-details-price price">
-					<?php echo wp_kses_post( $the_product->get_price_html() ); ?>
+				<div class="aimp-product-price">
+					<p class="aimp-details-price price" data-aimp-price><?php echo wp_kses_post( $the_product->get_price_html() ); ?></p>
 					<?php if ( $data['per_10cm'] ) : ?>
-						<small><?php esc_html_e( 'per 10 cm', 'atelier-irisee-master-plugin' ); ?></small>
+						<p class="aimp-price-unit" data-aimp-unit-line><?php esc_html_e( 'per 10 cm', 'atelier-irisee-master-plugin' ); ?></p>
 					<?php endif; ?>
-				</p>
+				</div>
 			<?php endif; ?>
 
-			<?php if ( $the_product->get_short_description() ) : ?>
+			<?php if ( $aimp_fabric && '' !== trim( wp_strip_all_tags( $aimp_fabric['inspiration'] ) ) ) : ?>
+				<div class="aimp-description aimp-product-inspiration"><?php echo wp_kses_post( wpautop( $aimp_fabric['inspiration'] ) ); ?></div>
+			<?php endif; ?>
+
+			<?php if ( $aimp_fabric && '' !== trim( wp_strip_all_tags( $aimp_fabric['order_info'] ) ) ) : ?>
+				<div class="aimp-description aimp-product-order-info"><?php echo wp_kses_post( wpautop( $aimp_fabric['order_info'] ) ); ?></div>
+			<?php endif; ?>
+
+			<?php if ( $aimp_show_short ) : ?>
 				<div class="aimp-description"><?php echo wp_kses_post( wc_format_content( $the_product->get_short_description() ) ); ?></div>
 			<?php endif; ?>
 
-			<?php if ( $data['attributes'] || $data['stock_text'] || $the_product->get_sku() ) : ?>
+			<div class="aimp-product-buy"<?php echo $data['per_10cm'] ? ' data-aimp-per-10cm data-unit-price="' . esc_attr( wc_format_decimal( $data['unit_price'], wc_get_price_decimals() ) ) . '"' : ''; ?>>
+				<?php woocommerce_template_single_add_to_cart(); ?>
+			</div>
+
+			<?php if ( $aimp_attributes || $data['stock_text'] || $the_product->get_sku() ) : ?>
 				<dl class="aimp-info-list">
-					<?php foreach ( $data['attributes'] as $aimp_attribute ) : ?>
+					<?php foreach ( $aimp_attributes as $aimp_attribute ) : ?>
 						<div><dt><?php echo esc_html( $aimp_attribute['label'] ); ?></dt><dd><?php echo esc_html( $aimp_attribute['value'] ); ?></dd></div>
 					<?php endforeach; ?>
 					<?php if ( $data['stock_text'] ) : ?>
@@ -126,71 +140,51 @@ $aimp_description  = $the_product->get_description();
 				</dl>
 			<?php endif; ?>
 
-			<div class="aimp-product-buy"<?php echo $data['per_10cm'] ? ' data-aimp-per-10cm' : ''; ?>>
-				<?php woocommerce_template_single_add_to_cart(); ?>
-				<?php if ( $data['per_10cm'] && $the_product->is_purchasable() && $the_product->is_in_stock() ) : ?>
-					<p class="aimp-help aimp-unit-help" data-aimp-unit-help aria-live="polite"></p>
-				<?php endif; ?>
-			</div>
+			<?php
+			if ( $aimp_fabric ) {
+				$aimp_bullets( __( 'Specifications', 'atelier-irisee-master-plugin' ), $aimp_fabric['specs'] );
+			}
+			?>
 
 			<?php if ( $data['configurator_url'] ) : ?>
 				<div class="aimp-product-configure">
 					<p class="aimp-help"><?php esc_html_e( 'Choose the fabric and haberdashery that fit your size, all in one go.', 'atelier-irisee-master-plugin' ); ?></p>
-					<a class="aimp-button aimp-button--block aimp-button--solid" href="<?php echo esc_url( $data['configurator_url'] ); ?>"><?php esc_html_e( 'Complete it in the configurator', 'atelier-irisee-master-plugin' ); ?></a>
+					<a class="aimp-button aimp-button--block" href="<?php echo esc_url( $data['configurator_url'] ); ?>"><?php esc_html_e( 'Complete it in the configurator', 'atelier-irisee-master-plugin' ); ?></a>
 				</div>
-			<?php endif; ?>
-
-			<?php if ( $data['sizes'] && $aimp_measures ) : ?>
-				<section class="aimp-product-sizes">
-					<div class="aimp-product-sizes-head">
-						<h2><?php esc_html_e( 'Size chart for this pattern', 'atelier-irisee-master-plugin' ); ?></h2>
-						<button type="button" class="aimp-button aimp-measure-button" data-aimp-measure><?php esc_html_e( 'How to measure your body measurements', 'atelier-irisee-master-plugin' ); ?></button>
-					</div>
-					<div class="aimp-table-scroll">
-						<table class="aimp-size-chart">
-							<thead>
-								<tr>
-									<th scope="col"><?php esc_html_e( 'Size', 'atelier-irisee-master-plugin' ); ?></th>
-									<?php foreach ( $aimp_measures as $aimp_label ) : ?>
-										<th scope="col"><?php echo esc_html( $aimp_label ); ?></th>
-									<?php endforeach; ?>
-								</tr>
-							</thead>
-							<tbody>
-								<?php foreach ( $data['sizes'] as $aimp_size ) : ?>
-									<tr>
-										<th scope="row"><?php echo esc_html( $aimp_size['label'] ); ?></th>
-										<?php foreach ( array_keys( $aimp_measures ) as $aimp_key ) : ?>
-											<?php $aimp_value = (string) $aimp_size[ $aimp_key ]; ?>
-											<td><?php echo '' === $aimp_value ? '–' : esc_html( AIMP_I18n::number( (float) $aimp_value, false !== strpos( $aimp_value, '.' ) ? 1 : 0 ) . ' ' . __( 'cm', 'atelier-irisee-master-plugin' ) ); ?></td>
-										<?php endforeach; ?>
-									</tr>
-								<?php endforeach; ?>
-							</tbody>
-						</table>
-					</div>
-				</section>
 			<?php endif; ?>
 		</div>
 	</div>
 
-	<?php if ( '' !== trim( $aimp_description ) ) : ?>
+	<?php if ( $aimp_fabric && ( $aimp_has_desc || $aimp_fabric['washing'] ) ) : ?>
+		<?php // Fabrics: description and washing instructions side by side. ?>
+		<section class="aimp-product-section aimp-product-row<?php echo $aimp_has_desc && $aimp_fabric['washing'] ? '' : ' is-single'; ?>">
+			<?php if ( $aimp_has_desc ) : ?>
+				<div>
+					<h3><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h3>
+					<div class="aimp-description aimp-product-description"><?php echo wc_format_content( $aimp_description ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- product content, filtered like the WooCommerce description tab. ?></div>
+				</div>
+			<?php endif; ?>
+			<?php if ( $aimp_fabric['washing'] ) : ?>
+				<div><?php $aimp_bullets( __( 'Washing instructions', 'atelier-irisee-master-plugin' ), $aimp_fabric['washing'] ); ?></div>
+			<?php endif; ?>
+		</section>
+	<?php elseif ( ! $aimp_fabric && $aimp_has_desc ) : ?>
 		<section class="aimp-product-section">
-			<h2><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h2>
+			<h3><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h3>
 			<div class="aimp-description aimp-product-description"><?php echo wc_format_content( $aimp_description ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- product content, filtered like the WooCommerce description tab. ?></div>
 		</section>
 	<?php endif; ?>
 
-	<?php if ( $aimp_show_details ) : ?>
+	<?php if ( $aimp_show_detail ) : ?>
 		<section class="aimp-product-section">
-			<h2><?php esc_html_e( 'Details', 'atelier-irisee-master-plugin' ); ?></h2>
+			<h3><?php esc_html_e( 'Details', 'atelier-irisee-master-plugin' ); ?></h3>
 			<?php wc_display_product_attributes( $the_product ); ?>
 		</section>
 	<?php endif; ?>
 
 	<?php if ( $data['fitting'] ) : ?>
 		<section class="aimp-product-section">
-			<h2><?php esc_html_e( 'Fits these patterns', 'atelier-irisee-master-plugin' ); ?></h2>
+			<h3><?php esc_html_e( 'Fits these patterns', 'atelier-irisee-master-plugin' ); ?></h3>
 			<ul class="aimp-grid aimp-product-cards">
 				<?php
 				foreach ( $data['fitting'] as $aimp_pattern ) {
@@ -201,7 +195,7 @@ $aimp_description  = $the_product->get_description();
 		</section>
 	<?php endif; ?>
 
-	<?php if ( $aimp_show_reviews ) : ?>
+	<?php if ( $aimp_show_review ) : ?>
 		<section class="aimp-product-section aimp-product-reviews" id="aimp-reviews">
 			<?php comments_template(); ?>
 		</section>
@@ -209,7 +203,7 @@ $aimp_description  = $the_product->get_description();
 
 	<?php if ( $data['related'] ) : ?>
 		<section class="aimp-product-section">
-			<h2><?php esc_html_e( 'You may also like', 'atelier-irisee-master-plugin' ); ?></h2>
+			<h3><?php esc_html_e( 'You may also like', 'atelier-irisee-master-plugin' ); ?></h3>
 			<ul class="aimp-grid aimp-product-cards">
 				<?php
 				foreach ( $data['related'] as $aimp_related ) {

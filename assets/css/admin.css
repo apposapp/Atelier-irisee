@@ -189,3 +189,49 @@
 	height: 100%;
 	object-fit: cover;
 }
+
+/* "Fabric texts" box on fabric products */
+.aimp-fabric-editors {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 1.25rem;
+	margin: 0.75rem 0 1.5rem;
+}
+
+.aimp-fabric-editors h4 {
+	margin: 0 0 0.25rem;
+}
+
+.aimp-fabric-editors .description {
+	margin: 0 0 0.5rem;
+}
+
+.aimp-fabric-lists {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 1.25rem;
+}
+
+.aimp-fabric-lists fieldset {
+	padding: 0.75rem 1rem;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+
+.aimp-fabric-lists legend {
+	padding: 0 0.4rem;
+	font-weight: 600;
+}
+
+.aimp-fabric-lists p {
+	display: grid;
+	grid-template-columns: 11rem minmax(0, 1fr);
+	align-items: center;
+	gap: 0.75rem;
+	margin: 0.5rem 0;
+}
+
+.aimp-fabric-lists input,
+.aimp-fabric-lists textarea {
+	width: 100%;
+}

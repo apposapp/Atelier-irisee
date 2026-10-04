@@ -28,6 +28,8 @@ class AIMP_Catalog {
 	const META_HIP             = '_aimp_hip';
 	const META_INSIDE_LEG      = '_aimp_inside_leg';
 	const META_FABRIC_PRIORITY = '_aimp_fabric_priority';
+	const META_INSPIRATION     = '_aimp_inspiration';
+	const META_ORDER_INFO      = '_aimp_order_info';
 
 	/** Length of one fabric unit in cm. */
 	const FABRIC_UNIT_CM = 10;
@@ -240,6 +242,61 @@ class AIMP_Catalog {
 			$terms = array_merge( $terms, self::category_tree( AIMP_Settings::get( $setting ) ) );
 		}
 		return self::in_categories( $product, $terms );
+	}
+
+	/**
+	 * Fabric text fields: group => [ subject => [ meta key, label, optional ] ].
+	 * Inspiration and order information are free (rich) texts; specifications and washing are bullet lists.
+	 *
+	 * @return array
+	 */
+	public static function fabric_text_fields() {
+		return array(
+			'specs'   => array(
+				'composition' => array( '_aimp_spec_composition', __( 'Fabric composition', 'atelier-irisee-master-plugin' ), false ),
+				'type'        => array( '_aimp_spec_type', __( 'Fabric type', 'atelier-irisee-master-plugin' ), false ),
+				'colour'      => array( '_aimp_spec_colour', __( 'Fabric colour', 'atelier-irisee-master-plugin' ), false ),
+				'width'       => array( '_aimp_spec_width', __( 'Fabric width', 'atelier-irisee-master-plugin' ), false ),
+				'weight'      => array( '_aimp_spec_weight', __( 'Fabric weight', 'atelier-irisee-master-plugin' ), false ),
+			),
+			'washing' => array(
+				'washing' => array( '_aimp_wash_washing', __( 'Washing', 'atelier-irisee-master-plugin' ), false ),
+				'drying'  => array( '_aimp_wash_drying', __( 'Drying', 'atelier-irisee-master-plugin' ), false ),
+				'ironing' => array( '_aimp_wash_ironing', __( 'Ironing', 'atelier-irisee-master-plugin' ), false ),
+				'tips'    => array( '_aimp_wash_tips', __( 'Tips', 'atelier-irisee-master-plugin' ), true ),
+			),
+		);
+	}
+
+	/**
+	 * The texts of a fabric, ready to show.
+	 *
+	 * Specifications and washing list every subject ("–" when empty), except optional subjects (tips),
+	 * which only appear when filled in. A list is empty when none of its subjects is filled in.
+	 *
+	 * @param WC_Product $product Fabric product.
+	 * @return array [ inspiration, order_info, specs: [ label => value ], washing: [ label => value ] ]
+	 */
+	public static function fabric_texts( $product ) {
+		$texts = array(
+			'inspiration' => (string) $product->get_meta( self::META_INSPIRATION ),
+			'order_info'  => (string) $product->get_meta( self::META_ORDER_INFO ),
+		);
+		foreach ( self::fabric_text_fields() as $group => $fields ) {
+			$list   = array();
+			$filled = false;
+			foreach ( $fields as $field ) {
+				$value = trim( (string) $product->get_meta( $field[0] ) );
+				if ( '' !== $value ) {
+					$filled = true;
+				} elseif ( $field[2] ) {
+					continue;
+				}
+				$list[ $field[1] ] = '' === $value ? '–' : $value;
+			}
+			$texts[ $group ] = $filled ? $list : array();
+		}
+		return $texts;
 	}
 
 	/**

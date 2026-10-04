@@ -33,7 +33,6 @@ class AIMP_Favorites {
 
 		// Heart buttons.
 		add_action( 'woocommerce_before_shop_loop_item', array( __CLASS__, 'loop_button' ), 5 );
-		add_action( 'woocommerce_single_product_summary', array( __CLASS__, 'single_button' ), 35 );
 		add_filter( 'render_block_woocommerce/product-image', array( __CLASS__, 'block_button' ), 10, 3 );
 
 		add_shortcode( self::SHORTCODE, array( __CLASS__, 'render_page' ) );
@@ -114,18 +113,17 @@ class AIMP_Favorites {
 	 * Heart button. Its state and labels are set by favorites.js.
 	 *
 	 * @param int    $product_id Product ID.
-	 * @param string $modifier   Extra CSS class (e.g. aimp-fav--overlay, aimp-fav--labeled).
+	 * @param string $modifier   Extra CSS class (e.g. aimp-fav--overlay).
 	 * @return string
 	 */
 	public static function button_html( $product_id, $modifier = '' ) {
 		$label = __( 'Add to favorites', 'atelier-irisee-master-plugin' );
 		return sprintf(
-			'<button type="button" class="aimp-fav %1$s" data-aimp-fav="%2$d" aria-pressed="false" aria-label="%3$s" title="%3$s">%4$s%5$s</button>',
+			'<button type="button" class="aimp-fav %1$s" data-aimp-fav="%2$d" aria-pressed="false" aria-label="%3$s" title="%3$s">%4$s</button>',
 			esc_attr( $modifier ),
 			absint( $product_id ),
 			esc_attr( $label ),
-			self::icon(),
-			'aimp-fav--labeled' === $modifier ? '<span class="aimp-fav-label">' . esc_html( $label ) . '</span>' : ''
+			self::icon()
 		);
 	}
 
@@ -133,13 +131,6 @@ class AIMP_Favorites {
 		global $product;
 		if ( $product instanceof WC_Product ) {
 			echo self::button_html( $product->get_id(), 'aimp-fav--overlay' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button_html().
-		}
-	}
-
-	public static function single_button() {
-		global $product;
-		if ( $product instanceof WC_Product ) {
-			echo '<div class="aimp-fav-single">' . self::button_html( $product->get_id(), 'aimp-fav--labeled' ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button_html().
 		}
 	}
 
