@@ -30,6 +30,10 @@ class AIMP_Catalog {
 	const META_FABRIC_PRIORITY = '_aimp_fabric_priority';
 	const META_INSPIRATION     = '_aimp_inspiration';
 	const META_ORDER_INFO      = '_aimp_order_info';
+	const META_SKILL           = '_aimp_skill';
+
+	/** Number of inspiration cards on a fabric. */
+	const INSPIRATION_CARDS = 3;
 
 	/** Length of one fabric unit in cm. */
 	const FABRIC_UNIT_CM = 10;
@@ -275,28 +279,80 @@ class AIMP_Catalog {
 	 * which only appear when filled in. A list is empty when none of its subjects is filled in.
 	 *
 	 * @param WC_Product $product Fabric product.
-	 * @return array [ inspiration, order_info, specs: [ label => value ], washing: [ label => value ] ]
+	 * @return array [ inspiration_cards: [ [ title, text ] ], order_info, specs: [ subject => [ label, value ] ],
+	 *                 washing: [ subject => [ label, value ] ] ]
 	 */
 	public static function fabric_texts( $product ) {
 		$texts = array(
-			'inspiration' => (string) $product->get_meta( self::META_INSPIRATION ),
-			'order_info'  => (string) $product->get_meta( self::META_ORDER_INFO ),
+			'inspiration_cards' => self::inspiration_cards( $product ),
+			'order_info'        => (string) $product->get_meta( self::META_ORDER_INFO ),
 		);
 		foreach ( self::fabric_text_fields() as $group => $fields ) {
 			$list   = array();
 			$filled = false;
-			foreach ( $fields as $field ) {
+			foreach ( $fields as $subject => $field ) {
 				$value = trim( (string) $product->get_meta( $field[0] ) );
 				if ( '' !== $value ) {
 					$filled = true;
 				} elseif ( $field[2] ) {
 					continue;
 				}
-				$list[ $field[1] ] = '' === $value ? '–' : $value;
+				$list[ $subject ] = array( $field[1], '' === $value ? '–' : $value );
 			}
 			$texts[ $group ] = $filled ? $list : array();
 		}
 		return $texts;
+	}
+
+	/**
+	 * Skill levels of a pattern, from easy to hard: key => label.
+	 *
+	 * @return array
+	 */
+	public static function skill_levels() {
+		return array(
+			'beginner' => __( 'Beginner', 'atelier-irisee-master-plugin' ),
+			'average'  => __( 'Average', 'atelier-irisee-master-plugin' ),
+			'advanced' => __( 'Advanced', 'atelier-irisee-master-plugin' ),
+			'expert'   => __( 'Expert', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * Meta keys of inspiration card $n (1-3).
+	 *
+	 * @param int $n Card number.
+	 * @return array [ title key, text key ]
+	 */
+	public static function inspiration_keys( $n ) {
+		return array( '_aimp_insp_' . $n . '_title', '_aimp_insp_' . $n . '_text' );
+	}
+
+	/**
+	 * The filled-in inspiration cards. A text from before the cards existed (one free inspiration text)
+	 * counts as the text of card 1 until that card is saved.
+	 *
+	 * @param WC_Product $product Fabric product.
+	 * @param bool       $all     Also return empty cards (for the admin form).
+	 * @return array[] [ title, text ]
+	 */
+	public static function inspiration_cards( $product, $all = false ) {
+		$cards = array();
+		for ( $n = 1; $n <= self::INSPIRATION_CARDS; $n++ ) {
+			list( $title_key, $text_key ) = self::inspiration_keys( $n );
+			$title = (string) $product->get_meta( $title_key );
+			$text  = (string) $product->get_meta( $text_key );
+			if ( 1 === $n && '' === $title && '' === trim( wp_strip_all_tags( $text ) ) ) {
+				$text = (string) $product->get_meta( self::META_INSPIRATION );
+			}
+			if ( $all || '' !== trim( $title ) || '' !== trim( wp_strip_all_tags( $text ) ) ) {
+				$cards[] = array(
+					'title' => $title,
+					'text'  => $text,
+				);
+			}
+		}
+		return $cards;
 	}
 
 	/**

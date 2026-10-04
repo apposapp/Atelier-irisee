@@ -112,6 +112,11 @@
 			return;
 		}
 		(root || document).querySelectorAll('[data-aimp-fav]').forEach(paint);
+		// Number of favorites in the header.
+		document.querySelectorAll('[data-aimp-fav-count]').forEach(function (badge) {
+			badge.textContent = ids.length;
+			badge.hidden = !ids.length;
+		});
 	}
 
 	function button(id) {

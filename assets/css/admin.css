@@ -235,3 +235,26 @@
 .aimp-fabric-lists textarea {
 	width: 100%;
 }
+
+.aimp-fabric-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 1rem;
+	margin: 0.5rem 0 1.5rem;
+}
+
+.aimp-fabric-card {
+	padding: 0.75rem;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+
+.aimp-fabric-card label {
+	display: block;
+	margin-bottom: 0.25rem;
+	font-weight: 600;
+}
+
+.aimp-fabric-card input[type="text"] {
+	width: 100%;
+}

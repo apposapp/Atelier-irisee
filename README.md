@@ -159,6 +159,21 @@ Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_
 
 **Styling:** the product and shop pages share one style block at the end of `configurator.css`, so WooCommerce and theme styles can't change them.
 
+## Header, site look and editor
+
+- **Header** (`includes/class-aimp-header.php`, `templates/header.php`):
+  - Switched on with "Use the Atelier Irisee header".
+  - Block themes: the `core/template-part` block whose slug, tag or area contains "header" is replaced (`render_block`).
+  - Classic themes: the header is printed at `wp_body_open`, and common theme headers are hidden through the body class `aimp-replace-theme-header`.
+  - The side menu uses the menu location `aimp_side_menu`. The cart badge counts cart lines and refreshes through `woocommerce_add_to_cart_fragments`.
+- **Site look** (`includes/class-aimp-site.php`):
+  - Trajan Pro `@font-face` from the font files uploaded in the settings. Font uploads are allowed for shop managers.
+  - 15px body text.
+  - Notices (`assets/js/notices.js`): a × button; success and info messages close after 4 s.
+- **Editor** (`includes/class-aimp-editor.php`): an "Empty line" TinyMCE and Quicktags button that inserts `<p class="aimp-space">&nbsp;</p>`.
+- **Overview:** `[atelier_irisee_shop type="all"]` shows five section cards unless the address has `aimp_*` filters.
+- **Pattern skill level:** stored as `_aimp_skill`. It's a filter on the shop pages (`aimp_skill`).
+
 ## Languages
 
 The plugin speaks **Dutch**, **French** and **English**, independent of the WordPress site language.

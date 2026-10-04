@@ -79,10 +79,12 @@
 	gap: 0.5rem 1rem;
 	max-width: calc(100vw - 2rem);
 	padding: 0.75rem 1.4rem;
-	border: 5px double #b38f4f;
-	border-radius: 100px;
+	border: 1px solid #b38f4f;
+	border-radius: 6px;
 	background: #fff;
-	color: #b38f4f;
+	color: #613907;
+	font-size: 15px;
+	font-weight: 600;
 	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
 	opacity: 0;
 	pointer-events: none;

@@ -331,3 +331,47 @@
 		transition: none;
 	}
 }
+
+/* ------------------------------------------------------------------
+ * All products page: overview of the shop sections (one row of five cards)
+ * ------------------------------------------------------------------ */
+.aimp-configurator.aimp-overview {
+	container-type: inline-size;
+	container-name: aimp;
+}
+
+.aimp-configurator .aimp-overview-grid {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-overview-card {
+	margin: 0;
+}
+
+.aimp-configurator .aimp-overview-card a.aimp-card {
+	height: 100%;
+	text-decoration: none;
+}
+
+.aimp-configurator .aimp-overview-card .aimp-card-name {
+	padding-bottom: 0.4rem;
+	color: var(--aimp-gold);
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+@container aimp (max-width: 900px) {
+	.aimp-configurator .aimp-overview-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@container aimp (max-width: 560px) {
+	.aimp-configurator .aimp-overview-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}

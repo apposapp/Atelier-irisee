@@ -23,7 +23,7 @@
 	UI.persistLang(lang);
 
 	function defaultFilters() {
-		return { category: 0, search: '', min: '', max: '', inStock: false, sort: 'recommended', attrs: {} };
+		return { category: 0, search: '', min: '', max: '', inStock: false, sort: 'recommended', attrs: {}, skills: [] };
 	}
 
 	function isDrawer() {
@@ -80,6 +80,7 @@
 		f.max = params.get('aimp_max') || '';
 		f.inStock = params.get('aimp_stock') === '1';
 		f.sort = params.get('aimp_sort') || 'recommended';
+		f.skills = (params.get('aimp_skill') || '').split(',').filter(Boolean);
 		this.state.page = parseInt(params.get('aimp_page') || '1', 10) || 1;
 		params.forEach(function (value, key) {
 			if (key.indexOf('aimp_pa_') === 0 && value) {
@@ -113,6 +114,9 @@
 		}
 		if (f.inStock) {
 			params.set('aimp_stock', '1');
+		}
+		if (f.skills.length) {
+			params.set('aimp_skill', f.skills.join(','));
 		}
 		if (f.sort !== 'recommended') {
 			params.set('aimp_sort', f.sort);
@@ -225,7 +229,7 @@
 
 	Shop.prototype.activeCount = function () {
 		var f = this.state.filters;
-		var count = (f.category ? 1 : 0) + (f.search ? 1 : 0) + (f.min !== '' || f.max !== '' ? 1 : 0) + (f.inStock ? 1 : 0);
+		var count = (f.category ? 1 : 0) + (f.search ? 1 : 0) + (f.min !== '' || f.max !== '' ? 1 : 0) + (f.inStock ? 1 : 0) + f.skills.length;
 		Object.keys(f.attrs).forEach(function (taxonomy) {
 			count += f.attrs[taxonomy].length;
 		});
@@ -310,6 +314,18 @@
 					'<li style="--aimp-depth:' + parseInt(cat.depth, 10) + '"><label class="aimp-filter-option">' +
 					'<input type="radio" name="' + id + '-cat" value="' + esc(cat.id) + '" data-role="category"' + (f.category === cat.id ? ' checked' : '') + '> ' +
 					'<span>' + esc(cat.name) + '</span></label></li>';
+			});
+			html += '</ul></details>';
+		}
+
+		// Skill level (patterns)
+		if (facets.skills && facets.skills.length) {
+			html += '<details class="aimp-filter-group" open><summary>' + esc(t.skillLevel) + '</summary><ul class="aimp-filter-options">';
+			facets.skills.forEach(function (level) {
+				html +=
+					'<li><label class="aimp-filter-option">' +
+					'<input type="checkbox" data-role="skill" value="' + esc(level.key) + '"' + (f.skills.indexOf(level.key) !== -1 ? ' checked' : '') + '> ' +
+					'<span>' + esc(level.label) + '</span></label></li>';
 			});
 			html += '</ul></details>';
 		}
@@ -442,6 +458,18 @@
 			});
 		});
 
+		el.querySelectorAll('[data-role="skill"]').forEach(function (input) {
+			input.addEventListener('change', function () {
+				f.skills = f.skills.filter(function (key) {
+					return key !== input.value;
+				});
+				if (input.checked) {
+					f.skills.push(input.value);
+				}
+				changed();
+			});
+		});
+
 		el.querySelector('[data-role="in-stock"]').addEventListener('change', function (e) {
 			f.inStock = e.target.checked;
 			changed();
@@ -474,6 +502,7 @@
 			min: f.min,
 			max: f.max,
 			in_stock: f.inStock ? 1 : 0,
+			skill: f.skills.join(','),
 			sort: f.sort
 		};
 		Object.keys(f.attrs).forEach(function (taxonomy) {

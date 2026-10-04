@@ -113,6 +113,38 @@
 			set(field.value);
 		});
 		set(field.value);
+
+		// Gift cards: the price is the chosen amount (+ printing fee), sent by giftcards.js.
+		if (bar.hasAttribute('data-giftcard')) {
+			root.addEventListener('aimp:gc-total', function (e) {
+				if (e.detail && e.detail.total > 0) {
+					unitPrice = e.detail.total;
+					showPrice(parseInt(field.value, 10) || min);
+				}
+			});
+			var gcForm = root.querySelector('[data-aimp-gc-form]');
+			if (gcForm) {
+				gcForm.dispatchEvent(new Event('change', { bubbles: true }));
+			}
+		}
+	}
+
+	// Gift cards: the main picture shows the chosen design.
+	function setupGiftcardDesign(root) {
+		var main = root.querySelector('.aimp-gallery-main img');
+		if (!main) {
+			return;
+		}
+		root.addEventListener('change', function (e) {
+			var input = e.target;
+			if (input && input.name === 'aimp_gc[design]' && input.checked && input.getAttribute('data-large')) {
+				main.src = input.getAttribute('data-large');
+			}
+		});
+		var checked = root.querySelector('input[name="aimp_gc[design]"]:checked');
+		if (checked && checked.getAttribute('data-large')) {
+			main.src = checked.getAttribute('data-large');
+		}
 	}
 
 	// The flags are links (?aimp_lang=…); remember the choice so the next pages follow.
@@ -132,6 +164,7 @@
 			root.aimpProductReady = true;
 			setupGallery(root);
 			setupBuyBar(root);
+			setupGiftcardDesign(root);
 			setupLanguages(root);
 		});
 	}

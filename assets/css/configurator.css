@@ -6,7 +6,7 @@
 	--aimp-accent-text: #fff;
 	--aimp-text: var(--aimp-gold);
 	--aimp-body-text: #613907;
-	--aimp-body-size: 17px;
+	--aimp-body-size: 15px;
 	--aimp-muted: var(--aimp-gold);
 	--aimp-border: var(--aimp-gold);
 	--aimp-radius: 6px;
@@ -47,7 +47,7 @@
 	color: var(--aimp-text);
 }
 
-/* Normal text (everything that is not a title, header or button): brown, 17px, semi-bold */
+/* Normal text (everything that is not a title, header or button): brown, 15px, semi-bold */
 .aimp-configurator p,
 .aimp-configurator li,
 .aimp-configurator dt,
@@ -582,7 +582,7 @@
 	display: block;
 	width: 100%;
 	height: 100%;
-	object-fit: contain;
+	object-fit: cover;
 }
 
 .aimp-gallery-thumbs {
@@ -922,7 +922,7 @@
  * so these rules win without !important.
  * ================================================================== */
 
-/* Normal text: brown, 17px, semi-bold */
+/* Normal text: brown, 15px, semi-bold */
 .aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(p, li, dd, td, label:not([class*="aimp-gc-"]), address, figcaption, .stock, .woocommerce-breadcrumb, .woocommerce-variation-description, .woocommerce-variation-availability, .aimp-description, .aimp-description *) {
 	color: var(--aimp-body-text);
 	font-size: var(--aimp-body-size);
@@ -1131,4 +1131,13 @@
 	color: #a3352b;
 	font-size: calc(var(--aimp-body-size) * 0.85);
 	font-weight: 600;
+}
+
+/* Product pictures fill their box everywhere (cards, gallery, thumbnails), also when the theme
+ * gives images "height: auto". The lightbox keeps the whole picture. */
+:is(.aimp-configurator, #aimp-specificity) :is(.aimp-card-image, .aimp-gallery-main, .aimp-thumb) img {
+	width: 100%;
+	max-width: none;
+	height: 100%;
+	object-fit: cover;
 }

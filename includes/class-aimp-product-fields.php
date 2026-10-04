@@ -204,6 +204,20 @@ class AIMP_Product_Fields {
 		$terms      = AIMP_Catalog::get_fabric_categories();
 		?>
 		<div id="aimp_pattern_data" class="panel woocommerce_options_panel hidden">
+			<div class="options_group">
+				<?php
+				woocommerce_wp_select(
+					array(
+						'id'          => AIMP_Catalog::META_SKILL,
+						'label'       => __( 'Skill level', 'atelier-irisee-master-plugin' ),
+						'options'     => array( '' => __( '— Not set —', 'atelier-irisee-master-plugin' ) ) + AIMP_Catalog::skill_levels(),
+						'value'       => $is_product ? (string) $product_object->get_meta( AIMP_Catalog::META_SKILL ) : '',
+						'description' => __( 'Shown on the pattern page and used as a filter on the patterns page.', 'atelier-irisee-master-plugin' ),
+						'desc_tip'    => true,
+					)
+				);
+				?>
+			</div>
 			<div class="options_group aimp-priority">
 				<h4><?php esc_html_e( 'Fabric categories shown first', 'atelier-irisee-master-plugin' ); ?></h4>
 				<p class="description"><?php esc_html_e( 'Choose which fabric categories customers see first when they pick a fabric for this pattern. The list shows the fabric categories ticked under "Fabric categories allowed" on the sizes of this pattern. Give them a position: 1 is shown first, then 2, and so on. Categories without a position come after them.', 'atelier-irisee-master-plugin' ); ?></p>
@@ -248,6 +262,14 @@ class AIMP_Product_Fields {
 	 */
 	public static function save_fabric_priority( $product ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
+		if ( isset( $_POST[ AIMP_Catalog::META_SKILL ] ) && current_user_can( 'edit_products' ) ) {
+			$skill = sanitize_key( wp_unslash( $_POST[ AIMP_Catalog::META_SKILL ] ) );
+			if ( array_key_exists( $skill, AIMP_Catalog::skill_levels() ) ) {
+				$product->update_meta_data( AIMP_Catalog::META_SKILL, $skill );
+			} else {
+				$product->delete_meta_data( AIMP_Catalog::META_SKILL );
+			}
+		}
 		if ( empty( $_POST['aimp_priority_present'] ) || ! current_user_can( 'edit_products' ) ) {
 			return;
 		}

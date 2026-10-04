@@ -201,6 +201,7 @@ class AIMP_Shop {
 			'sortPriceAsc'    => __( 'Price (low to high)', 'atelier-irisee-master-plugin' ),
 			'sortPriceDesc'   => __( 'Price (high to low)', 'atelier-irisee-master-plugin' ),
 			'sortNewest'      => __( 'Newest', 'atelier-irisee-master-plugin' ),
+			'skillLevel'      => __( 'Skill level', 'atelier-irisee-master-plugin' ),
 			'clearFilters'    => __( 'Clear all filters', 'atelier-irisee-master-plugin' ),
 			'loading'         => __( 'Loading…', 'atelier-irisee-master-plugin' ),
 			'error'           => __( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ),
@@ -256,10 +257,119 @@ class AIMP_Shop {
 	public static function render( $atts ) {
 		$atts = shortcode_atts( array( 'type' => 'all' ), $atts, self::TAG );
 		$type = in_array( $atts['type'], self::TYPES, true ) ? $atts['type'] : 'all';
+
+		// The All products page is an overview of the shop sections, unless a category link or
+		// filter brought the visitor here: then it lists the products.
+		if ( 'all' === $type && ! self::has_filters_in_url() ) {
+			$overview = self::overview_html();
+			if ( '' !== $overview ) {
+				return $overview;
+			}
+		}
+
 		self::enqueue();
 		return '<div class="aimp-configurator aimp-shop" data-aimp-shop data-type="' . esc_attr( $type ) . '"><noscript>' .
 			esc_html__( 'Please enable JavaScript to browse the products.', 'atelier-irisee-master-plugin' ) .
 			'</noscript></div>';
+	}
+
+	private static function has_filters_in_url() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only reads which filters are in the address.
+		foreach ( array_keys( $_GET ) as $key ) {
+			if ( 0 === strpos( (string) $key, 'aimp_' ) && 'aimp_lang' !== $key ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * The five sections of the overview: key => [ label, link, picture setting, category settings ].
+	 *
+	 * @return array
+	 */
+	public static function overview_sections() {
+		$giftcard     = class_exists( 'AIMP_Giftcards' ) ? absint( AIMP_Giftcards::opt( 'product_id' ) ) : 0;
+		$configurator = AIMP_Settings::get( 'configurator_page' );
+		return array(
+			'fabrics'      => array( __( 'Fabrics', 'atelier-irisee-master-plugin' ), self::page_for_type( 'fabrics' ), 'overview_img_fabrics', array( 'fabric_cat' ) ),
+			'patterns'     => array( __( 'Patterns', 'atelier-irisee-master-plugin' ), self::page_for_type( 'patterns' ), 'overview_img_patterns', array( 'pattern_cat' ) ),
+			'haberdashery' => array( __( 'Haberdashery', 'atelier-irisee-master-plugin' ), self::page_for_type( 'haberdashery' ), 'overview_img_haberdashery', array( 'button_cat', 'zip_cat', 'ribbon_cat', 'bias_cat' ) ),
+			'giftcards'    => array( __( 'Gift cards', 'atelier-irisee-master-plugin' ), ( $giftcard && 'publish' === get_post_status( $giftcard ) ) ? $giftcard : 0, 'overview_img_giftcards', array() ),
+			'configurator' => array( __( 'Configurator', 'atelier-irisee-master-plugin' ), ( $configurator && 'publish' === get_post_status( $configurator ) ) ? $configurator : 0, 'overview_img_configurator', array() ),
+		);
+	}
+
+	/**
+	 * Picture of an overview card: the one chosen in the settings, otherwise a product picture from that section.
+	 *
+	 * @param string $setting  Picture setting.
+	 * @param array  $cat_keys Category settings of the section.
+	 * @param int    $link_id  Page or product the card links to.
+	 * @return string
+	 */
+	private static function overview_image( $setting, $cat_keys, $link_id ) {
+		$image_id = AIMP_Settings::get( $setting );
+		if ( ! $image_id ) {
+			$cats = array();
+			foreach ( $cat_keys as $key ) {
+				$cats[] = AIMP_Settings::get( $key );
+			}
+			$cats = array_filter( $cats );
+			if ( $cats ) {
+				$query    = new WP_Query(
+					array(
+						'post_type'      => 'product',
+						'post_status'    => 'publish',
+						'posts_per_page' => 1,
+						'fields'         => 'ids',
+						'no_found_rows'  => true,
+						'orderby'        => array(
+							'menu_order' => 'ASC',
+							'date'       => 'DESC',
+						),
+						'tax_query'      => self::scope_tax_query( $cats ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+						'meta_query'     => array( array( 'key' => '_thumbnail_id' ) ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					)
+				);
+				$image_id = $query->posts ? (int) get_post_thumbnail_id( $query->posts[0] ) : 0;
+			} else {
+				$image_id = (int) get_post_thumbnail_id( $link_id );
+			}
+		}
+		$url = $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_single' ) : '';
+		return $url ? $url : wc_placeholder_img_src( 'woocommerce_single' );
+	}
+
+	/**
+	 * The overview: one row of cards that link to the shop sections.
+	 *
+	 * @return string Empty when no section has a page yet.
+	 */
+	public static function overview_html() {
+		$cards = '';
+		foreach ( self::overview_sections() as $key => $section ) {
+			list( $label, $link_id, $setting, $cat_keys ) = $section;
+			if ( ! $link_id ) {
+				continue;
+			}
+			$cards .= sprintf(
+				'<li class="aimp-overview-card"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
+				esc_url( get_permalink( $link_id ) ),
+				esc_url( self::overview_image( $setting, $cat_keys, $link_id ) ),
+				esc_html( $label )
+			);
+		}
+		if ( '' === $cards ) {
+			return '';
+		}
+		if ( ! wp_style_is( 'aimp-shop', 'registered' ) ) {
+			AIMP_Shortcode::register_assets();
+			self::register_assets();
+		}
+		wp_enqueue_style( 'aimp-shop' );
+		return '<div class="aimp-configurator aimp-shop aimp-overview"><div class="aimp-topbar">' . AIMP_Product_Page::languages_html() . '</div>' .
+			'<ul class="aimp-grid aimp-overview-grid">' . $cards . '</ul></div>';
 	}
 
 	/* ------------------------------------------------------------------
@@ -353,6 +463,7 @@ class AIMP_Shop {
 		$facets = array(
 			'categories' => self::category_facet( $type, $roots ),
 			'attributes' => self::attribute_facet( $ids ),
+			'skills'     => self::skill_facet( $ids ),
 			'price'      => self::price_range( $ids ),
 		);
 		set_transient( $key, $facets, 12 * HOUR_IN_SECONDS );
@@ -476,6 +587,33 @@ class AIMP_Shop {
 	}
 
 	/**
+	 * Skill levels used by these products (patterns), from easy to hard.
+	 *
+	 * @param int[] $ids Product IDs.
+	 * @return array[] [ key, label ]
+	 */
+	private static function skill_facet( $ids ) {
+		global $wpdb;
+		if ( ! $ids ) {
+			return array();
+		}
+		$in   = implode( ',', array_map( 'absint', $ids ) );
+		$used = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- cached in a transient by facets().
+			$wpdb->prepare( "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id IN ( {$in} )", AIMP_Catalog::META_SKILL ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- integers only.
+		);
+		$facet = array();
+		foreach ( AIMP_Catalog::skill_levels() as $key => $label ) {
+			if ( in_array( $key, (array) $used, true ) ) {
+				$facet[] = array(
+					'key'   => $key,
+					'label' => $label,
+				);
+			}
+		}
+		return $facet;
+	}
+
+	/**
 	 * Lowest and highest price of these products, rounded outwards to whole numbers.
 	 *
 	 * @param int[] $ids Product IDs.
@@ -554,6 +692,7 @@ class AIMP_Shop {
 			'sort'     => in_array( $sort, self::SORTS, true ) ? $sort : 'recommended',
 			'page'     => max( 1, absint( $text( 'page', 10 ) ) ),
 			'attrs'    => array(),
+			'skills'   => array_values( array_intersect( array_map( 'sanitize_key', explode( ',', $text( 'skill', 100 ) ) ), array_keys( AIMP_Catalog::skill_levels() ) ) ),
 		);
 
 		// Attribute filters arrive as attr_pa_colour=red,blue.
@@ -633,6 +772,13 @@ class AIMP_Shop {
 		}
 
 		$meta_query = array( 'relation' => 'AND' );
+		if ( $args['skills'] ) {
+			$meta_query[] = array(
+				'key'     => AIMP_Catalog::META_SKILL,
+				'value'   => $args['skills'],
+				'compare' => 'IN',
+			);
+		}
 		if ( $args['in_stock'] ) {
 			$meta_query[] = array(
 				'key'     => '_stock_status',

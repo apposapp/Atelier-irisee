@@ -103,6 +103,8 @@
 			if (out) {
 				out.textContent = money(total);
 			}
+			// The product page's price bar shows this total times the quantity.
+			form.dispatchEvent(new CustomEvent('aimp:gc-total', { bubbles: true, detail: { total: total } }));
 		}
 
 		form.addEventListener('change', update);

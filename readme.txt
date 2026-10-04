@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.9.0
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,17 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.0.0 =
+* New: Atelier Irisee header (switch in WooCommerce > Atelier Irisee > Site look). Logo on the left, gold favourites, cart and account icons on the right, and a "Menu" bar that opens a gold side menu with the menu "Atelier Irisee side menu". It replaces the theme header in block and classic themes; [atelier_irisee_header] places it anywhere.
+* New: Trajan Pro and 15px text on the whole site. The font files are uploaded in the settings and stay on your own site.
+* New: notices get a single gold border, brown text and a × button; success and info messages close by themselves after 4 seconds.
+* New: the All products page shows an overview of five cards (Fabrics, Patterns, Haberdashery, Gift cards, Configurator), with pictures chosen in the settings. Category links still show the product list.
+* New: skill level for patterns (Beginner, Average, Advanced, Expert), shown under the price bar and as a filter on the patterns page.
+* New: "Empty line" button in the text editor (Visual and Text tab).
+* Fabric pages: order information under the price bar; inspiration as three cards with a title and text; washing instructions as a 2×2 grid with gold icons; washing instructions and specifications as dropdowns.
+* Price bar: price on the left, quantity and button on the right. The gift card page gets the price bar too, and its picture follows the chosen design.
+* Product pictures fill their box everywhere.
 
 = 1.9.0 =
 * Product pages: a buy bar right under the title, with the amount and "Add to cart" on the left and the price on the right. The amount has simple gold arrows (‹ ›), in steps of 10 cm for fabric, ribbon and bias tape and steps of 1 for other products, and the price shows the total.

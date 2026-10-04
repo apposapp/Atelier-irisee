@@ -36,6 +36,18 @@ class AIMP_I18n {
 	public static function init() {
 		add_filter( 'gettext_' . self::DOMAIN, array( __CLASS__, 'translate' ), 10, 2 );
 		add_filter( 'ngettext_' . self::DOMAIN, array( __CLASS__, 'translate_plural' ), 10, 4 );
+		add_action( 'template_redirect', array( __CLASS__, 'remember_link_choice' ) );
+	}
+
+	/**
+	 * A language flag link (?aimp_lang=nl) also sets the cookie, so the next pages follow, even without JavaScript.
+	 */
+	public static function remember_link_choice() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only selects a display language.
+		$requested = isset( $_GET['aimp_lang'] ) ? sanitize_key( wp_unslash( $_GET['aimp_lang'] ) ) : '';
+		if ( self::is_valid( $requested ) && ! headers_sent() ) {
+			setcookie( self::COOKIE, $requested, time() + YEAR_IN_SECONDS, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), false );
+		}
 	}
 
 	/**

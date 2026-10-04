@@ -189,12 +189,24 @@ class AIMP_Product_Page {
 	 *
 	 * @param WC_Product $product Product.
 	 * @param bool       $per_10cm Sold per 10 cm.
-	 * @return array|null Null when the product uses WooCommerce's own form (gift cards, other product types).
+	 * @return array|null Null when the product uses WooCommerce's own form (other product types).
 	 */
 	public static function buy_data( $product, $per_10cm ) {
 		$is_giftcard = class_exists( 'AIMP_Giftcards_Product' ) && AIMP_Giftcards_Product::is_giftcard( $product );
 		if ( $is_giftcard ) {
-			return null;
+			// The price follows the chosen amount (giftcards.js tells product.js).
+			$available = $product->is_purchasable();
+			$max       = $available ? (int) $product->get_max_purchase_quantity() : 0;
+			return array(
+				'available'  => $available,
+				'pattern'    => false,
+				'giftcard'   => true,
+				'per_10cm'   => false,
+				'unit_price' => 0,
+				'min'        => 1,
+				'max'        => $max > 0 ? $max : 0,
+				'step'       => 1,
+			);
 		}
 		if ( $product->is_type( 'simple' ) ) {
 			$buyable = $product;
@@ -212,6 +224,7 @@ class AIMP_Product_Page {
 		return array(
 			'available'  => $available,
 			'pattern'    => ! $product->is_type( 'simple' ),
+			'giftcard'   => false,
 			'per_10cm'   => $per_10cm,
 			'unit_price' => $buyable ? (float) wc_get_price_to_display( $buyable ) : 0,
 			'min'        => $min * $factor,
@@ -475,6 +488,7 @@ class AIMP_Product_Page {
 		return array(
 			'per_10cm'         => $per_10cm,
 			'pattern'          => (bool) $pattern,
+			'skill'            => $pattern ? (string) $product->get_meta( AIMP_Catalog::META_SKILL ) : '',
 			'buy'              => self::buy_data( $product, $per_10cm ),
 			'fabric'           => $fabric ? AIMP_Catalog::fabric_texts( $product ) : null,
 			'gallery'          => $gallery,
@@ -598,6 +612,23 @@ class AIMP_Product_Page {
 			$suffix, // Escaped above.
 			AIMP_Favorites::button_html( $product->get_id(), 'aimp-fav--overlay' )
 		);
+	}
+
+	/**
+	 * Gold line icon for a washing subject: a wash tub, a tumble dryer, an iron or a light bulb (tips).
+	 *
+	 * @param string $subject washing, drying, ironing or tips.
+	 * @return string SVG.
+	 */
+	public static function washing_icon( $subject ) {
+		$paths = array(
+			'washing' => '<path d="M3 7l2.2 12.2a1 1 0 0 0 1 .8h11.6a1 1 0 0 0 1-.8L21 7"/><path d="M3.6 10.5c1.4 1 2.8 1 4.2 0s2.8-1 4.2 0 2.8 1 4.2 0 2.8-1 4.2 0"/>',
+			'drying'  => '<rect x="3.5" y="3.5" width="17" height="17" rx="2"/><circle cx="12" cy="12" r="5"/>',
+			'ironing' => '<path d="M3 17.5h18l-1.6-6.4a3 3 0 0 0-2.9-2.3H8.5"/><path d="M3 17.5c.6-4.3 3.7-6.9 8-6.9h8.6"/><path d="M9 14.5h.01M12 14.5h.01M15 14.5h.01"/>',
+			'tips'    => '<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/>',
+		);
+		$path  = isset( $paths[ $subject ] ) ? $paths[ $subject ] : $paths['tips'];
+		return '<svg class="aimp-washing-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';
 	}
 
 	/**

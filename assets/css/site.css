@@ -1,0 +1,90 @@
+/* Atelier Irisee: site-wide styles (every front-end page). */
+
+/* "Empty line" from the text editor */
+.aimp-space {
+	margin: 0;
+	line-height: 1.6;
+}
+
+/* ------------------------------------------------------------------
+ * WooCommerce notices: single gold line, brown text, × in the corner.
+ * WooCommerce, the blocks and themes style these with stronger selectors; #aimp-specificity never
+ * matches anything and only gives these rules the weight of an ID.
+ * ------------------------------------------------------------------ */
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box {
+	position: relative;
+	display: block;
+	margin: 0 0 1rem;
+	padding: 0.85rem 2.75rem 0.85rem 1.1rem;
+	border: 1px solid #b38f4f;
+	border-radius: 6px;
+	background: #fff;
+	box-shadow: none;
+	color: #613907;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.5;
+	list-style: none;
+	opacity: 1;
+	transition: opacity 0.4s ease;
+}
+
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, #aimp-specificity).aimp-notice-box::before,
+:is(.wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box > svg {
+	display: none;
+}
+
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box :is(li, p, div, span) {
+	color: #613907;
+	font-size: 15px;
+}
+
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box a:not(.aimp-notice-close) {
+	float: none;
+	margin: 0 0 0 0.75rem;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: #b38f4f;
+	font: inherit;
+	font-weight: 700;
+	text-decoration: underline;
+}
+
+:is(.aimp-notice-close, #aimp-specificity) {
+	position: absolute;
+	top: 0.35rem;
+	right: 0.5rem;
+	width: 2rem;
+	height: 2rem;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: #b38f4f;
+	font-size: 1.5rem;
+	font-weight: 400;
+	line-height: 1;
+	cursor: pointer;
+}
+
+:is(.aimp-notice-close, #aimp-specificity):hover {
+	background: none;
+	color: #613907;
+}
+
+:is(.aimp-notice-box, #aimp-specificity).aimp-notice-box.aimp-notice-fading {
+	opacity: 0;
+}
+
+:is(.aimp-notice-box, #aimp-specificity).aimp-notice-box.aimp-notice-hidden {
+	display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box {
+		transition: none;
+	}
+}

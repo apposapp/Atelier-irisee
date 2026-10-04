@@ -30,7 +30,7 @@ $aimp_date      = (bool) AIMP_Giftcards::opt( 'allow_send_date' );
 				<?php $aimp_first = true; ?>
 				<?php foreach ( $aimp_designs as $aimp_id => $aimp_design ) : ?>
 					<label class="aimp-gc-design">
-						<input type="radio" name="aimp_gc[design]" value="<?php echo esc_attr( $aimp_id ); ?>" <?php checked( $aimp_first ); ?> required>
+						<input type="radio" name="aimp_gc[design]" value="<?php echo esc_attr( $aimp_id ); ?>" data-large="<?php echo esc_url( AIMP_Giftcards::design_image( $aimp_id, 'woocommerce_single' ) ); ?>" <?php checked( $aimp_first ); ?> required>
 						<img src="<?php echo esc_url( AIMP_Giftcards::design_image( $aimp_id, 'woocommerce_thumbnail' ) ); ?>" alt="" loading="lazy">
 						<span><?php echo esc_html( $aimp_design['name'] ); ?></span>
 					</label>

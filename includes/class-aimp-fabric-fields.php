@@ -59,26 +59,47 @@ class AIMP_Fabric_Fields {
 			<input type="hidden" name="aimp_fabric_texts" value="1">
 			<p class="description"><?php esc_html_e( 'Only used for fabrics. Each text has its own place on the product page.', 'atelier-irisee-master-plugin' ); ?></p>
 
-			<div class="aimp-fabric-editors">
-				<div>
-					<h4><label for="aimp_inspiration"><?php esc_html_e( 'Inspiration', 'atelier-irisee-master-plugin' ); ?></label></h4>
-					<p class="description"><?php esc_html_e( 'Shown next to the picture, under the price.', 'atelier-irisee-master-plugin' ); ?></p>
-					<?php
-					wp_editor(
-						$get( AIMP_Catalog::META_INSPIRATION ),
-						'aimp_inspiration',
-						array(
-							'textarea_name' => 'aimp_fabric[inspiration]',
-							'textarea_rows' => 5,
-							'media_buttons' => false,
-							'teeny'         => true,
-						)
+			<h4><?php esc_html_e( 'Inspiration', 'atelier-irisee-master-plugin' ); ?></h4>
+			<p class="description"><?php esc_html_e( 'Up to three cards with a title and a text, shown side by side under the picture. Empty cards are not shown.', 'atelier-irisee-master-plugin' ); ?></p>
+			<div class="aimp-fabric-cards">
+				<?php
+				$cards = $product ? AIMP_Catalog::inspiration_cards( $product, true ) : array();
+				for ( $n = 1; $n <= AIMP_Catalog::INSPIRATION_CARDS; $n++ ) :
+					$card = isset( $cards[ $n - 1 ] ) ? $cards[ $n - 1 ] : array(
+						'title' => '',
+						'text'  => '',
 					);
 					?>
-				</div>
+					<div class="aimp-fabric-card">
+						<p>
+							<label for="<?php echo esc_attr( 'aimp_insp_' . $n . '_title' ); ?>">
+								<?php
+								/* translators: %d: card number */
+								echo esc_html( sprintf( __( 'Card %d: title', 'atelier-irisee-master-plugin' ), $n ) );
+								?>
+							</label>
+							<input type="text" id="<?php echo esc_attr( 'aimp_insp_' . $n . '_title' ); ?>" name="<?php echo esc_attr( 'aimp_fabric[insp_' . $n . '_title]' ); ?>" value="<?php echo esc_attr( $card['title'] ); ?>">
+						</p>
+						<?php
+						wp_editor(
+							$card['text'],
+							'aimp_insp_' . $n . '_text',
+							array(
+								'textarea_name' => 'aimp_fabric[insp_' . $n . '_text]',
+								'textarea_rows' => 4,
+								'media_buttons' => false,
+								'teeny'         => true,
+							)
+						);
+						?>
+					</div>
+				<?php endfor; ?>
+			</div>
+
+			<div class="aimp-fabric-editors">
 				<div>
 					<h4><label for="aimp_order_info"><?php esc_html_e( 'Order information', 'atelier-irisee-master-plugin' ); ?></label></h4>
-					<p class="description"><?php esc_html_e( 'Shown under the inspiration text.', 'atelier-irisee-master-plugin' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Shown under the price bar, next to the picture.', 'atelier-irisee-master-plugin' ); ?></p>
 					<?php
 					wp_editor(
 						$get( AIMP_Catalog::META_ORDER_INFO ),
@@ -136,7 +157,13 @@ class AIMP_Fabric_Fields {
 			}
 		};
 
-		$set( AIMP_Catalog::META_INSPIRATION, isset( $input['inspiration'] ) ? wp_kses_post( $input['inspiration'] ) : '' );
+		for ( $n = 1; $n <= AIMP_Catalog::INSPIRATION_CARDS; $n++ ) {
+			list( $title_key, $text_key ) = AIMP_Catalog::inspiration_keys( $n );
+			$set( $title_key, isset( $input[ 'insp_' . $n . '_title' ] ) ? sanitize_text_field( $input[ 'insp_' . $n . '_title' ] ) : '' );
+			$set( $text_key, isset( $input[ 'insp_' . $n . '_text' ] ) ? wp_kses_post( $input[ 'insp_' . $n . '_text' ] ) : '' );
+		}
+		// The single inspiration text from before the cards now lives in card 1.
+		$product->delete_meta_data( AIMP_Catalog::META_INSPIRATION );
 		$set( AIMP_Catalog::META_ORDER_INFO, isset( $input['order_info'] ) ? wp_kses_post( $input['order_info'] ) : '' );
 
 		foreach ( AIMP_Catalog::fabric_text_fields() as $fields ) {

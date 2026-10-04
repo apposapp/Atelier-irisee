@@ -96,7 +96,7 @@
 }
 
 /* ------------------------------------------------------------------
- * Buy bar: amount and button on the left, price on the right
+ * Buy bar: price on the left, amount and button on the right
  * ------------------------------------------------------------------ */
 .aimp-buy-bar {
 	display: flex;
@@ -120,7 +120,7 @@
 }
 
 .aimp-buy-price {
-	text-align: right;
+	text-align: left;
 }
 
 .aimp-configurator .aimp-buy-price p {
@@ -181,12 +181,8 @@
 
 @container aimp (max-width: 520px) {
 	.aimp-buy-bar {
-		flex-direction: column-reverse;
+		flex-direction: column;
 		align-items: flex-start;
-	}
-
-	.aimp-buy-price {
-		text-align: left;
 	}
 }
 
@@ -270,17 +266,183 @@
 }
 
 /* ------------------------------------------------------------------
- * Bullet lists: specifications and washing instructions
+ * Skill level (patterns), order information (fabrics)
  * ------------------------------------------------------------------ */
-.aimp-product-bullets {
-	margin: 1.25rem 0 0;
+.aimp-configurator .aimp-skill {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.4rem 0.6rem;
+	margin: 0 0 1rem;
 }
 
+.aimp-configurator .aimp-skill strong {
+	font-weight: 700;
+}
+
+.aimp-skill-dots {
+	display: inline-flex;
+	gap: 0.3rem;
+}
+
+.aimp-skill-dots span {
+	width: 0.65rem;
+	height: 0.65rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: 50%;
+}
+
+.aimp-skill-dots span.is-on {
+	background: var(--aimp-gold);
+}
+
+.aimp-product-order-info {
+	margin: 0 0 1rem;
+}
+
+.aimp-product-order-info > :first-child {
+	margin-top: 0;
+}
+
+.aimp-product-order-info > :last-child {
+	margin-bottom: 0;
+}
+
+/* Gift cards: the choices sit under the buy bar; the buy bar shows the total. */
+.aimp-product--giftcard .aimp-gc-total {
+	display: none;
+}
+
+.aimp-gc-buy {
+	margin: 0 0 1rem;
+}
+
+/* ------------------------------------------------------------------
+ * Inspiration cards (fabrics): one row of three across the full width
+ * ------------------------------------------------------------------ */
+.aimp-inspiration-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--aimp-gap);
+	margin: calc(var(--aimp-gap) * 2) 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-inspiration-card {
+	margin: 0;
+	padding: 1.25rem 1.4rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-inspiration-card .aimp-description > :first-child {
+	margin-top: 0;
+}
+
+.aimp-inspiration-card .aimp-description > :last-child {
+	margin-bottom: 0;
+}
+
+/* ------------------------------------------------------------------
+ * Dropdowns: washing instructions and specifications
+ * ------------------------------------------------------------------ */
 .aimp-configurator .aimp-product-subtitle {
 	margin: 0 0 0.5rem;
 }
 
-.aimp-product-bullets ul {
+.aimp-product-dropdowns {
+	display: grid;
+	gap: 0;
+	align-content: start;
+}
+
+.aimp-dropdown {
+	border-bottom: 1px solid var(--aimp-gold);
+}
+
+.aimp-dropdown:first-child {
+	border-top: 1px solid var(--aimp-gold);
+}
+
+.aimp-dropdown > summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.8rem 0;
+	list-style: none;
+	cursor: pointer;
+}
+
+.aimp-dropdown > summary::-webkit-details-marker {
+	display: none;
+}
+
+.aimp-configurator .aimp-dropdown > summary .aimp-product-subtitle {
+	margin: 0;
+}
+
+/* Simple gold arrow on the right: points down when closed, up when open. */
+.aimp-dropdown-arrow {
+	flex: 0 0 auto;
+	width: 0.6rem;
+	height: 0.6rem;
+	margin-right: 0.3rem;
+	border-right: 2px solid var(--aimp-gold);
+	border-bottom: 2px solid var(--aimp-gold);
+	transform: translateY(-25%) rotate(45deg);
+	transition: transform 0.2s ease;
+}
+
+.aimp-dropdown[open] .aimp-dropdown-arrow {
+	transform: translateY(25%) rotate(-135deg);
+}
+
+.aimp-dropdown-body {
+	padding: 0 0 1rem;
+}
+
+/* Washing: 2 × 2 tiles with a gold icon */
+.aimp-washing-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-washing-tile {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.75rem;
+	margin: 0;
+	padding: 0.8rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-radius);
+}
+
+.aimp-washing-icon {
+	flex: 0 0 auto;
+	width: 2rem;
+	height: 2rem;
+	color: var(--aimp-gold);
+}
+
+.aimp-washing-tile span {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.aimp-configurator .aimp-washing-tile strong {
+	color: var(--aimp-gold);
+	font-weight: 700;
+}
+
+/* Specifications: bullet points */
+.aimp-product-bullets {
 	margin: 0;
 	padding-left: 1.2rem;
 }
@@ -296,6 +458,18 @@
 .aimp-configurator .aimp-product-bullets strong {
 	color: inherit;
 	font-weight: 700;
+}
+
+@container aimp (max-width: 700px) {
+	.aimp-inspiration-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+@container aimp (max-width: 420px) {
+	.aimp-washing-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
 }
 
 /* ------------------------------------------------------------------
@@ -324,10 +498,6 @@
 
 .aimp-product-row.is-single {
 	grid-template-columns: minmax(0, 1fr);
-}
-
-.aimp-product-row .aimp-product-bullets {
-	margin-top: 0;
 }
 
 .aimp-configurator .shop_attributes {

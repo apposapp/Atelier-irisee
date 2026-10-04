@@ -1,0 +1,356 @@
+/* Atelier Irisee header: logo, gold icons, "Menu" bar and the gold side menu. */
+
+.aimp-header {
+	--aimp-gold: #b38f4f;
+	--aimp-brown: #613907;
+	position: sticky;
+	top: 0;
+	z-index: 1000;
+	background: #fff;
+	border-bottom: 1px solid var(--aimp-gold);
+	color: var(--aimp-gold);
+}
+
+.admin-bar .aimp-header {
+	top: var(--wp-admin--admin-bar--height, 32px);
+}
+
+.aimp-header *,
+.aimp-header *::before,
+.aimp-header *::after {
+	box-sizing: border-box;
+}
+
+.aimp-header-inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	max-width: var(--wp--style--global--wide-size, 1280px);
+	margin: 0 auto;
+	padding: 0.75rem 1.25rem;
+}
+
+/* Logo */
+.aimp-header-brand .custom-logo-link {
+	display: block;
+	line-height: 0;
+}
+
+.aimp-header-brand img,
+.aimp-header-brand .custom-logo {
+	display: block;
+	width: auto;
+	max-width: 240px;
+	height: auto;
+	max-height: 72px;
+}
+
+.aimp-header .aimp-header-sitename {
+	color: var(--aimp-gold);
+	font-size: 1.6rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-decoration: none;
+}
+
+/* Favourites, cart, account */
+.aimp-header-icons {
+	display: flex;
+	align-items: flex-start;
+	gap: 1.25rem;
+}
+
+.aimp-header .aimp-header-link {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.25rem;
+	color: var(--aimp-gold);
+	text-decoration: none;
+}
+
+.aimp-header .aimp-header-link:hover,
+.aimp-header .aimp-header-link:focus-visible {
+	color: var(--aimp-brown);
+}
+
+.aimp-header-icon-wrap {
+	position: relative;
+	display: inline-block;
+}
+
+.aimp-header-icon {
+	display: block;
+	width: 1.75rem;
+	height: 1.75rem;
+}
+
+.aimp-header .aimp-header-label {
+	color: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.aimp-header .aimp-header-count {
+	position: absolute;
+	top: -0.35rem;
+	right: -0.55rem;
+	min-width: 1.15rem;
+	height: 1.15rem;
+	padding: 0 0.25rem;
+	border-radius: 100px;
+	background: var(--aimp-gold);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.15rem;
+	text-align: center;
+}
+
+.aimp-header .aimp-header-count[hidden] {
+	display: none;
+}
+
+/* "☰ Menu" bar */
+.aimp-header-bar {
+	border-top: 1px solid rgba(179, 143, 79, 0.35);
+}
+
+.aimp-header-bar .aimp-header-inner {
+	padding-top: 0.35rem;
+	padding-bottom: 0.35rem;
+}
+
+.aimp-header .aimp-header-menu-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0.35rem 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--aimp-gold);
+	font: inherit;
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+
+.aimp-header .aimp-header-menu-toggle:hover,
+.aimp-header .aimp-header-menu-toggle:focus-visible {
+	background: none;
+	color: var(--aimp-brown);
+}
+
+.aimp-header-menu-toggle .aimp-header-icon {
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
+/* ------------------------------------------------------------------
+ * Side menu: gold, slightly see-through, slides in from the left; the page fades behind it.
+ * ------------------------------------------------------------------ */
+.aimp-side-menu-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	background: rgba(255, 255, 255, 0.45);
+	-webkit-backdrop-filter: blur(2px);
+	backdrop-filter: blur(2px);
+	opacity: 0;
+	transition: opacity 0.35s ease;
+}
+
+.aimp-side-menu-backdrop[hidden] {
+	display: none;
+}
+
+.aimp-header.is-menu-open .aimp-side-menu-backdrop {
+	opacity: 1;
+}
+
+.aimp-side-menu {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 100001;
+	display: flex;
+	flex-direction: column;
+	width: min(360px, 86vw);
+	padding: calc(1.25rem + env(safe-area-inset-top, 0px)) 1.5rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+	overflow-y: auto;
+	/* Gold that fades into the page on the right. */
+	background: linear-gradient(90deg, rgba(179, 143, 79, 0.94) 0%, rgba(179, 143, 79, 0.9) 75%, rgba(179, 143, 79, 0.75) 100%);
+	box-shadow: 18px 0 40px rgba(179, 143, 79, 0.25);
+	color: #fff;
+	opacity: 0;
+	transform: translateX(-100%);
+	transition: transform 0.35s ease, opacity 0.35s ease;
+	visibility: hidden;
+}
+
+.aimp-header.is-menu-open .aimp-side-menu {
+	opacity: 1;
+	transform: none;
+	visibility: visible;
+}
+
+.aimp-side-menu-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1.25rem;
+	padding-bottom: 0.75rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.aimp-header .aimp-side-menu-title {
+	color: #fff;
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.aimp-header .aimp-side-menu-close {
+	width: 2.5rem;
+	height: 2.5rem;
+	margin: 0;
+	padding: 0.4rem;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: #fff;
+	cursor: pointer;
+}
+
+.aimp-side-menu-close .aimp-header-icon {
+	width: 100%;
+	height: 100%;
+}
+
+.aimp-side-menu-list,
+.aimp-side-menu-list .sub-menu {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-side-menu-list .sub-menu {
+	padding-left: 1rem;
+}
+
+.aimp-side-menu-list .sub-menu[hidden] {
+	display: none;
+}
+
+.aimp-side-menu-list li {
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	margin: 0;
+}
+
+.aimp-side-menu-list li > .sub-menu {
+	flex-basis: 100%;
+}
+
+.aimp-header .aimp-side-menu-list a {
+	flex: 1 1 auto;
+	display: block;
+	padding: 0.6rem 0;
+	color: #fff;
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+
+.aimp-header .aimp-side-menu-list a:hover,
+.aimp-header .aimp-side-menu-list a:focus-visible,
+.aimp-header .aimp-side-menu-list .current-menu-item > a {
+	color: var(--aimp-brown);
+}
+
+.aimp-header .aimp-side-menu-sub-toggle {
+	width: 2.25rem;
+	height: 2.25rem;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	cursor: pointer;
+}
+
+.aimp-side-menu-sub-toggle::before {
+	content: "";
+	display: block;
+	width: 0.55rem;
+	height: 0.55rem;
+	margin: 0 auto;
+	border-right: 2px solid #fff;
+	border-bottom: 2px solid #fff;
+	transform: rotate(45deg);
+	transition: transform 0.2s ease;
+}
+
+.aimp-side-menu-sub-toggle[aria-expanded="true"]::before {
+	transform: rotate(-135deg);
+}
+
+.aimp-header .aimp-side-menu-empty {
+	color: #fff;
+	font-size: 14px;
+}
+
+html.aimp-menu-open {
+	overflow: hidden;
+}
+
+/* Classic themes: hide the theme's own header when ours is used. */
+body.aimp-replace-theme-header :is(#masthead, .site-header, header#header, #site-header, .main-header-bar-wrap, #ast-desktop-header, #ast-mobile-header, .elementor-location-header, header.wp-block-template-part):not(.aimp-header) {
+	display: none;
+}
+
+/* Phones */
+@media (max-width: 600px) {
+	.aimp-header-inner {
+		padding: 0.6rem 1rem;
+	}
+
+	.aimp-header-brand img,
+	.aimp-header-brand .custom-logo {
+		max-width: 150px;
+		max-height: 52px;
+	}
+
+	.aimp-header-icons {
+		gap: 0.9rem;
+	}
+
+	.aimp-header-icon {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	.aimp-header .aimp-header-label {
+		font-size: 10px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-side-menu,
+	.aimp-side-menu-backdrop {
+		transition: none;
+	}
+}
