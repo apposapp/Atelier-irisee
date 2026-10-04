@@ -127,7 +127,6 @@ class AIMP_Shortcode {
 			'pricePerPiece'   => __( 'Price per piece', 'atelier-irisee-master-plugin' ),
 			'youNeed'         => __( 'You need', 'atelier-irisee-master-plugin' ),
 			'totalForSize'    => __( 'Total for this size', 'atelier-irisee-master-plugin' ),
-			'stock'           => __( 'Stock', 'atelier-irisee-master-plugin' ),
 			'confirmFabric'   => __( 'Confirm fabric', 'atelier-irisee-master-plugin' ),
 			'chooseButtons'   => __( 'Choose your buttons (optional)', 'atelier-irisee-master-plugin' ),
 			'chooseZip'       => __( 'Choose your zip (optional)', 'atelier-irisee-master-plugin' ),

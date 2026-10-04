@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,14 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 1.9.0 =
+* Product pages: a buy bar right under the title, with the amount and "Add to cart" on the left and the price on the right. The amount has simple gold arrows (‹ ›), in steps of 10 cm for fabric, ribbon and bias tape and steps of 1 for other products, and the price shows the total.
+* Patterns are bought as one item with all sizes: no size choice, size chart or size pictures on the pattern page, and the cart and order show "Sizes: All sizes". The description and details sit next to the picture.
+* Gold titles for Inspiration and Order information. Slightly larger product picture.
+* Stock levels are no longer shown anywhere; sold-out items still show "Out of stock".
+* The language flags and the add-to-cart button keep the configurator look, whatever the theme does with buttons and links.
+* New settings: shop pages for all products, patterns, fabrics and haberdashery. Category links and the shop link open these pages with the category selected, and WooCommerce's category and shop pages redirect there.
 
 = 1.8.0 =
 * New: "Fabric texts" box on fabric products. Inspiration and order information are free texts. Specifications (composition, type, colour, width, weight) and washing instructions (washing, drying, ironing, optional tips) each have one field per subject.

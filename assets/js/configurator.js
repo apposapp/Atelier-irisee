@@ -415,7 +415,7 @@
 		UI.bindGallery(container, images, onChange);
 	};
 
-	// Details of a fabric, button or zip: gallery, description, attributes, prices and stock.
+	// Details of a fabric, button or zip: gallery, description, attributes and prices.
 	Configurator.prototype.materialDetailsHtml = function (item, imageIndex, unitLabel, needText) {
 		var html = '<div class="aimp-details">';
 		html += this.galleryHtml(item.gallery, imageIndex, item.id);
@@ -430,9 +430,6 @@
 		html += '<div><dt>' + esc(unitLabel) + '</dt><dd>' + item.price_html + '</dd></div>';
 		html += '<div><dt>' + esc(t.youNeed) + '</dt><dd>' + esc(needText) + '</dd></div>';
 		html += '<div><dt>' + esc(t.totalForSize) + '</dt><dd>' + item.total_html + '</dd></div>';
-		if (item.stock_text) {
-			html += '<div><dt>' + esc(t.stock) + '</dt><dd>' + esc(item.stock_text) + '</dd></div>';
-		}
 		html += '</dl></div>';
 		return html;
 	};

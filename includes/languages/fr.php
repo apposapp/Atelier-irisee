@@ -59,9 +59,6 @@ return array(
 
 	// Catalog.
 	'%1$d × %2$d cm (%3$s m)' => '%1$d × %2$d cm (%3$s m)',
-	'%1$d × 10 cm in stock (%2$s m)' => '%1$d × 10 cm en stock (%2$s m)',
-	'%d in stock' => '%d en stock',
-	'In stock' => 'En stock',
 
 	// Configurator.
 	'Language' => 'Langue',
@@ -98,7 +95,6 @@ return array(
 	'Price per piece' => 'Prix par pièce',
 	'You need' => 'Il vous faut',
 	'Total for this size' => 'Total pour cette taille',
-	'Stock' => 'Stock',
 	'Confirm fabric' => 'Confirmer le tissu',
 	'Choose your buttons (optional)' => 'Choisissez vos boutons (facultatif)',
 	'Choose your zip (optional)' => 'Choisissez votre fermeture éclair (facultatif)',
@@ -767,7 +763,6 @@ return array(
 	'%d review' => '%d avis',
 	'%d reviews' => '%d avis',
 	'Availability' => 'Disponibilité',
-	'Available on backorder' => 'Disponible sur commande',
 	'Category' => 'Catégorie',
 	'Choose the fabric and haberdashery that fit your size, all in one go.' => 'Choisissez en une fois le tissu et la mercerie adaptés à votre taille.',
 	'Clear all filters' => 'Effacer tous les filtres',
@@ -826,4 +821,22 @@ return array(
 	'e.g. medium heat, inside out' => 'p. ex. température moyenne, sur l\'envers',
 	'e.g. ochre yellow' => 'p. ex. jaune ocre',
 	'e.g. poplin' => 'p. ex. popeline',
+
+	// Buy bar, patterns with all sizes, shop pages for categories.
+	'%s per piece' => '%s la pièce',
+	'All products page' => 'Page de tous les produits',
+	'All sizes' => 'Toutes les tailles',
+	'Category links' => 'Liens des catégories',
+	'Choose the pages with the shop shortcode. Category links on the site then open these pages with that category already selected, instead of the standard WooCommerce category pages.' => 'Choisissez les pages avec le shortcode boutique. Les liens des catégories du site ouvrent alors ces pages avec cette catégorie déjà sélectionnée, au lieu des pages de catégorie WooCommerce standard.',
+	'Dimensions' => 'Dimensions',
+	'Fabrics page' => 'Page des tissus',
+	'Haberdashery page' => 'Page de la mercerie',
+	'Less' => 'Moins',
+	'More' => 'Plus',
+	'Patterns page' => 'Page des patrons',
+	'Patterns, fabrics and haberdashery categories go to their own page; other categories and the shop page go to the All products page. A category whose page is not set keeps the WooCommerce page.' => 'Les catégories de patrons, de tissus et de mercerie vont vers leur propre page ; les autres catégories et la page boutique vont vers la page de tous les produits. Une catégorie sans page choisie garde la page WooCommerce.',
+	'Send WooCommerce\'s shop and category pages to these pages' => 'Rediriger la boutique et les pages de catégorie WooCommerce vers ces pages',
+	'Shop pages' => 'Pages boutique',
+	'Sizes' => 'Tailles',
+	'Weight' => 'Poids',
 );

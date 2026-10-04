@@ -130,6 +130,10 @@ Put `[atelier_irisee_account]` on a page, for example "My account". Logged-out v
 - **Address bar:** the filters are kept as `aimp_*` parameters, so a filtered page can be shared.
 - **Products per page:** a setting in WooCommerce → Atelier Irisee.
 - **Speed:** the filter options are cached and refreshed automatically when a product or category is saved.
+- **Category routing:** in WooCommerce → Atelier Irisee → Shop pages, choose the All products, Patterns, Fabrics and Haberdashery pages.
+  - Product category links (`term_link`) then point to the right page with `?aimp_cat=ID`.
+  - The shop link points to the All products page.
+  - `/product-category/…` and the shop page redirect there, unless the "Category links" setting is switched off.
 
 ## Product pages
 
@@ -149,7 +153,9 @@ The **Complete it in the configurator** button on patterns uses the **Configurat
 
 Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_info`, `_aimp_spec_*`, `_aimp_wash_*`, see `AIMP_Catalog::fabric_text_fields()`).
 
-Products sold per 10 cm get a cm field (steps of 10) that sets WooCommerce's quantity in 10 cm units, and the price shows the total for the chosen length.
+**Buy bar:** simple products and patterns get the plugin's own buy bar (amount with ‹ › arrows, add to cart, live total price). Gift cards and other product types keep WooCommerce's form.
+- **Products sold per 10 cm:** the amount is sent in cm as `aimp_length_cm` and turned into units of 10 cm before WooCommerce adds it to the cart.
+- **Patterns:** they post `aimp_add_pattern`. The first available size is added with the cart item flag `aimp_all_sizes`, and the cart and order show "Sizes: All sizes" instead of the size.
 
 **Styling:** the product and shop pages share one style block at the end of `configurator.css`, so WooCommerce and theme styles can't change them.
 

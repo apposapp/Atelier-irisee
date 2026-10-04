@@ -1,6 +1,6 @@
 /**
- * Atelier Irisee product pages: gallery with lightbox, size pictures, the length field in cm
- * (with the price for the chosen length) and remembering the chosen language.
+ * Atelier Irisee product pages: gallery with lightbox, size pictures, the buy bar (amount with arrows
+ * and the price for that amount) and remembering the chosen language.
  */
 (function () {
 	'use strict';
@@ -54,77 +54,65 @@
 	}
 
 	/**
-	 * Fabric, ribbon and bias tape are sold per 10 cm. The cart counts units of 10 cm, so WooCommerce's
-	 * quantity field stays (hidden) and a field in cm, stepping by 10, sets it. The price shows the
-	 * total for the chosen length. Without JavaScript the normal quantity field is used.
+	 * Buy bar: gold ‹ › arrows around the amount, and the price for the chosen amount.
+	 * Fabric, ribbon and bias tape are chosen in cm (steps of 10); the server turns cm into units of 10 cm.
 	 */
-	function setupLength(root) {
-		var buy = root.querySelector('[data-aimp-per-10cm]');
-		var qty = buy ? buy.querySelector('form.cart input.qty') : null;
-		if (!qty || qty.type === 'hidden') {
+	function setupBuyBar(root) {
+		var bar = root.querySelector('[data-aimp-buy]');
+		var field = bar ? bar.querySelector('.aimp-stepper-input') : null;
+		if (!field) {
 			return;
 		}
-		var quantity = qty.closest('.quantity') || qty;
-		var unitPrice = parseFloat(buy.getAttribute('data-unit-price')) || 0;
-		var minUnits = Math.max(1, parseInt(qty.getAttribute('min'), 10) || 1);
-		var maxUnits = parseInt(qty.getAttribute('max'), 10) || 0;
-		var stepUnits = Math.max(1, parseInt(qty.getAttribute('step'), 10) || 1);
+		var per10cm = bar.getAttribute('data-per-10cm') === '1';
+		var unitPrice = parseFloat(bar.getAttribute('data-unit-price')) || 0;
+		var step = parseInt(field.getAttribute('step'), 10) || 1;
+		var min = parseInt(field.getAttribute('min'), 10) || step;
+		var max = parseInt(field.getAttribute('max'), 10) || 0;
+		var price = bar.querySelector('[data-aimp-price]');
+		var unitLine = bar.querySelector('[data-aimp-unit-line]');
 
-		var wrap = document.createElement('div');
-		wrap.className = 'aimp-length';
-		wrap.innerHTML =
-			'<input type="number" class="aimp-length-input" inputmode="numeric"' +
-			' min="' + minUnits * 10 + '" step="' + stepUnits * 10 + '"' + (maxUnits > 0 ? ' max="' + maxUnits * 10 + '"' : '') +
-			' aria-label="' + UI.esc(t.length) + '">' +
-			'<span class="aimp-length-unit" aria-hidden="true">' + UI.esc(t.cm) + '</span>';
-		quantity.parentNode.insertBefore(wrap, quantity);
-		quantity.hidden = true;
-
-		var field = wrap.querySelector('input');
-		var price = root.querySelector('[data-aimp-price]');
-		var unitLine = root.querySelector('[data-aimp-unit-line]');
-
-		var units = function (cm) {
-			var n = Math.ceil((parseFloat(cm) || 0) / 10);
-			n = Math.max(minUnits, Math.ceil(n / stepUnits) * stepUnits);
-			return maxUnits > 0 ? Math.min(maxUnits, n) : n;
+		// Round up to a whole step and keep it within min and max (a typed 25 cm becomes 30 cm).
+		var clean = function (value) {
+			var n = Math.ceil((parseFloat(value) || 0) / step) * step;
+			n = Math.max(min, n);
+			return max ? Math.min(max, n) : n;
 		};
-		var showPrice = function (n) {
+		var showPrice = function (amount) {
 			if (!unitPrice) {
 				return;
 			}
+			var units = per10cm ? amount / 10 : amount;
 			if (price) {
-				price.innerHTML = '<span class="woocommerce-Price-amount amount">' + UI.esc(UI.money(unitPrice * n, cfg.currency)) + '</span>';
+				price.innerHTML = '<span class="woocommerce-Price-amount amount">' + UI.esc(UI.money(unitPrice * units, cfg.currency)) + '</span>';
 			}
 			if (unitLine) {
-				unitLine.textContent = UI.money(unitPrice, cfg.currency) + ' ' + t.per10cm;
+				if (per10cm) {
+					unitLine.textContent = UI.money(unitPrice, cfg.currency) + ' ' + t.per10cm;
+				} else {
+					unitLine.textContent = UI.fmt(t.perPiece, UI.money(unitPrice, cfg.currency));
+					unitLine.hidden = units < 2;
+				}
 			}
 		};
-		var apply = function (normalize) {
-			var n = units(field.value);
-			if (String(qty.value) !== String(n)) {
-				qty.value = n;
-				qty.dispatchEvent(new Event('change', { bubbles: true }));
-			}
-			if (normalize) {
-				field.value = n * 10;
-			}
-			showPrice(n);
+		var set = function (value) {
+			field.value = clean(value);
+			showPrice(parseInt(field.value, 10));
 		};
 
-		field.value = units((parseInt(qty.value, 10) || minUnits) * 10) * 10;
+		bar.querySelectorAll('.aimp-stepper-btn').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				set((parseInt(field.value, 10) || min) + step * parseInt(btn.getAttribute('data-dir'), 10));
+			});
+		});
 		field.addEventListener('input', function () {
 			if (field.value !== '') {
-				apply(false);
+				showPrice(clean(field.value));
 			}
 		});
 		field.addEventListener('change', function () {
-			apply(true);
+			set(field.value);
 		});
-		field.addEventListener('blur', function () {
-			apply(true);
-		});
-		apply(true);
+		set(field.value);
 	}
 
 	// The flags are links (?aimp_lang=…); remember the choice so the next pages follow.
@@ -143,7 +131,7 @@
 			}
 			root.aimpProductReady = true;
 			setupGallery(root);
-			setupLength(root);
+			setupBuyBar(root);
 			setupLanguages(root);
 		});
 	}

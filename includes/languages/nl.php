@@ -59,9 +59,6 @@ return array(
 
 	// Catalog.
 	'%1$d × %2$d cm (%3$s m)' => '%1$d × %2$d cm (%3$s m)',
-	'%1$d × 10 cm in stock (%2$s m)' => '%1$d × 10 cm op voorraad (%2$s m)',
-	'%d in stock' => '%d op voorraad',
-	'In stock' => 'Op voorraad',
 
 	// Configurator.
 	'Language' => 'Taal',
@@ -98,7 +95,6 @@ return array(
 	'Price per piece' => 'Prijs per stuk',
 	'You need' => 'Je hebt nodig',
 	'Total for this size' => 'Totaal voor deze maat',
-	'Stock' => 'Voorraad',
 	'Confirm fabric' => 'Stof bevestigen',
 	'Choose your buttons (optional)' => 'Kies je knopen (optioneel)',
 	'Choose your zip (optional)' => 'Kies je rits (optioneel)',
@@ -767,7 +763,6 @@ return array(
 	'%d review' => '%d beoordeling',
 	'%d reviews' => '%d beoordelingen',
 	'Availability' => 'Beschikbaarheid',
-	'Available on backorder' => 'Beschikbaar in nabestelling',
 	'Category' => 'Categorie',
 	'Choose the fabric and haberdashery that fit your size, all in one go.' => 'Kies in één keer de stof en fournituren die bij je maat passen.',
 	'Clear all filters' => 'Alle filters wissen',
@@ -826,4 +821,22 @@ return array(
 	'e.g. medium heat, inside out' => 'bv. middelmatige temperatuur, binnenstebuiten',
 	'e.g. ochre yellow' => 'bv. okergeel',
 	'e.g. poplin' => 'bv. popeline',
+
+	// Buy bar, patterns with all sizes, shop pages for categories.
+	'%s per piece' => '%s per stuk',
+	'All products page' => 'Pagina met alle producten',
+	'All sizes' => 'Alle maten',
+	'Category links' => 'Categorielinks',
+	'Choose the pages with the shop shortcode. Category links on the site then open these pages with that category already selected, instead of the standard WooCommerce category pages.' => 'Kies de pagina\'s met de winkel-shortcode. Categorielinks op de site openen dan deze pagina\'s met die categorie al gekozen, in plaats van de standaard WooCommerce-categoriepagina\'s.',
+	'Dimensions' => 'Afmetingen',
+	'Fabrics page' => 'Stoffenpagina',
+	'Haberdashery page' => 'Fournituren-pagina',
+	'Less' => 'Minder',
+	'More' => 'Meer',
+	'Patterns page' => 'Patronenpagina',
+	'Patterns, fabrics and haberdashery categories go to their own page; other categories and the shop page go to the All products page. A category whose page is not set keeps the WooCommerce page.' => 'Categorieën van patronen, stoffen en fournituren gaan naar hun eigen pagina; andere categorieën en de winkelpagina gaan naar de pagina met alle producten. Een categorie zonder ingestelde pagina houdt de WooCommerce-pagina.',
+	'Send WooCommerce\'s shop and category pages to these pages' => 'Stuur de winkel- en categoriepagina\'s van WooCommerce door naar deze pagina\'s',
+	'Shop pages' => 'Winkelpagina\'s',
+	'Sizes' => 'Maten',
+	'Weight' => 'Gewicht',
 );

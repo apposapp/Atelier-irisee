@@ -39,6 +39,106 @@ class AIMP_Shop {
 		foreach ( array( 'created_term', 'edited_term', 'delete_term' ) as $hook ) {
 			add_action( $hook, array( __CLASS__, 'flush_term_cache' ), 10, 3 );
 		}
+
+		// Category and shop links lead to the shop pages chosen in the settings.
+		add_filter( 'term_link', array( __CLASS__, 'term_link' ), 20, 3 );
+		add_filter( 'woocommerce_get_shop_page_permalink', array( __CLASS__, 'shop_link' ), 20 );
+		add_action( 'template_redirect', array( __CLASS__, 'redirect_archives' ) );
+	}
+
+	/* ------------------------------------------------------------------
+	 * Category links → shop pages
+	 * ------------------------------------------------------------------ */
+
+	private static function routing_enabled() {
+		return ! is_admin() && (bool) AIMP_Settings::get( 'category_redirect' );
+	}
+
+	/**
+	 * The published page chosen for a page type, or 0.
+	 *
+	 * @param string $type all, patterns, fabrics or haberdashery.
+	 * @return int
+	 */
+	public static function page_for_type( $type ) {
+		$id = AIMP_Settings::get( 'page_' . $type );
+		return ( $id && 'publish' === get_post_status( $id ) ) ? $id : 0;
+	}
+
+	/**
+	 * Shop page address for a product category, with that category selected; '' when no page is set.
+	 *
+	 * @param WP_Term|int $term Product category.
+	 * @return string
+	 */
+	public static function category_url( $term ) {
+		$term_id = (int) ( $term instanceof WP_Term ? $term->term_id : $term );
+		foreach ( array( 'patterns', 'fabrics', 'haberdashery' ) as $type ) {
+			foreach ( self::roots( $type ) as $root ) {
+				if ( ! in_array( $term_id, AIMP_Catalog::category_tree( $root ), true ) ) {
+					continue;
+				}
+				$page = self::page_for_type( $type );
+				if ( ! $page ) {
+					return '';
+				}
+				// The Patterns or Fabrics category itself is the whole page; on the haberdashery page
+				// Buttons, Zips, Ribbons and Bias tape are filters of their own.
+				return ( $term_id === $root && 'haberdashery' !== $type )
+					? get_permalink( $page )
+					: add_query_arg( 'aimp_cat', $term_id, get_permalink( $page ) );
+			}
+		}
+		$page = self::page_for_type( 'all' );
+		return $page ? add_query_arg( 'aimp_cat', $term_id, get_permalink( $page ) ) : '';
+	}
+
+	/**
+	 * @param string  $url      Term link.
+	 * @param WP_Term $term     Term.
+	 * @param string  $taxonomy Taxonomy.
+	 * @return string
+	 */
+	public static function term_link( $url, $term, $taxonomy ) {
+		if ( 'product_cat' !== $taxonomy || ! self::routing_enabled() ) {
+			return $url;
+		}
+		$page_url = self::category_url( $term );
+		return '' !== $page_url ? $page_url : $url;
+	}
+
+	/**
+	 * WooCommerce's shop link (breadcrumb "Shop", "Return to shop") → the All products page.
+	 *
+	 * @param string $url Shop page link.
+	 * @return string
+	 */
+	public static function shop_link( $url ) {
+		if ( ! self::routing_enabled() ) {
+			return $url;
+		}
+		$page = self::page_for_type( 'all' );
+		return ( $page && $page !== (int) wc_get_page_id( 'shop' ) ) ? get_permalink( $page ) : $url;
+	}
+
+	/**
+	 * Old bookmarks and menu links to WooCommerce's category and shop pages.
+	 */
+	public static function redirect_archives() {
+		if ( ! self::routing_enabled() || is_search() ) {
+			return;
+		}
+		$url = '';
+		if ( is_product_category() ) {
+			$url = self::category_url( get_queried_object() );
+		} elseif ( is_shop() ) {
+			$page = self::page_for_type( 'all' );
+			$url  = ( $page && $page !== (int) wc_get_page_id( 'shop' ) ) ? get_permalink( $page ) : '';
+		}
+		if ( $url ) {
+			wp_safe_redirect( $url, 302 );
+			exit;
+		}
 	}
 
 	/* ------------------------------------------------------------------
@@ -115,7 +215,6 @@ class AIMP_Shop {
 			'noMatch'         => __( 'No products match your filters.', 'atelier-irisee-master-plugin' ),
 			'selectHint'      => __( 'Select a product to see its pictures and details.', 'atelier-irisee-master-plugin' ),
 			'viewProduct'     => __( 'View product', 'atelier-irisee-master-plugin' ),
-			'stock'           => __( 'Stock', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -418,7 +517,6 @@ class AIMP_Shop {
 		$item['badge']             = $product->is_in_stock() ? '' : __( 'Out of stock', 'atelier-irisee-master-plugin' );
 		$item['short_description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
 		$item['gallery']           = AIMP_Catalog::images( $product );
-		$item['stock_text']        = AIMP_Catalog::stock_text( $product, $per_10cm );
 		$item['in_stock']          = $product->is_in_stock();
 		$item['category']          = '';
 		$cats                      = wc_get_product_terms( $product->get_id(), 'product_cat', array( 'fields' => 'names' ) );

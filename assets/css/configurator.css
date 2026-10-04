@@ -1070,3 +1070,65 @@
 	border-color: var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 }
+
+/* Our own buttons on product and shop pages keep the configurator look, whatever the theme does with
+ * buttons and links: the add-to-cart button and the language flags. */
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.aimp-add-to-cart, .aimp-language) {
+	border: 5px double var(--aimp-gold);
+	border-radius: 100px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--aimp-gold);
+	font: inherit;
+	font-weight: 700;
+	text-decoration: none;
+	text-indent: 0;
+	text-shadow: none;
+	opacity: 1;
+	visibility: visible;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-add-to-cart {
+	padding: 0.7rem 1.6rem;
+	font-size: var(--aimp-body-size);
+	line-height: 1.2;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-language {
+	padding: 0.35rem 0.9rem;
+	font-size: 0.9em;
+	font-weight: 600;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.aimp-add-to-cart, .aimp-language):is(:hover, :focus-visible):not(:disabled) {
+	background: var(--aimp-gold-tint);
+	color: var(--aimp-gold);
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-language.is-active,
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-language.is-active:hover {
+	background: var(--aimp-gold);
+	color: #fff;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-language span {
+	color: inherit;
+	font-size: inherit;
+}
+
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-add-to-cart:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* "Out of stock" next to the price and in the shop details */
+.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-sold-out {
+	display: inline-block;
+	margin: 0.35rem 0 0;
+	padding: 0.1rem 0.7rem;
+	border: 1px solid #a3352b;
+	border-radius: 100px;
+	color: #a3352b;
+	font-size: calc(var(--aimp-body-size) * 0.85);
+	font-weight: 600;
+}

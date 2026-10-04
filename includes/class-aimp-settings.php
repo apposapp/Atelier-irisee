@@ -58,6 +58,11 @@ class AIMP_Settings {
 			'shop_per_page'     => 12,
 			'configurator_page' => 0,
 			'product_design'    => 1,
+			'page_all'          => 0,
+			'page_patterns'     => 0,
+			'page_fabrics'      => 0,
+			'page_haberdashery' => 0,
+			'category_redirect' => 1,
 		);
 		$options = wp_parse_args( (array) get_option( self::OPTION, array() ), $defaults );
 		return isset( $options[ $key ] ) ? absint( $options[ $key ] ) : 0;
@@ -168,6 +173,75 @@ class AIMP_Settings {
 				)
 			);
 		}
+
+		add_settings_section(
+			'aimp_shop_pages',
+			__( 'Shop pages', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'shop_pages_intro' ),
+			self::PAGE
+		);
+
+		foreach ( self::shop_page_fields() as $key => $label ) {
+			add_settings_field(
+				'aimp_' . $key,
+				$label,
+				array( __CLASS__, 'render_shop_page_field' ),
+				self::PAGE,
+				'aimp_shop_pages',
+				array(
+					'key'       => $key,
+					'label_for' => 'aimp_' . $key,
+				)
+			);
+		}
+
+		add_settings_field(
+			'aimp_category_redirect',
+			__( 'Category links', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_category_redirect_field' ),
+			self::PAGE,
+			'aimp_shop_pages'
+		);
+	}
+
+	/**
+	 * Pages with [atelier_irisee_shop]: key => label.
+	 *
+	 * @return array
+	 */
+	public static function shop_page_fields() {
+		return array(
+			'page_all'          => __( 'All products page', 'atelier-irisee-master-plugin' ),
+			'page_patterns'     => __( 'Patterns page', 'atelier-irisee-master-plugin' ),
+			'page_fabrics'      => __( 'Fabrics page', 'atelier-irisee-master-plugin' ),
+			'page_haberdashery' => __( 'Haberdashery page', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	public static function shop_pages_intro() {
+		echo '<p>' . esc_html__( 'Choose the pages with the shop shortcode. Category links on the site then open these pages with that category already selected, instead of the standard WooCommerce category pages.', 'atelier-irisee-master-plugin' ) . '</p>';
+	}
+
+	public static function render_shop_page_field( $args ) {
+		wp_dropdown_pages(
+			array(
+				'name'              => self::OPTION . '[' . $args['key'] . ']',
+				'id'                => 'aimp_' . $args['key'],
+				'selected'          => self::get( $args['key'] ),
+				'show_option_none'  => __( '— Select —', 'atelier-irisee-master-plugin' ),
+				'option_none_value' => 0,
+			)
+		);
+	}
+
+	public static function render_category_redirect_field() {
+		printf(
+			'<label><input type="checkbox" name="%1$s[category_redirect]" value="1" %2$s> %3$s</label><p class="description">%4$s</p>',
+			esc_attr( self::OPTION ),
+			checked( 1, self::get( 'category_redirect' ), false ),
+			esc_html__( 'Send WooCommerce\'s shop and category pages to these pages', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Patterns, fabrics and haberdashery categories go to their own page; other categories and the shop page go to the All products page. A category whose page is not set keeps the WooCommerce page.', 'atelier-irisee-master-plugin' )
+		);
 	}
 
 	/**
@@ -210,6 +284,10 @@ class AIMP_Settings {
 		$sanitized['account_delete'] = empty( $input['account_delete'] ) ? 0 : 1;
 		$sanitized['configurator_page'] = isset( $input['configurator_page'] ) ? absint( $input['configurator_page'] ) : 0;
 		$sanitized['product_design']    = empty( $input['product_design'] ) ? 0 : 1;
+		foreach ( array_keys( self::shop_page_fields() ) as $key ) {
+			$sanitized[ $key ] = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : 0;
+		}
+		$sanitized['category_redirect'] = empty( $input['category_redirect'] ) ? 0 : 1;
 
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;

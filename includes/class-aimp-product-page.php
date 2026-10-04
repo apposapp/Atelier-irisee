@@ -29,10 +29,195 @@ class AIMP_Product_Page {
 		add_filter( 'wc_get_template_part', array( __CLASS__, 'template_part' ), 20, 3 );
 		add_filter( 'get_block_templates', array( __CLASS__, 'block_templates' ), 20, 3 );
 		add_filter( 'get_block_template', array( __CLASS__, 'block_template' ), 20, 3 );
+
+		// Buy bar: length in cm, and patterns bought as one item with all sizes.
+		add_action( 'wp_loaded', array( __CLASS__, 'length_to_quantity' ), 19 );
+		add_action( 'wp_loaded', array( __CLASS__, 'add_pattern_to_cart' ), 20 );
+		add_filter( 'woocommerce_get_item_data', array( __CLASS__, 'all_sizes_item_data' ), 5, 2 );
+		add_filter( 'woocommerce_cart_item_name', array( __CLASS__, 'all_sizes_item_name' ), 10, 2 );
+		add_action( 'woocommerce_checkout_create_order_line_item', array( __CLASS__, 'all_sizes_order_item' ), 10, 3 );
+
+		// Customers don't see stock levels; only "Out of stock" stays.
+		add_filter( 'woocommerce_get_stock_html', array( __CLASS__, 'stock_html' ), 20, 2 );
 	}
 
 	public static function enabled() {
 		return (bool) AIMP_Settings::get( 'product_design' );
+	}
+
+	/* ------------------------------------------------------------------
+	 * Buy bar
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * @param string     $html    Stock HTML.
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	public static function stock_html( $html, $product ) {
+		return ( $product instanceof WC_Product && ! $product->is_in_stock() ) ? $html : '';
+	}
+
+	/**
+	 * The length field in cm is sent as aimp_length_cm; WooCommerce counts units of 10 cm.
+	 * Runs just before WooCommerce handles add-to-cart, so it also works without JavaScript.
+	 */
+	public static function length_to_quantity() {
+		// phpcs:disable WordPress.Security.NonceVerification -- WooCommerce's add-to-cart form has no nonce either; this only converts the amount.
+		if ( ! isset( $_REQUEST['aimp_length_cm'] ) ) {
+			return;
+		}
+		$units = max( 1, (int) ceil( (float) wc_clean( wp_unslash( $_REQUEST['aimp_length_cm'] ) ) / AIMP_Catalog::FABRIC_UNIT_CM ) );
+		// phpcs:enable
+		$_REQUEST['quantity'] = $units;
+		$_POST['quantity']    = $units;
+	}
+
+	/**
+	 * The size a pattern is added with when it is bought as one item with all sizes: the first size that can be bought.
+	 *
+	 * @param WC_Product $pattern Pattern product.
+	 * @return WC_Product_Variation|null
+	 */
+	public static function pattern_variation( $pattern ) {
+		foreach ( $pattern->get_children() as $child_id ) {
+			$variation = wc_get_product( $child_id );
+			if ( $variation && $variation->is_type( 'variation' ) && 'publish' === $variation->get_status() && $variation->is_purchasable() && $variation->is_in_stock() ) {
+				return $variation;
+			}
+		}
+		return null;
+	}
+
+	public static function add_pattern_to_cart() {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified below.
+		if ( empty( $_POST['aimp_add_pattern'] ) || ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return;
+		}
+		$nonce = isset( $_POST['aimp_pattern_nonce'] ) ? sanitize_key( wp_unslash( $_POST['aimp_pattern_nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'aimp_add_pattern' ) ) {
+			wc_add_notice( __( 'Your session has expired. Please reload the page and try again.', 'atelier-irisee-master-plugin' ), 'error' );
+			return;
+		}
+		$pattern = AIMP_Catalog::get_pattern( absint( wp_unslash( $_POST['aimp_add_pattern'] ) ) );
+		$qty     = isset( $_POST['quantity'] ) ? max( 1, absint( wp_unslash( $_POST['quantity'] ) ) ) : 1;
+		// phpcs:enable
+		$variation = $pattern ? self::pattern_variation( $pattern ) : null;
+		if ( ! $variation ) {
+			wc_add_notice( __( 'This item is not available.', 'atelier-irisee-master-plugin' ), 'error' );
+			return;
+		}
+
+		$added = WC()->cart->add_to_cart( $pattern->get_id(), $qty, $variation->get_id(), $variation->get_variation_attributes(), array( 'aimp_all_sizes' => 1 ) );
+		if ( ! $added ) {
+			return; // WooCommerce has added the reason as a notice.
+		}
+		wc_add_to_cart_message( array( $pattern->get_id() => $qty ), true );
+		$url = 'yes' === get_option( 'woocommerce_cart_redirect_after_add' ) ? wc_get_cart_url() : $pattern->get_permalink();
+		wp_safe_redirect( $url );
+		exit;
+	}
+
+	/**
+	 * Cart and checkout: no size line for patterns bought with all sizes.
+	 *
+	 * @param array $item_data Lines shown under the product.
+	 * @param array $cart_item Cart item.
+	 * @return array
+	 */
+	public static function all_sizes_item_data( $item_data, $cart_item ) {
+		if ( empty( $cart_item['aimp_all_sizes'] ) ) {
+			return $item_data;
+		}
+		$size_labels = array();
+		foreach ( array_keys( (array) ( isset( $cart_item['variation'] ) ? $cart_item['variation'] : array() ) ) as $attribute ) {
+			$size_labels[] = wc_attribute_label( str_replace( 'attribute_', '', $attribute ), $cart_item['data'] );
+		}
+		$item_data   = array_values(
+			array_filter(
+				(array) $item_data,
+				function ( $line ) use ( $size_labels ) {
+					return ! isset( $line['key'] ) || ! in_array( $line['key'], $size_labels, true );
+				}
+			)
+		);
+		$item_data[] = array(
+			'key'   => __( 'Sizes', 'atelier-irisee-master-plugin' ),
+			'value' => __( 'All sizes', 'atelier-irisee-master-plugin' ),
+		);
+		return $item_data;
+	}
+
+	/**
+	 * "Pattern - M" → "Pattern" for patterns bought with all sizes.
+	 *
+	 * @param string $name      Name HTML.
+	 * @param array  $cart_item Cart item.
+	 * @return string
+	 */
+	public static function all_sizes_item_name( $name, $cart_item ) {
+		if ( empty( $cart_item['aimp_all_sizes'] ) || empty( $cart_item['data'] ) || ! $cart_item['data'] instanceof WC_Product ) {
+			return $name;
+		}
+		$parent = wc_get_product( $cart_item['data']->get_parent_id() );
+		return $parent ? str_replace( esc_html( $cart_item['data']->get_name() ), esc_html( $parent->get_name() ), $name ) : $name;
+	}
+
+	/**
+	 * Order line: pattern name, "Sizes: All sizes" instead of the size.
+	 *
+	 * @param WC_Order_Item_Product $item   Order item.
+	 * @param string                $key    Cart item key.
+	 * @param array                 $values Cart item.
+	 */
+	public static function all_sizes_order_item( $item, $key, $values ) {
+		if ( empty( $values['aimp_all_sizes'] ) ) {
+			return;
+		}
+		foreach ( array_keys( (array) ( isset( $values['variation'] ) ? $values['variation'] : array() ) ) as $attribute ) {
+			$item->delete_meta_data( str_replace( 'attribute_', '', $attribute ) );
+		}
+		$parent = wc_get_product( $item->get_product_id() );
+		if ( $parent ) {
+			$item->set_name( $parent->get_name() );
+		}
+		$item->add_meta_data( __( 'Sizes', 'atelier-irisee-master-plugin' ), __( 'All sizes', 'atelier-irisee-master-plugin' ), true );
+	}
+
+	/**
+	 * Buy bar data: what is bought, in which steps, and for which price.
+	 *
+	 * @param WC_Product $product Product.
+	 * @param bool       $per_10cm Sold per 10 cm.
+	 * @return array|null Null when the product uses WooCommerce's own form (gift cards, other product types).
+	 */
+	public static function buy_data( $product, $per_10cm ) {
+		$is_giftcard = class_exists( 'AIMP_Giftcards_Product' ) && AIMP_Giftcards_Product::is_giftcard( $product );
+		if ( $is_giftcard ) {
+			return null;
+		}
+		if ( $product->is_type( 'simple' ) ) {
+			$buyable = $product;
+		} elseif ( AIMP_Catalog::get_pattern( $product->get_id() ) ) {
+			$buyable = self::pattern_variation( $product );
+		} else {
+			return null;
+		}
+
+		$available = $buyable && $buyable->is_purchasable() && $buyable->is_in_stock();
+		$min       = $available ? max( 1, (int) $buyable->get_min_purchase_quantity() ) : 1;
+		$max       = $available ? (int) $buyable->get_max_purchase_quantity() : 0; // -1 = no maximum.
+		$factor    = $per_10cm ? AIMP_Catalog::FABRIC_UNIT_CM : 1;
+
+		return array(
+			'available'  => $available,
+			'pattern'    => ! $product->is_type( 'simple' ),
+			'per_10cm'   => $per_10cm,
+			'unit_price' => $buyable ? (float) wc_get_price_to_display( $buyable ) : 0,
+			'min'        => $min * $factor,
+			'max'        => $max > 0 ? $max * $factor : 0,
+			'step'       => $factor,
+		);
 	}
 
 	/* ------------------------------------------------------------------
@@ -154,9 +339,9 @@ class AIMP_Product_Page {
 			'previous'    => __( 'Previous', 'atelier-irisee-master-plugin' ),
 			'next'        => __( 'Next', 'atelier-irisee-master-plugin' ),
 			'showPicture' => __( 'Show picture %d', 'atelier-irisee-master-plugin' ),
-			'cm'          => __( 'cm', 'atelier-irisee-master-plugin' ),
-			'length'      => __( 'Length in cm', 'atelier-irisee-master-plugin' ),
 			'per10cm'     => __( 'per 10 cm', 'atelier-irisee-master-plugin' ),
+			/* translators: %s: price of one piece */
+			'perPiece'    => __( '%s per piece', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -270,8 +455,9 @@ class AIMP_Product_Page {
 		$pattern  = AIMP_Catalog::get_pattern( $product->get_id() );
 		$fabric   = AIMP_Catalog::in_categories( $product, AIMP_Catalog::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
 
+		// Patterns show no size pictures (sizes are chosen in the configurator); other variable products do.
 		$extra = array();
-		if ( $product->is_type( 'variable' ) ) {
+		if ( $product->is_type( 'variable' ) && ! $pattern ) {
 			foreach ( $product->get_children() as $child_id ) {
 				$extra[] = (int) get_post_thumbnail_id( $child_id );
 			}
@@ -288,12 +474,12 @@ class AIMP_Product_Page {
 
 		return array(
 			'per_10cm'         => $per_10cm,
-			'unit_price'       => $per_10cm ? (float) wc_get_price_to_display( $product ) : 0,
+			'pattern'          => (bool) $pattern,
+			'buy'              => self::buy_data( $product, $per_10cm ),
 			'fabric'           => $fabric ? AIMP_Catalog::fabric_texts( $product ) : null,
 			'gallery'          => $gallery,
 			'category'         => $category,
-			'stock_text'       => $product->is_type( 'simple' ) ? AIMP_Catalog::stock_text( $product, $per_10cm ) : '',
-			'attributes'       => AIMP_Catalog::attributes( $product ),
+			'attributes'       => AIMP_Catalog::attributes( $product, (bool) $pattern ),
 			'configurator_url' => ( $pattern && $configurator && 'publish' === get_post_status( $configurator ) )
 				? add_query_arg( 'aimp_pattern', $product->get_id(), get_permalink( $configurator ) )
 				: '',

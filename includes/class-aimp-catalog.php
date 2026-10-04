@@ -300,38 +300,6 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * "12 × 10 cm in stock (1,2 m)", "5 in stock" or "In stock".
-	 *
-	 * @param WC_Product $product  Product.
-	 * @param bool       $per_10cm Sold per 10 cm.
-	 * @return string
-	 */
-	public static function stock_text( $product, $per_10cm ) {
-		if ( $product->managing_stock() ) {
-			$stock = (int) $product->get_stock_quantity();
-			if ( $stock <= 0 ) {
-				return $product->backorders_allowed() ? __( 'Available on backorder', 'atelier-irisee-master-plugin' ) : __( 'Out of stock', 'atelier-irisee-master-plugin' );
-			}
-			return $per_10cm
-				? sprintf(
-					/* translators: 1: units in stock, 2: metres in stock */
-					__( '%1$d × 10 cm in stock (%2$s m)', 'atelier-irisee-master-plugin' ),
-					$stock,
-					AIMP_I18n::number( $stock * self::FABRIC_UNIT_CM / 100, 2 )
-				)
-				: sprintf(
-					/* translators: %d: pieces in stock */
-					__( '%d in stock', 'atelier-irisee-master-plugin' ),
-					$stock
-				);
-		}
-		if ( $product->is_on_backorder() ) {
-			return __( 'Available on backorder', 'atelier-irisee-master-plugin' );
-		}
-		return $product->is_in_stock() ? __( 'In stock', 'atelier-irisee-master-plugin' ) : __( 'Out of stock', 'atelier-irisee-master-plugin' );
-	}
-
-	/**
 	 * WP_Query arguments for published, visible products of a type in some categories.
 	 *
 	 * @param int[]  $term_ids   Category IDs (children are included automatically).
@@ -744,13 +712,14 @@ class AIMP_Catalog {
 	/**
 	 * Visible product attributes as label/value pairs.
 	 *
-	 * @param WC_Product $product Product.
+	 * @param WC_Product $product         Product.
+	 * @param bool       $skip_variations Leave out attributes used for variations (the sizes of a pattern).
 	 * @return array[]
 	 */
-	public static function attributes( $product ) {
+	public static function attributes( $product, $skip_variations = false ) {
 		$rows = array();
 		foreach ( $product->get_attributes() as $attribute ) {
-			if ( ! $attribute->get_visible() ) {
+			if ( ! $attribute->get_visible() || ( $skip_variations && $attribute->get_variation() ) ) {
 				continue;
 			}
 			if ( $attribute->is_taxonomy() ) {
@@ -782,11 +751,9 @@ class AIMP_Catalog {
 	 *
 	 * @param WC_Product $product Product.
 	 * @param int        $qty     Required quantity.
-	 * @param string     $unit    'piece', or '10cm' for products sold per 10 cm (fabric, ribbon, bias tape).
 	 * @return array
 	 */
-	private static function material_card( $product, $qty, $unit ) {
-		$per_10cm            = '10cm' === $unit;
+	private static function material_card( $product, $qty ) {
 		$card                = self::card( $product );
 		$card['qty']         = $qty;
 		$card['available']   = self::is_available( $product, $qty );
@@ -794,25 +761,6 @@ class AIMP_Catalog {
 		$card['description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
 		$card['attributes']  = self::attributes( $product );
 		$card['gallery']     = self::images( $product );
-		$card['stock_text']  = '';
-
-		if ( $product->managing_stock() ) {
-			$stock              = (int) $product->get_stock_quantity();
-			$card['stock_text'] = $per_10cm
-				? sprintf(
-					/* translators: 1: units in stock, 2: metres in stock */
-					__( '%1$d × 10 cm in stock (%2$s m)', 'atelier-irisee-master-plugin' ),
-					$stock,
-					AIMP_I18n::number( $stock * self::FABRIC_UNIT_CM / 100, 2 )
-				)
-				: sprintf(
-					/* translators: %d: pieces in stock */
-					__( '%d in stock', 'atelier-irisee-master-plugin' ),
-					$stock
-				);
-		} elseif ( $product->is_in_stock() ) {
-			$card['stock_text'] = __( 'In stock', 'atelier-irisee-master-plugin' );
-		}
 		return $card;
 	}
 
@@ -994,7 +942,7 @@ class AIMP_Catalog {
 		foreach ( array_slice( $ids, ( $page - 1 ) * $per_page, $per_page ) as $id ) {
 			$product = wc_get_product( $id );
 			if ( $product && $product->is_visible() ) {
-				$items[] = self::material_card( $product, $req['fabric_units'], '10cm' );
+				$items[] = self::material_card( $product, $req['fabric_units'] );
 			}
 		}
 
@@ -1045,7 +993,7 @@ class AIMP_Catalog {
 		foreach ( $result['ids'] as $id ) {
 			$product = wc_get_product( $id );
 			if ( $product && $product->is_visible() ) {
-				$items[] = self::material_card( $product, $count, $types[ $type ]['unit'] );
+				$items[] = self::material_card( $product, $count );
 			}
 		}
 		return array(

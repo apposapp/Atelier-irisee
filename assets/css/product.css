@@ -21,11 +21,11 @@
 }
 
 /* ------------------------------------------------------------------
- * Picture | information (2 : 3)
+ * Picture | information (1 : 1)
  * ------------------------------------------------------------------ */
 .aimp-product-main {
 	display: grid;
-	grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 	gap: calc(var(--aimp-gap) * 2);
 	align-items: start;
 }
@@ -34,7 +34,7 @@
 	position: sticky;
 	top: var(--aimp-sticky-top);
 	width: 100%;
-	max-width: 460px;
+	max-width: 560px;
 	justify-self: center;
 }
 
@@ -96,7 +96,120 @@
 }
 
 /* ------------------------------------------------------------------
- * Add to cart (WooCommerce's own form; buttons and fields are styled in configurator.css)
+ * Buy bar: amount and button on the left, price on the right
+ * ------------------------------------------------------------------ */
+.aimp-buy-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem 1.5rem;
+	margin: 0.75rem 0 1.25rem;
+	padding: 0.9rem 0;
+	border-top: 1px solid var(--aimp-gold);
+	border-bottom: 1px solid var(--aimp-gold);
+}
+
+.aimp-buy-form,
+.aimp-buy-controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+	margin: 0;
+}
+
+.aimp-buy-price {
+	text-align: right;
+}
+
+.aimp-configurator .aimp-buy-price p {
+	margin: 0;
+}
+
+/* ‹ 30 cm › */
+.aimp-stepper {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+}
+
+.aimp-configurator:is(.aimp-product, #aimp-specificity) .aimp-stepper .aimp-stepper-btn {
+	width: 2rem;
+	height: 2.4rem;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--aimp-gold);
+	font-size: 1.9rem;
+	font-weight: 400;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.aimp-configurator:is(.aimp-product, #aimp-specificity) .aimp-stepper .aimp-stepper-btn:is(:hover, :focus-visible) {
+	background: none;
+	color: var(--aimp-body-text);
+}
+
+.aimp-configurator:is(.aimp-product, #aimp-specificity) .aimp-stepper .aimp-stepper-input {
+	width: 3.6em;
+	padding: 0.3rem 0.2rem;
+	border: 0;
+	background: transparent;
+	color: var(--aimp-body-text);
+	font-size: var(--aimp-body-size);
+	font-weight: 700;
+	text-align: center;
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+
+.aimp-stepper-input::-webkit-outer-spin-button,
+.aimp-stepper-input::-webkit-inner-spin-button {
+	margin: 0;
+	-webkit-appearance: none;
+}
+
+.aimp-configurator .aimp-stepper-unit {
+	margin-left: -0.35rem;
+	color: var(--aimp-body-text);
+	font-size: var(--aimp-body-size);
+	font-weight: 600;
+}
+
+@container aimp (max-width: 520px) {
+	.aimp-buy-bar {
+		flex-direction: column-reverse;
+		align-items: flex-start;
+	}
+
+	.aimp-buy-price {
+		text-align: left;
+	}
+}
+
+/* Inspiration, order information, description next to the picture */
+.aimp-product-text {
+	margin: 0 0 1rem;
+}
+
+.aimp-product-text .aimp-description > :first-child {
+	margin-top: 0;
+}
+
+.aimp-product-text .aimp-description > :last-child {
+	margin-bottom: 0;
+}
+
+.aimp-product-details {
+	margin: 0 0 1rem;
+}
+
+/* ------------------------------------------------------------------
+ * WooCommerce's own add-to-cart form (gift cards and other product types;
+ * buttons and fields are styled in configurator.css)
  * ------------------------------------------------------------------ */
 .aimp-product-buy {
 	margin: 1.25rem 0;
@@ -143,29 +256,6 @@
 
 .aimp-configurator .aimp-product-buy .reset_variations {
 	margin-left: 0.5rem;
-}
-
-/* Length in cm (fabric, ribbon, bias tape). product.js hides WooCommerce's quantity field, which
- * WooCommerce and themes give their own display value, so [hidden] alone is not enough. */
-.aimp-configurator.aimp-product .aimp-product-buy form.cart .quantity[hidden] {
-	display: none;
-}
-
-.aimp-length {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.5rem;
-}
-
-.aimp-configurator .aimp-length .aimp-length-input {
-	width: 6.5em;
-	text-align: center;
-}
-
-.aimp-configurator .aimp-length-unit {
-	color: var(--aimp-body-text);
-	font-size: var(--aimp-body-size);
-	font-weight: 600;
 }
 
 .aimp-product-configure {
@@ -296,7 +386,7 @@
 
 	.aimp-product-media {
 		position: static;
-		max-width: 420px;
+		max-width: 520px;
 	}
 }
 

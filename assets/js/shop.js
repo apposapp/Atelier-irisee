@@ -562,9 +562,8 @@
 		if (item.short_description) {
 			html += '<div class="aimp-description">' + item.short_description + '</div>';
 		}
-		if (item.stock_text) {
-			html +=
-				'<dl class="aimp-info-list"><div><dt>' + esc(t.stock) + '</dt><dd class="' + (item.in_stock ? '' : 'is-out') + '">' + esc(item.stock_text) + '</dd></div></dl>';
+		if (!item.in_stock && item.badge) {
+			html += '<p class="aimp-sold-out">' + esc(item.badge) + '</p>';
 		}
 		html +=
 			'<div class="aimp-actions">' +
