@@ -50,6 +50,21 @@ foreach ( $aimp_gift_cards as $aimp_gift_card ) {
 }
 wp_unschedule_hook( 'aimp_gc_send' );
 
+// Footer, mosaic and the newsletter subscribers (their addresses are removed with the plugin).
+delete_option( 'aimp_footer' );
+delete_option( 'aimp_mosaic' );
+$aimp_subscribers = get_posts(
+	array(
+		'post_type'      => 'aimp_subscriber',
+		'post_status'    => 'any',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+	)
+);
+foreach ( $aimp_subscribers as $aimp_subscriber ) {
+	wp_delete_post( $aimp_subscriber, true );
+}
+
 // Shop pages and product pages: cached filter options and "fits these patterns" lists.
 delete_option( 'aimp_shop_cache_version' );
 $wpdb->query(

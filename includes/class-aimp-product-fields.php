@@ -216,6 +216,16 @@ class AIMP_Product_Fields {
 						'desc_tip'    => true,
 					)
 				);
+				woocommerce_wp_text_input(
+					array(
+						'id'          => AIMP_Catalog::META_SIZES_TEXT,
+						'label'       => __( 'Included sizes', 'atelier-irisee-master-plugin' ),
+						'placeholder' => __( 'e.g. XS – XXL (32 – 50)', 'atelier-irisee-master-plugin' ),
+						'value'       => $is_product ? (string) $product_object->get_meta( AIMP_Catalog::META_SIZES_TEXT ) : '',
+						'description' => __( 'Shown under the skill level on the pattern page.', 'atelier-irisee-master-plugin' ),
+						'desc_tip'    => true,
+					)
+				);
 				?>
 			</div>
 			<div class="options_group aimp-priority">
@@ -268,6 +278,14 @@ class AIMP_Product_Fields {
 				$product->update_meta_data( AIMP_Catalog::META_SKILL, $skill );
 			} else {
 				$product->delete_meta_data( AIMP_Catalog::META_SKILL );
+			}
+		}
+		if ( isset( $_POST[ AIMP_Catalog::META_SIZES_TEXT ] ) && current_user_can( 'edit_products' ) ) {
+			$sizes = sanitize_text_field( wp_unslash( $_POST[ AIMP_Catalog::META_SIZES_TEXT ] ) );
+			if ( '' === $sizes ) {
+				$product->delete_meta_data( AIMP_Catalog::META_SIZES_TEXT );
+			} else {
+				$product->update_meta_data( AIMP_Catalog::META_SIZES_TEXT, $sizes );
 			}
 		}
 		if ( empty( $_POST['aimp_priority_present'] ) || ! current_user_can( 'edit_products' ) ) {

@@ -585,7 +585,6 @@
 		var html =
 			UI.galleryHtml(item.gallery, s.image, t, UI.favButton(item.id, 'aimp-fav--overlay')) +
 			'<div class="aimp-details">' +
-			(item.category ? '<p class="aimp-details-eyebrow">' + esc(item.category) + '</p>' : '') +
 			'<h3 class="aimp-details-title">' + esc(item.name) + '</h3>' +
 			'<p class="aimp-details-price">' + (item.price_html || '') + (item.price_suffix && item.price_html ? ' <small>' + esc(item.price_suffix) + '</small>' : '') + '</p>';
 		if (item.short_description) {

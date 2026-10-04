@@ -12,10 +12,14 @@
 	var SKIP = '.woocommerce-form-login-toggle, .woocommerce-form-coupon-toggle, .cart-empty, .woocommerce-no-products-found, .wc-block-components-notice-banner .wc-block-components-notice-banner';
 	var DELAY = 4000;
 
+	// Inline !important styles, so no theme rule (Divi uses !important on notices) can keep the notice visible.
 	function hide(notice) {
 		notice.classList.add('aimp-notice-fading');
+		notice.style.setProperty('transition', 'opacity 0.4s ease', 'important');
+		notice.style.setProperty('opacity', '0', 'important');
 		setTimeout(function () {
 			notice.classList.add('aimp-notice-hidden');
+			notice.style.setProperty('display', 'none', 'important');
 		}, 400);
 	}
 

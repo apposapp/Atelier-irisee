@@ -9,14 +9,38 @@ jQuery(function ($) {
 	$(document).on('click', '.aimp-media-choose', function (e) {
 		e.preventDefault();
 		var $field = $(this).closest('.aimp-media-field');
-		var isImage = $field.data('type') === 'image';
+		var type = $field.data('type');
+		var isImage = type === 'image' || type === 'images';
 		var frame = wp.media({
 			title: isImage ? t.chooseImage : t.chooseFont,
 			button: { text: t.use },
 			library: isImage ? { type: 'image' } : {},
-			multiple: false
+			multiple: type === 'images' ? 'add' : false
 		});
+		// Several pictures (payment logos): keep the current choice selected when the window opens.
+		if (type === 'images') {
+			frame.on('open', function () {
+				var selection = frame.state().get('selection');
+				String($field.find('input[type="hidden"]').val() || '').split(',').forEach(function (id) {
+					if (parseInt(id, 10)) {
+						selection.add(wp.media.attachment(parseInt(id, 10)));
+					}
+				});
+			});
+		}
 		frame.on('select', function () {
+			if (type === 'images') {
+				var files = frame.state().get('selection').toJSON();
+				$field.find('input[type="hidden"]').val(files.map(function (f) {
+					return f.id;
+				}).join(','));
+				$field.find('.aimp-media-list').html(files.map(function (f) {
+					var src = f.sizes && f.sizes.thumbnail ? f.sizes.thumbnail.url : f.url;
+					return $('<img alt="" style="height:36px;width:auto;margin-right:6px;vertical-align:middle;">').attr('src', src)[0].outerHTML;
+				}).join(''));
+				$field.find('.aimp-media-remove').toggle(files.length > 0);
+				return;
+			}
 			var file = frame.state().get('selection').first().toJSON();
 			$field.find('input[type="hidden"]').val(file.id);
 			if (isImage) {
@@ -36,6 +60,7 @@ jQuery(function ($) {
 		$field.find('input[type="hidden"]').val('0');
 		$field.find('.aimp-media-preview').attr('src', '').hide();
 		$field.find('.aimp-media-name').text('').hide();
+		$field.find('.aimp-media-list').empty();
 		$(this).hide();
 	});
 });

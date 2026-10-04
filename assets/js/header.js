@@ -19,7 +19,7 @@
 
 		function focusables() {
 			return Array.prototype.filter.call(panel.querySelectorAll('a[href], button:not([disabled])'), function (el) {
-				return el.offsetParent !== null;
+				return el.offsetParent !== null && !el.closest('.aimp-sub-wrap[inert]');
 			});
 		}
 
@@ -84,25 +84,34 @@
 			}
 		});
 
-		// Sub-items: an arrow button next to the item opens them.
+		// Sub-items: an arrow button next to the item opens them; they fade and unfold (see header.css).
 		panel.querySelectorAll('.menu-item-has-children').forEach(function (item, i) {
 			var sub = item.querySelector(':scope > .sub-menu');
 			var link = item.querySelector(':scope > a');
 			if (!sub || !link) {
 				return;
 			}
-			sub.id = sub.id || 'aimp-sub-menu-' + i;
-			sub.hidden = !item.classList.contains('current-menu-ancestor');
+			var wrap = document.createElement('div');
+			wrap.className = 'aimp-sub-wrap';
+			wrap.id = 'aimp-sub-menu-' + i;
+			sub.parentNode.insertBefore(wrap, sub);
+			wrap.appendChild(sub);
+
 			var btn = document.createElement('button');
 			btn.type = 'button';
 			btn.className = 'aimp-side-menu-sub-toggle';
-			btn.setAttribute('aria-controls', sub.id);
-			btn.setAttribute('aria-expanded', sub.hidden ? 'false' : 'true');
+			btn.setAttribute('aria-controls', wrap.id);
 			btn.setAttribute('aria-label', link.textContent.trim());
 			link.insertAdjacentElement('afterend', btn);
+
+			var setOpen = function (open) {
+				item.classList.toggle('is-open', open);
+				btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+				wrap.inert = !open; // Closed sub-items can't be reached with Tab.
+			};
+			setOpen(item.classList.contains('current-menu-ancestor'));
 			btn.addEventListener('click', function () {
-				sub.hidden = !sub.hidden;
-				btn.setAttribute('aria-expanded', sub.hidden ? 'false' : 'true');
+				setOpen(!item.classList.contains('is-open'));
 			});
 		});
 	}

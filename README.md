@@ -174,6 +174,20 @@ Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_
 - **Overview:** `[atelier_irisee_shop type="all"]` shows five section cards unless the address has `aimp_*` filters.
 - **Pattern skill level:** stored as `_aimp_skill`. It's a filter on the shop pages (`aimp_skill`).
 
+## Footer, cart page and mosaic
+
+- **Footer** (`includes/class-aimp-footer.php`, `templates/footer.php`):
+  - Settings in their own option `aimp_footer` (same settings page).
+  - Menu locations `aimp_footer_account`, `aimp_footer_service` and `aimp_footer_legal`.
+  - Classic themes (Divi): printed at `wp_footer` (priority 1); `#main-footer` / `.et-l--footer` are hidden.
+  - Block themes: the footer template part is replaced.
+  - Newsletter: `?wc-ajax=aimp_subscribe` stores private `aimp_subscriber` posts. WooCommerce → Newsletter lists them and offers a CSV download.
+- **Cart page** (`includes/class-aimp-cart-page.php`, `templates/cart.php`): `[atelier_irisee_cart]`.
+  - Sets are grouped by the `aimp` cart item data. Updating, coupons and removing go through WooCommerce's form handler (`aimp_cart_cm[key]` is turned into units on `wp_loaded` 19).
+  - The totals are `woocommerce_cart_totals()`, which also brings the gift card field.
+  - The "Cart page" setting writes `woocommerce_cart_page_id`.
+- **Mosaic** (`includes/class-aimp-mosaic.php`): `[atelier_irisee_mosaic type="…"]`. Option `aimp_mosaic`: source `bestsellers` (by `total_sales`, ties random, cached 1 h) or `manual` (product pickers).
+
 ## Languages
 
 The plugin speaks **Dutch**, **French** and **English**, independent of the WordPress site language.

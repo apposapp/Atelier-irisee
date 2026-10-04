@@ -207,6 +207,15 @@ class AIMP_Settings {
 		}
 
 		add_settings_field(
+			'aimp_cart_page',
+			__( 'Cart page', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_cart_page_field' ),
+			self::PAGE,
+			'aimp_shop_pages',
+			array( 'label_for' => 'aimp_cart_page' )
+		);
+
+		add_settings_field(
 			'aimp_category_redirect',
 			__( 'Category links', 'atelier-irisee-master-plugin' ),
 			array( __CLASS__, 'render_category_redirect_field' ),
@@ -303,7 +312,7 @@ class AIMP_Settings {
 			'overview_img_patterns'     => __( 'Overview picture: Patterns', 'atelier-irisee-master-plugin' ),
 			'overview_img_haberdashery' => __( 'Overview picture: Haberdashery', 'atelier-irisee-master-plugin' ),
 			'overview_img_giftcards'    => __( 'Overview picture: Gift cards', 'atelier-irisee-master-plugin' ),
-			'overview_img_configurator' => __( 'Overview picture: Configurator', 'atelier-irisee-master-plugin' ),
+			'overview_img_configurator' => __( 'Overview picture: Sewing project kits', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -405,6 +414,28 @@ class AIMP_Settings {
 		);
 	}
 
+	/**
+	 * The cart page is WooCommerce's own setting; choosing it here changes it there too.
+	 */
+	public static function render_cart_page_field() {
+		wp_dropdown_pages(
+			array(
+				'name'              => self::OPTION . '[cart_page]',
+				'id'                => 'aimp_cart_page',
+				'selected'          => absint( get_option( 'woocommerce_cart_page_id' ) ),
+				'show_option_none'  => __( '— Select —', 'atelier-irisee-master-plugin' ),
+				'option_none_value' => 0,
+			)
+		);
+		echo '<p class="description">' . wp_kses_post(
+			sprintf(
+				/* translators: %s: shortcode */
+				__( 'The page with %s. It also becomes WooCommerce\'s cart page, so every cart link leads to it.', 'atelier-irisee-master-plugin' ),
+				'<code>[atelier_irisee_cart]</code>'
+			)
+		) . '</p>';
+	}
+
 	public static function render_category_redirect_field() {
 		printf(
 			'<label><input type="checkbox" name="%1$s[category_redirect]" value="1" %2$s> %3$s</label><p class="description">%4$s</p>',
@@ -459,6 +490,10 @@ class AIMP_Settings {
 			$sanitized[ $key ] = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : 0;
 		}
 		$sanitized['category_redirect'] = empty( $input['category_redirect'] ) ? 0 : 1;
+		// The cart page is stored as WooCommerce's own setting, not in ours.
+		if ( isset( $input['cart_page'] ) && absint( $input['cart_page'] ) && 'page' === get_post_type( absint( $input['cart_page'] ) ) ) {
+			update_option( 'woocommerce_cart_page_id', absint( $input['cart_page'] ) );
+		}
 		foreach ( array_merge( array_keys( self::overview_image_fields() ), array( 'font_regular', 'font_bold', 'account_page' ) ) as $key ) {
 			$sanitized[ $key ] = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : 0;
 		}

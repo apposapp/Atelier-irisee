@@ -26,13 +26,18 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: 1rem;
-	max-width: var(--wp--style--global--wide-size, 1280px);
-	margin: 0 auto;
-	padding: 0.75rem 1.25rem;
+	width: 100%;
+	margin: 0;
+	padding: 0.75rem clamp(1rem, 3vw, 2.5rem);
 }
 
 /* Logo */
 .aimp-header-brand .custom-logo-link {
+	display: block;
+	line-height: 0;
+}
+
+.aimp-header-brand .aimp-header-logo {
 	display: block;
 	line-height: 0;
 }
@@ -192,7 +197,7 @@
 	color: #fff;
 	opacity: 0;
 	transform: translateX(-100%);
-	transition: transform 0.35s ease, opacity 0.35s ease;
+	transition: transform 0.35s ease, opacity 0.35s ease, visibility 0s linear 0.35s;
 	visibility: hidden;
 }
 
@@ -200,6 +205,7 @@
 	opacity: 1;
 	transform: none;
 	visibility: visible;
+	transition: transform 0.35s ease, opacity 0.35s ease, visibility 0s linear 0s;
 }
 
 .aimp-side-menu-head {
@@ -247,8 +253,23 @@
 	padding-left: 1rem;
 }
 
-.aimp-side-menu-list .sub-menu[hidden] {
-	display: none;
+/* Sub-menus fold open and closed with a fade (header.js toggles .is-open on the item). */
+.aimp-side-menu-list .aimp-sub-wrap {
+	display: grid;
+	flex-basis: 100%;
+	grid-template-rows: 0fr;
+	opacity: 0;
+	transition: grid-template-rows 0.3s ease, opacity 0.3s ease;
+}
+
+.aimp-side-menu-list .aimp-sub-wrap > .sub-menu {
+	overflow: hidden;
+	min-height: 0;
+}
+
+.aimp-side-menu-list li.is-open > .aimp-sub-wrap {
+	grid-template-rows: 1fr;
+	opacity: 1;
 }
 
 .aimp-side-menu-list li {
@@ -317,9 +338,16 @@ html.aimp-menu-open {
 	overflow: hidden;
 }
 
-/* Classic themes: hide the theme's own header when ours is used. */
-body.aimp-replace-theme-header :is(#masthead, .site-header, header#header, #site-header, .main-header-bar-wrap, #ast-desktop-header, #ast-mobile-header, .elementor-location-header, header.wp-block-template-part):not(.aimp-header) {
-	display: none;
+/* Classic themes (Divi and others): hide the theme's own header and menu bar at all times when ours is used.
+ * !important because Divi shows and resizes its header from JavaScript. */
+body.aimp-replace-theme-header :is(#main-header, #top-header, .et-l--header, #et-top-navigation, #masthead, .site-header, header#header, #site-header, .main-header-bar-wrap, #ast-desktop-header, #ast-mobile-header, .elementor-location-header):not(.aimp-header) {
+	display: none !important;
+}
+
+/* Divi keeps room for its fixed header at the top of the page. */
+body.aimp-replace-theme-header #page-container {
+	margin-top: 0 !important;
+	padding-top: 0 !important;
 }
 
 /* Phones */
@@ -350,7 +378,8 @@ body.aimp-replace-theme-header :is(#masthead, .site-header, header#header, #site
 
 @media (prefers-reduced-motion: reduce) {
 	.aimp-side-menu,
-	.aimp-side-menu-backdrop {
+	.aimp-side-menu-backdrop,
+	.aimp-side-menu-list .aimp-sub-wrap {
 		transition: none;
 	}
 }

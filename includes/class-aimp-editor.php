@@ -19,7 +19,9 @@ class AIMP_Editor {
 		if ( ! is_admin() ) {
 			return;
 		}
+		// The full editor and the small (teeny) editors each have their own filter.
 		add_filter( 'tiny_mce_before_init', array( __CLASS__, 'tinymce' ), 20, 2 );
+		add_filter( 'teeny_mce_before_init', array( __CLASS__, 'tinymce' ), 20, 2 );
 		add_action( 'admin_print_footer_scripts', array( __CLASS__, 'quicktags' ), 100 );
 	}
 
@@ -28,7 +30,7 @@ class AIMP_Editor {
 	}
 
 	/**
-	 * Visual tab. Works for the full editor and the small (teeny) editors: WordPress only reads
+	 * Visual tab, for the full editor and the small (teeny) editors. WordPress only reads
 	 * mce_external_plugins for the full editor, so the plugin is added to the settings directly.
 	 *
 	 * @param array  $init      TinyMCE settings.

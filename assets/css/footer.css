@@ -1,0 +1,257 @@
+/* Atelier Irisee footer: four columns, payment logos, legal links and copyright. */
+
+.aimp-footer {
+	--aimp-gold: #b38f4f;
+	--aimp-brown: #613907;
+	margin-top: 3rem;
+	padding: 2.5rem clamp(1rem, 4vw, 3rem) 1.25rem;
+	border-top: 1px solid var(--aimp-gold);
+	background: #fff;
+	color: var(--aimp-brown);
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.6;
+}
+
+.aimp-footer *,
+.aimp-footer *::before,
+.aimp-footer *::after {
+	box-sizing: border-box;
+}
+
+.aimp-footer-columns {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 2rem;
+	max-width: 1180px;
+	margin: 0 auto 2rem;
+}
+
+.aimp-footer .aimp-footer-title {
+	margin: 0 0 0.75rem;
+	padding: 0;
+	color: var(--aimp-gold);
+	font-size: 1.1rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	line-height: 1.3;
+	text-transform: uppercase;
+}
+
+.aimp-footer p {
+	margin: 0 0 0.75rem;
+	padding: 0;
+	color: var(--aimp-brown);
+	font-size: 15px;
+}
+
+.aimp-footer a {
+	color: var(--aimp-gold);
+	text-decoration: none;
+}
+
+.aimp-footer a:hover,
+.aimp-footer a:focus-visible {
+	color: var(--aimp-brown);
+	text-decoration: underline;
+}
+
+/* Menus */
+.aimp-footer .aimp-footer-menu {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-footer .aimp-footer-menu li {
+	margin: 0 0 0.3rem;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-footer .aimp-footer-menu a {
+	color: var(--aimp-brown);
+}
+
+.aimp-footer .aimp-footer-menu a:hover,
+.aimp-footer .aimp-footer-menu a:focus-visible {
+	color: var(--aimp-gold);
+}
+
+/* Social icons: gold circles */
+.aimp-footer .aimp-footer-socials {
+	display: flex;
+	gap: 0.5rem;
+	margin: 0.25rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-footer .aimp-footer-socials li {
+	margin: 0;
+	padding: 0;
+}
+
+.aimp-footer .aimp-footer-socials a {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: 50%;
+	background: var(--aimp-gold);
+	color: #fff;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-footer .aimp-footer-socials a:hover,
+.aimp-footer .aimp-footer-socials a:focus-visible {
+	background: var(--aimp-brown);
+	color: #fff;
+	text-decoration: none;
+}
+
+.aimp-footer-socials svg {
+	width: 1.2rem;
+	height: 1.2rem;
+}
+
+/* Newsletter */
+.aimp-newsletter {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.6rem;
+	margin: 0 0 0.5rem;
+}
+
+.aimp-footer .aimp-newsletter input[type="email"] {
+	width: 100%;
+	max-width: 280px;
+	padding: 0.55rem 0.75rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: 6px;
+	background: #fff;
+	box-shadow: none;
+	color: var(--aimp-brown);
+	font: inherit;
+	font-size: 14px;
+}
+
+.aimp-footer .aimp-newsletter-hp {
+	position: absolute;
+	left: -9999px;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+}
+
+.aimp-footer .aimp-footer-button {
+	padding: 0.6rem 1.5rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: 100px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--aimp-gold);
+	font: inherit;
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-footer .aimp-footer-button:hover,
+.aimp-footer .aimp-footer-button:focus-visible {
+	background: rgba(179, 143, 79, 0.12);
+}
+
+.aimp-footer .aimp-footer-button:disabled {
+	opacity: 0.5;
+	cursor: wait;
+}
+
+.aimp-footer .aimp-newsletter-message {
+	margin: 0;
+	font-size: 14px;
+}
+
+.aimp-footer .aimp-newsletter-message.is-error {
+	color: #a3352b;
+}
+
+.aimp-footer .aimp-newsletter-consent {
+	font-size: 12px;
+	font-weight: 400;
+}
+
+/* Payment logos */
+.aimp-footer-payments {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0.75rem 0;
+	border-top: 1px solid rgba(179, 143, 79, 0.35);
+	border-bottom: 1px solid rgba(179, 143, 79, 0.35);
+}
+
+.aimp-footer .aimp-footer-payment {
+	width: auto;
+	height: 28px;
+	object-fit: contain;
+}
+
+/* Legal links and copyright */
+.aimp-footer-bottom {
+	padding-top: 1rem;
+	text-align: center;
+}
+
+.aimp-footer-bottom .aimp-footer-menu {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.2rem 0;
+	margin-bottom: 0.4rem;
+}
+
+.aimp-footer-bottom .aimp-footer-menu li {
+	margin: 0;
+	font-size: 13px;
+}
+
+.aimp-footer-bottom .aimp-footer-menu li + li::before {
+	content: "|";
+	margin: 0 0.6rem;
+	color: var(--aimp-gold);
+}
+
+.aimp-footer-bottom .aimp-footer-menu a {
+	color: var(--aimp-gold);
+}
+
+.aimp-footer .aimp-footer-copyright {
+	margin: 0;
+	font-size: 13px;
+}
+
+/* Divi and other classic themes: hide the theme's own footer when ours is used.
+ * !important because Divi's footer styles are also set from its theme options. */
+body.aimp-replace-theme-footer :is(#main-footer, .et-l--footer, #colophon, .site-footer, footer#footer):not(.aimp-footer) {
+	display: none !important;
+}
+
+@media (max-width: 900px) {
+	.aimp-footer-columns {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 520px) {
+	.aimp-footer-columns {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

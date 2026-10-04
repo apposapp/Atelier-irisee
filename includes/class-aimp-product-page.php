@@ -23,6 +23,13 @@ class AIMP_Product_Page {
 
 	private static $localized = false;
 
+	/** True while a product page is being printed (the gift card form then leaves the amount to the price bar). */
+	private static $rendering = false;
+
+	public static function is_rendering() {
+		return self::$rendering;
+	}
+
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
@@ -194,18 +201,25 @@ class AIMP_Product_Page {
 	public static function buy_data( $product, $per_10cm ) {
 		$is_giftcard = class_exists( 'AIMP_Giftcards_Product' ) && AIMP_Giftcards_Product::is_giftcard( $product );
 		if ( $is_giftcard ) {
-			// The price follows the chosen amount (giftcards.js tells product.js).
-			$available = $product->is_purchasable();
-			$max       = $available ? (int) $product->get_max_purchase_quantity() : 0;
+			// The ‹ › arrows choose the card's value in steps of €5; the price is that value (+ printing fee).
+			list( $min, $max ) = AIMP_Giftcards::amount_range();
+			$value             = $min;
+			foreach ( AIMP_Giftcards::preset_amounts() as $preset ) {
+				if ( $preset >= $min && $preset <= $max && abs( fmod( $preset, AIMP_Giftcards::AMOUNT_STEP ) ) < 0.001 ) {
+					$value = (float) $preset;
+					break;
+				}
+			}
 			return array(
-				'available'  => $available,
+				'available'  => $product->is_purchasable(),
 				'pattern'    => false,
 				'giftcard'   => true,
 				'per_10cm'   => false,
-				'unit_price' => 0,
-				'min'        => 1,
-				'max'        => $max > 0 ? $max : 0,
-				'step'       => 1,
+				'unit_price' => $value,
+				'min'        => $min,
+				'max'        => $max,
+				'step'       => AIMP_Giftcards::AMOUNT_STEP,
+				'value'      => $value,
 			);
 		}
 		if ( $product->is_type( 'simple' ) ) {
@@ -230,6 +244,7 @@ class AIMP_Product_Page {
 			'min'        => $min * $factor,
 			'max'        => $max > 0 ? $max * $factor : 0,
 			'step'       => $factor,
+			'value'      => $min * $factor,
 		);
 	}
 
@@ -441,7 +456,9 @@ class AIMP_Product_Page {
 		} else {
 			$data     = self::data( $the_product );
 			$template = locate_template( 'atelier-irisee/product/single.php' );
+			self::$rendering = true;
 			include $template ? $template : AIMP_PLUGIN_DIR . 'templates/product/single.php';
+			self::$rendering = false;
 
 			if ( isset( WC()->structured_data ) && is_object( WC()->structured_data ) ) {
 				WC()->structured_data->generate_product_data( $the_product );
@@ -477,22 +494,18 @@ class AIMP_Product_Page {
 		}
 		$gallery = AIMP_Catalog::images( $product, $extra );
 
-		$category = null;
-		$terms    = get_the_terms( $product->get_id(), 'product_cat' );
-		if ( $terms && ! is_wp_error( $terms ) ) {
-			$category = reset( $terms );
-		}
-
 		$configurator = AIMP_Settings::get( 'configurator_page' );
 
 		return array(
 			'per_10cm'         => $per_10cm,
 			'pattern'          => (bool) $pattern,
 			'skill'            => $pattern ? (string) $product->get_meta( AIMP_Catalog::META_SKILL ) : '',
+			'sizes_text'       => $pattern ? (string) $product->get_meta( AIMP_Catalog::META_SIZES_TEXT ) : '',
+			'recommended'      => $fabric ? self::recommended_pattern( $product ) : null,
+			'fabrics'          => $pattern ? self::recommended_fabrics( $pattern ) : array(),
 			'buy'              => self::buy_data( $product, $per_10cm ),
 			'fabric'           => $fabric ? AIMP_Catalog::fabric_texts( $product ) : null,
 			'gallery'          => $gallery,
-			'category'         => $category,
 			'attributes'       => AIMP_Catalog::attributes( $product, (bool) $pattern ),
 			'configurator_url' => ( $pattern && $configurator && 'publish' === get_post_status( $configurator ) )
 				? add_query_arg( 'aimp_pattern', $product->get_id(), get_permalink( $configurator ) )
@@ -615,20 +628,79 @@ class AIMP_Product_Page {
 	}
 
 	/**
-	 * Gold line icon for a washing subject: a wash tub, a tumble dryer, an iron or a light bulb (tips).
+	 * Gold line icon for a fabric subject: specifications (a thread spool, a folded fabric, a palette,
+	 * a width arrow, a weight) and washing (a wash tub, a tumble dryer, an iron, a light bulb for tips).
 	 *
-	 * @param string $subject washing, drying, ironing or tips.
+	 * @param string $subject A subject key of AIMP_Catalog::fabric_text_fields().
 	 * @return string SVG.
 	 */
-	public static function washing_icon( $subject ) {
+	public static function fabric_icon( $subject ) {
 		$paths = array(
-			'washing' => '<path d="M3 7l2.2 12.2a1 1 0 0 0 1 .8h11.6a1 1 0 0 0 1-.8L21 7"/><path d="M3.6 10.5c1.4 1 2.8 1 4.2 0s2.8-1 4.2 0 2.8 1 4.2 0 2.8-1 4.2 0"/>',
-			'drying'  => '<rect x="3.5" y="3.5" width="17" height="17" rx="2"/><circle cx="12" cy="12" r="5"/>',
-			'ironing' => '<path d="M3 17.5h18l-1.6-6.4a3 3 0 0 0-2.9-2.3H8.5"/><path d="M3 17.5c.6-4.3 3.7-6.9 8-6.9h8.6"/><path d="M9 14.5h.01M12 14.5h.01M15 14.5h.01"/>',
-			'tips'    => '<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/>',
+			'composition' => '<path d="M6.5 4h11M6.5 20h11"/><path d="M8 4v16M16 4v16"/><path d="M8 7.5l8 2.5M8 11.5l8 2.5M8 15.5l8 2"/>',
+			'type'        => '<path d="M4 4.5h11.5L20 9v10.5H4z"/><path d="M15.5 4.5V9H20"/><path d="M7.5 12.5h9M7.5 16h6"/>',
+			'colour'      => '<path d="M12 3.5a8.5 8.5 0 1 0 0 17c.9 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.4-1.1-.3-.3-.4-.6-.4-1 0-.8.7-1.5 1.5-1.5h1.8a4.5 4.5 0 0 0 4.5-4.5c0-4-3.8-7.4-8.5-7.4z"/><circle cx="7.5" cy="11" r=".9"/><circle cx="10" cy="7.3" r=".9"/><circle cx="14.5" cy="7.3" r=".9"/><circle cx="17" cy="11" r=".9"/>',
+			'width'       => '<path d="M3 12h18"/><path d="M7 8l-4 4 4 4M17 8l4 4-4 4"/><path d="M3 5v14M21 5v14"/>',
+			'weight'      => '<path d="M6.5 9.5h11l2 10.5h-15z"/><circle cx="12" cy="6.2" r="2.4"/>',
+			'washing'     => '<path d="M3 7l2.2 12.2a1 1 0 0 0 1 .8h11.6a1 1 0 0 0 1-.8L21 7"/><path d="M3.6 10.5c1.4 1 2.8 1 4.2 0s2.8-1 4.2 0 2.8 1 4.2 0 2.8-1 4.2 0"/>',
+			'drying'      => '<rect x="3.5" y="3.5" width="17" height="17" rx="2"/><circle cx="12" cy="12" r="5"/>',
+			'ironing'     => '<path d="M3 17.5h18l-1.6-6.4a3 3 0 0 0-2.9-2.3H8.5"/><path d="M3 17.5c.6-4.3 3.7-6.9 8-6.9h8.6"/><path d="M9 14.5h.01M12 14.5h.01M15 14.5h.01"/>',
+			'tips'        => '<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/>',
 		);
 		$path  = isset( $paths[ $subject ] ) ? $paths[ $subject ] : $paths['tips'];
 		return '<svg class="aimp-washing-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';
+	}
+
+	/**
+	 * The pattern chosen as "Recommended pattern" on a fabric, if it is still a visible pattern.
+	 *
+	 * @param WC_Product $fabric Fabric product.
+	 * @return WC_Product|null
+	 */
+	public static function recommended_pattern( $fabric ) {
+		$pattern = AIMP_Catalog::get_pattern( absint( $fabric->get_meta( AIMP_Catalog::META_RECOMMENDED ) ) );
+		return ( $pattern && $pattern->is_visible() ) ? $pattern : null;
+	}
+
+	/**
+	 * Fabrics that can be used for a pattern: from the fabric categories its sizes allow, the pattern's
+	 * preferred categories first (same order as the configurator's "Recommended" sort).
+	 *
+	 * @param WC_Product $pattern Pattern product.
+	 * @return WC_Product[]
+	 */
+	public static function recommended_fabrics( $pattern ) {
+		$key = 'aimp_shop_recfab_' . $pattern->get_id() . '_' . AIMP_Shop::cache_version();
+		$ids = get_transient( $key );
+
+		if ( ! is_array( $ids ) ) {
+			$ids  = array();
+			$cats = array();
+			foreach ( $pattern->get_children() as $variation_id ) {
+				$req = AIMP_Catalog::get_requirements( $variation_id );
+				if ( $req ) {
+					$cats = array_merge( $cats, $req['fabric_cats'] );
+				}
+			}
+			$cats = array_values( array_unique( $cats ) );
+			if ( $cats ) {
+				$args                   = AIMP_Catalog::base_query_args( $cats, 'simple' );
+				$args['posts_per_page'] = 60;
+				$args['no_found_rows']  = true;
+				$query                  = new WP_Query( $args );
+				$ids                    = AIMP_Catalog::sort_by_category_priority( array_map( 'absint', $query->posts ), AIMP_Catalog::get_fabric_priority( $pattern ) );
+				$ids                    = array_slice( $ids, 0, self::FITTING );
+			}
+			set_transient( $key, $ids, 12 * HOUR_IN_SECONDS );
+		}
+
+		return array_values(
+			array_filter(
+				array_map( 'wc_get_product', $ids ),
+				function ( $product ) {
+					return $product && $product->is_visible();
+				}
+			)
+		);
 	}
 
 	/**

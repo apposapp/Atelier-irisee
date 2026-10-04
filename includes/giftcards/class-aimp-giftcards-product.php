@@ -190,13 +190,20 @@ class AIMP_Giftcards_Product {
 		$choice  = $get( 'amount' );
 		$presets = AIMP_Giftcards::preset_amounts();
 		$amount  = 0;
-		if ( 'custom' === $choice && AIMP_Giftcards::opt( 'custom_amount' ) ) {
+		$stepper = '1' === $get( 'stepper' ); // The ‹ › amount chooser in the product page's price bar.
+		if ( 'custom' === $choice && ( $stepper || AIMP_Giftcards::opt( 'custom_amount' ) ) ) {
 			$amount = (float) str_replace( ',', '.', $get( 'custom_amount' ) );
-			$min    = (float) AIMP_Giftcards::opt( 'min_amount' );
+			$min    = max( (float) AIMP_Giftcards::MIN_AMOUNT, (float) AIMP_Giftcards::opt( 'min_amount' ) );
 			$max    = (float) AIMP_Giftcards::opt( 'max_amount' );
+			if ( $stepper ) {
+				list( $min, $max ) = AIMP_Giftcards::amount_range();
+			}
 			if ( $amount < $min || $amount > $max ) {
 				/* translators: 1: minimum amount, 2: maximum amount */
 				$errors[] = sprintf( __( 'Please choose an amount between %1$s and %2$s.', 'atelier-irisee-master-plugin' ), wp_strip_all_tags( wc_price( $min ) ), wp_strip_all_tags( wc_price( $max ) ) );
+			} elseif ( $stepper && abs( fmod( $amount, AIMP_Giftcards::AMOUNT_STEP ) ) > 0.001 ) {
+				/* translators: %s: step, e.g. €5 */
+				$errors[] = sprintf( __( 'Please choose an amount in steps of %s.', 'atelier-irisee-master-plugin' ), wp_strip_all_tags( wc_price( AIMP_Giftcards::AMOUNT_STEP ) ) );
 			}
 		} elseif ( in_array( (float) str_replace( ',', '.', $choice ), $presets, true ) ) {
 			$amount = (float) str_replace( ',', '.', $choice );

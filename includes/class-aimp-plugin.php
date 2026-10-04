@@ -31,6 +31,9 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-editor.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-site.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-header.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-footer.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-cart-page.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-mosaic.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/login/class-aimp-login.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/giftcards/class-aimp-giftcards.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-account.php';
@@ -47,6 +50,9 @@ class AIMP_Plugin {
 		AIMP_Editor::init();
 		AIMP_Site::init();
 		AIMP_Header::init();
+		AIMP_Footer::init();
+		AIMP_Cart_Page::init();
+		AIMP_Mosaic::init();
 		AIMP_Login::init();
 		AIMP_Giftcards::init();
 		AIMP_Account::init();

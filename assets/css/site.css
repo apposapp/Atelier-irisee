@@ -8,19 +8,20 @@
 
 /* ------------------------------------------------------------------
  * WooCommerce notices: single gold line, brown text, × in the corner.
+ * Divi forces white text on a coloured bar with !important, so colours here use !important too.
  * WooCommerce, the blocks and themes style these with stronger selectors; #aimp-specificity never
  * matches anything and only gives these rules the weight of an ID.
  * ------------------------------------------------------------------ */
-:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box {
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity) {
 	position: relative;
 	display: block;
 	margin: 0 0 1rem;
 	padding: 0.85rem 2.75rem 0.85rem 1.1rem;
-	border: 1px solid #b38f4f;
+	border: 1px solid #b38f4f !important;
 	border-radius: 6px;
-	background: #fff;
-	box-shadow: none;
-	color: #613907;
+	background: #fff !important;
+	box-shadow: none !important;
+	color: #613907 !important;
 	font-size: 15px;
 	font-weight: 600;
 	line-height: 1.5;
@@ -29,24 +30,24 @@
 	transition: opacity 0.4s ease;
 }
 
-:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, #aimp-specificity).aimp-notice-box::before,
-:is(.wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box > svg {
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, #aimp-specificity)::before,
+:is(.wc-block-components-notice-banner, #aimp-specificity) > svg {
 	display: none;
 }
 
-:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box :is(li, p, div, span) {
-	color: #613907;
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity) :is(li, p, div, span) {
+	color: #613907 !important;
 	font-size: 15px;
 }
 
-:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box a:not(.aimp-notice-close) {
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity) a:not(.aimp-notice-close) {
 	float: none;
 	margin: 0 0 0 0.75rem;
 	padding: 0;
 	border: 0;
 	background: none;
 	box-shadow: none;
-	color: #b38f4f;
+	color: #b38f4f !important;
 	font: inherit;
 	font-weight: 700;
 	text-decoration: underline;
@@ -84,7 +85,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity).aimp-notice-box {
+	:is(.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner, #aimp-specificity) {
 		transition: none;
 	}
 }

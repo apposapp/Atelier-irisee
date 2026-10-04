@@ -20,6 +20,8 @@ $aimp_fee       = (float) AIMP_Giftcards::opt( 'post_fee' );
 $aimp_recipient = (bool) AIMP_Giftcards::opt( 'allow_recipient' );
 $aimp_post      = (bool) AIMP_Giftcards::opt( 'allow_post' );
 $aimp_date      = (bool) AIMP_Giftcards::opt( 'allow_send_date' );
+// On the Atelier Irisee product page the amount is chosen with the ‹ › arrows in the price bar.
+$aimp_stepper   = class_exists( 'AIMP_Product_Page' ) && AIMP_Product_Page::is_rendering();
 ?>
 <div class="aimp-gc-form" data-aimp-gc-form data-fee="<?php echo esc_attr( $aimp_fee ); ?>">
 
@@ -40,6 +42,10 @@ $aimp_date      = (bool) AIMP_Giftcards::opt( 'allow_send_date' );
 		</fieldset>
 	<?php endif; ?>
 
+	<?php if ( $aimp_stepper ) : ?>
+		<input type="hidden" name="aimp_gc[amount]" value="custom">
+		<input type="hidden" name="aimp_gc[stepper]" value="1">
+	<?php else : ?>
 	<fieldset class="aimp-gc-group">
 		<legend><?php esc_html_e( 'Choose an amount', 'atelier-irisee-master-plugin' ); ?></legend>
 		<div class="aimp-gc-chips">
@@ -68,6 +74,7 @@ $aimp_date      = (bool) AIMP_Giftcards::opt( 'allow_send_date' );
 			</p>
 		<?php endif; ?>
 	</fieldset>
+	<?php endif; ?>
 
 	<fieldset class="aimp-gc-group">
 		<legend><?php esc_html_e( 'How should the gift card be delivered?', 'atelier-irisee-master-plugin' ); ?></legend>

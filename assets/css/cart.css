@@ -1,0 +1,315 @@
+/* Atelier Irisee cart page ([atelier_irisee_cart]). Builds on configurator.css and product.css. */
+
+.aimp-configurator.aimp-cart {
+	container-type: inline-size;
+	container-name: aimp;
+}
+
+.aimp-cart-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+	gap: calc(var(--aimp-gap) * 2);
+	align-items: start;
+}
+
+.aimp-cart-side {
+	position: sticky;
+	top: var(--aimp-sticky-top);
+	padding: 1.25rem 1.4rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-cart-empty {
+	padding: 3rem 1rem;
+	text-align: center;
+}
+
+/* Thumbnails */
+.aimp-cart-thumb {
+	flex: 0 0 auto;
+	display: block;
+	width: 64px;
+	height: 64px;
+	overflow: hidden;
+	border: 1px solid var(--aimp-gold);
+	border-radius: 12px;
+}
+
+.aimp-configurator .aimp-cart-thumb img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	object-fit: cover;
+}
+
+/* A configurator set */
+.aimp-cart-set {
+	margin: 0 0 1.25rem;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-cart-set-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.5rem 1rem;
+	margin-bottom: 0.75rem;
+}
+
+.aimp-configurator .aimp-cart-set-title {
+	margin: 0;
+	font-size: 1.15em;
+}
+
+.aimp-cart-set-items {
+	display: grid;
+	gap: 0.6rem;
+}
+
+.aimp-configurator .aimp-cart-set-item {
+	display: flex;
+	align-items: center;
+	gap: 0.85rem;
+	margin: 0;
+}
+
+.aimp-cart-set-name {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.aimp-configurator .aimp-cart-set-name small {
+	color: var(--aimp-body-text);
+	font-size: 0.85em;
+	text-align: left;
+}
+
+.aimp-cart-set-price,
+.aimp-cart-single-subtotal {
+	flex: 0 0 auto;
+	white-space: nowrap;
+}
+
+.aimp-configurator .aimp-cart-set-total {
+	display: flex;
+	justify-content: space-between;
+	margin: 0.85rem 0 0.25rem;
+	padding-top: 0.6rem;
+	border-top: 1px solid var(--aimp-gold);
+}
+
+.aimp-configurator .aimp-cart-locked {
+	margin: 0;
+	font-size: 0.85em;
+	opacity: 0.85;
+}
+
+/* Single products */
+.aimp-cart-singles {
+	display: grid;
+	gap: 0;
+	margin: 0 0 1rem;
+}
+
+.aimp-configurator .aimp-cart-single {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+	align-items: center;
+	gap: 0.75rem 1rem;
+	margin: 0;
+	padding: 0.85rem 0;
+	border-bottom: 1px solid var(--aimp-gold-tint);
+}
+
+.aimp-cart-single-info {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	min-width: 0;
+}
+
+.aimp-configurator .aimp-cart-single-name {
+	color: var(--aimp-gold);
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.aimp-configurator .aimp-cart-single-info .variation {
+	margin: 0;
+	font-size: 0.85em;
+}
+
+.aimp-configurator .aimp-cart-single-info .variation dt,
+.aimp-configurator .aimp-cart-single-info .variation dd {
+	display: inline;
+	margin: 0;
+	font-size: inherit;
+}
+
+.aimp-configurator .aimp-cart-single-info .variation dd p {
+	display: inline;
+	margin: 0;
+}
+
+/* ‹ amount › */
+.aimp-cart .aimp-stepper {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+}
+
+.aimp-configurator:is(.aimp-cart, #aimp-specificity) .aimp-stepper .aimp-stepper-btn {
+	width: 1.8rem;
+	height: 2.2rem;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--aimp-gold);
+	font-size: 1.7rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.aimp-configurator:is(.aimp-cart, #aimp-specificity) .aimp-stepper .aimp-stepper-input {
+	width: 3.2em;
+	padding: 0.2rem;
+	border: 0;
+	background: transparent;
+	color: var(--aimp-body-text);
+	font: inherit;
+	font-weight: 700;
+	text-align: center;
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+
+.aimp-cart .aimp-stepper-input::-webkit-outer-spin-button,
+.aimp-cart .aimp-stepper-input::-webkit-inner-spin-button {
+	margin: 0;
+	-webkit-appearance: none;
+}
+
+.aimp-configurator .aimp-cart .aimp-stepper-unit,
+.aimp-cart .aimp-stepper-unit {
+	margin-left: -0.3rem;
+	color: var(--aimp-body-text);
+	font-weight: 600;
+}
+
+/* Remove links */
+.aimp-configurator .aimp-cart-remove {
+	color: var(--aimp-gold);
+	font-size: 0.9em;
+	text-decoration: underline;
+}
+
+.aimp-configurator .aimp-cart-remove--x {
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	font-size: 1.4rem;
+	line-height: 2rem;
+	text-align: center;
+	text-decoration: none;
+}
+
+.aimp-configurator .aimp-cart-remove--x:hover {
+	background: var(--aimp-gold-tint);
+}
+
+/* Discount code and update */
+.aimp-cart-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin-top: 0.5rem;
+}
+
+.aimp-cart-coupon {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.aimp-configurator .aimp-cart-coupon input {
+	min-width: 12rem;
+}
+
+/* WooCommerce's cart totals in the side panel */
+.aimp-configurator .aimp-cart-side .cart_totals {
+	width: 100%;
+	float: none;
+}
+
+.aimp-configurator .aimp-cart-side .cart_totals > h2 {
+	margin: 0 0 0.75rem;
+	font-size: 1.15em;
+}
+
+.aimp-configurator .aimp-cart-side table.shop_table {
+	width: 100%;
+	margin: 0 0 1rem;
+	border: 0;
+	border-collapse: collapse;
+}
+
+.aimp-configurator .aimp-cart-side table.shop_table :is(th, td) {
+	padding: 0.55rem 0;
+	border: 0;
+	border-bottom: 1px solid var(--aimp-gold-tint);
+	background: transparent;
+	vertical-align: top;
+}
+
+.aimp-configurator .aimp-cart-side table.shop_table td {
+	text-align: right;
+}
+
+.aimp-configurator .aimp-cart-side .order-total :is(th, td) {
+	border-bottom: 0;
+	font-size: 1.1em;
+}
+
+.aimp-configurator:is(.aimp-cart, #aimp-specificity) .wc-proceed-to-checkout .checkout-button {
+	display: block;
+	width: 100%;
+	padding: 0.8rem 1.6rem;
+	text-align: center;
+}
+
+.aimp-configurator .aimp-cart-side .woocommerce-shipping-methods {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Narrow screens */
+@container aimp (max-width: 820px) {
+	.aimp-cart-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-cart-side {
+		position: static;
+	}
+}
+
+@container aimp (max-width: 560px) {
+	.aimp-configurator .aimp-cart-single {
+		grid-template-columns: auto minmax(0, 1fr) auto;
+	}
+
+	.aimp-cart-single-qty {
+		grid-column: 2;
+	}
+}

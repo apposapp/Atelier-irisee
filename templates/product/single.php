@@ -7,8 +7,8 @@
  * Available variables:
  *
  * @var WC_Product $the_product The product (also the global $product).
- * @var array      $data        From AIMP_Product_Page::data(): per_10cm, pattern, skill, buy (buy bar data, or null for
- *                              WooCommerce's own form), fabric (texts, or null), gallery, category, attributes,
+ * @var array      $data        From AIMP_Product_Page::data(): per_10cm, pattern, skill, sizes_text, recommended, fabrics, buy (buy bar data, or null for
+ *                              WooCommerce's own form), fabric (texts, or null), gallery, attributes,
  *                              configurator_url, fitting, related.
  * @var array      $args        [ breadcrumb: bool ].
  *
@@ -51,26 +51,25 @@ $aimp_dropdown = function ( $aimp_title, $aimp_body, $aimp_class ) {
 	echo '<span class="aimp-dropdown-arrow" aria-hidden="true"></span></summary><div class="aimp-dropdown-body">' . $aimp_body . '</div></details>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the callers.
 };
 
-// Washing instructions: a 2×2 grid of tiles with a gold icon.
-$aimp_washing_html = '';
-if ( $aimp_fabric && $aimp_fabric['washing'] ) {
-	$aimp_washing_html = '<ul class="aimp-washing-grid">';
-	foreach ( $aimp_fabric['washing'] as $aimp_subject => $aimp_line ) {
-		$aimp_washing_html .= '<li class="aimp-washing-tile">' . AIMP_Product_Page::washing_icon( $aimp_subject ) .
+/**
+ * Tiles with a gold icon, the subject and the text (specifications and washing instructions).
+ *
+ * @param array $aimp_lines Subject => [ label, value ].
+ * @return string
+ */
+$aimp_tiles = function ( $aimp_lines ) {
+	if ( ! $aimp_lines ) {
+		return '';
+	}
+	$aimp_html = '<ul class="aimp-washing-grid">';
+	foreach ( $aimp_lines as $aimp_subject => $aimp_line ) {
+		$aimp_html .= '<li class="aimp-washing-tile">' . AIMP_Product_Page::fabric_icon( $aimp_subject ) .
 			'<span><strong>' . esc_html( $aimp_line[0] ) . '</strong>' . nl2br( esc_html( $aimp_line[1] ) ) . '</span></li>';
 	}
-	$aimp_washing_html .= '</ul>';
-}
-
-// Specifications: bullet points.
-$aimp_specs_html = '';
-if ( $aimp_fabric && $aimp_fabric['specs'] ) {
-	$aimp_specs_html = '<ul class="aimp-product-bullets">';
-	foreach ( $aimp_fabric['specs'] as $aimp_line ) {
-		$aimp_specs_html .= '<li><strong>' . esc_html( $aimp_line[0] ) . ':</strong> ' . nl2br( esc_html( $aimp_line[1] ) ) . '</li>';
-	}
-	$aimp_specs_html .= '</ul>';
-}
+	return $aimp_html . '</ul>';
+};
+$aimp_washing_html = $aimp_fabric ? $aimp_tiles( $aimp_fabric['washing'] ) : '';
+$aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 ?>
 <div class="aimp-configurator aimp-product alignwide<?php echo $aimp_fabric ? ' aimp-product--fabric' : ''; ?><?php echo $aimp_pattern ? ' aimp-product--pattern' : ''; ?><?php echo $aimp_giftcard ? ' aimp-product--giftcard' : ''; ?>" data-aimp-product="<?php echo esc_attr( $aimp_id ); ?>">
 
@@ -108,10 +107,6 @@ if ( $aimp_fabric && $aimp_fabric['specs'] ) {
 		</div>
 
 		<div class="aimp-product-summary">
-			<?php if ( $data['category'] ) : ?>
-				<p class="aimp-details-eyebrow"><a href="<?php echo esc_url( get_term_link( $data['category'] ) ); ?>"><?php echo esc_html( $data['category']->name ); ?></a></p>
-			<?php endif; ?>
-
 			<h1 class="aimp-product-title"><?php echo esc_html( wp_strip_all_tags( $the_product->get_name() ) ); ?></h1>
 
 			<?php if ( wc_review_ratings_enabled() && $the_product->get_rating_count() > 0 ) : ?>
@@ -150,14 +145,17 @@ if ( $aimp_fabric && $aimp_fabric['specs'] ) {
 								<form class="aimp-buy-form" id="<?php echo esc_attr( $aimp_form_id ); ?>" action="<?php echo esc_url( $the_product->get_permalink() ); ?>" method="post">
 							<?php endif; ?>
 							<div class="aimp-stepper">
+								<?php if ( $aimp_giftcard ) : ?>
+									<span class="aimp-stepper-unit aimp-stepper-unit--before"><?php echo esc_html( html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ) ); ?></span>
+								<?php endif; ?>
 								<button type="button" class="aimp-stepper-btn" data-dir="-1" aria-label="<?php esc_attr_e( 'Less', 'atelier-irisee-master-plugin' ); ?>">‹</button>
 								<input type="number" class="aimp-stepper-input" inputmode="numeric" form="<?php echo esc_attr( $aimp_form_id ); ?>"
-									name="<?php echo $aimp_buy['per_10cm'] ? 'aimp_length_cm' : 'quantity'; ?>"
-									value="<?php echo esc_attr( $aimp_buy['min'] ); ?>"
+									name="<?php echo esc_attr( $aimp_giftcard ? 'aimp_gc[custom_amount]' : ( $aimp_buy['per_10cm'] ? 'aimp_length_cm' : 'quantity' ) ); ?>"
+									value="<?php echo esc_attr( $aimp_buy['value'] ); ?>"
 									min="<?php echo esc_attr( $aimp_buy['min'] ); ?>"
 									step="<?php echo esc_attr( $aimp_buy['step'] ); ?>"
 									<?php echo $aimp_buy['max'] ? 'max="' . esc_attr( $aimp_buy['max'] ) . '"' : ''; ?>
-									aria-label="<?php echo esc_attr( $aimp_buy['per_10cm'] ? __( 'Length in cm', 'atelier-irisee-master-plugin' ) : __( 'Quantity', 'atelier-irisee-master-plugin' ) ); ?>">
+									aria-label="<?php echo esc_attr( $aimp_giftcard ? __( 'Gift card value', 'atelier-irisee-master-plugin' ) : ( $aimp_buy['per_10cm'] ? __( 'Length in cm', 'atelier-irisee-master-plugin' ) : __( 'Quantity', 'atelier-irisee-master-plugin' ) ) ); ?>">
 								<?php if ( $aimp_buy['per_10cm'] ) : ?>
 									<span class="aimp-stepper-unit"><?php esc_html_e( 'cm', 'atelier-irisee-master-plugin' ); ?></span>
 								<?php endif; ?>
@@ -194,6 +192,13 @@ if ( $aimp_fabric && $aimp_fabric['specs'] ) {
 							<span class="<?php echo $aimp_dot <= $aimp_level ? 'is-on' : ''; ?>"></span>
 						<?php endfor; ?>
 					</span>
+				</p>
+			<?php endif; ?>
+
+			<?php if ( $aimp_pattern && '' !== trim( $data['sizes_text'] ) ) : ?>
+				<p class="aimp-skill aimp-sizes">
+					<span class="aimp-skill-label"><?php esc_html_e( 'Sizes', 'atelier-irisee-master-plugin' ); ?>:</span>
+					<strong><?php echo esc_html( $data['sizes_text'] ); ?></strong>
 				</p>
 			<?php endif; ?>
 
@@ -255,8 +260,10 @@ if ( $aimp_fabric && $aimp_fabric['specs'] ) {
 		</div>
 	</div>
 
-	<?php if ( $aimp_insp_cards ) : ?>
-		<?php // Fabrics: up to three inspiration cards across the full width. ?>
+	<?php if ( $aimp_insp_cards || $data['recommended'] ) : ?>
+		<?php // Fabrics: up to three inspiration cards and the recommended pattern, across the full width. ?>
+		<section class="aimp-inspiration">
+		<h3><?php esc_html_e( 'Inspiration', 'atelier-irisee-master-plugin' ); ?></h3>
 		<ul class="aimp-inspiration-grid">
 			<?php foreach ( $aimp_insp_cards as $aimp_card ) : ?>
 				<li class="aimp-inspiration-card">
@@ -268,7 +275,18 @@ if ( $aimp_fabric && $aimp_fabric['specs'] ) {
 					<?php endif; ?>
 				</li>
 			<?php endforeach; ?>
+			<?php if ( $data['recommended'] ) : ?>
+				<?php $aimp_rec = $data['recommended']; ?>
+				<li class="aimp-inspiration-card aimp-inspiration-card--pattern">
+					<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Recommended pattern', 'atelier-irisee-master-plugin' ); ?></h4>
+					<a class="aimp-recommended" href="<?php echo esc_url( $aimp_rec->get_permalink() ); ?>">
+						<?php echo wp_kses_post( $aimp_rec->get_image( 'woocommerce_thumbnail', array( 'class' => 'aimp-recommended-image' ) ) ); ?>
+						<span class="aimp-recommended-name"><?php echo esc_html( wp_strip_all_tags( $aimp_rec->get_name() ) ); ?></span>
+					</a>
+				</li>
+			<?php endif; ?>
 		</ul>
+		</section>
 	<?php endif; ?>
 
 	<?php if ( $aimp_fabric && ( $aimp_has_desc || $aimp_washing_html || $aimp_specs_html ) ) : ?>
@@ -283,11 +301,11 @@ if ( $aimp_fabric && $aimp_fabric['specs'] ) {
 			<?php if ( $aimp_washing_html || $aimp_specs_html ) : ?>
 				<div class="aimp-product-dropdowns">
 					<?php
-					if ( $aimp_washing_html ) {
-						$aimp_dropdown( __( 'Washing instructions', 'atelier-irisee-master-plugin' ), $aimp_washing_html, 'aimp-dropdown--washing' );
-					}
 					if ( $aimp_specs_html ) {
 						$aimp_dropdown( __( 'Specifications', 'atelier-irisee-master-plugin' ), $aimp_specs_html, 'aimp-dropdown--specs' );
+					}
+					if ( $aimp_washing_html ) {
+						$aimp_dropdown( __( 'Washing instructions', 'atelier-irisee-master-plugin' ), $aimp_washing_html, 'aimp-dropdown--washing' );
 					}
 					?>
 				</div>
@@ -309,11 +327,24 @@ if ( $aimp_fabric && $aimp_fabric['specs'] ) {
 
 	<?php if ( $data['fitting'] ) : ?>
 		<section class="aimp-product-section">
-			<h3><?php esc_html_e( 'Fits these patterns', 'atelier-irisee-master-plugin' ); ?></h3>
+			<h3><?php esc_html_e( 'Suggested patterns', 'atelier-irisee-master-plugin' ); ?></h3>
 			<ul class="aimp-grid aimp-product-cards">
 				<?php
 				foreach ( $data['fitting'] as $aimp_fit ) {
 					echo AIMP_Product_Page::card_html( $aimp_fit ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in card_html().
+				}
+				?>
+			</ul>
+		</section>
+	<?php endif; ?>
+
+	<?php if ( $data['fabrics'] ) : ?>
+		<section class="aimp-product-section">
+			<h3><?php esc_html_e( 'Recommended fabrics', 'atelier-irisee-master-plugin' ); ?></h3>
+			<ul class="aimp-grid aimp-product-cards">
+				<?php
+				foreach ( $data['fabrics'] as $aimp_fabric_card ) {
+					echo AIMP_Product_Page::card_html( $aimp_fabric_card ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in card_html().
 				}
 				?>
 			</ul>

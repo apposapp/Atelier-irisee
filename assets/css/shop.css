@@ -375,3 +375,102 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
+
+/* ------------------------------------------------------------------
+ * Mosaic ([atelier_irisee_mosaic]): 4 × 4 with two large tiles, 2 columns on phones
+ * ------------------------------------------------------------------ */
+.aimp-configurator.aimp-mosaic {
+	container-type: inline-size;
+	container-name: aimp;
+}
+
+.aimp-configurator .aimp-mosaic-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-auto-rows: 1fr;
+	grid-auto-flow: dense;
+	gap: var(--aimp-gap);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-mosaic-tile {
+	position: relative;
+	margin: 0;
+	aspect-ratio: 1 / 1;
+	overflow: hidden;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-configurator .aimp-mosaic-tile--1,
+.aimp-configurator .aimp-mosaic-tile--8 {
+	grid-column: span 2;
+	grid-row: span 2;
+}
+
+.aimp-configurator .aimp-mosaic-tile > a {
+	display: block;
+	width: 100%;
+	height: 100%;
+	text-decoration: none;
+}
+
+.aimp-configurator .aimp-mosaic-tile img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	object-fit: cover;
+	transition: transform 0.4s ease;
+}
+
+.aimp-configurator .aimp-mosaic-tile a:hover img,
+.aimp-configurator .aimp-mosaic-tile a:focus-visible img {
+	transform: scale(1.04);
+}
+
+.aimp-mosaic-caption {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	padding: 0.55rem 0.9rem;
+	background: rgba(255, 255, 255, 0.86);
+}
+
+.aimp-configurator .aimp-mosaic-name {
+	overflow: hidden;
+	color: var(--aimp-gold);
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.aimp-configurator .aimp-mosaic-price,
+.aimp-configurator .aimp-mosaic-price * {
+	color: var(--aimp-body-text);
+	font-size: 0.9em;
+	font-weight: 600;
+}
+
+.aimp-configurator .aimp-mosaic-tile--1 .aimp-mosaic-caption,
+.aimp-configurator .aimp-mosaic-tile--8 .aimp-mosaic-caption {
+	padding: 0.8rem 1.2rem;
+}
+
+@container aimp (max-width: 600px) {
+	.aimp-configurator .aimp-mosaic-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-configurator .aimp-mosaic-tile img {
+		transition: none;
+	}
+}

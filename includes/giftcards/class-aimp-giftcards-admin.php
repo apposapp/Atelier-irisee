@@ -522,7 +522,7 @@ class AIMP_Giftcards_Admin {
 					<tr><th><label for="aimp_gc_amounts"><?php esc_html_e( 'Amounts to choose from', 'atelier-irisee-master-plugin' ); ?></label></th><td><input type="text" id="aimp_gc_amounts" name="amounts" value="<?php echo esc_attr( $o( 'amounts' ) ); ?>" class="regular-text"><p class="description"><?php esc_html_e( 'Comma separated, for example 25,50,75,100.', 'atelier-irisee-master-plugin' ); ?></p></td></tr>
 					<tr><th><?php esc_html_e( 'Own amount', 'atelier-irisee-master-plugin' ); ?></th><td>
 						<label><input type="checkbox" name="custom_amount" value="1" <?php checked( 1, (int) $o( 'custom_amount' ) ); ?>> <?php esc_html_e( 'Customers may enter their own amount', 'atelier-irisee-master-plugin' ); ?></label><br>
-						<label><?php esc_html_e( 'Minimum', 'atelier-irisee-master-plugin' ); ?> <input type="number" step="0.01" min="1" name="min_amount" value="<?php echo esc_attr( $o( 'min_amount' ) ); ?>" class="small-text"></label>
+						<label><?php esc_html_e( 'Minimum', 'atelier-irisee-master-plugin' ); ?> <input type="number" step="5" min="10" name="min_amount" value="<?php echo esc_attr( $o( 'min_amount' ) ); ?>" class="small-text"></label>
 						<label><?php esc_html_e( 'Maximum', 'atelier-irisee-master-plugin' ); ?> <input type="number" step="0.01" min="1" name="max_amount" value="<?php echo esc_attr( $o( 'max_amount' ) ); ?>" class="small-text"></label>
 					</td></tr>
 					<tr><th><label for="aimp_gc_expiry"><?php esc_html_e( 'Valid for (months)', 'atelier-irisee-master-plugin' ); ?></label></th><td><input type="number" min="0" max="120" id="aimp_gc_expiry" name="expiry_months" value="<?php echo esc_attr( $o( 'expiry_months' ) ); ?>" class="small-text"> <span class="description"><?php esc_html_e( '0 = never expires.', 'atelier-irisee-master-plugin' ); ?></span></td></tr>
@@ -595,7 +595,7 @@ class AIMP_Giftcards_Admin {
 				$amounts[] = $amount;
 			}
 		}
-		$min = $num( 'min_amount', 10, 1 );
+		$min = $num( 'min_amount', 10, AIMP_Giftcards::MIN_AMOUNT );
 		$max = max( $min, $num( 'max_amount', 500, 1 ) );
 
 		$options = array_merge(

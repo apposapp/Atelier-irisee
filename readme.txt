@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,18 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.1.0 =
+* New: cart page [atelier_irisee_cart]. Configurator sets are shown as one product with thumbnails, prices and the set total; other products have ‹ › amounts; discount code, gift card field, totals with shipping and checkout. The "Cart page" setting also sets WooCommerce's cart page.
+* New: footer (company details, social icons, My account and Customer service menus, newsletter, payment logos, legal links, copyright). It replaces Divi's footer, including the "Powered by" bar. Newsletter sign-ups are stored on the site, with a list and CSV download under WooCommerce > Newsletter.
+* New: product mosaic [atelier_irisee_mosaic type="…"]: ten products, best sellers or your own choice.
+* Fabric pages: "Inspiration" title, cards with a single line and no dots, a fourth card with the recommended pattern; specifications as icon cards above the washing instructions.
+* Pattern pages: "Included sizes" under the skill level, and a "Recommended fabrics" row.
+* Gift cards: the ‹ › arrows in the price bar choose the value in steps of €5, from €10.
+* Header: Divi logo, Divi's menu bar always hidden, full width, the side menu fades out as it fades in, and sub-menus fade open and closed.
+* Notices: readable brown text on Divi too, and they close after 4 seconds.
+* The "Empty line" button is now in every text editor, also the small ones.
+* No category label on product pages; "Fits these patterns" is now "Suggested patterns"; the overview card "Configurator" is now "Sewing project kits"; "Out of stock" sits at the bottom of the card.
 
 = 2.0.0 =
 * New: Atelier Irisee header (switch in WooCommerce > Atelier Irisee > Site look). Logo on the left, gold favourites, cart and account icons on the right, and a "Menu" bar that opens a gold side menu with the menu "Atelier Irisee side menu". It replaces the theme header in block and classic themes; [atelier_irisee_header] places it anywhere.

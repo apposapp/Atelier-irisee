@@ -31,6 +31,8 @@ class AIMP_Catalog {
 	const META_INSPIRATION     = '_aimp_inspiration';
 	const META_ORDER_INFO      = '_aimp_order_info';
 	const META_SKILL           = '_aimp_skill';
+	const META_SIZES_TEXT      = '_aimp_sizes_text';
+	const META_RECOMMENDED     = '_aimp_recommended_pattern';
 
 	/** Number of inspiration cards on a fabric. */
 	const INSPIRATION_CARDS = 3;
@@ -363,7 +365,7 @@ class AIMP_Catalog {
 	 * @param array  $meta_query Optional extra meta query.
 	 * @return array
 	 */
-	private static function base_query_args( $term_ids, $type, $meta_query = array() ) {
+	public static function base_query_args( $term_ids, $type, $meta_query = array() ) {
 		$tax_query = array(
 			'relation' => 'AND',
 			array(
@@ -870,7 +872,7 @@ class AIMP_Catalog {
 	 * @param int[] $priority Term ID => position.
 	 * @return int[]
 	 */
-	private static function sort_by_category_priority( $ids, $priority ) {
+	public static function sort_by_category_priority( $ids, $priority ) {
 		if ( ! $ids || ! $priority ) {
 			return $ids;
 		}

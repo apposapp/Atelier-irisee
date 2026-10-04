@@ -318,13 +318,21 @@
 }
 
 /* ------------------------------------------------------------------
- * Inspiration cards (fabrics): one row of three across the full width
+ * Inspiration (fabrics): a title, up to three cards and the recommended pattern, across the full width
  * ------------------------------------------------------------------ */
+.aimp-inspiration {
+	margin: calc(var(--aimp-gap) * 2) 0 0;
+}
+
+.aimp-configurator .aimp-inspiration > h3 {
+	margin: 0 0 0.75rem;
+}
+
 .aimp-inspiration-grid {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 	gap: var(--aimp-gap);
-	margin: calc(var(--aimp-gap) * 2) 0 0;
+	margin: 0;
 	padding: 0;
 	list-style: none;
 }
@@ -332,7 +340,7 @@
 .aimp-configurator .aimp-inspiration-card {
 	margin: 0;
 	padding: 1.25rem 1.4rem;
-	border: 5px double var(--aimp-gold);
+	border: 1px solid var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
@@ -342,6 +350,46 @@
 
 .aimp-inspiration-card .aimp-description > :last-child {
 	margin-bottom: 0;
+}
+
+/* Recommended pattern: picture and name, linking to the pattern */
+.aimp-configurator .aimp-recommended {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	text-decoration: none;
+}
+
+.aimp-configurator .aimp-recommended .aimp-recommended-image {
+	flex: 0 0 auto;
+	width: 72px;
+	height: 72px;
+	object-fit: cover;
+	border: 1px solid var(--aimp-gold);
+	border-radius: 12px;
+}
+
+.aimp-configurator .aimp-recommended-name {
+	color: var(--aimp-gold);
+	font-weight: 700;
+}
+
+.aimp-configurator .aimp-recommended:hover .aimp-recommended-name,
+.aimp-configurator .aimp-recommended:focus-visible .aimp-recommended-name {
+	color: var(--aimp-body-text);
+}
+
+/* "€" in front of the gift card value */
+.aimp-configurator .aimp-stepper-unit--before {
+	margin: 0 -0.2rem 0 0;
+}
+
+.aimp-product--giftcard .aimp-stepper .aimp-stepper-input {
+	width: 4.2em;
+}
+
+.aimp-configurator .aimp-sizes {
+	margin-top: -0.5rem;
 }
 
 /* ------------------------------------------------------------------
@@ -458,12 +506,6 @@
 .aimp-configurator .aimp-product-bullets strong {
 	color: inherit;
 	font-weight: 700;
-}
-
-@container aimp (max-width: 700px) {
-	.aimp-inspiration-grid {
-		grid-template-columns: minmax(0, 1fr);
-	}
 }
 
 @container aimp (max-width: 420px) {

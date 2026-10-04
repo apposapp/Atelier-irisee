@@ -70,6 +70,7 @@
 		var max = parseInt(field.getAttribute('max'), 10) || 0;
 		var price = bar.querySelector('[data-aimp-price]');
 		var unitLine = bar.querySelector('[data-aimp-unit-line]');
+		var giftcard = bar.hasAttribute('data-giftcard');
 
 		// Round up to a whole step and keep it within min and max (a typed 25 cm becomes 30 cm).
 		var clean = function (value) {
@@ -77,7 +78,21 @@
 			n = Math.max(min, n);
 			return max ? Math.min(max, n) : n;
 		};
+
+		// Gift cards: the arrows choose the card's value; the price adds the printing fee when it goes by post.
+		var giftcardFee = function () {
+			var form = root.querySelector('[data-aimp-gc-form]');
+			var post = root.querySelector('input[name="aimp_gc[delivery]"]:checked');
+			return form && post && post.value === 'post' ? parseFloat(form.getAttribute('data-fee')) || 0 : 0;
+		};
+
 		var showPrice = function (amount) {
+			if (giftcard) {
+				if (price) {
+					price.innerHTML = '<span class="woocommerce-Price-amount amount">' + UI.esc(UI.money(amount + giftcardFee(), cfg.currency)) + '</span>';
+				}
+				return;
+			}
 			if (!unitPrice) {
 				return;
 			}
@@ -114,18 +129,12 @@
 		});
 		set(field.value);
 
-		// Gift cards: the price is the chosen amount (+ printing fee), sent by giftcards.js.
-		if (bar.hasAttribute('data-giftcard')) {
-			root.addEventListener('aimp:gc-total', function (e) {
-				if (e.detail && e.detail.total > 0) {
-					unitPrice = e.detail.total;
+		if (giftcard) {
+			root.addEventListener('change', function (e) {
+				if (e.target && e.target.name === 'aimp_gc[delivery]') {
 					showPrice(parseInt(field.value, 10) || min);
 				}
 			});
-			var gcForm = root.querySelector('[data-aimp-gc-form]');
-			if (gcForm) {
-				gcForm.dispatchEvent(new Event('change', { bubbles: true }));
-			}
 		}
 	}
 

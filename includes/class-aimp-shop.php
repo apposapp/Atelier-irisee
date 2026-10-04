@@ -296,7 +296,7 @@ class AIMP_Shop {
 			'patterns'     => array( __( 'Patterns', 'atelier-irisee-master-plugin' ), self::page_for_type( 'patterns' ), 'overview_img_patterns', array( 'pattern_cat' ) ),
 			'haberdashery' => array( __( 'Haberdashery', 'atelier-irisee-master-plugin' ), self::page_for_type( 'haberdashery' ), 'overview_img_haberdashery', array( 'button_cat', 'zip_cat', 'ribbon_cat', 'bias_cat' ) ),
 			'giftcards'    => array( __( 'Gift cards', 'atelier-irisee-master-plugin' ), ( $giftcard && 'publish' === get_post_status( $giftcard ) ) ? $giftcard : 0, 'overview_img_giftcards', array() ),
-			'configurator' => array( __( 'Configurator', 'atelier-irisee-master-plugin' ), ( $configurator && 'publish' === get_post_status( $configurator ) ) ? $configurator : 0, 'overview_img_configurator', array() ),
+			'configurator' => array( __( 'Sewing project kits', 'atelier-irisee-master-plugin' ), ( $configurator && 'publish' === get_post_status( $configurator ) ) ? $configurator : 0, 'overview_img_configurator', array() ),
 		);
 	}
 
@@ -409,7 +409,7 @@ class AIMP_Shop {
 	 * @param int[] $cats Categories (children included); empty = whole shop.
 	 * @return array
 	 */
-	private static function scope_tax_query( $cats ) {
+	public static function scope_tax_query( $cats ) {
 		$tax_query  = array( 'relation' => 'AND' );
 		$visibility = AIMP_Catalog::visibility_tax_query();
 		if ( $visibility ) {
@@ -656,11 +656,6 @@ class AIMP_Shop {
 		$item['short_description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
 		$item['gallery']           = AIMP_Catalog::images( $product );
 		$item['in_stock']          = $product->is_in_stock();
-		$item['category']          = '';
-		$cats                      = wc_get_product_terms( $product->get_id(), 'product_cat', array( 'fields' => 'names' ) );
-		if ( $cats && ! is_wp_error( $cats ) ) {
-			$item['category'] = $cats[0];
-		}
 		return $item;
 	}
 

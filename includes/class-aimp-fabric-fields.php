@@ -96,6 +96,20 @@ class AIMP_Fabric_Fields {
 				<?php endfor; ?>
 			</div>
 
+			<p class="aimp-fabric-recommended">
+				<label for="aimp_recommended_pattern"><strong><?php esc_html_e( 'Recommended pattern', 'atelier-irisee-master-plugin' ); ?></strong></label><br>
+				<select id="aimp_recommended_pattern" name="aimp_fabric[recommended_pattern]">
+					<option value="0"><?php esc_html_e( '— None —', 'atelier-irisee-master-plugin' ); ?></option>
+					<?php
+					$current = $product ? absint( $product->get_meta( AIMP_Catalog::META_RECOMMENDED ) ) : 0;
+					foreach ( self::pattern_choices() as $pattern_id => $pattern_name ) {
+						printf( '<option value="%1$d" %2$s>%3$s</option>', (int) $pattern_id, selected( $current, $pattern_id, false ), esc_html( $pattern_name ) );
+					}
+					?>
+				</select>
+				<span class="description"><?php esc_html_e( 'Shown as a fourth card next to the inspiration cards, with its picture and name.', 'atelier-irisee-master-plugin' ); ?></span>
+			</p>
+
 			<div class="aimp-fabric-editors">
 				<div>
 					<h4><label for="aimp_order_info"><?php esc_html_e( 'Order information', 'atelier-irisee-master-plugin' ); ?></label></h4>
@@ -137,6 +151,42 @@ class AIMP_Fabric_Fields {
 	}
 
 	/**
+	 * All published patterns: ID => name.
+	 *
+	 * @return array
+	 */
+	private static function pattern_choices() {
+		$root = AIMP_Settings::get( 'pattern_cat' );
+		if ( ! $root ) {
+			return array();
+		}
+		$query   = new WP_Query(
+			array(
+				'post_type'      => 'product',
+				'post_status'    => 'publish',
+				'posts_per_page' => 500,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+					array(
+						'taxonomy'         => 'product_cat',
+						'field'            => 'term_id',
+						'terms'            => array( $root ),
+						'include_children' => true,
+					),
+				),
+			)
+		);
+		$choices = array();
+		foreach ( $query->posts as $id ) {
+			$choices[ (int) $id ] = wp_strip_all_tags( get_the_title( $id ) );
+		}
+		return $choices;
+	}
+
+	/**
 	 * Runs inside WooCommerce's product save, which already verified its nonce.
 	 *
 	 * @param WC_Product $product Product.
@@ -161,6 +211,12 @@ class AIMP_Fabric_Fields {
 			list( $title_key, $text_key ) = AIMP_Catalog::inspiration_keys( $n );
 			$set( $title_key, isset( $input[ 'insp_' . $n . '_title' ] ) ? sanitize_text_field( $input[ 'insp_' . $n . '_title' ] ) : '' );
 			$set( $text_key, isset( $input[ 'insp_' . $n . '_text' ] ) ? wp_kses_post( $input[ 'insp_' . $n . '_text' ] ) : '' );
+		}
+		$recommended = isset( $input['recommended_pattern'] ) ? absint( $input['recommended_pattern'] ) : 0;
+		if ( $recommended && AIMP_Catalog::get_pattern( $recommended ) ) {
+			$product->update_meta_data( AIMP_Catalog::META_RECOMMENDED, $recommended );
+		} else {
+			$product->delete_meta_data( AIMP_Catalog::META_RECOMMENDED );
 		}
 		// The single inspiration text from before the cards now lives in card 1.
 		$product->delete_meta_data( AIMP_Catalog::META_INSPIRATION );

@@ -514,6 +514,14 @@
 	color: #fff;
 }
 
+/* "Out of stock" / "Not enough stock" sit at the bottom of the card, under the price;
+ * "Selected" stays on top of the picture. */
+.aimp-configurator .aimp-card .aimp-badge:not(.aimp-badge--selected) {
+	position: static;
+	margin-top: 0.2rem;
+	transform: none;
+}
+
 /* ------------------------------------------------------------------
  * Pagination
  * ------------------------------------------------------------------ */
@@ -917,68 +925,68 @@
  * Product pages and shop pages: the configurator's look, also where WooCommerce and the theme style
  * the same elements. Their selectors are often stronger (".woocommerce div.product p.price" and
  * similar), so these rules start with
- *     .aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity)
+ *     .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity)
  * The #aimp-specificity part never matches anything; it only gives the selector the weight of an ID,
  * so these rules win without !important.
  * ================================================================== */
 
 /* Normal text: brown, 15px, semi-bold */
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(p, li, dd, td, label:not([class*="aimp-gc-"]), address, figcaption, .stock, .woocommerce-breadcrumb, .woocommerce-variation-description, .woocommerce-variation-availability, .aimp-description, .aimp-description *) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(p, li, dd, td, label:not([class*="aimp-gc-"]), address, figcaption, .stock, .woocommerce-breadcrumb, .woocommerce-variation-description, .woocommerce-variation-availability, .aimp-description, .aimp-description *) {
 	color: var(--aimp-body-text);
 	font-size: var(--aimp-body-size);
 	font-weight: 600;
 }
 
 /* Titles and table headers: gold */
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6, th, legend, summary) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6, th, legend, summary) {
 	color: var(--aimp-gold);
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6) {
 	font-weight: 700;
 	line-height: 1.2;
 }
 
 /* Links: gold */
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(p, li, dd, td, .woocommerce-breadcrumb, nav) a:not([class*="aimp-"]):not(.button) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(p, li, dd, td, .woocommerce-breadcrumb, nav) a:not([class*="aimp-"]):not(.button) {
 	color: var(--aimp-gold);
 }
 
 /* Prices: brown and semi-bold like the configurator prices; the main price a little larger */
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.aimp-details-price, .aimp-details-price :not(small), .woocommerce-variation-price .price, .woocommerce-variation-price .price *) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(.aimp-details-price, .aimp-details-price :not(small), .woocommerce-variation-price .price, .woocommerce-variation-price .price *) {
 	color: var(--aimp-body-text);
 	font-size: calc(var(--aimp-body-size) * 1.3);
 	font-weight: 700;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.aimp-details-price small, .aimp-price-unit, .aimp-details-eyebrow) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(.aimp-details-price small, .aimp-price-unit, .aimp-details-eyebrow) {
 	color: var(--aimp-body-text);
 	font-size: calc(var(--aimp-body-size) * 0.85);
 	font-weight: 600;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-info-list dt {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .aimp-info-list dt {
 	color: var(--aimp-body-text);
 	font-size: calc(var(--aimp-body-size) * 0.85);
 	font-weight: 600;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-details-eyebrow a {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .aimp-details-eyebrow a {
 	color: inherit;
 	text-decoration: none;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(del, del *) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(del, del *) {
 	opacity: 0.6;
 	font-weight: 600;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.out-of-stock, .is-out) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(.out-of-stock, .is-out) {
 	color: #a3352b;
 }
 
 /* WooCommerce's own buttons (add to cart, review submit): the configurator button */
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.single_add_to_cart_button, .button, button.button, input[type="submit"]) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(.single_add_to_cart_button, .button, button.button, input[type="submit"]) {
 	display: inline-block;
 	width: auto;
 	margin: 0;
@@ -998,18 +1006,18 @@
 	transition: background-color 0.3s ease;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.single_add_to_cart_button, .button, button.button, input[type="submit"]):is(:hover, :focus-visible):not(:disabled):not(.disabled) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(.single_add_to_cart_button, .button, button.button, input[type="submit"]):is(:hover, :focus-visible):not(:disabled):not(.disabled) {
 	background: var(--aimp-gold-tint);
 	color: var(--aimp-gold);
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.single_add_to_cart_button, .button):is(:disabled, .disabled) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(.single_add_to_cart_button, .button):is(:disabled, .disabled) {
 	opacity: 0.4;
 	cursor: not-allowed;
 }
 
 /* Fields: thin gold line, like the configurator search */
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(input[type="text"], input[type="email"], input[type="number"], input[type="search"], input[type="tel"], input[type="url"], input[type="password"], select, textarea) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(input[type="text"], input[type="email"], input[type="number"], input[type="search"], input[type="tel"], input[type="url"], input[type="password"], select, textarea) {
 	max-width: 100%;
 	padding: 0.5rem 0.75rem;
 	border: 1px solid var(--aimp-gold);
@@ -1021,14 +1029,14 @@
 	font-weight: 600;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(input[type="checkbox"], input[type="radio"]) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(input[type="checkbox"], input[type="radio"]) {
 	accent-color: var(--aimp-gold);
 }
 
 /* Rating stars: gold */
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .star-rating,
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .star-rating span::before,
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) p.stars a {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .star-rating,
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .star-rating span::before,
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) p.stars a {
 	color: var(--aimp-gold);
 }
 
@@ -1073,7 +1081,7 @@
 
 /* Our own buttons on product and shop pages keep the configurator look, whatever the theme does with
  * buttons and links: the add-to-cart button and the language flags. */
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.aimp-add-to-cart, .aimp-language) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(.aimp-add-to-cart, .aimp-language) {
 	border: 5px double var(--aimp-gold);
 	border-radius: 100px;
 	background: transparent;
@@ -1088,41 +1096,41 @@
 	visibility: visible;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-add-to-cart {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .aimp-add-to-cart {
 	padding: 0.7rem 1.6rem;
 	font-size: var(--aimp-body-size);
 	line-height: 1.2;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-language {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .aimp-language {
 	padding: 0.35rem 0.9rem;
 	font-size: 0.9em;
 	font-weight: 600;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) :is(.aimp-add-to-cart, .aimp-language):is(:hover, :focus-visible):not(:disabled) {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) :is(.aimp-add-to-cart, .aimp-language):is(:hover, :focus-visible):not(:disabled) {
 	background: var(--aimp-gold-tint);
 	color: var(--aimp-gold);
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-language.is-active,
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-language.is-active:hover {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .aimp-language.is-active,
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .aimp-language.is-active:hover {
 	background: var(--aimp-gold);
 	color: #fff;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-language span {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .aimp-language span {
 	color: inherit;
 	font-size: inherit;
 }
 
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-add-to-cart:disabled {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .aimp-add-to-cart:disabled {
 	opacity: 0.4;
 	cursor: not-allowed;
 }
 
 /* "Out of stock" next to the price and in the shop details */
-.aimp-configurator:is(.aimp-product, .aimp-shop, #aimp-specificity) .aimp-sold-out {
+.aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, #aimp-specificity) .aimp-sold-out {
 	display: inline-block;
 	margin: 0.35rem 0 0;
 	padding: 0.1rem 0.7rem;
@@ -1140,4 +1148,16 @@
 	max-width: none;
 	height: 100%;
 	object-fit: cover;
+}
+
+/* Divi (and some other themes) put bullets and an indent on every list in the content
+ * ("#left-area ul", ".entry-content ul"). The plugin's own lists are grids of cards, without bullets. */
+:is(.aimp-configurator, #aimp-specificity) ul[class*="aimp-"] {
+	margin-left: 0;
+	padding-left: 0;
+	list-style: none;
+}
+
+:is(.aimp-configurator, #aimp-specificity) ul[class*="aimp-"] > li {
+	list-style: none;
 }

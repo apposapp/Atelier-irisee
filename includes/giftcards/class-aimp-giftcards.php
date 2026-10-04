@@ -18,6 +18,22 @@ class AIMP_Giftcards {
 	const OPTION    = 'aimp_giftcards';
 	const ALPHABET  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No 0/O and 1/I, which are easy to confuse.
 
+	/** Lowest gift card value, and the steps the amount goes up in on the product page. */
+	const MIN_AMOUNT  = 10;
+	const AMOUNT_STEP = 5;
+
+	/**
+	 * Amount limits for the ‹ › amount chooser: [ min, max ], both multiples of AMOUNT_STEP.
+	 *
+	 * @return float[]
+	 */
+	public static function amount_range() {
+		$step = self::AMOUNT_STEP;
+		$min  = max( self::MIN_AMOUNT, ceil( (float) self::opt( 'min_amount' ) / $step ) * $step );
+		$max  = max( $min, floor( (float) self::opt( 'max_amount' ) / $step ) * $step );
+		return array( (float) $min, (float) $max );
+	}
+
 	public static function init() {
 		$dir = AIMP_PLUGIN_DIR . 'includes/giftcards/';
 		require_once $dir . 'class-aimp-giftcards-product.php';

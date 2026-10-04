@@ -151,6 +151,28 @@ class AIMP_Header {
 	}
 
 	/**
+	 * The logo: the one set in Divi (Theme Options → General → Logo), otherwise the WordPress site logo,
+	 * otherwise the site name.
+	 *
+	 * @return string
+	 */
+	public static function logo_html() {
+		$divi = function_exists( 'et_get_option' ) ? (string) et_get_option( 'divi_logo' ) : '';
+		if ( '' !== $divi ) {
+			return sprintf(
+				'<a class="aimp-header-logo" href="%1$s" rel="home"><img src="%2$s" alt="%3$s"></a>',
+				esc_url( home_url( '/' ) ),
+				esc_url( $divi ),
+				esc_attr( get_bloginfo( 'name' ) )
+			);
+		}
+		if ( has_custom_logo() ) {
+			return get_custom_logo();
+		}
+		return '<a class="aimp-header-sitename" href="' . esc_url( home_url( '/' ) ) . '" rel="home">' . esc_html( get_bloginfo( 'name' ) ) . '</a>';
+	}
+
+	/**
 	 * Gold line icons.
 	 *
 	 * @param string $name heart, bag, user, menu or close.

@@ -14,11 +14,7 @@ defined( 'ABSPATH' ) || exit;
 <header class="aimp-header" data-aimp-header>
 	<div class="aimp-header-inner">
 		<div class="aimp-header-brand">
-			<?php if ( has_custom_logo() ) : ?>
-				<?php the_custom_logo(); ?>
-			<?php else : ?>
-				<a class="aimp-header-sitename" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a>
-			<?php endif; ?>
+			<?php echo AIMP_Header::logo_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in logo_html(). ?>
 		</div>
 
 		<nav class="aimp-header-icons" aria-label="<?php esc_attr_e( 'Shortcuts', 'atelier-irisee-master-plugin' ); ?>">
