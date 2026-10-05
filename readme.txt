@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.2.0
+Stable tag: 2.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,17 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.3.0 =
+* Settings page in tabs: General, Product categories, Shop pages, Discounts, Site look, Footer and Mosaic. Still one form, so saving one tab keeps the others; after saving you stay on the same tab.
+* Checkout: "Your order" next to every step, with sewing project kits shown as one product (pictures, amounts, crossed-out kit prices, set total), like the cart. On phones it sits above the steps and folds open and closed.
+* Checkout: step 3 is now "Overview" and starts with the delivery address from the details step (or the other delivery address when "Ship to a different address" is ticked).
+* Configurator: the fabric filters are now the gold panel of the shop pages (search, sort, fabric categories, in stock). Both panels have the side menu's gold gradient.
+* Details panels taller than the screen move along while scrolling and stay in view.
+* Patterns: saving a product now also refreshes the page caches of common caching plugins (LiteSpeed, WP Rocket, W3 Total Cache, WP Super Cache, SiteGround, WP Fastest Cache, Breeze, Cloudflare, Hummingbird). The pattern's Atelier Irisee tab says whether it is for sale on the website, or why it shows "Out of stock".
+* Button texts are brown and 15px everywhere; selected buttons stay white on gold.
+* Cart: removing a discount code works again, with a notice.
+* Favorites page: every product gets a "View product" button.
 
 = 2.2.0 =
 * New: step-by-step checkout [atelier_irisee_checkout] (Cart → Details → Delivery → Payment → Confirmation) on top of WooCommerce's own checkout, so payment plugins such as Mollie work unchanged. The "Checkout page" setting also sets WooCommerce's checkout page.

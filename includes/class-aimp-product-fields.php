@@ -204,6 +204,22 @@ class AIMP_Product_Fields {
 		$terms      = AIMP_Catalog::get_fabric_categories();
 		?>
 		<div id="aimp_pattern_data" class="panel woocommerce_options_panel hidden">
+			<?php if ( $is_product && $product_object->get_id() && $product_object->is_type( 'variable' ) ) : ?>
+				<?php $issue = AIMP_Product_Page::pattern_issue( $product_object ); ?>
+				<div class="options_group aimp-availability">
+					<p class="<?php echo $issue ? 'aimp-availability--no' : 'aimp-availability--yes'; ?>">
+						<?php
+						if ( $issue ) {
+							/* translators: %s: reason, e.g. "none of the sizes has a price" */
+							echo esc_html( sprintf( __( 'On the website: shown as out of stock, because %s', 'atelier-irisee-master-plugin' ), $issue ) );
+						} else {
+							esc_html_e( 'On the website: available.', 'atelier-irisee-master-plugin' );
+						}
+						?>
+						<br><span class="description"><?php esc_html_e( 'Still seeing old information on the website after saving? Clear the cache of your caching plugin once.', 'atelier-irisee-master-plugin' ); ?></span>
+					</p>
+				</div>
+			<?php endif; ?>
 			<div class="options_group">
 				<?php
 				woocommerce_wp_select(

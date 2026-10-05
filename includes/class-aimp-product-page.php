@@ -46,6 +46,94 @@ class AIMP_Product_Page {
 
 		// Customers don't see stock levels; only "Out of stock" stays.
 		add_filter( 'woocommerce_get_stock_html', array( __CLASS__, 'stock_html' ), 20, 2 );
+
+		// A saved product (or size) is shown right away, also when a caching plugin keeps copies of the pages.
+		add_action( 'woocommerce_update_product', array( __CLASS__, 'purge_caches' ), 99 );
+		add_action( 'woocommerce_update_product_variation', array( __CLASS__, 'purge_caches' ), 99 );
+		add_action( 'shutdown', array( __CLASS__, 'run_purge' ) );
+	}
+
+	/* ------------------------------------------------------------------
+	 * Caches
+	 * ------------------------------------------------------------------ */
+
+	/** Products saved during this request (refreshed once, at the end). */
+	private static $to_purge = array();
+
+	/**
+	 * @param int $product_id Product or variation ID.
+	 */
+	public static function purge_caches( $product_id ) {
+		$parent = wp_get_post_parent_id( $product_id );
+		$id     = 'product_variation' === get_post_type( $product_id ) && $parent ? $parent : (int) $product_id;
+		if ( $id ) {
+			self::$to_purge[ $id ] = $id;
+		}
+	}
+
+	/**
+	 * Clears WooCommerce's product caches and asks the common page caching plugins to refresh the product page
+	 * and the shop pages.
+	 */
+	public static function run_purge() {
+		if ( ! self::$to_purge ) {
+			return;
+		}
+		$urls = array();
+		foreach ( self::$to_purge as $id ) {
+			wc_delete_product_transients( $id );
+			clean_post_cache( $id );
+			$urls[] = get_permalink( $id );
+		}
+		AIMP_Shop::flush_cache();
+		foreach ( array( wc_get_page_id( 'shop' ), AIMP_Settings::get( 'configurator_page' ) ) as $page_id ) {
+			if ( $page_id > 0 ) {
+				$urls[] = get_permalink( $page_id );
+			}
+		}
+		$urls = array_filter( array_unique( $urls ) );
+
+		foreach ( self::$to_purge as $id ) {
+			do_action( 'litespeed_purge_post', $id );                // LiteSpeed Cache.
+			if ( function_exists( 'rocket_clean_post' ) ) {          // WP Rocket.
+				rocket_clean_post( $id );
+			}
+			if ( function_exists( 'w3tc_flush_post' ) ) {            // W3 Total Cache.
+				w3tc_flush_post( $id );
+			}
+			if ( function_exists( 'wp_cache_post_change' ) ) {       // WP Super Cache.
+				wp_cache_post_change( $id );
+			}
+			if ( function_exists( 'sg_cachepress_purge_cache' ) ) {  // SiteGround Optimizer.
+				sg_cachepress_purge_cache( get_permalink( $id ) );
+			}
+			do_action( 'breeze_clear_all_cache' );                   // Breeze (no per-page purge).
+			do_action( 'wphb_clear_page_cache', $id );               // Hummingbird.
+		}
+		if ( isset( $GLOBALS['wp_fastest_cache'] ) && method_exists( $GLOBALS['wp_fastest_cache'], 'singleDeleteCache' ) ) { // WP Fastest Cache.
+			foreach ( self::$to_purge as $id ) {
+				$GLOBALS['wp_fastest_cache']->singleDeleteCache( false, $id );
+			}
+		}
+		if ( class_exists( '\CF\WordPress\Hooks' ) ) {               // Cloudflare (APO).
+			try {
+				$cloudflare = new \CF\WordPress\Hooks();
+				if ( method_exists( $cloudflare, 'purgeCacheByRelevantURLs' ) ) {
+					foreach ( self::$to_purge as $id ) {
+						$cloudflare->purgeCacheByRelevantURLs( $id );
+					}
+				}
+			} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- a failing cache plugin must not break saving.
+			}
+		}
+		/**
+		 * Lets other caching setups refresh the pages of saved products.
+		 *
+		 * @param int[]    $ids  Product IDs.
+		 * @param string[] $urls Product and shop page addresses.
+		 */
+		do_action( 'aimp_purge_product_pages', array_values( self::$to_purge ), $urls );
+		self::$to_purge = array();
 	}
 
 	public static function enabled() {
@@ -94,6 +182,43 @@ class AIMP_Product_Page {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Why a pattern shows "Out of stock" on its page, for the admin check. Empty when it can be bought.
+	 *
+	 * @param WC_Product $pattern Pattern product.
+	 * @return string
+	 */
+	public static function pattern_issue( $pattern ) {
+		if ( 'publish' !== $pattern->get_status() ) {
+			return __( 'the pattern is not published.', 'atelier-irisee-master-plugin' );
+		}
+		if ( ! AIMP_Catalog::get_pattern( $pattern->get_id() ) ) {
+			return __( 'the pattern is not in the Patterns category set under WooCommerce > Atelier Irisee.', 'atelier-irisee-master-plugin' );
+		}
+		if ( self::pattern_variation( $pattern ) ) {
+			return '';
+		}
+		$enabled = 0;
+		$priced  = 0;
+		foreach ( $pattern->get_children() as $child_id ) {
+			$variation = wc_get_product( $child_id );
+			if ( ! $variation || 'publish' !== $variation->get_status() ) {
+				continue;
+			}
+			++$enabled;
+			if ( '' !== (string) $variation->get_price() ) {
+				++$priced;
+			}
+		}
+		if ( ! $enabled ) {
+			return __( 'the pattern has no enabled sizes (Variations tab).', 'atelier-irisee-master-plugin' );
+		}
+		if ( ! $priced ) {
+			return __( 'none of the sizes has a price (Variations tab).', 'atelier-irisee-master-plugin' );
+		}
+		return __( 'all sizes with a price are out of stock (Variations tab, stock status of each size).', 'atelier-irisee-master-plugin' );
 	}
 
 	public static function add_pattern_to_cart() {

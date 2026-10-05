@@ -64,3 +64,40 @@ jQuery(function ($) {
 		$(this).hide();
 	});
 });
+
+/**
+ * Settings tabs: one section at a time. The tab is kept in the address, so saving returns to it.
+ */
+jQuery(function ($) {
+	'use strict';
+
+	var $tabs = $('.aimp-settings-tabs [data-aimp-tab]');
+	if (!$tabs.length) {
+		return;
+	}
+	var $form = $tabs.closest('form');
+
+	function show(id) {
+		if (!$('[data-aimp-panel="' + id + '"]').length) {
+			id = $tabs.first().data('aimp-tab');
+		}
+		$tabs.removeClass('nav-tab-active').attr('aria-selected', 'false');
+		$tabs.filter('[data-aimp-tab="' + id + '"]').addClass('nav-tab-active').attr('aria-selected', 'true');
+		$('[data-aimp-panel]').prop('hidden', true);
+		$('[data-aimp-panel="' + id + '"]').prop('hidden', false);
+		// After saving, WordPress returns to the page in _wp_http_referer: add the tab to it.
+		var $referer = $form.find('input[name="_wp_http_referer"]');
+		$referer.val(String($referer.val() || '').split('#')[0] + '#tab-' + id);
+	}
+
+	$tabs.on('click', function (e) {
+		e.preventDefault();
+		var id = $(this).data('aimp-tab');
+		show(id);
+		if (window.history && window.history.replaceState) {
+			window.history.replaceState(null, '', '#tab-' + id);
+		}
+	});
+
+	show((window.location.hash || '').replace('#tab-', ''));
+});

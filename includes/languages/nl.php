@@ -982,4 +982,18 @@ return array(
 	'You have no discount codes at the moment.' => 'Je hebt momenteel geen kortingscodes.',
 	'days' => 'dagen',
 	'valid for' => 'geldig gedurende',
+
+	// 2.3.0
+	'Delivery address' => 'Bezorgadres',
+	'On the website: available.' => 'Op de website: beschikbaar.',
+	'On the website: shown as out of stock, because %s' => 'Op de website: getoond als uitverkocht, omdat %s',
+	'Overview' => 'Overzicht',
+	'Still seeing old information on the website after saving? Clear the cache of your caching plugin once.' => 'Zie je na het opslaan nog oude informatie op de website? Leeg dan één keer de cache van je cacheplugin.',
+	'The discount code has been removed.' => 'De kortingscode is verwijderd.',
+	'Your order' => 'Je bestelling',
+	'all sizes with a price are out of stock (Variations tab, stock status of each size).' => 'alle maten met een prijs zijn uitverkocht (tabblad Variaties, voorraadstatus van elke maat).',
+	'none of the sizes has a price (Variations tab).' => 'geen enkele maat heeft een prijs (tabblad Variaties).',
+	'the pattern has no enabled sizes (Variations tab).' => 'het patroon heeft geen ingeschakelde maten (tabblad Variaties).',
+	'the pattern is not in the Patterns category set under WooCommerce > Atelier Irisee.' => 'het patroon staat niet in de categorie Patronen die is ingesteld onder WooCommerce > Atelier Irisee.',
+	'the pattern is not published.' => 'het patroon is niet gepubliceerd.',
 );

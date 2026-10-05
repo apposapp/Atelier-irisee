@@ -41,6 +41,26 @@
 		submitUpdate(stepper.closest('form'));
 	});
 
+	/*
+	 * "[Remove]" next to a discount code: WooCommerce's cart script removes it in the background and then
+	 * refreshes a cart form this page doesn't have, so nothing seemed to happen. Here the link is simply
+	 * followed (WooCommerce removes the code and shows a notice). The capture phase runs before
+	 * WooCommerce's handler.
+	 */
+	document.addEventListener(
+		'click',
+		function (e) {
+			var link = e.target.closest ? e.target.closest('.aimp-cart a.woocommerce-remove-coupon') : null;
+			if (!link) {
+				return;
+			}
+			e.preventDefault();
+			e.stopPropagation();
+			window.location.href = link.href;
+		},
+		true
+	);
+
 	document.addEventListener('change', function (e) {
 		var field = e.target;
 		if (!field.matches || !field.matches('[data-aimp-cart-stepper] .aimp-stepper-input')) {

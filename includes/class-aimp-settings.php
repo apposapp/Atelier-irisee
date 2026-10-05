@@ -324,6 +324,7 @@ class AIMP_Settings {
 			return;
 		}
 		wp_enqueue_media();
+		wp_enqueue_style( 'aimp-admin', AIMP_PLUGIN_URL . 'assets/css/admin.css', array(), AIMP_VERSION );
 		wp_enqueue_script( 'aimp-admin-settings', AIMP_PLUGIN_URL . 'assets/js/admin-settings.js', array( 'jquery' ), AIMP_VERSION, true );
 		wp_localize_script(
 			'aimp-admin-settings',
@@ -720,16 +721,50 @@ class AIMP_Settings {
 			return;
 		}
 		?>
-		<div class="wrap">
+		<div class="wrap aimp-settings">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+			<?php // One form with a tab per section, so saving one tab never clears the settings of another. ?>
 			<form action="options.php" method="post">
-				<?php
-				settings_fields( 'aimp_settings_group' );
-				do_settings_sections( self::PAGE );
-				submit_button( __( 'Save settings', 'atelier-irisee-master-plugin' ) );
-				?>
+				<?php settings_fields( 'aimp_settings_group' ); ?>
+				<nav class="nav-tab-wrapper aimp-settings-tabs">
+					<?php foreach ( self::tab_sections() as $id => $section ) : ?>
+						<a href="#tab-<?php echo esc_attr( $id ); ?>" class="nav-tab" data-aimp-tab="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $section['title'] ); ?></a>
+					<?php endforeach; ?>
+				</nav>
+				<?php foreach ( self::tab_sections() as $id => $section ) : ?>
+					<div class="aimp-settings-panel" id="tab-<?php echo esc_attr( $id ); ?>" data-aimp-panel="<?php echo esc_attr( $id ); ?>">
+						<?php
+						if ( ! empty( $section['callback'] ) ) {
+							call_user_func( $section['callback'], $section );
+						}
+						echo '<table class="form-table" role="presentation">';
+						do_settings_fields( self::PAGE, $id );
+						echo '</table>';
+						?>
+					</div>
+				<?php endforeach; ?>
+				<?php submit_button( __( 'Save settings', 'atelier-irisee-master-plugin' ) ); ?>
 			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * The settings sections in tab order: section ID => section (title, callback).
+	 *
+	 * @return array
+	 */
+	private static function tab_sections() {
+		global $wp_settings_sections;
+		$registered = isset( $wp_settings_sections[ self::PAGE ] ) ? (array) $wp_settings_sections[ self::PAGE ] : array();
+		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_discounts', 'aimp_site', 'aimp_footer', 'aimp_mosaic' );
+		$sections   = array();
+		foreach ( $order as $id ) {
+			if ( isset( $registered[ $id ] ) ) {
+				$sections[ $id ] = $registered[ $id ];
+			}
+		}
+		// Sections added later (by other parts of the plugin) come last.
+		return $sections + $registered;
 	}
 }

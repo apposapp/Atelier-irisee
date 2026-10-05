@@ -26,6 +26,18 @@ class AIMP_Cart_Page {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
 		// Before WooCommerce updates the cart (wp_loaded, 20): lengths in cm become units of 10 cm.
 		add_action( 'wp_loaded', array( __CLASS__, 'lengths_to_quantities' ), 19 );
+		// After WooCommerce removed a discount code (?remove_coupon=…): a message and a clean address.
+		add_action( 'wp_loaded', array( __CLASS__, 'after_remove_coupon' ), 25 );
+	}
+
+	public static function after_remove_coupon() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WooCommerce already handled the removal; this only adds a message.
+		if ( ! isset( $_GET['remove_coupon'] ) || wp_doing_ajax() || ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return;
+		}
+		wc_add_notice( __( 'The discount code has been removed.', 'atelier-irisee-master-plugin' ) );
+		wp_safe_redirect( remove_query_arg( 'remove_coupon' ) );
+		exit;
 	}
 
 	public static function register_assets() {
@@ -188,6 +200,82 @@ class AIMP_Cart_Page {
 			$per_10cm ? '<span class="aimp-stepper-unit">' . esc_html__( 'cm', 'atelier-irisee-master-plugin' ) . '</span>' : '',
 			esc_attr__( 'More', 'atelier-irisee-master-plugin' )
 		);
+	}
+
+	/**
+	 * Read-only overview of the cart for the checkout: sewing project kits as one product, then the other
+	 * products, with pictures, amounts and prices.
+	 *
+	 * @return string
+	 */
+	public static function summary_html() {
+		$contents = self::contents();
+		$discount = AIMP_Cart::kit_discount();
+		ob_start();
+		?>
+		<ul class="aimp-os">
+			<?php foreach ( $contents['sets'] as $aimp_set ) : ?>
+				<li class="aimp-os-set">
+					<p class="aimp-os-set-title">
+						<?php
+						/* translators: %s: pattern name and size */
+						echo esc_html( sprintf( __( 'Sewing project kit: %s', 'atelier-irisee-master-plugin' ), $aimp_set['label'] ) );
+						?>
+					</p>
+					<ul class="aimp-os-items">
+						<?php foreach ( $aimp_set['items'] as $aimp_line ) : ?>
+							<li class="aimp-os-item">
+								<span class="aimp-os-thumb"><?php echo wp_kses_post( $aimp_line['image'] ); ?></span>
+								<span class="aimp-os-name">
+									<?php echo esc_html( $aimp_line['name'] ); ?>
+									<?php if ( 'pattern' !== $aimp_line['role'] ) : ?>
+										<small><?php echo esc_html( $aimp_line['amount'] ); ?></small>
+									<?php endif; ?>
+								</span>
+								<span class="aimp-os-price">
+									<?php if ( $discount && $aimp_line['regular'] > 0 ) : ?>
+										<del><?php echo wp_kses_post( wc_price( $aimp_line['regular'] ) ); ?></del>
+									<?php endif; ?>
+									<?php echo wp_kses_post( $aimp_line['subtotal'] ); ?>
+								</span>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+					<p class="aimp-os-set-total">
+						<span><?php esc_html_e( 'Set total', 'atelier-irisee-master-plugin' ); ?></span>
+						<strong>
+							<?php if ( $discount && $aimp_set['regular'] > $aimp_set['total'] ) : ?>
+								<del><?php echo wp_kses_post( wc_price( $aimp_set['regular'] ) ); ?></del>
+							<?php endif; ?>
+							<?php echo wp_kses_post( wc_price( $aimp_set['total'] ) ); ?>
+						</strong>
+					</p>
+				</li>
+			<?php endforeach; ?>
+			<?php foreach ( $contents['singles'] as $aimp_line ) : ?>
+				<li class="aimp-os-item aimp-os-single">
+					<span class="aimp-os-thumb"><?php echo wp_kses_post( $aimp_line['image'] ); ?></span>
+					<span class="aimp-os-name">
+						<?php echo esc_html( $aimp_line['name'] ); ?>
+						<?php echo wc_get_formatted_cart_item_data( $aimp_line['item'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WooCommerce HTML. ?>
+						<small><?php echo esc_html( $aimp_line['amount'] ); ?></small>
+					</span>
+					<span class="aimp-os-price"><?php echo wp_kses_post( $aimp_line['subtotal'] ); ?></span>
+				</li>
+			<?php endforeach; ?>
+		</ul>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Number of products in the overview (a sewing project kit counts as one).
+	 *
+	 * @return int
+	 */
+	public static function summary_count() {
+		$contents = self::contents();
+		return count( $contents['sets'] ) + count( $contents['singles'] );
 	}
 
 	/* ------------------------------------------------------------------

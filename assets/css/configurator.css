@@ -274,8 +274,8 @@
 	align-items: start;
 }
 
-/* No scrollbar of its own: it follows the page while scrolling when it fits on the screen.
- * configurator.js adds .is-tall when it doesn't fit; then it simply scrolls along with the page. */
+/* No scrollbar of its own: it follows the page while scrolling (ui.js gives a panel that is taller
+ * than the screen a negative top, so its bottom stays in view). */
 .aimp-split-side {
 	position: sticky;
 	top: var(--aimp-sticky-top);
@@ -283,10 +283,6 @@
 	background: transparent;
 	border: 5px double var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
-}
-
-.aimp-split-side.is-tall {
-	position: static;
 }
 
 /* Narrow containers: stack the details under the grid. */
@@ -995,8 +991,9 @@
 	border-radius: 100px;
 	background: transparent;
 	box-shadow: none;
-	color: var(--aimp-gold);
+	color: var(--aimp-body-text);
 	font: inherit;
+	font-size: var(--aimp-body-size);
 	font-weight: 700;
 	line-height: 1.2;
 	text-align: center;
@@ -1008,7 +1005,7 @@
 
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(.single_add_to_cart_button, .button, button.button, input[type="submit"]):is(:hover, :focus-visible):not(:disabled):not(.disabled) {
 	background: var(--aimp-gold-tint);
-	color: var(--aimp-gold);
+	color: var(--aimp-body-text);
 }
 
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(.single_add_to_cart_button, .button):is(:disabled, .disabled) {
@@ -1086,7 +1083,7 @@
 	border-radius: 100px;
 	background: transparent;
 	box-shadow: none;
-	color: var(--aimp-gold);
+	color: var(--aimp-body-text);
 	font: inherit;
 	font-weight: 700;
 	text-decoration: none;
@@ -1104,13 +1101,13 @@
 
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) .aimp-language {
 	padding: 0.35rem 0.9rem;
-	font-size: 0.9em;
+	font-size: var(--aimp-body-size);
 	font-weight: 600;
 }
 
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(.aimp-add-to-cart, .aimp-language):is(:hover, :focus-visible):not(:disabled) {
 	background: var(--aimp-gold-tint);
-	color: var(--aimp-gold);
+	color: var(--aimp-body-text);
 }
 
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) .aimp-language.is-active,
@@ -1177,4 +1174,14 @@
 .aimp-configurator .aimp-summary .aimp-summary-discount :is(th, td) {
 	color: var(--aimp-gold);
 	font-weight: 700;
+}
+
+/* ------------------------------------------------------------------
+ * Button text: brown and the size of the other text. Filled buttons (selected, current, an open filter
+ * panel, the buttons inside the gold filter panel) keep white text. The double ID weight lets this win
+ * over the hover rules above and over the theme.
+ * ------------------------------------------------------------------ */
+:is(.aimp-configurator, #aimp-specificity#aimp-specificity) :is(.aimp-button, .aimp-filter, .aimp-size, .aimp-language, .aimp-page, .aimp-add-to-cart, .aimp-shop-toggle):not(.is-active, .is-current, .is-selected, .is-filters-open .aimp-shop-toggle, .aimp-shop-sidebar *) {
+	color: var(--aimp-body-text);
+	font-size: var(--aimp-body-size);
 }

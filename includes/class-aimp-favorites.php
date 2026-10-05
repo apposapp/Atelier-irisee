@@ -266,21 +266,12 @@ class AIMP_Favorites {
 	 */
 	private static function card_html( $product ) {
 		$link = $product->get_permalink();
-		if ( $product->is_type( 'simple' ) && $product->is_purchasable() && $product->is_in_stock() ) {
-			$action = sprintf(
-				'<a href="%1$s" data-quantity="1" data-product_id="%2$d" data-product_sku="%3$s" class="aimp-fav-card-action button add_to_cart_button ajax_add_to_cart" rel="nofollow">%4$s</a>',
-				esc_url( $product->add_to_cart_url() ),
-				$product->get_id(),
-				esc_attr( $product->get_sku() ),
-				esc_html__( 'Add to cart', 'atelier-irisee-master-plugin' )
-			);
-		} else {
-			$action = sprintf(
-				'<a href="%1$s" class="aimp-fav-card-action button">%2$s</a>',
-				esc_url( $link ),
-				esc_html__( 'View product', 'atelier-irisee-master-plugin' )
-			);
-		}
+		// Always to the product page: the amount (length, size, …) is chosen there.
+		$action = sprintf(
+			'<a href="%1$s" class="aimp-fav-card-action button">%2$s</a>',
+			esc_url( $link ),
+			esc_html__( 'View product', 'atelier-irisee-master-plugin' )
+		);
 
 		return sprintf(
 			'<li class="aimp-fav-card" data-aimp-fav-card="%1$d">' .

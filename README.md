@@ -196,6 +196,9 @@ Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_
   - `woocommerce_coupon_is_valid_for_product` skips products on sale (except kit items) and gift cards.
 - **Welcome code:** created on the first login after registering (`_aimp_welcome_pending`), as a personal WooCommerce coupon. It is shown once in a popup and listed in the account's gift card tab. `?aimp_coupon=CODE` applies a code to the cart.
 - **Checkout** (`includes/class-aimp-checkout.php`, `assets/js/checkout.js`): `[atelier_irisee_checkout]` prints WooCommerce's checkout. The JS adds `is-stepped` and `data-step`, and `checkout.css` shows the parts of one step.
+  - "Your order" (`AIMP_Cart_Page::summary_html()`, read-only, kits grouped like the cart) sits next to the steps; WooCommerce's review table then only shows the totals.
+  - The Overview step (key `delivery`) gets a delivery address box built by `checkout.js` from the billing or shipping fields.
+- **Page caches** (`AIMP_Product_Page::purge_caches`): after a product or variation is saved, WooCommerce's product transients are cleared and common caching plugins are asked to refresh that page (action `aimp_purge_product_pages` for others).
 
 ## Languages
 

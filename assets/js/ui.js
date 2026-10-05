@@ -418,14 +418,18 @@
 	 * ------------------------------------------------------------- */
 
 	/**
-	 * Side panels have no scrollbar of their own: they follow the page while scrolling only when they
-	 * fit on the screen; taller panels scroll along with the page.
+	 * Side panels (details next to the products) move along while scrolling, without a scrollbar of their own.
+	 * A panel that fits on the screen sticks below the header. A taller one gets a negative sticky top:
+	 * it scrolls along until its bottom reaches the bottom of the screen, and then stays in view.
 	 */
 	function fitSidePanels(root) {
 		root.querySelectorAll('.aimp-split-side').forEach(function (panel) {
+			panel.style.top = '';
 			var top = parseFloat(window.getComputedStyle(panel).top) || 0;
-			// Room below the sticky offset (which includes the site header), with a small margin at the bottom.
-			panel.classList.toggle('is-tall', panel.offsetHeight > window.innerHeight - top - 24);
+			var room = window.innerHeight - 24; // A small margin at the bottom of the screen.
+			if (panel.offsetHeight > room - top) {
+				panel.style.top = room - panel.offsetHeight + 'px';
+			}
 		});
 	}
 

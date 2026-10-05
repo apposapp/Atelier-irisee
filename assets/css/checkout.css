@@ -215,9 +215,9 @@
 	border: 5px double var(--aimp-gold);
 	border-radius: 100px;
 	background: transparent;
-	color: var(--aimp-gold);
+	color: var(--aimp-body-text);
 	font: inherit;
-	font-size: 1.05em;
+	font-size: var(--aimp-body-size);
 	font-weight: 700;
 	cursor: pointer;
 }
@@ -261,5 +261,217 @@
 	.aimp-configurator.aimp-checkout :is(.form-row-first, .form-row-last) {
 		float: none;
 		width: 100%;
+	}
+}
+
+/* ------------------------------------------------------------------
+ * Two columns: the steps on the left, "Your order" on the right, on every step. Sewing project kits show
+ * as one product, like the cart. WooCommerce's summary table then only keeps the totals.
+ * ------------------------------------------------------------------ */
+.aimp-configurator.aimp-checkout.has-summary {
+	max-width: 1200px;
+}
+
+.aimp-checkout-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+	grid-template-areas: "main summary";
+	gap: 2rem;
+	align-items: start;
+}
+
+.aimp-checkout-main {
+	grid-area: main;
+	min-width: 0;
+}
+
+.aimp-configurator .aimp-checkout-summary {
+	grid-area: summary;
+	position: sticky;
+	top: var(--aimp-sticky-top);
+	padding: 1.25rem 1.4rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-configurator .aimp-checkout-summary > summary {
+	display: flex;
+	align-items: baseline;
+	gap: 0.4rem;
+	margin: 0 0 0.75rem;
+	font-size: 1.15em;
+	list-style: none;
+	cursor: default;
+}
+
+.aimp-configurator .aimp-checkout-summary > summary::-webkit-details-marker {
+	display: none;
+}
+
+.aimp-checkout-summary-count {
+	color: var(--aimp-body-text);
+	font-size: 0.85em;
+}
+
+.aimp-checkout.has-summary #order_review_heading,
+.aimp-checkout.has-summary .woocommerce-checkout-review-order-table :is(thead, .cart_item) {
+	display: none !important;
+}
+
+.aimp-configurator .aimp-os,
+.aimp-configurator .aimp-os-items {
+	display: grid;
+	gap: 0.6rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-os {
+	gap: 1rem;
+}
+
+.aimp-configurator .aimp-os > li {
+	margin: 0;
+}
+
+.aimp-configurator .aimp-os > li + li {
+	padding-top: 1rem;
+	border-top: 1px solid var(--aimp-gold-tint);
+}
+
+.aimp-configurator .aimp-os-set-title {
+	margin: 0 0 0.6rem;
+	font-weight: 700;
+}
+
+.aimp-configurator .aimp-os-item {
+	display: grid;
+	grid-template-columns: 48px minmax(0, 1fr) auto;
+	gap: 0.75rem;
+	align-items: center;
+	margin: 0;
+}
+
+.aimp-configurator .aimp-os-thumb img {
+	display: block;
+	width: 48px;
+	height: 48px;
+	border-radius: var(--aimp-radius);
+	object-fit: cover;
+}
+
+.aimp-configurator .aimp-os-name {
+	display: flex;
+	flex-direction: column;
+	color: var(--aimp-body-text);
+	line-height: 1.35;
+}
+
+.aimp-configurator .aimp-os-name small,
+.aimp-configurator .aimp-os-name dl.variation {
+	margin: 0;
+	color: var(--aimp-gold);
+	font-size: 0.85em;
+}
+
+.aimp-configurator .aimp-os-name dl.variation :is(dt, dd, p) {
+	display: inline;
+	margin: 0;
+	padding: 0;
+}
+
+.aimp-configurator .aimp-os-price {
+	color: var(--aimp-body-text);
+	text-align: right;
+	white-space: nowrap;
+}
+
+.aimp-configurator :is(.aimp-os-price, .aimp-os-set-total) del {
+	display: block;
+	font-size: 0.85em;
+	opacity: 0.7;
+}
+
+.aimp-configurator .aimp-os-set-total {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 1rem;
+	margin: 0.6rem 0 0;
+	padding-top: 0.5rem;
+	border-top: 1px solid var(--aimp-gold-tint);
+}
+
+.aimp-configurator .aimp-os-set-total strong {
+	color: var(--aimp-body-text);
+	text-align: right;
+}
+
+/* Overview step: the delivery address from the details step. */
+.aimp-configurator .aimp-checkout-address {
+	margin: 0 0 1rem;
+	padding: 1.25rem 1.4rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-checkout-address-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 1rem;
+}
+
+.aimp-configurator .aimp-checkout-address address {
+	margin: 0;
+	color: var(--aimp-body-text);
+	font-style: normal;
+	line-height: 1.6;
+}
+
+.aimp-configurator .aimp-checkout-address-change {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--aimp-gold);
+	font: inherit;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/* Narrow: "Your order" above the steps, folded open and closed with a tap. */
+@container aimp (max-width: 820px) {
+	.aimp-checkout-layout {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas: "summary" "main";
+		gap: 1.25rem;
+	}
+
+	.aimp-configurator .aimp-checkout-summary {
+		position: static;
+	}
+
+	.aimp-configurator .aimp-checkout-summary > summary {
+		cursor: pointer;
+	}
+
+	.aimp-configurator .aimp-checkout-summary > summary::after {
+		content: "";
+		width: 0.5em;
+		height: 0.5em;
+		margin-left: auto;
+		border-right: 2px solid currentColor;
+		border-bottom: 2px solid currentColor;
+		transform: translateY(-0.15em) rotate(45deg);
+		transition: transform 0.2s ease;
+	}
+
+	.aimp-configurator .aimp-checkout-summary[open] > summary::after {
+		transform: translateY(0.1em) rotate(-135deg);
+	}
+
+	.aimp-configurator .aimp-checkout-summary:not([open]) > summary {
+		margin-bottom: 0;
 	}
 }

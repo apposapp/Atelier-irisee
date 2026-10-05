@@ -1,6 +1,6 @@
 /**
  * Step-by-step checkout: shows one step of WooCommerce's checkout form at a time.
- * Details → Delivery → Payment; the step bar shows where the customer is (Cart and Confirmation are
+ * Details → Overview → Payment; the step bar shows where the customer is (Cart and Confirmation are
  * separate pages). Nothing is moved in the form, so WooCommerce's own updates keep working.
  */
 (function ($) {
@@ -8,6 +8,100 @@
 
 	var t = window.aimpCheckout || {};
 	var STEPS = ['details', 'delivery', 'payment'];
+
+	function escapeHtml(text) {
+		var div = document.createElement('div');
+		div.textContent = text;
+		return div.innerHTML;
+	}
+
+	// Text of a checkout field: the chosen option of a list, or what was typed. A country or state that
+	// can't be chosen is shown as text next to a hidden field.
+	function fieldText(form, id) {
+		var field = form.querySelector('#' + id);
+		if (!field) {
+			return '';
+		}
+		if (field.tagName === 'SELECT') {
+			var option = field.options[field.selectedIndex];
+			return option && field.value ? option.text.trim() : '';
+		}
+		if (field.type === 'hidden') {
+			var row = form.querySelector('#' + id + '_field strong');
+			return row ? row.textContent.trim() : '';
+		}
+		return String(field.value || '').trim();
+	}
+
+	/*
+	 * Overview step: a "Delivery address" box at the top with the address that will be used: the details
+	 * from step 2, or the other delivery address once "Ship to a different address" is ticked. It follows
+	 * the fields as they change.
+	 */
+	function setupAddress(form, goToDetails) {
+		var column = form.querySelector('#customer_details .col-2');
+		if (!column) {
+			return;
+		}
+		var box = document.createElement('div');
+		box.className = 'aimp-checkout-address';
+		box.innerHTML =
+			'<div class="aimp-checkout-address-head"><h3>' + escapeHtml(t.address || '') + '</h3>' +
+			'<button type="button" class="aimp-checkout-address-change">' + escapeHtml(t.change || '') + '</button></div>' +
+			'<address></address>';
+		column.insertBefore(box, column.firstChild);
+		var address = box.querySelector('address');
+		var change = box.querySelector('.aimp-checkout-address-change');
+		var other = form.querySelector('#ship-to-different-address-checkbox');
+
+		function render() {
+			var prefix = other && other.checked ? 'shipping' : 'billing';
+			var get = function (name) {
+				return fieldText(form, prefix + '_' + name);
+			};
+			var lines = [
+				[get('first_name'), get('last_name')].join(' ').trim(),
+				get('company'),
+				[get('address_1'), get('address_2')].join(' ').trim(),
+				[get('postcode'), get('city')].join(' ').trim(),
+				[get('state'), get('country')].filter(Boolean).join(', '),
+				fieldText(form, 'billing_phone'),
+				fieldText(form, 'billing_email')
+			].filter(Boolean);
+			address.innerHTML = lines.map(escapeHtml).join('<br>');
+			// With another delivery address the fields are right below; otherwise they are on the details step.
+			change.hidden = !!(other && other.checked);
+		}
+
+		change.addEventListener('click', goToDetails);
+		form.addEventListener('input', render);
+		form.addEventListener('change', render);
+		if ($) {
+			// Select2 (country, state) and WooCommerce's address updates.
+			$(form).on('change', 'select', render);
+			$(document.body).on('updated_checkout', render);
+		}
+		render();
+	}
+
+	// "Your order": folded open and closed on phones, always open on wider screens.
+	function setupSummary(root) {
+		var summary = root.querySelector('[data-aimp-checkout-summary]');
+		if (!summary) {
+			return;
+		}
+		var narrow = function () {
+			return summary.parentNode.offsetWidth > 0 && getComputedStyle(summary).position !== 'sticky';
+		};
+		if (narrow()) {
+			summary.open = false;
+		}
+		summary.querySelector('summary').addEventListener('click', function (e) {
+			if (!narrow()) {
+				e.preventDefault();
+			}
+		});
+	}
 
 	function setup(root) {
 		var form = root.querySelector('form.checkout');
@@ -31,6 +125,10 @@
 		}
 		var back = nav.querySelector('[data-checkout-back]');
 		var next = nav.querySelector('[data-checkout-next]');
+
+		setupAddress(form, function () {
+			show('details', true);
+		});
 
 		function scrollTop() {
 			var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -155,6 +253,7 @@
 		document.querySelectorAll('[data-aimp-checkout]').forEach(function (root) {
 			if (!root.aimpReady) {
 				root.aimpReady = true;
+				setupSummary(root);
 				setup(root);
 			}
 		});

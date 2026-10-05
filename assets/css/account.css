@@ -41,7 +41,8 @@
 	padding: 0.55rem 1.2rem;
 	border: 5px double var(--aimp-acc-gold);
 	border-radius: 100px;
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-acc-text);
+	font-size: 15px;
 	font-weight: 700;
 	text-decoration: none;
 	transition: background-color 0.3s ease;
@@ -108,8 +109,9 @@
 	border: 5px double var(--aimp-acc-gold);
 	border-radius: 100px;
 	background: transparent;
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-acc-text);
 	font: inherit;
+	font-size: 15px;
 	font-weight: 700;
 	text-decoration: none;
 	cursor: pointer;

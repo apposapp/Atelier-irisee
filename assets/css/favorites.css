@@ -181,7 +181,9 @@
 	border-width: 5px;
 	border-color: #b38f4f;
 	border-style: double;
-	color: #b38f4f;
+	color: #613907;
+	font-size: 15px;
+	font-weight: 700;
 	text-decoration: none;
 	transition-property: background-color, mask-position, mask-size;
 	transition-duration: 300ms;
@@ -191,13 +193,7 @@
 
 .aimp-favorites .aimp-fav-card-action:hover {
 	background-color: rgba(179, 143, 79, 0.12);
-	color: #b38f4f;
-}
-
-/* WooCommerce's "View cart" link after an ajax add to cart */
-.aimp-favorites .added_to_cart {
-	display: block;
-	color: #b38f4f;
+	color: #613907;
 }
 
 .aimp-fav-empty,

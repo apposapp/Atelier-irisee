@@ -785,27 +785,36 @@
 			['newest', t.sortNewest]
 		];
 
+		// The same filter panel as the shop pages: a gold column on the left that opens and closes.
 		this.body.innerHTML =
-			'<div class="aimp-step aimp-step--fabric">' +
+			'<div class="aimp-step aimp-step--fabric aimp-fabric-filters">' +
 			this.recapHtml() +
 			'<h3>' + esc(t.chooseFabric) + '</h3>' +
-			'<div class="aimp-split">' +
-			'<div class="aimp-split-main">' +
-			'<div class="aimp-toolbar">' +
-			'<div class="aimp-filters" data-role="fabric-cats" role="group" aria-label="' + esc(t.fabricCategory) + '"></div>' +
-			'<div class="aimp-toolbar-row">' +
+			'<div class="aimp-fabric-filterbar">' +
+			'<button type="button" class="aimp-button aimp-shop-toggle" data-action="toggle-filters" aria-controls="aimp-fabric-filters"></button>' +
+			'</div>' +
+			'<div class="aimp-shop-layout">' +
+			'<aside class="aimp-shop-sidebar" id="aimp-fabric-filters" aria-label="' + esc(t.filters) + '">' +
+			'<div class="aimp-filter-group aimp-filter-group--search">' +
 			'<input type="search" class="aimp-search" data-role="search" value="' + esc(f.search) + '" placeholder="' + esc(t.searchFabrics) + '" aria-label="' + esc(t.searchFabrics) + '">' +
-			'<label class="aimp-check"><input type="checkbox" data-role="in-stock"' + (f.inStock ? ' checked' : '') + '> ' + esc(t.inStockOnly) + '</label>' +
-			'<label class="aimp-sort"><span>' + esc(t.sortBy) + '</span> <select data-role="sort">' +
+			'</div>' +
+			'<div class="aimp-filter-group">' +
+			'<label class="aimp-filter-label" for="aimp-fabric-sort">' + esc(t.sortBy) + '</label>' +
+			'<select id="aimp-fabric-sort" class="aimp-shop-select" data-role="sort">' +
 			sorts.map(function (o) {
 				return '<option value="' + o[0] + '"' + (f.sort === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
 			}).join('') +
-			'</select></label>' +
-			'</div>' +
-			'</div>' +
-			'<div data-role="fabrics"></div>' +
-			'</div>' +
+			'</select></div>' +
+			'<details class="aimp-filter-group" open data-role="fabric-cats-group"><summary>' + esc(t.fabricCategory) + '</summary>' +
+			'<ul class="aimp-filter-options" data-role="fabric-cats"></ul></details>' +
+			'<details class="aimp-filter-group" open><summary>' + esc(t.availability) + '</summary>' +
+			'<label class="aimp-filter-option"><input type="checkbox" data-role="in-stock"' + (f.inStock ? ' checked' : '') + '> <span>' + esc(t.inStockOnly) + '</span></label>' +
+			'</details>' +
+			'</aside>' +
+			'<div class="aimp-split aimp-shop-content">' +
+			'<div class="aimp-split-main" data-role="fabrics"></div>' +
 			'<aside class="aimp-split-side" data-role="fabric-panel"></aside>' +
+			'</div>' +
 			'</div>' +
 			'<div class="aimp-actions">' +
 			'<button type="button" class="aimp-button aimp-button--ghost" data-action="back">' + esc(t.back) + '</button>' +
@@ -816,8 +825,32 @@
 			self.prev();
 		});
 
+		var step = this.body.querySelector('.aimp-fabric-filters');
+		var toggle = this.body.querySelector('[data-action="toggle-filters"]');
+		var setOpen = function (open, remember) {
+			step.classList.toggle('is-filters-open', open);
+			step.classList.toggle('is-filters-closed', !open);
+			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+			if (remember) {
+				try {
+					window.localStorage.setItem('aimp_shop_filters', open ? 'open' : 'closed');
+				} catch (e) {}
+			}
+		};
+		var stored = null;
+		try {
+			stored = window.localStorage.getItem('aimp_shop_filters');
+		} catch (e) {}
+		var narrow = window.matchMedia && window.matchMedia('(max-width: 999px)').matches;
+		setOpen(narrow ? false : stored !== 'closed', false);
+		toggle.addEventListener('click', function () {
+			setOpen(!step.classList.contains('is-filters-open'), true);
+		});
+		this.renderFilterToggle();
+
 		var reload = function () {
 			s.fabricPage = 1;
+			self.renderFilterToggle();
 			self.loadFabrics();
 		};
 		var searchTimer = null;
@@ -848,36 +881,52 @@
 		}
 	};
 
+	// "Filters" with the number of active filters, like on the shop pages.
+	Configurator.prototype.renderFilterToggle = function () {
+		var toggle = this.body.querySelector('[data-action="toggle-filters"]');
+		if (!toggle) {
+			return;
+		}
+		var f = this.state.fabricFilters;
+		var count = (f.category ? 1 : 0) + (f.search ? 1 : 0) + (f.inStock ? 1 : 0);
+		toggle.innerHTML =
+			'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>' +
+			'<span>' + esc(t.filters) + '</span>' +
+			(count ? '<span class="aimp-shop-count">' + count + '</span>' : '');
+	};
+
+	// Fabric categories in the filter panel: one choice (radio buttons), "All" first.
 	Configurator.prototype.renderFabricCategories = function () {
 		var self = this;
 		var s = this.state;
 		var container = this.body.querySelector('[data-role="fabric-cats"]');
+		var group = this.body.querySelector('[data-role="fabric-cats-group"]');
 		if (!container) {
 			return;
 		}
 		var cats = s.fabricCategories || [];
 		if (cats.length < 2) {
 			container.innerHTML = '';
-			container.hidden = true;
+			group.hidden = true;
 			return;
 		}
-		container.hidden = false;
+		group.hidden = false;
 		container.innerHTML = [{ id: 0, name: t.all }]
 			.concat(cats)
 			.map(function (cat) {
 				var active = s.fabricFilters.category === cat.id;
 				return (
-					'<button type="button" class="aimp-filter' + (active ? ' is-active' : '') + '" data-fabric-cat="' + esc(cat.id) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' +
-					esc(cat.name) +
-					'</button>'
+					'<li><label class="aimp-filter-option">' +
+					'<input type="radio" name="aimp-fabric-cat" value="' + esc(cat.id) + '" data-fabric-cat' + (active ? ' checked' : '') + '> ' +
+					'<span>' + esc(cat.name) + '</span></label></li>'
 				);
 			})
 			.join('');
-		container.querySelectorAll('[data-fabric-cat]').forEach(function (btn) {
-			btn.addEventListener('click', function () {
-				s.fabricFilters.category = parseInt(btn.getAttribute('data-fabric-cat'), 10);
+		container.querySelectorAll('[data-fabric-cat]').forEach(function (input) {
+			input.addEventListener('change', function () {
+				s.fabricFilters.category = parseInt(input.value, 10) || 0;
 				s.fabricPage = 1;
-				self.renderFabricCategories();
+				self.renderFilterToggle();
 				self.loadFabrics();
 			});
 		});

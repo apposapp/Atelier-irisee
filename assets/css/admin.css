@@ -258,3 +258,29 @@
 .aimp-fabric-card input[type="text"] {
 	width: 100%;
 }
+
+/* Settings page tabs */
+.aimp-settings .aimp-settings-tabs {
+	margin-bottom: 1rem;
+}
+
+.aimp-settings .aimp-settings-panel[hidden] {
+	display: none;
+}
+
+/* Pattern tab: is the pattern for sale on the website? */
+#aimp_pattern_data .aimp-availability p {
+	margin: 0;
+	padding: 12px;
+	font-weight: 600;
+}
+#aimp_pattern_data .aimp-availability--yes {
+	color: #1e7e34;
+}
+#aimp_pattern_data .aimp-availability--no {
+	color: #b32d2e;
+}
+#aimp_pattern_data .aimp-availability .description {
+	font-weight: 400;
+	color: #646970;
+}

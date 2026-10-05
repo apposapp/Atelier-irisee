@@ -2,7 +2,7 @@
 /**
  * Step-by-step checkout: [atelier_irisee_checkout].
  *
- * Cart → Details → Delivery → Payment → Confirmation, with a step bar like the configurator. It prints
+ * Cart → Details → Overview → Payment → Confirmation, with a step bar like the configurator. It prints
  * WooCommerce's own checkout form (so payment plugins such as Mollie work unchanged); checkout.js shows
  * one step at a time by switching visibility, without moving anything, so WooCommerce's own updates of
  * totals and shipping keep working. Without JavaScript all steps simply show one under the other.
@@ -41,7 +41,7 @@ class AIMP_Checkout {
 		return array(
 			'cart'         => __( 'Cart', 'atelier-irisee-master-plugin' ),
 			'details'      => __( 'Details', 'atelier-irisee-master-plugin' ),
-			'delivery'     => __( 'Delivery', 'atelier-irisee-master-plugin' ),
+			'delivery'     => __( 'Overview', 'atelier-irisee-master-plugin' ),
 			'payment'      => __( 'Payment', 'atelier-irisee-master-plugin' ),
 			'confirmation' => __( 'Confirmation', 'atelier-irisee-master-plugin' ),
 		);
@@ -58,6 +58,8 @@ class AIMP_Checkout {
 			'back'     => __( 'Back', 'atelier-irisee-master-plugin' ),
 			'toPay'    => __( 'To payment', 'atelier-irisee-master-plugin' ),
 			'required' => __( 'Please fill in the required fields.', 'atelier-irisee-master-plugin' ),
+			'address'  => __( 'Delivery address', 'atelier-irisee-master-plugin' ),
+			'change'   => __( 'Change', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -78,10 +80,16 @@ class AIMP_Checkout {
 
 		$confirmation = is_wc_endpoint_url( 'order-received' );
 		$current      = $confirmation ? 'confirmation' : 'details';
+		// "Your order" next to the steps: sewing project kits as one product, like the cart.
+		$summary = ! $confirmation && ! is_wc_endpoint_url( 'order-pay' ) && WC()->cart && ! WC()->cart->is_empty();
+		if ( $summary ) {
+			WC()->cart->calculate_totals(); // Up-to-date line prices (WooCommerce's checkout does the same).
+		}
+		$classes = 'aimp-configurator aimp-checkout' . ( $confirmation ? ' is-confirmation' : '' ) . ( $summary ? ' has-summary' : '' );
 
 		ob_start();
 		?>
-		<div class="aimp-configurator aimp-checkout<?php echo $confirmation ? ' is-confirmation' : ''; ?>" data-aimp-checkout data-step="<?php echo esc_attr( $current ); ?>">
+		<div class="<?php echo esc_attr( $classes ); ?>" data-aimp-checkout data-step="<?php echo esc_attr( $current ); ?>">
 			<ol class="aimp-steps aimp-checkout-steps">
 				<?php
 				$index = 0;
@@ -103,8 +111,24 @@ class AIMP_Checkout {
 					</li>
 				<?php endforeach; ?>
 			</ol>
-			<p class="aimp-checkout-message" role="alert" hidden></p>
-			<?php WC_Shortcode_Checkout::output( array() ); // Prints WooCommerce's checkout (or the order confirmation). ?>
+			<?php if ( $summary ) : ?>
+				<div class="aimp-checkout-layout">
+					<details class="aimp-checkout-summary" open data-aimp-checkout-summary>
+						<summary>
+							<span class="aimp-checkout-summary-title"><?php esc_html_e( 'Your order', 'atelier-irisee-master-plugin' ); ?></span>
+							<span class="aimp-checkout-summary-count">(<?php echo (int) AIMP_Cart_Page::summary_count(); ?>)</span>
+						</summary>
+						<?php echo AIMP_Cart_Page::summary_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in summary_html(). ?>
+					</details>
+					<div class="aimp-checkout-main">
+						<p class="aimp-checkout-message" role="alert" hidden></p>
+						<?php WC_Shortcode_Checkout::output( array() ); // Prints WooCommerce's checkout. ?>
+					</div>
+				</div>
+			<?php else : ?>
+				<p class="aimp-checkout-message" role="alert" hidden></p>
+				<?php WC_Shortcode_Checkout::output( array() ); // Prints WooCommerce's checkout (or the order confirmation). ?>
+			<?php endif; ?>
 		</div>
 		<?php
 		return ob_get_clean();

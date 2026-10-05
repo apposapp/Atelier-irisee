@@ -27,6 +27,7 @@ class AIMP_Shortcode {
 		$post = get_post();
 		if ( is_singular() && $post && has_shortcode( $post->post_content, self::TAG ) ) {
 			wp_enqueue_style( 'aimp-configurator' );
+			wp_enqueue_style( 'aimp-shop' ); // Registered a little later by AIMP_Shop; printed in the head.
 		}
 	}
 
@@ -155,6 +156,8 @@ class AIMP_Shortcode {
 			'selectFabricHint'  => __( 'Select a fabric to see its pictures and details.', 'atelier-irisee-master-plugin' ),
 			'selectItemHint'    => __( 'Select an item to see its pictures and details.', 'atelier-irisee-master-plugin' ),
 			'fabricCategory'    => __( 'Fabric category', 'atelier-irisee-master-plugin' ),
+			'filters'           => __( 'Filters', 'atelier-irisee-master-plugin' ),
+			'availability'      => __( 'Availability', 'atelier-irisee-master-plugin' ),
 			'searchFabrics'     => __( 'Search fabrics…', 'atelier-irisee-master-plugin' ),
 			'sortBy'            => __( 'Sort by', 'atelier-irisee-master-plugin' ),
 			'sortRecommended'   => __( 'Recommended', 'atelier-irisee-master-plugin' ),
@@ -182,6 +185,11 @@ class AIMP_Shortcode {
 		}
 		wp_enqueue_style( 'aimp-configurator' );
 		wp_enqueue_script( 'aimp-configurator' );
+		// The fabric step uses the shop pages' filter panel.
+		if ( ! wp_style_is( 'aimp-shop', 'registered' ) ) {
+			AIMP_Shop::register_assets();
+		}
+		wp_enqueue_style( 'aimp-shop' );
 		wp_localize_script( 'aimp-configurator', 'aimpConfig', self::script_data() );
 
 		ob_start();

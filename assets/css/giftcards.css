@@ -92,7 +92,8 @@
 	padding: 0.5rem 1.2rem;
 	border: 5px double var(--aimp-gc-gold);
 	border-radius: 100px;
-	color: var(--aimp-gc-gold);
+	color: #613907;
+	font-size: 15px;
 	font-weight: 700;
 	cursor: pointer;
 	transition: background-color 0.3s ease;
@@ -218,7 +219,8 @@
 	border: 5px double var(--aimp-gc-gold);
 	border-radius: 100px;
 	background: transparent;
-	color: var(--aimp-gc-gold);
+	color: #613907;
+	font-size: 15px;
 	font-weight: 700;
 	cursor: pointer;
 }

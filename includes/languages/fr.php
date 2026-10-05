@@ -982,4 +982,18 @@ return array(
 	'You have no discount codes at the moment.' => 'Vous n\'avez actuellement aucun code de réduction.',
 	'days' => 'jours',
 	'valid for' => 'valable pendant',
+
+	// 2.3.0
+	'Delivery address' => 'Adresse de livraison',
+	'On the website: available.' => 'Sur le site : disponible.',
+	'On the website: shown as out of stock, because %s' => 'Sur le site : affiché en rupture de stock, car %s',
+	'Overview' => 'Récapitulatif',
+	'Still seeing old information on the website after saving? Clear the cache of your caching plugin once.' => 'Vous voyez encore d\'anciennes informations sur le site après l\'enregistrement ? Videz une fois le cache de votre extension de cache.',
+	'The discount code has been removed.' => 'Le code de réduction a été supprimé.',
+	'Your order' => 'Votre commande',
+	'all sizes with a price are out of stock (Variations tab, stock status of each size).' => 'toutes les tailles avec un prix sont en rupture de stock (onglet Variations, état du stock de chaque taille).',
+	'none of the sizes has a price (Variations tab).' => 'aucune taille n\'a de prix (onglet Variations).',
+	'the pattern has no enabled sizes (Variations tab).' => 'le patron n\'a aucune taille activée (onglet Variations).',
+	'the pattern is not in the Patterns category set under WooCommerce > Atelier Irisee.' => 'le patron n\'est pas dans la catégorie Patrons définie sous WooCommerce > Atelier Irisee.',
+	'the pattern is not published.' => 'le patron n\'est pas publié.',
 );

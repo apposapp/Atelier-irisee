@@ -26,7 +26,7 @@
 	fill: currentColor;
 }
 
-.aimp-shop.is-filters-open .aimp-shop-toggle {
+:is(.aimp-shop, .aimp-fabric-filters).is-filters-open .aimp-shop-toggle {
 	background-color: var(--aimp-gold);
 	color: #fff;
 }
@@ -43,7 +43,7 @@
 	text-align: center;
 }
 
-.aimp-shop.is-filters-open .aimp-shop-toggle .aimp-shop-count {
+:is(.aimp-shop, .aimp-fabric-filters).is-filters-open .aimp-shop-toggle .aimp-shop-count {
 	background: #fff;
 	color: var(--aimp-gold);
 }
@@ -61,7 +61,7 @@
 }
 
 /* Closed: the column folds away, so the products use the full width. */
-.aimp-shop.is-filters-closed .aimp-shop-layout {
+:is(.aimp-shop, .aimp-fabric-filters).is-filters-closed .aimp-shop-layout {
 	grid-template-columns: 0 minmax(0, 1fr);
 	column-gap: 0;
 }
@@ -83,8 +83,8 @@
 	overflow-x: hidden;
 	border: 0;
 	border-radius: var(--aimp-panel-radius);
-	/* Gold and slightly see-through, like the side menu. */
-	background: rgba(179, 143, 79, 0.92);
+	/* Gold and slightly see-through, fading towards the products, like the side menu. */
+	background: linear-gradient(90deg, rgba(179, 143, 79, 0.94) 0%, rgba(179, 143, 79, 0.9) 75%, rgba(179, 143, 79, 0.75) 100%);
 	color: #fff;
 	opacity: 1;
 	transform: none;
@@ -92,7 +92,7 @@
 	visibility: visible;
 }
 
-.aimp-shop.is-filters-closed .aimp-shop-sidebar {
+:is(.aimp-shop, .aimp-fabric-filters).is-filters-closed .aimp-shop-sidebar {
 	opacity: 0;
 	transform: translateX(-1.5rem);
 	transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear 0.35s;
@@ -100,33 +100,33 @@
 }
 
 /* White text and controls on the gold panel. */
-.aimp-configurator:is(.aimp-shop, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar :is(h3, label, li, span, summary, .aimp-filter-label) {
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar :is(h3, label, li, span, summary, .aimp-filter-label) {
 	color: #fff;
 }
 
-.aimp-configurator:is(.aimp-shop, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar :is(input[type="search"], input[type="number"], select) {
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar :is(input[type="search"], input[type="number"], select) {
 	border-color: #fff;
 	background: #fff;
 	color: var(--aimp-body-text);
 }
 
-.aimp-configurator:is(.aimp-shop, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar :is(input[type="checkbox"], input[type="radio"]) {
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar :is(input[type="checkbox"], input[type="radio"]) {
 	accent-color: var(--aimp-body-text);
 }
 
-.aimp-configurator:is(.aimp-shop, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-filter-group {
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-filter-group {
 	border-top-color: rgba(255, 255, 255, 0.45);
 }
 
-.aimp-configurator:is(.aimp-shop, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-filter-group summary::after {
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-filter-group summary::after {
 	border-color: #fff;
 }
 
-.aimp-configurator:is(.aimp-shop, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-shop-clear {
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-shop-clear {
 	color: #fff;
 }
 
-.aimp-configurator:is(.aimp-shop, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-shop-count {
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-shop-count {
 	background: #fff;
 	color: var(--aimp-gold);
 }
@@ -372,7 +372,7 @@
 	}
 }
 
-.aimp-configurator:is(.aimp-shop, #aimp-specificity) .aimp-shop-sidebar .aimp-shop-sidebar-foot .aimp-button {
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-sidebar .aimp-shop-sidebar-foot .aimp-button {
 	border-color: #fff;
 	color: #fff;
 }
@@ -569,5 +569,32 @@
 @media (prefers-reduced-motion: reduce) {
 	.aimp-configurator .aimp-mosaic-tile img {
 		transition: none;
+	}
+}
+
+/* ------------------------------------------------------------------
+ * The same filter panel in the configurator's fabric step
+ * ------------------------------------------------------------------ */
+.aimp-fabric-filters .aimp-fabric-filterbar {
+	display: flex;
+	align-items: center;
+	margin: 0 0 var(--aimp-gap);
+}
+
+/* Narrow screens: the panel opens above the fabrics (the configurator is a size container,
+ * so a fixed drawer would stay inside it). */
+@media (max-width: 999px) {
+	.aimp-fabric-filters .aimp-shop-layout,
+	.aimp-fabric-filters.is-filters-closed .aimp-shop-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-fabric-filters .aimp-shop-sidebar {
+		position: static;
+		max-height: none;
+	}
+
+	.aimp-fabric-filters.is-filters-closed .aimp-shop-sidebar {
+		display: none;
 	}
 }
