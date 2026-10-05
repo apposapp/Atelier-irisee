@@ -1,0 +1,265 @@
+/* Atelier Irisee step-by-step checkout ([atelier_irisee_checkout]). Builds on configurator.css. */
+
+.aimp-configurator.aimp-checkout {
+	max-width: 860px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+/* Step bar: the same as the configurator's; earlier steps can be clicked. */
+.aimp-checkout-steps a,
+.aimp-checkout-steps .aimp-checkout-step-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	color: inherit;
+	text-decoration: none;
+}
+
+.aimp-checkout-steps li.is-done .aimp-checkout-step-label[role="button"] {
+	cursor: pointer;
+}
+
+.aimp-configurator .aimp-checkout-message {
+	margin: 0 0 1rem;
+	padding: 0.75rem 1rem;
+	border: 1px solid #a3352b;
+	border-radius: var(--aimp-radius);
+	color: #a3352b;
+}
+
+/* ------------------------------------------------------------------
+ * One step at a time (only when checkout.js runs; otherwise everything shows).
+ * !important because WooCommerce shows and hides some of these parts with inline styles.
+ * ------------------------------------------------------------------ */
+.aimp-checkout.is-stepped[data-step="details"] :is(#customer_details .col-2, #order_review_heading, #order_review, .woocommerce-form-coupon-toggle, .checkout_coupon) {
+	display: none !important;
+}
+
+.aimp-checkout.is-stepped[data-step="delivery"] :is(#customer_details .col-1, .woocommerce-form-login-toggle, form.login, #payment, .woocommerce-form-coupon-toggle, .checkout_coupon) {
+	display: none !important;
+}
+
+.aimp-checkout.is-stepped[data-step="payment"] :is(#customer_details, .woocommerce-form-login-toggle, form.login) {
+	display: none !important;
+}
+
+/* One column instead of WooCommerce's two. */
+.aimp-configurator.aimp-checkout .col2-set :is(.col-1, .col-2) {
+	float: none;
+	width: 100%;
+	max-width: none;
+	margin: 0 0 1rem;
+	padding: 0;
+}
+
+.aimp-configurator.aimp-checkout :is(.woocommerce-billing-fields, .woocommerce-shipping-fields, .woocommerce-additional-fields, .woocommerce-account-fields, #order_review) {
+	padding: 1.25rem 1.4rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-configurator.aimp-checkout :is(.woocommerce-billing-fields, .woocommerce-shipping-fields, .woocommerce-additional-fields) {
+	margin-bottom: 1rem;
+}
+
+.aimp-configurator.aimp-checkout :is(h3, #order_review_heading) {
+	margin: 0 0 0.75rem;
+	font-size: 1.15em;
+}
+
+/* Fields: two per row where WooCommerce says so, full width on phones. */
+.aimp-configurator.aimp-checkout .form-row {
+	margin: 0 0 0.85rem;
+	padding: 0;
+}
+
+.aimp-configurator.aimp-checkout :is(.form-row-first, .form-row-last) {
+	float: left;
+	width: calc(50% - 0.5rem);
+}
+
+.aimp-configurator.aimp-checkout .form-row-last {
+	float: right;
+}
+
+.aimp-configurator.aimp-checkout .form-row-wide {
+	clear: both;
+}
+
+.aimp-configurator.aimp-checkout .woocommerce-billing-fields__field-wrapper::after,
+.aimp-configurator.aimp-checkout .woocommerce-shipping-fields__field-wrapper::after {
+	content: "";
+	display: block;
+	clear: both;
+}
+
+.aimp-configurator.aimp-checkout .form-row label {
+	display: block;
+	margin-bottom: 0.25rem;
+}
+
+.aimp-configurator.aimp-checkout .form-row :is(input.input-text, select, textarea),
+.aimp-configurator.aimp-checkout .select2-container .select2-selection {
+	width: 100%;
+	min-height: 2.6rem;
+}
+
+.aimp-configurator.aimp-checkout .select2-container .select2-selection {
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-radius);
+}
+
+.aimp-configurator.aimp-checkout .form-row.woocommerce-invalid :is(input.input-text, select, textarea) {
+	border-color: #a3352b;
+}
+
+.aimp-configurator.aimp-checkout .required {
+	color: #a3352b;
+	text-decoration: none;
+}
+
+/* Back / Next */
+.aimp-checkout-nav {
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	clear: both;
+	margin: 0.5rem 0 1.5rem;
+}
+
+.aimp-checkout-nav [data-checkout-next] {
+	margin-left: auto;
+}
+
+.aimp-checkout-nav [hidden] {
+	display: none;
+}
+
+/* Order summary */
+.aimp-configurator.aimp-checkout table.shop_table {
+	width: 100%;
+	margin: 0 0 1rem;
+	border: 0;
+	border-collapse: collapse;
+}
+
+.aimp-configurator.aimp-checkout table.shop_table :is(th, td) {
+	padding: 0.55rem 0;
+	border: 0;
+	border-bottom: 1px solid var(--aimp-gold-tint);
+	background: transparent;
+	text-align: left;
+	vertical-align: top;
+}
+
+.aimp-configurator.aimp-checkout table.shop_table :is(td:last-child, th:last-child) {
+	text-align: right;
+}
+
+.aimp-configurator.aimp-checkout table.shop_table .order-total :is(th, td) {
+	border-bottom: 0;
+	font-size: 1.1em;
+}
+
+.aimp-configurator.aimp-checkout #shipping_method {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Payment methods */
+.aimp-configurator.aimp-checkout #payment {
+	margin-top: 1rem;
+	border-radius: var(--aimp-radius);
+	background: transparent;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods {
+	margin: 0 0 1rem;
+	padding: 0;
+	border: 0;
+	list-style: none;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li {
+	margin: 0 0 0.5rem;
+	padding: 0.7rem 0.9rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-radius);
+}
+
+.aimp-configurator.aimp-checkout #payment div.payment_box {
+	margin: 0.5rem 0 0;
+	padding: 0.6rem 0.8rem;
+	background: var(--aimp-gold-tint);
+	color: var(--aimp-body-text);
+}
+
+.aimp-configurator.aimp-checkout #payment div.payment_box::before {
+	display: none;
+}
+
+.aimp-configurator.aimp-checkout #payment .place-order {
+	margin: 0;
+	padding: 0;
+}
+
+/* The order button: like the configurator buttons (Divi styles it through #payment). */
+.aimp-configurator.aimp-checkout #payment #place_order {
+	float: none;
+	display: block;
+	width: 100%;
+	margin-top: 0.75rem;
+	padding: 0.85rem 1.6rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-gold);
+	font: inherit;
+	font-size: 1.05em;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.aimp-configurator.aimp-checkout #payment #place_order:hover,
+.aimp-configurator.aimp-checkout #payment #place_order:focus-visible {
+	background: var(--aimp-gold-tint);
+}
+
+/* Coupon and login boxes */
+.aimp-configurator.aimp-checkout :is(.checkout_coupon, form.login) {
+	margin: 0 0 1rem;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+/* Confirmation (thank-you page) */
+.aimp-configurator.aimp-checkout.is-confirmation .woocommerce-order {
+	padding: 1.25rem 1.4rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-configurator.aimp-checkout.is-confirmation .woocommerce-order-overview {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem 1.5rem;
+	margin: 0 0 1.25rem;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator.aimp-checkout.is-confirmation .woocommerce-order-overview li {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+@media (max-width: 600px) {
+	.aimp-configurator.aimp-checkout :is(.form-row-first, .form-row-last) {
+		float: none;
+		width: 100%;
+	}
+}

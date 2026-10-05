@@ -89,3 +89,85 @@
 		transition: none;
 	}
 }
+
+/* ------------------------------------------------------------------
+ * Welcome popup with the personal discount code
+ * ------------------------------------------------------------------ */
+.aimp-welcome {
+	width: min(440px, calc(100vw - 2rem));
+	padding: 2rem 1.75rem 1.75rem;
+	border: 5px double #b38f4f;
+	border-radius: 24px;
+	background: #fff;
+	color: #613907;
+	text-align: center;
+}
+
+.aimp-welcome::backdrop {
+	background: rgba(97, 57, 7, 0.35);
+}
+
+.aimp-welcome h2 {
+	margin: 0 0 0.6rem;
+	color: #b38f4f;
+	font-size: 1.6rem;
+}
+
+.aimp-welcome p {
+	margin: 0 0 0.85rem;
+	color: #613907;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.aimp-welcome .aimp-welcome-code code {
+	display: inline-block;
+	padding: 0.4rem 0.8rem;
+	border: 1px dashed #b38f4f;
+	border-radius: 6px;
+	background: rgba(179, 143, 79, 0.08);
+	color: #613907;
+	font-size: 1.15rem;
+	letter-spacing: 0.08em;
+}
+
+.aimp-welcome .aimp-welcome-copy,
+.aimp-welcome .aimp-welcome-close {
+	border: 0;
+	background: none;
+	color: #b38f4f;
+	font: inherit;
+	cursor: pointer;
+}
+
+.aimp-welcome .aimp-welcome-copy {
+	text-decoration: underline;
+}
+
+.aimp-welcome .aimp-welcome-close {
+	position: absolute;
+	top: 0.6rem;
+	right: 0.8rem;
+	font-size: 1.6rem;
+	line-height: 1;
+}
+
+.aimp-welcome .aimp-welcome-small {
+	font-size: 13px;
+	font-weight: 400;
+}
+
+.aimp-welcome .aimp-welcome-button {
+	display: inline-block;
+	padding: 0.7rem 1.6rem;
+	border: 5px double #b38f4f;
+	border-radius: 100px;
+	color: #b38f4f;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.aimp-welcome .aimp-welcome-button:hover,
+.aimp-welcome .aimp-welcome-button:focus-visible {
+	background: rgba(179, 143, 79, 0.12);
+}

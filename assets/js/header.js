@@ -116,11 +116,69 @@
 		});
 	}
 
+	/**
+	 * --aimp-header-offset on the page: the height of the sticky header (plus the WordPress admin bar),
+	 * so sticky panels, pictures and totals stop below the header instead of sliding under it.
+	 */
+	function trackOffset(header) {
+		var update = function () {
+			var bar = document.getElementById('wpadminbar');
+			var barHeight = bar && window.getComputedStyle(bar).position === 'fixed' ? bar.offsetHeight : 0;
+			document.documentElement.style.setProperty('--aimp-header-offset', header.offsetHeight + barHeight + 'px');
+		};
+		update();
+		window.addEventListener('resize', update);
+		window.addEventListener('load', update);
+		if (window.ResizeObserver) {
+			new window.ResizeObserver(update).observe(header);
+		}
+	}
+
+	// Language: the active flag opens a list with the other languages (links that also set the cookie).
+	function setupLanguages(header) {
+		var wrap = header.querySelector('[data-aimp-lang-switch]');
+		if (!wrap) {
+			return;
+		}
+		var toggle = wrap.querySelector('.aimp-lang-toggle');
+		var list = wrap.querySelector('.aimp-lang-list');
+		var setOpen = function (open) {
+			wrap.classList.toggle('is-open', open);
+			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+			list.hidden = !open;
+		};
+		toggle.addEventListener('click', function (e) {
+			e.stopPropagation();
+			setOpen(!wrap.classList.contains('is-open'));
+		});
+		document.addEventListener('click', function (e) {
+			if (!wrap.contains(e.target)) {
+				setOpen(false);
+			}
+		});
+		wrap.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape') {
+				setOpen(false);
+				toggle.focus();
+			}
+		});
+		list.querySelectorAll('[data-lang]').forEach(function (link) {
+			link.addEventListener('click', function () {
+				document.cookie = 'aimp_lang=' + link.getAttribute('data-lang') + '; path=/; max-age=31536000; SameSite=Lax';
+				try {
+					window.localStorage.setItem('aimp_lang', link.getAttribute('data-lang'));
+				} catch (err) {}
+			});
+		});
+	}
+
 	function boot() {
 		document.querySelectorAll('[data-aimp-header]').forEach(function (header) {
 			if (!header.aimpReady) {
 				header.aimpReady = true;
 				setup(header);
+				trackOffset(header);
+				setupLanguages(header);
 			}
 		});
 	}

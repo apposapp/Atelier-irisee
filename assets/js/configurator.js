@@ -333,10 +333,12 @@
 		return -1;
 	};
 
+	// Every new step starts at the very top of the page.
 	Configurator.prototype.goTo = function (key) {
 		this.state.step = key;
 		this.render();
-		scrollIntoViewIfNeeded(this.root);
+		var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
 	};
 
 	Configurator.prototype.next = function () {
@@ -1133,6 +1135,14 @@
 		var s = this.state;
 		var lines = this.summaryLines();
 		var total = 0;
+		var discount = parseInt(cfg.kitDiscount, 10) || 0;
+		// Original price crossed out, then the price with the sewing project kit discount.
+		var priceHtml = function (amount) {
+			if (!discount) {
+				return esc(money(amount));
+			}
+			return '<del>' + esc(money(amount)) + '</del> <ins>' + esc(money(amount * (100 - discount) / 100)) + '</ins>';
+		};
 
 		var html = '<div class="aimp-step aimp-step--summary">' + this.recapHtml() + '<h3>' + esc(t.summaryTitle) + '</h3>';
 		html += '<div class="aimp-table-scroll"><table class="aimp-summary"><thead><tr><th>' + esc(t.product) + '</th><th>' + esc(t.quantity) + '</th><th>' + esc(t.price) + '</th></tr></thead><tbody>';
@@ -1141,9 +1151,13 @@
 			total += subtotal;
 			html +=
 				'<tr><td>' + esc(line.name) + (line.detail ? '<br><small>' + esc(line.detail) + '</small>' : '') + '</td>' +
-				'<td>' + esc(line.qty) + '</td><td>' + esc(money(subtotal)) + '</td></tr>';
+				'<td>' + esc(line.qty) + '</td><td class="aimp-summary-price">' + priceHtml(subtotal) + '</td></tr>';
 		});
-		html += '</tbody><tfoot><tr><th colspan="2">' + esc(t.total) + '</th><td>' + esc(money(total)) + '</td></tr></tfoot></table></div>';
+		html += '</tbody><tfoot>';
+		if (discount) {
+			html += '<tr class="aimp-summary-discount"><th colspan="2">' + esc(fmt(t.kitDiscount, discount)) + '</th><td>−' + esc(money(total * discount / 100)) + '</td></tr>';
+		}
+		html += '<tr><th colspan="2">' + esc(t.total) + '</th><td class="aimp-summary-price">' + priceHtml(total) + '</td></tr></tfoot></table></div>';
 		html += '<p class="aimp-help">' + esc(t.lockedNote) + '</p>';
 		html += '<div data-role="messages"></div>';
 		html +=

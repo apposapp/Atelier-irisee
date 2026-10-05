@@ -2,7 +2,8 @@
 /**
  * Product mosaic: [atelier_irisee_mosaic type="patterns|fabrics|haberdashery|all"].
  *
- * Ten products in a mosaic of two large and eight small tiles: the best sellers (ties and products
+ * Ten products in a mosaic where every tile has its own size ("Centre stage": the first product big in
+ * the middle, the others around it, getting smaller): the best sellers (ties and products
  * without sales in random order), or the products chosen in the settings.
  *
  * @package AtelierIriseeMasterPlugin
@@ -255,7 +256,7 @@ class AIMP_Mosaic {
 		foreach ( $products as $index => $product ) {
 			$per_10cm = AIMP_Catalog::sold_per_10cm( $product );
 			$image_id = $product->get_image_id();
-			$size     = in_array( $index, array( 0, 7 ), true ) ? 'woocommerce_single' : 'woocommerce_thumbnail';
+			$size     = $index < 4 ? 'woocommerce_single' : 'woocommerce_thumbnail'; // The four biggest tiles get a larger picture.
 			$image    = $image_id ? wp_get_attachment_image_url( $image_id, $size ) : wc_placeholder_img_src( $size );
 			$html    .= sprintf(
 				'<li class="aimp-mosaic-tile aimp-mosaic-tile--%1$d aimp-fav-wrap"><a href="%2$s"><img src="%3$s" alt="%4$s" loading="lazy"><span class="aimp-mosaic-caption"><span class="aimp-mosaic-name">%5$s</span><span class="aimp-mosaic-price">%6$s%7$s</span></span></a>%8$s</li>',

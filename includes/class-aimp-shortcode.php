@@ -44,6 +44,7 @@ class AIMP_Shortcode {
 				'thousand'  => wc_get_price_thousand_separator(),
 			),
 			'measureImage'    => AIMP_PLUGIN_URL . 'assets/images/lichaamsmaten.png',
+			'kitDiscount'     => AIMP_Cart::kit_discount(),
 			'defaultLanguage' => AIMP_I18n::default_language(),
 			'languages'       => self::languages_data(),
 			'i18n'            => self::all_strings(),
@@ -144,6 +145,8 @@ class AIMP_Shortcode {
 			'total'           => __( 'Total', 'atelier-irisee-master-plugin' ),
 			'lockedNote'      => __( 'Quantities are fixed by your size. The items stay linked in your cart: removing one removes the whole set.', 'atelier-irisee-master-plugin' ),
 			'addToCart'       => __( 'Add to cart', 'atelier-irisee-master-plugin' ),
+			/* translators: %d: discount percentage */
+			'kitDiscount'     => __( 'Sewing project kit discount: −%d%%', 'atelier-irisee-master-plugin' ),
 			'adding'          => __( 'Adding…', 'atelier-irisee-master-plugin' ),
 			'viewCart'        => __( 'View cart', 'atelier-irisee-master-plugin' ),
 			'configureAnother' => __( 'Configure another pattern', 'atelier-irisee-master-plugin' ),

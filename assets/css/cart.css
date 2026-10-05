@@ -16,7 +16,7 @@
 	position: sticky;
 	top: var(--aimp-sticky-top);
 	padding: 1.25rem 1.4rem;
-	border: 5px double var(--aimp-gold);
+	border: 1px solid var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
@@ -179,12 +179,16 @@
 }
 
 .aimp-configurator:is(.aimp-cart, #aimp-specificity) .aimp-stepper .aimp-stepper-input {
-	width: 3.2em;
-	padding: 0.2rem;
+	width: 3em;
+	height: auto;
+	margin: 0;
+	padding: 0;
 	border: 0;
 	background: transparent;
 	color: var(--aimp-body-text);
 	font: inherit;
+	font-size: 18px;
+	line-height: 1;
 	font-weight: 700;
 	text-align: center;
 	-moz-appearance: textfield;
@@ -197,11 +201,12 @@
 	-webkit-appearance: none;
 }
 
-.aimp-configurator .aimp-cart .aimp-stepper-unit,
-.aimp-cart .aimp-stepper-unit {
-	margin-left: -0.3rem;
+.aimp-configurator:is(.aimp-cart, #aimp-specificity) .aimp-stepper .aimp-stepper-unit {
+	margin: 0 0 0 -0.2rem;
 	color: var(--aimp-body-text);
-	font-weight: 600;
+	font-size: 18px;
+	font-weight: 700;
+	line-height: 1;
 }
 
 /* Remove links */
@@ -312,4 +317,17 @@
 	.aimp-cart-single-qty {
 		grid-column: 2;
 	}
+}
+
+/* Sewing project kit discount: the original price crossed out */
+.aimp-configurator .aimp-cart-set :is(del, del *) {
+	margin-right: 0.35rem;
+	opacity: 0.6;
+	font-weight: 600;
+}
+
+.aimp-configurator .aimp-cart-kit-discount {
+	margin: 0 0 0.25rem;
+	color: var(--aimp-gold);
+	font-weight: 700;
 }

@@ -501,14 +501,15 @@ class AIMP_Product_Page {
 			'pattern'          => (bool) $pattern,
 			'skill'            => $pattern ? (string) $product->get_meta( AIMP_Catalog::META_SKILL ) : '',
 			'sizes_text'       => $pattern ? (string) $product->get_meta( AIMP_Catalog::META_SIZES_TEXT ) : '',
-			'recommended'      => $fabric ? self::recommended_pattern( $product ) : null,
+			'recommended'      => self::recommended_product( $product ),
 			'fabrics'          => $pattern ? self::recommended_fabrics( $pattern ) : array(),
 			'buy'              => self::buy_data( $product, $per_10cm ),
 			'fabric'           => $fabric ? AIMP_Catalog::fabric_texts( $product ) : null,
 			'gallery'          => $gallery,
 			'attributes'       => AIMP_Catalog::attributes( $product, (bool) $pattern ),
-			'configurator_url' => ( $pattern && $configurator && 'publish' === get_post_status( $configurator ) )
-				? add_query_arg( 'aimp_pattern', $product->get_id(), get_permalink( $configurator ) )
+			// The configurator; from a pattern it opens with that pattern already chosen.
+			'configurator_url' => ( $configurator && 'publish' === get_post_status( $configurator ) )
+				? ( $pattern ? add_query_arg( 'aimp_pattern', $product->get_id(), get_permalink( $configurator ) ) : get_permalink( $configurator ) )
 				: '',
 			'fitting'          => $fabric ? self::fitting_patterns( $product ) : array(),
 			'related'          => array_filter( array_map( 'wc_get_product', wc_get_related_products( $product->get_id(), self::RELATED ) ) ),
@@ -628,16 +629,16 @@ class AIMP_Product_Page {
 	}
 
 	/**
-	 * Gold line icon for a fabric subject: specifications (a thread spool, a folded fabric, a palette,
-	 * a width arrow, a weight) and washing (a wash tub, a tumble dryer, an iron, a light bulb for tips).
+	 * Gold line icon for a fabric subject: specifications (a round chart for the composition, a thread spool
+	 * for the type, a palette, a width arrow, a weight) and washing (a wash tub, a tumble dryer, an iron, a light bulb for tips).
 	 *
 	 * @param string $subject A subject key of AIMP_Catalog::fabric_text_fields().
 	 * @return string SVG.
 	 */
 	public static function fabric_icon( $subject ) {
 		$paths = array(
-			'composition' => '<path d="M6.5 4h11M6.5 20h11"/><path d="M8 4v16M16 4v16"/><path d="M8 7.5l8 2.5M8 11.5l8 2.5M8 15.5l8 2"/>',
-			'type'        => '<path d="M4 4.5h11.5L20 9v10.5H4z"/><path d="M15.5 4.5V9H20"/><path d="M7.5 12.5h9M7.5 16h6"/>',
+			'composition' => '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12l6 6"/><path d="M12 12H3.5"/>',
+			'type'        => '<path d="M6.5 4h11M6.5 20h11"/><path d="M8 4v16M16 4v16"/><path d="M8 7.5l8 2.5M8 11.5l8 2.5M8 15.5l8 2"/>',
 			'colour'      => '<path d="M12 3.5a8.5 8.5 0 1 0 0 17c.9 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.4-1.1-.3-.3-.4-.6-.4-1 0-.8.7-1.5 1.5-1.5h1.8a4.5 4.5 0 0 0 4.5-4.5c0-4-3.8-7.4-8.5-7.4z"/><circle cx="7.5" cy="11" r=".9"/><circle cx="10" cy="7.3" r=".9"/><circle cx="14.5" cy="7.3" r=".9"/><circle cx="17" cy="11" r=".9"/>',
 			'width'       => '<path d="M3 12h18"/><path d="M7 8l-4 4 4 4M17 8l4 4-4 4"/><path d="M3 5v14M21 5v14"/>',
 			'weight'      => '<path d="M6.5 9.5h11l2 10.5h-15z"/><circle cx="12" cy="6.2" r="2.4"/>',
@@ -651,13 +652,23 @@ class AIMP_Product_Page {
 	}
 
 	/**
-	 * The pattern chosen as "Recommended pattern" on a fabric, if it is still a visible pattern.
+	 * The product chosen in "Atelier Irisee recommendation": a fabric for a pattern, a pattern for
+	 * everything else. Only while it is still a visible product of that kind.
 	 *
-	 * @param WC_Product $fabric Fabric product.
+	 * @param WC_Product $product Product.
 	 * @return WC_Product|null
 	 */
-	public static function recommended_pattern( $fabric ) {
-		$pattern = AIMP_Catalog::get_pattern( absint( $fabric->get_meta( AIMP_Catalog::META_RECOMMENDED ) ) );
+	public static function recommended_product( $product ) {
+		$id = absint( $product->get_meta( AIMP_Catalog::META_RECOMMENDED ) );
+		if ( ! $id ) {
+			return null;
+		}
+		if ( AIMP_Catalog::get_pattern( $product->get_id() ) ) {
+			$fabric = wc_get_product( $id );
+			$ok     = $fabric && 'publish' === $fabric->get_status() && AIMP_Catalog::in_categories( $fabric, AIMP_Catalog::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
+			return ( $ok && $fabric->is_visible() ) ? $fabric : null;
+		}
+		$pattern = AIMP_Catalog::get_pattern( $id );
 		return ( $pattern && $pattern->is_visible() ) ? $pattern : null;
 	}
 

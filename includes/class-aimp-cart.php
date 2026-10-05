@@ -39,6 +39,9 @@ class AIMP_Cart {
 		// Safety net before checkout.
 		add_action( 'woocommerce_check_cart_items', array( __CLASS__, 'check_cart_items' ), 5 );
 
+		// Sewing project kit discount.
+		add_action( 'woocommerce_before_calculate_totals', array( __CLASS__, 'apply_kit_discount' ), 20 );
+
 		// Display & order meta.
 		add_filter( 'woocommerce_get_item_data', array( __CLASS__, 'item_data' ), 10, 2 );
 		add_action( 'woocommerce_checkout_create_order_line_item', array( __CLASS__, 'order_item_meta' ), 10, 4 );
@@ -380,6 +383,62 @@ class AIMP_Cart {
 	}
 
 	/* ------------------------------------------------------------------
+	 * Sewing project kit discount
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * Discount on every item of a set made in the configurator, in percent (setting; 0 = none).
+	 *
+	 * @return int
+	 */
+	public static function kit_discount() {
+		return min( 90, AIMP_Settings::get( 'kit_discount' ) );
+	}
+
+	/**
+	 * Whether a cart item belongs to a set made in the configurator.
+	 *
+	 * @param array $cart_item Cart item.
+	 * @return bool
+	 */
+	public static function is_kit_item( $cart_item ) {
+		return null !== self::meta( $cart_item );
+	}
+
+	/**
+	 * Lower the price of set items. Always from a fresh copy of the product, so recalculating the cart
+	 * never applies the discount twice.
+	 *
+	 * @param WC_Cart $cart Cart.
+	 */
+	public static function apply_kit_discount( $cart ) {
+		$percent = self::kit_discount();
+		if ( ! $percent || ( is_admin() && ! wp_doing_ajax() ) ) {
+			return;
+		}
+		foreach ( $cart->get_cart() as $item ) {
+			if ( ! self::is_kit_item( $item ) || empty( $item['data'] ) || ! $item['data'] instanceof WC_Product ) {
+				continue;
+			}
+			$fresh = wc_get_product( $item['data']->get_id() );
+			if ( $fresh ) {
+				$item['data']->set_price( round( (float) $fresh->get_price() * ( 100 - $percent ) / 100, 4 ) );
+			}
+		}
+	}
+
+	/**
+	 * Price of one unit of a set item before the kit discount (for showing it crossed out).
+	 *
+	 * @param WC_Product $product Product in the cart.
+	 * @return float Display price (with or without VAT, like the shop).
+	 */
+	public static function undiscounted_price( $product ) {
+		$fresh = wc_get_product( $product->get_id() );
+		return $fresh ? (float) wc_get_price_to_display( $fresh ) : 0.0;
+	}
+
+	/* ------------------------------------------------------------------
 	 * Display and order meta
 	 * ------------------------------------------------------------------ */
 
@@ -443,6 +502,9 @@ class AIMP_Cart {
 		);
 		if ( in_array( $meta['role'], array( 'fabric', 'ribbon', 'bias' ), true ) ) {
 			$item->add_meta_data( 'aimp_length', AIMP_Catalog::fabric_text( (int) $meta['qty'] ), true );
+		}
+		if ( self::kit_discount() ) {
+			$item->add_meta_data( __( 'Sewing project kit discount', 'atelier-irisee-master-plugin' ), self::kit_discount() . '%', true );
 		}
 	}
 

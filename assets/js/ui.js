@@ -15,11 +15,14 @@
 		});
 	}
 
-	// Minimal sprintf for "%s", "%d", "%1$s", "%2$d".
+	// Minimal sprintf for "%s", "%d", "%1$s", "%2$d" and "%%" (a percent sign).
 	function fmt(str) {
 		var args = Array.prototype.slice.call(arguments, 1);
 		var i = 0;
-		return String(str).replace(/%(\d+\$)?[ds]/g, function (m, pos) {
+		return String(str).replace(/%%|%(\d+\$)?[ds]/g, function (m, pos) {
+			if (m === '%%') {
+				return '%';
+			}
 			var idx = pos ? parseInt(pos, 10) - 1 : i++;
 			return args[idx];
 		});
@@ -421,7 +424,8 @@
 	function fitSidePanels(root) {
 		root.querySelectorAll('.aimp-split-side').forEach(function (panel) {
 			var top = parseFloat(window.getComputedStyle(panel).top) || 0;
-			panel.classList.toggle('is-tall', panel.offsetHeight > window.innerHeight - top * 2);
+			// Room below the sticky offset (which includes the site header), with a small margin at the bottom.
+			panel.classList.toggle('is-tall', panel.offsetHeight > window.innerHeight - top - 24);
 		});
 	}
 

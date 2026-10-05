@@ -38,7 +38,7 @@ class AIMP_Account {
 			'personal'  => __( 'Personal data', 'atelier-irisee-master-plugin' ),
 			'orders'    => __( 'My orders', 'atelier-irisee-master-plugin' ),
 			'refund'    => __( 'Refund or remove account', 'atelier-irisee-master-plugin' ),
-			'giftcards' => __( 'My gift cards', 'atelier-irisee-master-plugin' ),
+			'giftcards' => __( 'Gift cards and discount codes', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -335,7 +335,10 @@ class AIMP_Account {
 	/* ---------- Gift cards ---------- */
 
 	public static function tab_giftcards( $user ) {
-		echo '<h2 class="aimp-account-title">' . esc_html__( 'My gift cards', 'atelier-irisee-master-plugin' ) . '</h2>';
+		echo '<h2 class="aimp-account-title">' . esc_html__( 'Gift cards and discount codes', 'atelier-irisee-master-plugin' ) . '</h2>';
+		// Personal discount codes (such as the welcome code) that can still be used.
+		echo AIMP_Coupons::account_codes_html( $user ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in account_codes_html().
+		echo '<h3 class="aimp-account-subtitle">' . esc_html__( 'My gift cards', 'atelier-irisee-master-plugin' ) . '</h3>';
 		$ids = get_posts(
 			array(
 				'post_type'      => AIMP_Giftcards::POST_TYPE,

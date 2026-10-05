@@ -51,14 +51,32 @@ defined( 'ABSPATH' ) || exit;
 											<small><?php echo esc_html( $aimp_line['amount'] ); ?></small>
 										<?php endif; ?>
 									</span>
-									<span class="aimp-cart-set-price"><?php echo wp_kses_post( $aimp_line['subtotal'] ); ?></span>
+									<span class="aimp-cart-set-price">
+										<?php if ( isset( $aimp_line['regular'] ) && $aimp_line['regular'] > 0 && AIMP_Cart::kit_discount() ) : ?>
+											<del><?php echo wp_kses_post( wc_price( $aimp_line['regular'] ) ); ?></del>
+										<?php endif; ?>
+										<?php echo wp_kses_post( $aimp_line['subtotal'] ); ?>
+									</span>
 								</li>
 							<?php endforeach; ?>
 						</ul>
 						<p class="aimp-cart-set-total">
 							<span><?php esc_html_e( 'Set total', 'atelier-irisee-master-plugin' ); ?></span>
-							<strong><?php echo wp_kses_post( wc_price( $aimp_set['total'] ) ); ?></strong>
+							<strong>
+								<?php if ( AIMP_Cart::kit_discount() && $aimp_set['regular'] > $aimp_set['total'] ) : ?>
+									<del><?php echo wp_kses_post( wc_price( $aimp_set['regular'] ) ); ?></del>
+								<?php endif; ?>
+								<?php echo wp_kses_post( wc_price( $aimp_set['total'] ) ); ?>
+							</strong>
 						</p>
+						<?php if ( AIMP_Cart::kit_discount() ) : ?>
+							<p class="aimp-cart-kit-discount">
+								<?php
+								/* translators: %d: discount percentage */
+								echo esc_html( sprintf( __( 'Sewing project kit discount: −%d%%', 'atelier-irisee-master-plugin' ), AIMP_Cart::kit_discount() ) );
+								?>
+							</p>
+						<?php endif; ?>
 						<p class="aimp-help aimp-cart-locked"><?php esc_html_e( 'The amounts of a set are fixed by the size.', 'atelier-irisee-master-plugin' ); ?></p>
 					</section>
 				<?php endforeach; ?>

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.1.0
+Stable tag: 2.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,18 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.2.0 =
+* New: step-by-step checkout [atelier_irisee_checkout] (Cart → Details → Delivery → Payment → Confirmation) on top of WooCommerce's own checkout, so payment plugins such as Mollie work unchanged. The "Checkout page" setting also sets WooCommerce's checkout page.
+* New: sewing project kit discount (setting, 10% by default), shown with crossed-out prices in the configurator and on the cart page.
+* New: discount codes follow the shop's rules: never combined, not on products with a sale price (sewing kits excepted), never on gift cards. Make them under Marketing → Coupons.
+* New: welcome code for new customers (setting %, validity): a popup after the first login and listed in the account under "Gift cards and discount codes" until it is used.
+* New: recommendation box on product pages, next to the picture: a recommended pattern (or a recommended fabric on patterns) and a button to the configurator. Chosen in the new "Atelier Irisee recommendation" box on every product.
+* Language switcher moved into the header: the active flag next to the account icon, with a list of the other languages.
+* Shop filters: a gold panel that slides and fades in and out, never covers the products and doesn't lock the page.
+* Mosaic layout "Centre stage": ten tiles of different sizes, one screen high.
+* Sticky panels, pictures and the cart totals stay below the header; the side menu's line lines up with the header line; the configurator scrolls to the top on every step.
+* Smaller cards (8 per row) for suggested patterns, recommended fabrics and related products; 18px amounts with "cm" aligned; single borders on the cart totals and gift card box; smaller footer without the empty band; new composition icon.
 
 = 2.1.0 =
 * New: cart page [atelier_irisee_cart]. Configurator sets are shown as one product with thumbnails, prices and the set total; other products have ‹ › amounts; discount code, gift card field, totals with shipping and checkout. The "Cart page" setting also sets WooCommerce's cart page.

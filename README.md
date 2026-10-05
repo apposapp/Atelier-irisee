@@ -188,6 +188,15 @@ Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_
   - The "Cart page" setting writes `woocommerce_cart_page_id`.
 - **Mosaic** (`includes/class-aimp-mosaic.php`): `[atelier_irisee_mosaic type="…"]`. Option `aimp_mosaic`: source `bestsellers` (by `total_sales`, ties random, cached 1 h) or `manual` (product pickers).
 
+## Discounts and checkout
+
+- **Sewing kit discount** (`AIMP_Cart::apply_kit_discount`): set items get the "kit_discount" percentage in `woocommerce_before_calculate_totals`, calculated from a fresh copy of the product.
+- **Coupons** (`includes/class-aimp-coupons.php`):
+  - every coupon is individual use;
+  - `woocommerce_coupon_is_valid_for_product` skips products on sale (except kit items) and gift cards.
+- **Welcome code:** created on the first login after registering (`_aimp_welcome_pending`), as a personal WooCommerce coupon. It is shown once in a popup and listed in the account's gift card tab. `?aimp_coupon=CODE` applies a code to the cart.
+- **Checkout** (`includes/class-aimp-checkout.php`, `assets/js/checkout.js`): `[atelier_irisee_checkout]` prints WooCommerce's checkout. The JS adds `is-stepped` and `data-step`, and `checkout.css` shows the parts of one step.
+
 ## Languages
 
 The plugin speaks **Dutch**, **French** and **English**, independent of the WordPress site language.

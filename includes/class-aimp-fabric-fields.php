@@ -15,10 +15,12 @@ class AIMP_Fabric_Fields {
 	public static function init() {
 		add_action( 'add_meta_boxes_product', array( __CLASS__, 'add_box' ) );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save' ) );
+		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_recommendation' ) );
 	}
 
 	public static function add_box() {
 		add_meta_box( 'aimp-fabric-texts', __( 'Fabric texts', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'render' ), 'product', 'normal', 'high' );
+		add_meta_box( 'aimp-recommendation', __( 'Atelier Irisee recommendation', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'render_recommendation' ), 'product', 'side', 'default' );
 	}
 
 	/**
@@ -96,20 +98,6 @@ class AIMP_Fabric_Fields {
 				<?php endfor; ?>
 			</div>
 
-			<p class="aimp-fabric-recommended">
-				<label for="aimp_recommended_pattern"><strong><?php esc_html_e( 'Recommended pattern', 'atelier-irisee-master-plugin' ); ?></strong></label><br>
-				<select id="aimp_recommended_pattern" name="aimp_fabric[recommended_pattern]">
-					<option value="0"><?php esc_html_e( '— None —', 'atelier-irisee-master-plugin' ); ?></option>
-					<?php
-					$current = $product ? absint( $product->get_meta( AIMP_Catalog::META_RECOMMENDED ) ) : 0;
-					foreach ( self::pattern_choices() as $pattern_id => $pattern_name ) {
-						printf( '<option value="%1$d" %2$s>%3$s</option>', (int) $pattern_id, selected( $current, $pattern_id, false ), esc_html( $pattern_name ) );
-					}
-					?>
-				</select>
-				<span class="description"><?php esc_html_e( 'Shown as a fourth card next to the inspiration cards, with its picture and name.', 'atelier-irisee-master-plugin' ); ?></span>
-			</p>
-
 			<div class="aimp-fabric-editors">
 				<div>
 					<h4><label for="aimp_order_info"><?php esc_html_e( 'Order information', 'atelier-irisee-master-plugin' ); ?></label></h4>
@@ -151,12 +139,73 @@ class AIMP_Fabric_Fields {
 	}
 
 	/**
+	 * Side box on every product: the product shown in the recommendation box on its page.
+	 * Patterns recommend a fabric; every other product recommends a pattern.
+	 *
+	 * @param WP_Post $post Product post.
+	 */
+	public static function render_recommendation( $post ) {
+		$is_pattern = (bool) AIMP_Catalog::get_pattern( $post->ID );
+		$current    = absint( get_post_meta( $post->ID, AIMP_Catalog::META_RECOMMENDED, true ) );
+		$choices    = $is_pattern ? self::fabric_choices() : self::pattern_choices();
+		?>
+		<input type="hidden" name="aimp_recommendation_present" value="1">
+		<p>
+			<label for="aimp_recommended"><?php echo esc_html( $is_pattern ? __( 'Recommended fabric', 'atelier-irisee-master-plugin' ) : __( 'Recommended pattern', 'atelier-irisee-master-plugin' ) ); ?></label>
+			<select id="aimp_recommended" name="aimp_recommended" style="width:100%">
+				<option value="0"><?php esc_html_e( '— None —', 'atelier-irisee-master-plugin' ); ?></option>
+				<?php foreach ( $choices as $choice_id => $choice_name ) : ?>
+					<option value="<?php echo (int) $choice_id; ?>" <?php selected( $current, $choice_id ); ?>><?php echo esc_html( $choice_name ); ?></option>
+				<?php endforeach; ?>
+			</select>
+		</p>
+		<p class="description"><?php esc_html_e( 'Shown next to the product picture, with a button to the configurator. Patterns recommend a fabric, other products a pattern (save the product after changing its category).', 'atelier-irisee-master-plugin' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * @param WC_Product $product Product.
+	 */
+	public static function save_recommendation( $product ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
+		if ( empty( $_POST['aimp_recommendation_present'] ) ) {
+			return;
+		}
+		$id = isset( $_POST['aimp_recommended'] ) ? absint( $_POST['aimp_recommended'] ) : 0;
+		// phpcs:enable
+		$valid = $id && array_key_exists( $id, AIMP_Catalog::get_pattern( $product->get_id() ) ? self::fabric_choices() : self::pattern_choices() );
+		if ( $valid ) {
+			$product->update_meta_data( AIMP_Catalog::META_RECOMMENDED, $id );
+		} else {
+			$product->delete_meta_data( AIMP_Catalog::META_RECOMMENDED );
+		}
+	}
+
+	/**
+	 * All published fabrics: ID => name.
+	 *
+	 * @return array
+	 */
+	private static function fabric_choices() {
+		return self::products_in( AIMP_Settings::get( 'fabric_cat' ) );
+	}
+
+	/**
 	 * All published patterns: ID => name.
 	 *
 	 * @return array
 	 */
 	private static function pattern_choices() {
-		$root = AIMP_Settings::get( 'pattern_cat' );
+		return self::products_in( AIMP_Settings::get( 'pattern_cat' ) );
+	}
+
+	/**
+	 * Published products in a category tree: ID => name, alphabetical.
+	 *
+	 * @param int $root Category.
+	 * @return array
+	 */
+	private static function products_in( $root ) {
 		if ( ! $root ) {
 			return array();
 		}
@@ -211,12 +260,6 @@ class AIMP_Fabric_Fields {
 			list( $title_key, $text_key ) = AIMP_Catalog::inspiration_keys( $n );
 			$set( $title_key, isset( $input[ 'insp_' . $n . '_title' ] ) ? sanitize_text_field( $input[ 'insp_' . $n . '_title' ] ) : '' );
 			$set( $text_key, isset( $input[ 'insp_' . $n . '_text' ] ) ? wp_kses_post( $input[ 'insp_' . $n . '_text' ] ) : '' );
-		}
-		$recommended = isset( $input['recommended_pattern'] ) ? absint( $input['recommended_pattern'] ) : 0;
-		if ( $recommended && AIMP_Catalog::get_pattern( $recommended ) ) {
-			$product->update_meta_data( AIMP_Catalog::META_RECOMMENDED, $recommended );
-		} else {
-			$product->delete_meta_data( AIMP_Catalog::META_RECOMMENDED );
 		}
 		// The single inspiration text from before the cards now lives in card 1.
 		$product->delete_meta_data( AIMP_Catalog::META_INSPIRATION );

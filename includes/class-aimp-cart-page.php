@@ -95,7 +95,7 @@ class AIMP_Cart_Page {
 	/**
 	 * The cart split into configurator sets and single products.
 	 *
-	 * @return array [ sets: [ [ label, total, remove_url, items: [ … ] ] ], singles: [ … ] ]
+	 * @return array [ sets: [ [ label, total, regular (before the kit discount), remove_url, items: [ … ] ] ], singles: [ … ] ]
 	 */
 	public static function contents() {
 		$sets    = array();
@@ -124,11 +124,15 @@ class AIMP_Cart_Page {
 					$sets[ $group ] = array(
 						'label'      => (string) $meta['label'],
 						'total'      => 0,
+						'regular'    => 0,
 						'remove_url' => wc_get_cart_remove_url( $key ),
 						'items'      => array(),
 					);
 				}
 				$sets[ $group ]['total']  += self::line_total( $item );
+				// Before the sewing project kit discount, for showing it crossed out.
+				$line['regular']             = AIMP_Cart::undiscounted_price( $product ) * (int) $item['quantity'];
+				$sets[ $group ]['regular'] += $line['regular'];
 				$sets[ $group ]['items'][] = $line;
 				if ( 'pattern' === $line['role'] ) {
 					$sets[ $group ]['remove_url'] = wc_get_cart_remove_url( $key );

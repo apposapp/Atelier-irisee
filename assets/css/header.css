@@ -189,7 +189,7 @@
 	display: flex;
 	flex-direction: column;
 	width: min(360px, 86vw);
-	padding: calc(1.25rem + env(safe-area-inset-top, 0px)) 1.5rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+	padding: 0 1.5rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
 	overflow-y: auto;
 	/* Gold that fades into the page on the right. */
 	background: linear-gradient(90deg, rgba(179, 143, 79, 0.94) 0%, rgba(179, 143, 79, 0.9) 75%, rgba(179, 143, 79, 0.75) 100%);
@@ -208,12 +208,16 @@
 	transition: transform 0.35s ease, opacity 0.35s ease, visibility 0s linear 0s;
 }
 
+/* As tall as the header (header.js sets --aimp-header-offset), so its line runs in line with the header's bottom line. */
 .aimp-side-menu-head {
 	display: flex;
-	align-items: center;
+	flex: 0 0 auto;
+	align-items: flex-end;
 	justify-content: space-between;
+	box-sizing: border-box;
+	min-height: var(--aimp-header-offset, 4.5rem);
 	margin-bottom: 1.25rem;
-	padding-bottom: 0.75rem;
+	padding: env(safe-area-inset-top, 0px) 0 0.75rem;
 	border-bottom: 1px solid rgba(255, 255, 255, 0.6);
 }
 
@@ -348,6 +352,105 @@ body.aimp-replace-theme-header :is(#main-header, #top-header, .et-l--header, #et
 body.aimp-replace-theme-header #page-container {
 	margin-top: 0 !important;
 	padding-top: 0 !important;
+}
+
+/* Language: the active flag next to the account icon; a list with the other languages */
+.aimp-header-lang {
+	position: relative;
+	align-self: center;
+}
+
+.aimp-header .aimp-lang-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	margin: 0;
+	padding: 0.3rem 0.2rem;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	cursor: pointer;
+}
+
+.aimp-header .aimp-lang-toggle img {
+	display: block;
+	width: 26px;
+	height: 18px;
+	border: 1px solid var(--aimp-gold);
+	border-radius: 3px;
+	object-fit: cover;
+}
+
+.aimp-lang-caret {
+	width: 0.45rem;
+	height: 0.45rem;
+	margin-top: -0.2rem;
+	border-right: 2px solid var(--aimp-gold);
+	border-bottom: 2px solid var(--aimp-gold);
+	transform: rotate(45deg);
+	transition: transform 0.2s ease;
+}
+
+.aimp-header-lang.is-open .aimp-lang-caret {
+	margin-top: 0.2rem;
+	transform: rotate(-135deg);
+}
+
+.aimp-header .aimp-lang-list {
+	position: absolute;
+	top: calc(100% + 0.5rem);
+	right: 0;
+	z-index: 1001;
+	min-width: 11rem;
+	margin: 0;
+	padding: 0.4rem 0;
+	border: 1px solid var(--aimp-gold);
+	border-radius: 6px;
+	background: #fff;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	list-style: none;
+}
+
+.aimp-header .aimp-lang-list[hidden] {
+	display: none;
+}
+
+.aimp-header .aimp-lang-list li {
+	margin: 0;
+	padding: 0;
+}
+
+.aimp-header .aimp-lang-list a {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.45rem 0.9rem;
+	color: var(--aimp-brown);
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.aimp-header .aimp-lang-list a:hover,
+.aimp-header .aimp-lang-list a:focus-visible {
+	background: rgba(179, 143, 79, 0.12);
+	color: var(--aimp-gold);
+}
+
+.aimp-header .aimp-lang-list img {
+	width: 24px;
+	height: 16px;
+	border-radius: 2px;
+	object-fit: cover;
+}
+
+/* With the header on, the language flags on the pages are not needed. */
+body.aimp-has-header .aimp-configurator .aimp-languages {
+	display: none;
+}
+
+body.aimp-has-header .aimp-configurator .aimp-topbar:has(> .aimp-languages:only-child) {
+	display: none;
 }
 
 /* Phones */

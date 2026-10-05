@@ -95,6 +95,8 @@ class AIMP_Header {
 	 * @return string[]
 	 */
 	public static function body_class( $classes ) {
+		// The language flags move into the header (header.css hides the flags on the pages).
+		$classes[] = 'aimp-has-header';
 		if ( ! wp_is_block_theme() ) {
 			$classes[] = 'aimp-replace-theme-header';
 		}

@@ -251,17 +251,32 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 				</div>
 			<?php endif; ?>
 
-			<?php if ( $data['configurator_url'] ) : ?>
-				<div class="aimp-product-configure">
-					<p class="aimp-help"><?php esc_html_e( 'Choose the fabric and haberdashery that fit your size, all in one go.', 'atelier-irisee-master-plugin' ); ?></p>
-					<a class="aimp-button aimp-button--block" href="<?php echo esc_url( $data['configurator_url'] ); ?>"><?php esc_html_e( 'Complete it in the configurator', 'atelier-irisee-master-plugin' ); ?></a>
+			<?php if ( ! $aimp_giftcard && ( $data['configurator_url'] || $data['recommended'] ) ) : ?>
+				<?php // Recommendation box: at the bottom of this column, level with the bottom of the picture. ?>
+				<div class="aimp-recommend-box">
+					<?php if ( $data['recommended'] ) : ?>
+						<?php $aimp_rec = $data['recommended']; ?>
+						<a class="aimp-recommended" href="<?php echo esc_url( $aimp_rec->get_permalink() ); ?>">
+							<?php echo wp_kses_post( $aimp_rec->get_image( 'woocommerce_thumbnail', array( 'class' => 'aimp-recommended-image' ) ) ); ?>
+							<span>
+								<small><?php echo esc_html( $aimp_pattern ? __( 'Recommended fabric', 'atelier-irisee-master-plugin' ) : __( 'Recommended pattern', 'atelier-irisee-master-plugin' ) ); ?></small>
+								<span class="aimp-recommended-name"><?php echo esc_html( wp_strip_all_tags( $aimp_rec->get_name() ) ); ?></span>
+							</span>
+						</a>
+					<?php endif; ?>
+					<?php if ( $data['configurator_url'] ) : ?>
+						<div class="aimp-recommend-kit">
+							<p><?php esc_html_e( 'Start making my own sewing project kit', 'atelier-irisee-master-plugin' ); ?></p>
+							<a class="aimp-button" href="<?php echo esc_url( $data['configurator_url'] ); ?>"><?php esc_html_e( 'To the configurator', 'atelier-irisee-master-plugin' ); ?></a>
+						</div>
+					<?php endif; ?>
 				</div>
 			<?php endif; ?>
 		</div>
 	</div>
 
-	<?php if ( $aimp_insp_cards || $data['recommended'] ) : ?>
-		<?php // Fabrics: up to three inspiration cards and the recommended pattern, across the full width. ?>
+	<?php if ( $aimp_insp_cards ) : ?>
+		<?php // Fabrics: up to three inspiration cards across the full width. ?>
 		<section class="aimp-inspiration">
 		<h3><?php esc_html_e( 'Inspiration', 'atelier-irisee-master-plugin' ); ?></h3>
 		<ul class="aimp-inspiration-grid">
@@ -275,16 +290,6 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 					<?php endif; ?>
 				</li>
 			<?php endforeach; ?>
-			<?php if ( $data['recommended'] ) : ?>
-				<?php $aimp_rec = $data['recommended']; ?>
-				<li class="aimp-inspiration-card aimp-inspiration-card--pattern">
-					<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Recommended pattern', 'atelier-irisee-master-plugin' ); ?></h4>
-					<a class="aimp-recommended" href="<?php echo esc_url( $aimp_rec->get_permalink() ); ?>">
-						<?php echo wp_kses_post( $aimp_rec->get_image( 'woocommerce_thumbnail', array( 'class' => 'aimp-recommended-image' ) ) ); ?>
-						<span class="aimp-recommended-name"><?php echo esc_html( wp_strip_all_tags( $aimp_rec->get_name() ) ); ?></span>
-					</a>
-				</li>
-			<?php endif; ?>
 		</ul>
 		</section>
 	<?php endif; ?>

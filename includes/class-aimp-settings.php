@@ -56,6 +56,9 @@ class AIMP_Settings {
 			'favorites_page'  => 0,
 			'refund_days'     => 14,
 			'account_delete'  => 1,
+			'kit_discount'      => 10,
+			'welcome_discount'  => 10,
+			'welcome_days'      => 30,
 			'shop_per_page'     => 12,
 			'configurator_page' => 0,
 			'product_design'    => 1,
@@ -151,6 +154,29 @@ class AIMP_Settings {
 		);
 
 		add_settings_section(
+			'aimp_discounts',
+			__( 'Discounts', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'discounts_intro' ),
+			self::PAGE
+		);
+		add_settings_field(
+			'aimp_kit_discount',
+			__( 'Sewing project kit discount', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_kit_discount_field' ),
+			self::PAGE,
+			'aimp_discounts',
+			array( 'label_for' => 'aimp_kit_discount' )
+		);
+		add_settings_field(
+			'aimp_welcome_discount',
+			__( 'Welcome discount for new customers', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_welcome_fields' ),
+			self::PAGE,
+			'aimp_discounts',
+			array( 'label_for' => 'aimp_welcome_discount' )
+		);
+
+		add_settings_section(
 			'aimp_categories',
 			__( 'Product categories', 'atelier-irisee-master-plugin' ),
 			array( __CLASS__, 'section_intro' ),
@@ -213,6 +239,15 @@ class AIMP_Settings {
 			self::PAGE,
 			'aimp_shop_pages',
 			array( 'label_for' => 'aimp_cart_page' )
+		);
+
+		add_settings_field(
+			'aimp_checkout_page',
+			__( 'Checkout page', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_checkout_page_field' ),
+			self::PAGE,
+			'aimp_shop_pages',
+			array( 'label_for' => 'aimp_checkout_page' )
 		);
 
 		add_settings_field(
@@ -436,6 +471,28 @@ class AIMP_Settings {
 		) . '</p>';
 	}
 
+	/**
+	 * The checkout page is WooCommerce's own setting; choosing it here changes it there too.
+	 */
+	public static function render_checkout_page_field() {
+		wp_dropdown_pages(
+			array(
+				'name'              => self::OPTION . '[checkout_page]',
+				'id'                => 'aimp_checkout_page',
+				'selected'          => absint( get_option( 'woocommerce_checkout_page_id' ) ),
+				'show_option_none'  => __( '— Select —', 'atelier-irisee-master-plugin' ),
+				'option_none_value' => 0,
+			)
+		);
+		echo '<p class="description">' . wp_kses_post(
+			sprintf(
+				/* translators: %s: shortcode */
+				__( 'The page with %s: the checkout in steps. It also becomes WooCommerce\'s checkout page.', 'atelier-irisee-master-plugin' ),
+				'<code>[atelier_irisee_checkout]</code>'
+			)
+		) . '</p>';
+	}
+
 	public static function render_category_redirect_field() {
 		printf(
 			'<label><input type="checkbox" name="%1$s[category_redirect]" value="1" %2$s> %3$s</label><p class="description">%4$s</p>',
@@ -484,6 +541,9 @@ class AIMP_Settings {
 		$sanitized['favorites_page'] = isset( $input['favorites_page'] ) ? absint( $input['favorites_page'] ) : 0;
 		$sanitized['refund_days']    = isset( $input['refund_days'] ) ? min( 365, max( 1, absint( $input['refund_days'] ) ) ) : 14;
 		$sanitized['account_delete'] = empty( $input['account_delete'] ) ? 0 : 1;
+		$sanitized['kit_discount']     = isset( $input['kit_discount'] ) ? min( 90, absint( $input['kit_discount'] ) ) : 10;
+		$sanitized['welcome_discount'] = isset( $input['welcome_discount'] ) ? min( 90, absint( $input['welcome_discount'] ) ) : 10;
+		$sanitized['welcome_days']     = isset( $input['welcome_days'] ) ? min( 365, absint( $input['welcome_days'] ) ) : 30;
 		$sanitized['configurator_page'] = isset( $input['configurator_page'] ) ? absint( $input['configurator_page'] ) : 0;
 		$sanitized['product_design']    = empty( $input['product_design'] ) ? 0 : 1;
 		foreach ( array_keys( self::shop_page_fields() ) as $key ) {
@@ -493,6 +553,9 @@ class AIMP_Settings {
 		// The cart page is stored as WooCommerce's own setting, not in ours.
 		if ( isset( $input['cart_page'] ) && absint( $input['cart_page'] ) && 'page' === get_post_type( absint( $input['cart_page'] ) ) ) {
 			update_option( 'woocommerce_cart_page_id', absint( $input['cart_page'] ) );
+		}
+		if ( isset( $input['checkout_page'] ) && absint( $input['checkout_page'] ) && 'page' === get_post_type( absint( $input['checkout_page'] ) ) ) {
+			update_option( 'woocommerce_checkout_page_id', absint( $input['checkout_page'] ) );
 		}
 		foreach ( array_merge( array_keys( self::overview_image_fields() ), array( 'font_regular', 'font_bold', 'account_page' ) ) as $key ) {
 			$sanitized[ $key ] = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : 0;
@@ -529,6 +592,37 @@ class AIMP_Settings {
 				'show_option_none'  => __( '— Select —', 'atelier-irisee-master-plugin' ),
 				'option_none_value' => 0,
 			)
+		);
+	}
+
+	public static function discounts_intro() {
+		echo '<p>' . wp_kses_post(
+			sprintf(
+				/* translators: %s: link to WooCommerce's coupons screen */
+				__( 'Make your own discount codes under %s. Codes can never be combined, and they do not apply to products that already have a sale price; sewing project kits do get them.', 'atelier-irisee-master-plugin' ),
+				'<a href="' . esc_url( admin_url( 'edit.php?post_type=shop_coupon' ) ) . '">' . esc_html__( 'Marketing → Coupons', 'atelier-irisee-master-plugin' ) . '</a>'
+			)
+		) . '</p>';
+	}
+
+	public static function render_kit_discount_field() {
+		printf(
+			'<input type="number" min="0" max="90" step="1" id="aimp_kit_discount" name="%1$s[kit_discount]" value="%2$d" class="small-text"> %%<p class="description">%3$s</p>',
+			esc_attr( self::OPTION ),
+			(int) self::get( 'kit_discount' ),
+			esc_html__( 'Every item of a sewing project kit made in the configurator gets this discount. 0 = no discount.', 'atelier-irisee-master-plugin' )
+		);
+	}
+
+	public static function render_welcome_fields() {
+		printf(
+			'<input type="number" min="0" max="90" step="1" id="aimp_welcome_discount" name="%1$s[welcome_discount]" value="%2$d" class="small-text"> %% &nbsp; <label>%3$s <input type="number" min="0" max="365" step="1" name="%1$s[welcome_days]" value="%4$d" class="small-text"> %5$s</label><p class="description">%6$s</p>',
+			esc_attr( self::OPTION ),
+			(int) self::get( 'welcome_discount' ),
+			esc_html__( 'valid for', 'atelier-irisee-master-plugin' ),
+			(int) self::get( 'welcome_days' ),
+			esc_html__( 'days', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'New customers get a personal code after their first login (a popup and in their account). It works once. 0 = off; 0 days = no end date.', 'atelier-irisee-master-plugin' )
 		);
 	}
 
