@@ -177,8 +177,8 @@ class AIMP_Favorites {
 	public static function enqueue() {
 		wp_enqueue_style( 'aimp-favorites', AIMP_PLUGIN_URL . 'assets/css/favorites.css', array(), AIMP_VERSION );
 		// The favorites page: its card styles in <head> (no flash of unstyled cards).
-		 = get_post();
-		if ( is_singular() &&  && has_shortcode( ->post_content, self::SHORTCODE ) ) {
+		$post = get_post();
+		if ( is_singular() && $post && has_shortcode( $post->post_content, self::SHORTCODE ) ) {
 			self::enqueue_card_styles();
 		}
 		wp_enqueue_script( 'aimp-favorites', AIMP_PLUGIN_URL . 'assets/js/favorites.js', array(), AIMP_VERSION, true );
