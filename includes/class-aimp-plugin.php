@@ -41,6 +41,7 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-saved-kits.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-orders.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-emails.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-tracking.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-mosaic.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/login/class-aimp-login.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/giftcards/class-aimp-giftcards.php';
@@ -68,6 +69,7 @@ class AIMP_Plugin {
 		AIMP_Saved_Kits::init();
 		AIMP_Orders::init();
 		AIMP_Emails::init();
+		AIMP_Tracking::init();
 		AIMP_Mosaic::init();
 		AIMP_Login::init();
 		AIMP_Giftcards::init();

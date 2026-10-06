@@ -507,3 +507,15 @@
 	margin-left: auto;
 	white-space: nowrap;
 }
+
+/* Track & trace link with an order. */
+.aimp-account .aimp-tracking {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+	margin: 0 0 1.25rem;
+	padding: 0.9rem 1.2rem;
+	border: 5px double var(--aimp-acc-gold);
+	border-radius: 24px;
+}

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.7.0
+Stable tag: 2.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.8.0 =
+* New: track & trace link on orders. Paste it in the "Track & trace" box on the order screen; when the order is set to Completed, the Completed order email has a "Track my parcel" button. Customers also see it with the order under My orders.
+* Fix: the newsletter confirmation email was sent to an invalid address. It is now a WooCommerce email ("Newsletter confirmation" under WooCommerce → Settings → Emails, with your own subject and heading). WooCommerce → Newsletter can send it again or confirm a subscriber.
+* Footer: when subscribed, the newsletter invitation and privacy line are hidden too.
+* Search: centred on the menu bar and fades in and out.
 
 = 2.7.0 =
 * Newsletter: double opt-in (a confirmation email; only confirmed subscribers are in the CSV). The footer shows "You are subscribed" with an Unsubscribe button, or "Check your inbox" with a resend button, also on cached pages.

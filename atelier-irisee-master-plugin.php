@@ -3,7 +3,7 @@
  * Plugin Name:          Atelier Irisee Master Plugin
  * Plugin URI:           https://github.com/apposapp/Atelier-irisee
  * Description:          Pattern configurator for WooCommerce: pick a pattern and size, a matching fabric, buttons and zips, and add the whole set to the cart.
- * Version:              2.7.0
+ * Version:              2.8.0
  * Requires at least:    6.3
  * Requires PHP:         7.4
  * Author:               Atelier Irisee
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'AIMP_VERSION', '2.7.0' );
+define( 'AIMP_VERSION', '2.8.0' );
 define( 'AIMP_PLUGIN_FILE', __FILE__ );
 define( 'AIMP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AIMP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

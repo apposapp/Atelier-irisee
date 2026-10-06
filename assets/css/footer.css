@@ -279,3 +279,7 @@ body.aimp-replace-theme-footer :is(#main-footer, .et-l--footer, #colophon, .site
 .aimp-footer [data-aimp-newsletter][hidden] {
 	display: none;
 }
+
+.aimp-footer :is(.aimp-newsletter-intro, .aimp-newsletter-consent)[hidden] {
+	display: none;
+}

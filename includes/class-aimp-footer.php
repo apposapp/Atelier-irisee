@@ -42,6 +42,8 @@ class AIMP_Footer {
 		add_action( 'wc_ajax_aimp_unsubscribe', array( __CLASS__, 'unsubscribe' ) );
 		add_action( 'wc_ajax_aimp_newsletter_resend', array( __CLASS__, 'resend' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'confirm' ) );
+		add_filter( 'woocommerce_email_classes', array( __CLASS__, 'register_email' ) );
+		add_action( 'admin_post_aimp_newsletter_action', array( __CLASS__, 'admin_subscriber_action' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 70 );
 		add_action( 'admin_post_aimp_newsletter_csv', array( __CLASS__, 'download_csv' ) );
 		add_action( 'admin_post_aimp_newsletter_delete', array( __CLASS__, 'delete_subscriber' ) );
@@ -508,22 +510,54 @@ class AIMP_Footer {
 	 * @param int $id Subscriber.
 	 */
 	private static function send_confirmation( $id ) {
-		$url = add_query_arg( 'aimp_nl_confirm', self::token( $id ), home_url( '/' ) );
-		AIMP_Giftcards::mail(
-			get_the_title( $id ),
-			(string) get_post_meta( $id, '_aimp_lang', true ),
-			function () use ( $url ) {
-				$site = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
-				return array(
-					/* translators: %s: shop name */
-					sprintf( __( 'Confirm your subscription to the %s newsletter', 'atelier-irisee-master-plugin' ), $site ),
-					'<p>' . esc_html__( 'Hello,', 'atelier-irisee-master-plugin' ) . '</p>' .
-					'<p>' . esc_html__( 'Please confirm that you would like to receive our newsletter.', 'atelier-irisee-master-plugin' ) . '</p>' .
-					'<p><a href="' . esc_url( $url ) . '" style="display:inline-block;padding:12px 26px;border:4px double #b38f4f;border-radius:100px;color:#613907;font-weight:bold;text-decoration:none">' . esc_html__( 'Confirm my subscription', 'atelier-irisee-master-plugin' ) . '</a></p>' .
-					'<p>' . esc_html__( 'Did you not sign up? Then simply ignore this email.', 'atelier-irisee-master-plugin' ) . '</p>',
-				);
+		// The address straight from the post: get_the_title() puts "Private: " before it.
+		$email = (string) get_post_field( 'post_title', $id, 'raw' );
+		$url   = add_query_arg( 'aimp_nl_confirm', self::token( $id ), home_url( '/' ) );
+		$lang  = (string) get_post_meta( $id, '_aimp_lang', true );
+		$lang  = AIMP_I18n::is_valid( $lang ) ? $lang : AIMP_I18n::default_language();
+		return (bool) AIMP_I18n::with_language(
+			$lang,
+			function () use ( $email, $url ) {
+				$emails = WC()->mailer()->get_emails();
+				return isset( $emails['AIMP_Email_Newsletter_Confirm'] ) ? $emails['AIMP_Email_Newsletter_Confirm']->trigger( $email, $url ) : false;
 			}
 		);
+	}
+
+	/**
+	 * The confirmation email as a WooCommerce email (WooCommerce → Settings → Emails).
+	 *
+	 * @param WC_Email[] $emails Emails.
+	 * @return WC_Email[]
+	 */
+	public static function register_email( $emails ) {
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-email-newsletter-confirm.php';
+		if ( class_exists( 'AIMP_Email_Newsletter_Confirm' ) ) {
+			$emails['AIMP_Email_Newsletter_Confirm'] = new AIMP_Email_Newsletter_Confirm();
+		}
+		return $emails;
+	}
+
+	/**
+	 * Admin: send the confirmation email again, or confirm a subscriber yourself.
+	 */
+	public static function admin_subscriber_action() {
+		$id     = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
+		$action = isset( $_GET['do'] ) ? sanitize_key( wp_unslash( $_GET['do'] ) ) : '';
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! check_admin_referer( 'aimp_newsletter_' . $action . '_' . $id ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'atelier-irisee-master-plugin' ) );
+		}
+		$message = '';
+		if ( self::SUBSCRIBERS === get_post_type( $id ) ) {
+			if ( 'confirm' === $action ) {
+				update_post_meta( $id, '_aimp_status', 'confirmed' );
+				$message = 'confirmed';
+			} elseif ( 'resend' === $action ) {
+				$message = self::send_confirmation( $id ) ? 'sent' : 'not_sent';
+			}
+		}
+		wp_safe_redirect( add_query_arg( 'aimp_msg', $message, admin_url( 'admin.php?page=' . self::ADMIN_PAGE ) ) );
+		exit;
 	}
 
 	/**
@@ -704,6 +738,27 @@ class AIMP_Footer {
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Newsletter', 'atelier-irisee-master-plugin' ); ?></h1>
+			<?php
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- message after a redirect.
+			$notice   = isset( $_GET['aimp_msg'] ) ? sanitize_key( wp_unslash( $_GET['aimp_msg'] ) ) : '';
+			$messages = array(
+				'confirmed' => array( 'success', __( 'The subscriber is confirmed.', 'atelier-irisee-master-plugin' ) ),
+				'sent'      => array( 'success', __( 'The confirmation email has been sent again.', 'atelier-irisee-master-plugin' ) ),
+				'not_sent'  => array( 'error', __( 'The confirmation email could not be sent. Check that "Newsletter confirmation" is on under WooCommerce → Settings → Emails.', 'atelier-irisee-master-plugin' ) ),
+			);
+			if ( isset( $messages[ $notice ] ) ) {
+				printf( '<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>', esc_attr( $messages[ $notice ][0] ), esc_html( $messages[ $notice ][1] ) );
+			}
+			$mailer = function_exists( 'WC' ) ? WC()->mailer()->get_emails() : array();
+			if ( isset( $mailer['AIMP_Email_Newsletter_Confirm'] ) && ! $mailer['AIMP_Email_Newsletter_Confirm']->is_enabled() ) {
+				printf(
+					'<div class="notice notice-warning"><p>%1$s <a href="%2$s">%3$s</a></p></div>',
+					esc_html__( 'The newsletter confirmation email is switched off, so new subscribers cannot confirm.', 'atelier-irisee-master-plugin' ),
+					esc_url( admin_url( 'admin.php?page=wc-settings&tab=email&section=aimp_email_newsletter_confirm' ) ),
+					esc_html__( 'Switch it on', 'atelier-irisee-master-plugin' )
+				);
+			}
+			?>
 			<p>
 				<?php
 				/* translators: %d: number of subscribers */
@@ -733,7 +788,14 @@ class AIMP_Footer {
 							<td><?php echo esc_html( isset( $languages[ $lang ] ) ? $languages[ $lang ]['name'] : '' ); ?></td>
 							<td><?php echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $subscriber->post_date_gmt . ' UTC' ) ) ); ?></td>
 							<td><?php echo 'pending' === self::status( $subscriber->ID ) ? esc_html__( 'Waiting for confirmation', 'atelier-irisee-master-plugin' ) : esc_html__( 'Confirmed', 'atelier-irisee-master-plugin' ); ?></td>
-							<td><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=aimp_newsletter_delete&id=' . $subscriber->ID ), 'aimp_newsletter_delete_' . $subscriber->ID ) ); ?>" class="aimp-confirm-delete"><?php esc_html_e( 'Delete', 'atelier-irisee-master-plugin' ); ?></a></td>
+							<td>
+								<?php if ( 'pending' === self::status( $subscriber->ID ) ) : ?>
+									<?php foreach ( array( 'resend' => __( 'Send the email again', 'atelier-irisee-master-plugin' ), 'confirm' => __( 'Confirm', 'atelier-irisee-master-plugin' ) ) as $aimp_do => $aimp_label ) : ?>
+										<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=aimp_newsletter_action&do=' . $aimp_do . '&id=' . $subscriber->ID ), 'aimp_newsletter_' . $aimp_do . '_' . $subscriber->ID ) ); ?>"><?php echo esc_html( $aimp_label ); ?></a> ·
+									<?php endforeach; ?>
+								<?php endif; ?>
+								<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=aimp_newsletter_delete&id=' . $subscriber->ID ), 'aimp_newsletter_delete_' . $subscriber->ID ) ); ?>" class="aimp-confirm-delete"><?php esc_html_e( 'Delete', 'atelier-irisee-master-plugin' ); ?></a>
+							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>

@@ -61,7 +61,7 @@ defined( 'ABSPATH' ) || exit;
 
 		<div class="aimp-footer-col">
 			<h2 class="aimp-footer-title"><?php esc_html_e( 'Newsletter', 'atelier-irisee-master-plugin' ); ?></h2>
-			<p><?php echo '' !== $data['newsletter_text'] ? nl2br( esc_html( $data['newsletter_text'] ) ) : esc_html__( 'Subscribe to our newsletter to stay up to date.', 'atelier-irisee-master-plugin' ); ?></p>
+			<p class="aimp-newsletter-intro"><?php echo '' !== $data['newsletter_text'] ? nl2br( esc_html( $data['newsletter_text'] ) ) : esc_html__( 'Subscribe to our newsletter to stay up to date.', 'atelier-irisee-master-plugin' ); ?></p>
 			<form class="aimp-newsletter" data-aimp-newsletter novalidate>
 				<label class="screen-reader-text" for="aimp-newsletter-email"><?php esc_html_e( 'Email address', 'atelier-irisee-master-plugin' ); ?></label>
 				<input type="email" id="aimp-newsletter-email" name="email" required autocomplete="email" placeholder="<?php esc_attr_e( 'Your e-mail address', 'atelier-irisee-master-plugin' ); ?>">

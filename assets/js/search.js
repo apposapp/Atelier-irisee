@@ -27,19 +27,29 @@
 		var active = -1;
 		var cache = {};
 
+		// The panel fades in and out through .is-open; "hidden" only keeps it away until this script runs.
+		panel.hidden = false;
+
+		function isOpen() {
+			return panel.classList.contains('is-open');
+		}
+
 		function open() {
-			panel.hidden = false;
+			panel.classList.add('is-open');
 			if (toggle) {
 				toggle.setAttribute('aria-expanded', 'true');
 			}
 			input.focus();
 		}
 
-		function close() {
-			panel.hidden = true;
+		// keepFocus: closed by clicking elsewhere, so the focus stays where the visitor clicked.
+		function close(keepFocus) {
+			panel.classList.remove('is-open');
 			if (toggle) {
 				toggle.setAttribute('aria-expanded', 'false');
-				toggle.focus();
+				if (keepFocus !== true) {
+					toggle.focus();
+				}
 			}
 		}
 
@@ -129,14 +139,16 @@
 
 		if (toggle) {
 			toggle.addEventListener('click', function () {
-				if (panel.hidden) {
+				if (!isOpen()) {
 					open();
 				} else {
 					close();
 				}
 			});
 		}
-		panel.querySelector('[data-aimp-search-close]').addEventListener('click', close);
+		panel.querySelector('[data-aimp-search-close]').addEventListener('click', function () {
+			close();
+		});
 
 		input.addEventListener('input', function () {
 			clearTimeout(timer);
@@ -166,8 +178,8 @@
 		});
 
 		document.addEventListener('click', function (e) {
-			if (!panel.hidden && !panel.contains(e.target) && !(toggle && toggle.contains(e.target))) {
-				close();
+			if (isOpen() && !panel.contains(e.target) && !(toggle && toggle.contains(e.target))) {
+				close(true);
 			}
 		});
 	}

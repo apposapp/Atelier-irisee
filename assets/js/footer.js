@@ -53,6 +53,10 @@
 			}
 			var subscribed = state === 'confirmed' || state === 'pending';
 			form.hidden = subscribed;
+			// The invitation and the privacy line only make sense next to the form.
+			form.parentNode.querySelectorAll('.aimp-newsletter-intro, .aimp-newsletter-consent').forEach(function (el) {
+				el.hidden = subscribed;
+			});
 			box.hidden = !subscribed;
 			box.querySelector('.aimp-newsletter-state-text').textContent = subscribed ? message : '';
 			box.querySelector('[data-aimp-nl-resend]').hidden = state !== 'pending';
