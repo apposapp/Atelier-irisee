@@ -617,18 +617,27 @@ class AIMP_Account {
 			exit;
 		}
 
-		// The session's customer too, so the cart and checkout use the new address right away.
-		$customer = ( WC()->customer && WC()->customer->get_id() === $user_id ) ? WC()->customer : new WC_Customer( $user_id );
-		foreach ( $values as $key => $value ) {
-			$setter = 'set_' . $key;
-			if ( is_callable( array( $customer, $setter ) ) ) {
-				$customer->$setter( $value );
-			} else {
-				$customer->update_meta_data( $key, $value );
+		$apply = function ( $customer ) use ( $values ) {
+			foreach ( $values as $key => $value ) {
+				$setter = 'set_' . $key;
+				if ( is_callable( array( $customer, $setter ) ) ) {
+					$customer->$setter( $value );
+				} else {
+					$customer->update_meta_data( $key, $value );
+				}
 			}
+			$customer->save();
+		};
+
+		// The account itself. (WC()->customer is the visitor's session copy: saving that alone never
+		// reaches the account.)
+		$account = new WC_Customer( $user_id );
+		$apply( $account );
+		// The session copy too, so the cart, shipping costs and checkout use the new address right away.
+		if ( WC()->customer && (int) WC()->customer->get_id() === $user_id ) {
+			$apply( WC()->customer );
 		}
-		$customer->save();
-		do_action( 'woocommerce_customer_save_address', $user_id, $type );
+		do_action( 'woocommerce_customer_save_address', $user_id, $type, $values, $account );
 		self::back( 'personal', 'address_saved' );
 	}
 

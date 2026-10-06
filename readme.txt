@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.6.0
+Stable tag: 2.6.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.6.1 =
+* Fix: addresses from the account page's form are now saved to the account (they only reached the session before), so they show on the account page with an "Edit" button and fill in the checkout.
+* Fix: the totals and payment methods no longer turn white while the checkout updates (for example after choosing another payment method).
 
 = 2.6.0 =
 * Account page: addresses are added and changed in a lightbox form; they are saved to the account and fill in the checkout. The menu buttons are all the same size, and the tab is now "Refunds": customers can no longer remove their own account there (the setting is gone too).

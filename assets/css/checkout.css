@@ -687,3 +687,20 @@
 	font-size: 0.9em;
 	text-align: left !important;
 }
+
+/* While WooCommerce updates the totals and payment block (e.g. after choosing another payment method),
+ * it lays a white BlockUI overlay over them. Keep the page's own background; fade the content instead. */
+.aimp-configurator.aimp-checkout :is(#order_review, #payment, .woocommerce-checkout-payment, .woocommerce-checkout-review-order-table) {
+	background: transparent;
+}
+
+.aimp-configurator.aimp-checkout .blockUI.blockOverlay {
+	background: transparent !important;
+	opacity: 1 !important;
+}
+
+.aimp-configurator.aimp-checkout :is(#order_review, .woocommerce-checkout-payment, .woocommerce-checkout-review-order-table).processing {
+	opacity: 0.6;
+	cursor: wait;
+	transition: opacity 0.2s ease;
+}
