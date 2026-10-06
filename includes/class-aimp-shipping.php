@@ -22,8 +22,13 @@ class AIMP_Shipping {
 	public static function init() {
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_filter( 'woocommerce_package_rates', array( __CLASS__, 'package_rates' ), 50, 2 );
-		// Show the cost in the cart right away, estimated for the shop's country until an address is known.
+		// No shipping row (and no shipping calculator) until the customer's address is known.
 		add_filter( 'pre_option_woocommerce_shipping_cost_requires_address', array( __CLASS__, 'requires_address' ) );
+		add_filter( 'pre_option_woocommerce_enable_shipping_calc', array( __CLASS__, 'no_calculator' ) );
+		// A real shipping method, so WooCommerce knows the shop ships (it hides shipping without any method in a zone).
+		add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'register_method' ) );
+		add_action( 'woocommerce_shipping_init', array( __CLASS__, 'load_method' ) );
+		add_action( 'admin_init', array( __CLASS__, 'maybe_sync_zone' ), 20 );
 		add_action( 'woocommerce_cart_totals_after_shipping', array( __CLASS__, 'free_hint_row' ) );
 		add_action( 'woocommerce_review_order_after_shipping', array( __CLASS__, 'free_hint_row' ) );
 	}
@@ -120,6 +125,17 @@ class AIMP_Shipping {
 			}
 		}
 
+		$rate = self::build_rate( $package );
+		return array( $rate->get_id() => $rate ) + $kept;
+	}
+
+	/**
+	 * The shipping option for a package: the cost for its country, or free from the amount.
+	 *
+	 * @param array $package Package.
+	 * @return WC_Shipping_Rate
+	 */
+	public static function build_rate( $package ) {
 		$country = isset( $package['destination']['country'] ) ? (string) $package['destination']['country'] : '';
 		$amounts = self::amounts_for( $country );
 		$cost    = '' === $amounts['cost'] ? 0.0 : (float) $amounts['cost'];
@@ -138,14 +154,13 @@ class AIMP_Shipping {
 			}
 		}
 
-		$rate = new WC_Shipping_Rate(
+		return new WC_Shipping_Rate(
 			self::RATE_ID,
 			$free ? __( 'Free shipping', 'atelier-irisee-master-plugin' ) : __( 'Shipping', 'atelier-irisee-master-plugin' ),
 			$net,
 			$taxes,
 			self::RATE_ID
 		);
-		return array( self::RATE_ID => $rate ) + $kept;
 	}
 
 	/**
@@ -153,14 +168,74 @@ class AIMP_Shipping {
 	 * @return mixed
 	 */
 	public static function requires_address( $value ) {
+		return self::enabled() ? 'yes' : $value;
+	}
+
+	/**
+	 * @param mixed $value Option value.
+	 * @return mixed
+	 */
+	public static function no_calculator( $value ) {
 		return self::enabled() ? 'no' : $value;
+	}
+
+	/* ------------------------------------------------------------------
+	 * Shipping method in the "Locations not covered by your other zones" zone
+	 * ------------------------------------------------------------------ */
+
+	public static function load_method() {
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-shipping-method.php';
+	}
+
+	/**
+	 * @param array $methods Method ID => class.
+	 * @return array
+	 */
+	public static function register_method( $methods ) {
+		self::load_method();
+		$methods[ self::RATE_ID ] = 'AIMP_Shipping_Method';
+		return $methods;
+	}
+
+	/**
+	 * On: one instance of the method in the "rest of the world" zone. Off: removed again.
+	 */
+	public static function sync_zone() {
+		if ( ! class_exists( 'WC_Shipping_Zone' ) ) {
+			return;
+		}
+		$zone  = new WC_Shipping_Zone( 0 );
+		$found = array();
+		foreach ( $zone->get_shipping_methods() as $instance_id => $method ) {
+			if ( self::RATE_ID === $method->id ) {
+				$found[] = (int) $instance_id;
+			}
+		}
+		if ( self::enabled() && ! $found ) {
+			$zone->add_shipping_method( self::RATE_ID );
+		} elseif ( ! self::enabled() ) {
+			foreach ( $found as $instance_id ) {
+				$zone->delete_shipping_method( $instance_id );
+			}
+		}
+		WC_Cache_Helper::get_transient_version( 'shipping', true );
+		update_option( 'aimp_shipping_zone_synced', AIMP_VERSION . ':' . ( self::enabled() ? 1 : 0 ), false );
+	}
+
+	/**
+	 * Once after an update or a settings change (the settings are saved before this runs on the next page).
+	 */
+	public static function maybe_sync_zone() {
+		if ( get_option( 'aimp_shipping_zone_synced' ) !== AIMP_VERSION . ':' . ( self::enabled() ? 1 : 0 ) ) {
+			self::sync_zone();
+		}
 	}
 
 	/**
 	 * "Free shipping from €75: €12.50 to go." under the shipping row of the cart and checkout totals.
 	 */
 	public static function free_hint_row() {
-		if ( ! self::enabled() || ! WC()->cart || ! WC()->cart->needs_shipping() ) {
+		if ( ! self::enabled() || ! WC()->cart || ! WC()->cart->needs_shipping() || ! WC()->cart->show_shipping() ) {
 			return;
 		}
 		$country = WC()->customer ? (string) WC()->customer->get_shipping_country() : '';
@@ -220,6 +295,15 @@ class AIMP_Shipping {
 	}
 
 	public static function section_intro() {
+		if ( 'disabled' === get_option( 'woocommerce_ship_to_countries' ) ) {
+			echo '<div class="notice notice-warning inline"><p>' . wp_kses_post(
+				sprintf(
+					/* translators: %s: link to WooCommerce's general settings */
+					__( 'Shipping is switched off in WooCommerce, so no shipping costs are shown. Choose a shipping location under %s ("Shipping location(s)").', 'atelier-irisee-master-plugin' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=general' ) ) . '">' . esc_html__( 'WooCommerce → Settings → General', 'atelier-irisee-master-plugin' ) . '</a>'
+				)
+			) . '</p></div>';
+		}
 		echo '<p>' . esc_html__( 'One shipping cost for every order, depending on the delivery country, and free from an order amount. The amounts are what the customer pays (VAT included when your prices include VAT). "Free from" counts the products in the cart after discounts; leave it empty for never free. Local pickup set up in WooCommerce stays available; other WooCommerce shipping methods are not used while this is on.', 'atelier-irisee-master-plugin' ) . '</p>';
 	}
 

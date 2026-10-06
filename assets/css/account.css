@@ -65,7 +65,10 @@
 
 .aimp-account .aimp-account-tab,
 .aimp-account .aimp-account-logout {
-	display: block;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.75rem;
 	width: 100%;
 	box-sizing: border-box;
 	padding: 0.5rem 1rem;
@@ -127,12 +130,6 @@
 	color: var(--aimp-acc-gold);
 }
 
-.aimp-account .aimp-account-title--danger {
-	margin-top: 2.5rem;
-	padding-top: 1.5rem;
-	border-top: 1px solid var(--aimp-acc-gold);
-	color: var(--aimp-acc-danger);
-}
 
 .aimp-account .aimp-account-subtitle {
 	margin: 2rem 0 0.75rem;
@@ -182,15 +179,7 @@
 	color: #fff;
 }
 
-.aimp-account .aimp-account-button--danger {
-	border-color: var(--aimp-acc-danger);
-	color: var(--aimp-acc-danger);
-}
 
-.aimp-account .aimp-account-button--danger:hover {
-	background: var(--aimp-acc-danger);
-	color: #fff;
-}
 
 /* Addresses */
 .aimp-account-addresses {
@@ -340,5 +329,142 @@
 @media (max-width: 600px) {
 	.aimp-account-panel {
 		padding: 1rem;
+	}
+}
+
+/* ------------------------------------------------------------------
+ * Address forms in a lightbox
+ * ------------------------------------------------------------------ */
+.aimp-address-dialog {
+	width: min(640px, calc(100vw - 2rem));
+	max-height: calc(100vh - 2rem);
+	margin: auto;
+	padding: 0;
+	border: 5px double var(--aimp-acc-gold);
+	border-radius: 24px;
+	background: #fff;
+	color: var(--aimp-acc-text);
+	font-size: 15px;
+	font-weight: 600;
+	overflow: auto;
+}
+
+/* Without JavaScript (or with the dialog shown inline) it sits in the page. */
+.aimp-address-dialog[open]:not(:modal) {
+	position: static;
+	width: auto;
+	margin: 1.5rem 0 0;
+}
+
+.aimp-address-dialog::backdrop {
+	background: rgba(97, 57, 7, 0.45);
+}
+
+.aimp-address-form {
+	padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.aimp-address-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+.aimp-address-head h3 {
+	margin: 0;
+	color: var(--aimp-acc-gold);
+}
+
+.aimp-address-close {
+	padding: 0 0.25rem;
+	border: 0;
+	background: none;
+	color: var(--aimp-acc-gold);
+	font-size: 28px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.aimp-address-errors {
+	margin: 0 0 1rem;
+	padding: 0.75rem 1rem 0.75rem 2rem;
+	border: 1px solid var(--aimp-acc-danger);
+	border-radius: 12px;
+	color: var(--aimp-acc-danger);
+}
+
+.aimp-address-errors li {
+	color: var(--aimp-acc-danger);
+}
+
+/* WooCommerce's fields: two per row where WooCommerce says so. */
+.aimp-address-form .woocommerce-address-fields__field-wrapper {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 1rem;
+}
+
+.aimp-address-form .form-row {
+	flex: 1 1 100%;
+	margin: 0 0 0.85rem;
+	padding: 0;
+}
+
+.aimp-address-form :is(.form-row-first, .form-row-last) {
+	flex: 1 1 calc(50% - 0.5rem);
+}
+
+.aimp-address-form .form-row label {
+	display: block;
+	margin-bottom: 0.25rem;
+	color: var(--aimp-acc-text);
+}
+
+.aimp-address-form .form-row :is(input.input-text, select) {
+	width: 100%;
+	min-height: 2.6rem;
+	padding: 0.45rem 0.75rem;
+	border: 1px solid var(--aimp-acc-gold);
+	border-radius: 8px;
+	background: #fff;
+	color: var(--aimp-acc-text);
+	font: inherit;
+	font-weight: 400;
+	box-sizing: border-box;
+}
+
+.aimp-address-form .form-row :is(input.input-text, select):focus {
+	outline: 2px solid var(--aimp-acc-gold);
+	outline-offset: 1px;
+}
+
+.aimp-address-form .required {
+	color: var(--aimp-acc-danger);
+	text-decoration: none;
+}
+
+.aimp-address-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 0.75rem;
+	margin-top: 0.5rem;
+}
+
+.aimp-account .aimp-account-button--primary {
+	background: var(--aimp-acc-gold);
+	color: #fff;
+}
+
+.aimp-account .aimp-account-button--primary:hover {
+	background: transparent;
+	color: var(--aimp-acc-text);
+}
+
+@media (max-width: 560px) {
+	.aimp-address-form :is(.form-row-first, .form-row-last) {
+		flex-basis: 100%;
 	}
 }

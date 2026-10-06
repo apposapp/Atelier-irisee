@@ -173,3 +173,48 @@
 	top: 0.8rem;
 	right: 0.8rem;
 }
+
+/* Smaller cards: 6 per row (4 on tablets, 3 on phones, 2 on small phones). */
+.aimp-configurator.aimp-favorites .aimp-favorites-grid {
+	grid-template-columns: repeat(6, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+
+.aimp-configurator.aimp-favorites .aimp-fav-item > .aimp-card {
+	gap: 0.2rem;
+	padding: 0.5rem 0.5rem 0.8rem;
+	font-size: 0.85em;
+}
+
+.aimp-configurator.aimp-favorites .aimp-fav-item > .aimp-card :is(.aimp-card-name, .aimp-card-price, .aimp-card-price *) {
+	font-size: inherit;
+}
+
+/* The button keeps the 15px of all buttons; only less padding. */
+.aimp-configurator.aimp-favorites .aimp-fav-item .aimp-fav-view {
+	padding: 0.3rem 0.7rem;
+}
+
+.aimp-configurator.aimp-favorites .aimp-fav--overlay {
+	top: 0.5rem;
+	right: 0.5rem;
+	transform: scale(0.85);
+}
+
+@container aimp (max-width: 1000px) {
+	.aimp-configurator.aimp-favorites .aimp-favorites-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+@container aimp (max-width: 640px) {
+	.aimp-configurator.aimp-favorites .aimp-favorites-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@container aimp (max-width: 420px) {
+	.aimp-configurator.aimp-favorites .aimp-favorites-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}

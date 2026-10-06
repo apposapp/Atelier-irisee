@@ -55,8 +55,7 @@ class AIMP_Settings {
 			'fabric_per_page' => 16,
 			'favorites_page'  => 0,
 			'refund_days'     => 14,
-			'account_delete'  => 1,
-			'kit_discount'      => 10,
+				'kit_discount'      => 10,
 			'welcome_discount'  => 10,
 			'welcome_days'      => 30,
 			'shop_per_page'     => 12,
@@ -541,7 +540,6 @@ class AIMP_Settings {
 		}
 		$sanitized['favorites_page'] = isset( $input['favorites_page'] ) ? absint( $input['favorites_page'] ) : 0;
 		$sanitized['refund_days']    = isset( $input['refund_days'] ) ? min( 365, max( 1, absint( $input['refund_days'] ) ) ) : 14;
-		$sanitized['account_delete'] = empty( $input['account_delete'] ) ? 0 : 1;
 		$sanitized['kit_discount']     = isset( $input['kit_discount'] ) ? min( 90, absint( $input['kit_discount'] ) ) : 10;
 		$sanitized['welcome_discount'] = isset( $input['welcome_discount'] ) ? min( 90, absint( $input['welcome_discount'] ) ) : 10;
 		$sanitized['welcome_days']     = isset( $input['welcome_days'] ) ? min( 365, absint( $input['welcome_days'] ) ) : 30;
@@ -629,13 +627,11 @@ class AIMP_Settings {
 
 	public static function render_account_fields() {
 		printf(
-			'<label>%1$s <input type="number" min="1" max="365" id="aimp_refund_days" name="%2$s[refund_days]" value="%3$d" class="small-text"> %4$s</label><br><label><input type="checkbox" name="%2$s[account_delete]" value="1" %5$s> %6$s</label>',
+			'<label>%1$s <input type="number" min="1" max="365" id="aimp_refund_days" name="%2$s[refund_days]" value="%3$d" class="small-text"> %4$s</label>',
 			esc_html__( 'Customers can ask for a refund up to', 'atelier-irisee-master-plugin' ),
 			esc_attr( self::OPTION ),
 			(int) self::get( 'refund_days' ),
-			esc_html__( 'days after their order', 'atelier-irisee-master-plugin' ),
-			checked( 1, self::get( 'account_delete' ), false ),
-			esc_html__( 'Customers can remove their own account on the account page', 'atelier-irisee-master-plugin' )
+			esc_html__( 'days after their order', 'atelier-irisee-master-plugin' )
 		);
 		echo '<p class="description">' . wp_kses_post(
 			sprintf(

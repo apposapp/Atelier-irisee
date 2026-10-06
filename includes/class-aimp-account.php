@@ -1,7 +1,7 @@
 <?php
 /**
  * [atelier_irisee_account]: one account page with tabs for personal data, orders,
- * refund / remove account, and gift cards. Also the admin side of refund requests.
+ * refunds, and gift cards. Also the admin side of refund requests.
  *
  * @package AtelierIriseeMasterPlugin
  */
@@ -37,7 +37,7 @@ class AIMP_Account {
 		return array(
 			'personal'  => __( 'Personal data', 'atelier-irisee-master-plugin' ),
 			'orders'    => __( 'My orders', 'atelier-irisee-master-plugin' ),
-			'refund'    => __( 'Refund or remove account', 'atelier-irisee-master-plugin' ),
+			'refund'    => __( 'Refunds', 'atelier-irisee-master-plugin' ),
 			'giftcards' => __( 'Gift cards and discount codes', 'atelier-irisee-master-plugin' ),
 		);
 	}
@@ -56,10 +56,6 @@ class AIMP_Account {
 
 	private static function refund_days() {
 		return max( 1, (int) AIMP_Settings::get( 'refund_days' ) );
-	}
-
-	private static function can_delete( $user_id ) {
-		return (bool) AIMP_Settings::get( 'account_delete' ) && ! user_can( $user_id, 'edit_posts' ) && ! user_can( $user_id, 'manage_woocommerce' );
 	}
 
 	/**
@@ -111,9 +107,7 @@ class AIMP_Account {
 		$messages = array(
 			'refund_sent'   => array( 'success', __( 'Your refund request has been sent. We will let you know by email as soon as we have looked at it.', 'atelier-irisee-master-plugin' ) ),
 			'refund_error'  => array( 'error', __( 'Please choose an order, at least one item and tell us why you want a refund.', 'atelier-irisee-master-plugin' ) ),
-			'delete_pw'     => array( 'error', __( 'The password (or email address) you entered is not correct.', 'atelier-irisee-master-plugin' ) ),
-			'delete_ok'     => array( 'error', __( 'Please tick the box to confirm that you want to remove your account.', 'atelier-irisee-master-plugin' ) ),
-			'delete_denied' => array( 'error', __( 'This account cannot be removed here. Please contact us.', 'atelier-irisee-master-plugin' ) ),
+			'address_saved' => array( 'success', __( 'Address saved.', 'atelier-irisee-master-plugin' ) ),
 		);
 		return isset( $messages[ $code ] ) ? $messages[ $code ] : null;
 	}
@@ -182,14 +176,100 @@ class AIMP_Account {
 		foreach ( $types as $type => $label ) {
 			$address = wc_get_account_formatted_address( $type );
 			printf(
-				'<div class="aimp-account-address"><h4>%1$s</h4><address>%2$s</address><a class="aimp-account-button" href="%3$s">%4$s</a></div>',
+				'<div class="aimp-account-address"><h4>%1$s</h4><address>%2$s</address><a class="aimp-account-button" href="%3$s" data-aimp-address-open="%4$s">%5$s</a></div>',
 				esc_html( $label ),
 				$address ? wp_kses_post( $address ) : esc_html__( 'You have not added this address yet.', 'atelier-irisee-master-plugin' ),
-				esc_url( wc_get_endpoint_url( 'edit-address', $type, wc_get_page_permalink( 'myaccount' ) ) ),
+				esc_url( self::page_url( 'personal', array( 'aimp_open' => $type ) ) ),
+				esc_attr( $type ),
 				esc_html( $address ? __( 'Edit', 'atelier-irisee-master-plugin' ) : __( 'Add', 'atelier-irisee-master-plugin' ) )
 			);
 		}
 		echo '</div>';
+
+		// The address forms, in a lightbox (account.js). Without JavaScript the requested one shows on the page.
+		wp_enqueue_script( 'wc-country-select' );
+		wp_enqueue_script( 'wc-address-i18n' );
+		if ( class_exists( 'AIMP_Address_Autocomplete' ) ) {
+			AIMP_Address_Autocomplete::enqueue();
+		}
+		$state = get_transient( self::address_transient( $user->ID ) );
+		if ( $state ) {
+			delete_transient( self::address_transient( $user->ID ) );
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which form to open; display only.
+		$open = isset( $_GET['aimp_open'] ) ? sanitize_key( wp_unslash( $_GET['aimp_open'] ) ) : '';
+		foreach ( $types as $type => $label ) {
+			$own = is_array( $state ) && isset( $state['type'] ) && $state['type'] === $type;
+			self::address_dialog( $user, $type, $label, $own ? (array) $state['values'] : array(), $own ? (array) $state['errors'] : array(), $open === $type );
+		}
+	}
+
+	private static function address_transient( $user_id ) {
+		return 'aimp_address_form_' . (int) $user_id;
+	}
+
+	/**
+	 * WooCommerce's address fields of a type, for a country.
+	 *
+	 * @param string $type    billing|shipping.
+	 * @param string $country Country code.
+	 * @return array
+	 */
+	private static function address_fields( $type, $country ) {
+		return WC()->countries->get_address_fields( '' !== $country ? $country : WC()->countries->get_base_country(), $type . '_' );
+	}
+
+	/**
+	 * One address form in a <dialog>.
+	 *
+	 * @param WP_User $user   Customer.
+	 * @param string  $type   billing|shipping.
+	 * @param string  $label  Title.
+	 * @param array   $values Values entered before (after an error).
+	 * @param array   $errors Error messages.
+	 * @param bool    $open   Show it right away.
+	 */
+	private static function address_dialog( $user, $type, $label, $values, $errors, $open ) {
+		$customer = new WC_Customer( $user->ID );
+		$value    = function ( $key ) use ( $customer, $values, $user ) {
+			if ( array_key_exists( $key, $values ) ) {
+				return $values[ $key ];
+			}
+			$getter = 'get_' . $key;
+			return is_callable( array( $customer, $getter ) ) ? $customer->$getter() : get_user_meta( $user->ID, $key, true );
+		};
+		$fields = self::address_fields( $type, (string) $value( $type . '_country' ) );
+		?>
+		<dialog class="aimp-address-dialog" id="aimp-address-<?php echo esc_attr( $type ); ?>" data-aimp-address-dialog="<?php echo esc_attr( $type ); ?>" aria-labelledby="aimp-address-title-<?php echo esc_attr( $type ); ?>"<?php echo $open || $errors ? ' open data-aimp-open' : ''; ?>>
+			<form method="post" class="aimp-address-form woocommerce-address-fields" action="<?php echo esc_url( self::page_url( 'personal' ) ); ?>">
+				<div class="aimp-address-head">
+					<h3 id="aimp-address-title-<?php echo esc_attr( $type ); ?>"><?php echo esc_html( $label ); ?></h3>
+					<button type="button" class="aimp-address-close" data-aimp-address-close aria-label="<?php esc_attr_e( 'Close', 'atelier-irisee-master-plugin' ); ?>">×</button>
+				</div>
+				<?php if ( $errors ) : ?>
+					<ul class="aimp-address-errors" role="alert">
+						<?php foreach ( $errors as $error ) : ?>
+							<li><?php echo esc_html( $error ); ?></li>
+						<?php endforeach; ?>
+					</ul>
+				<?php endif; ?>
+				<?php wp_nonce_field( 'aimp_account_address', 'aimp_account_nonce' ); ?>
+				<input type="hidden" name="aimp_account_action" value="address">
+				<input type="hidden" name="aimp_address_type" value="<?php echo esc_attr( $type ); ?>">
+				<div class="woocommerce-address-fields__field-wrapper">
+					<?php
+					foreach ( $fields as $key => $field ) {
+						woocommerce_form_field( $key, $field, $value( $key ) );
+					}
+					?>
+				</div>
+				<div class="aimp-address-actions">
+					<a class="aimp-account-button aimp-account-button--ghost" href="<?php echo esc_url( self::page_url( 'personal' ) ); ?>" data-aimp-address-close><?php esc_html_e( 'Cancel', 'atelier-irisee-master-plugin' ); ?></a>
+					<button type="submit" class="aimp-account-button aimp-account-button--primary"><?php esc_html_e( 'Save address', 'atelier-irisee-master-plugin' ); ?></button>
+				</div>
+			</form>
+		</dialog>
+		<?php
 	}
 
 	/* ---------- Orders ---------- */
@@ -219,7 +299,7 @@ class AIMP_Account {
 		remove_filter( 'woocommerce_get_endpoint_url', $endpoint, 10 );
 	}
 
-	/* ---------- Refund / remove account ---------- */
+	/* ---------- Refunds ---------- */
 
 	public static function tab_refund( $user ) {
 		$orders = self::eligible_orders( $user->ID );
@@ -313,29 +393,6 @@ class AIMP_Account {
 			}
 			echo '</ul>';
 		}
-
-		// Remove account.
-		echo '<h2 class="aimp-account-title aimp-account-title--danger">' . esc_html__( 'Remove my account', 'atelier-irisee-master-plugin' ) . '</h2>';
-		if ( ! self::can_delete( $user->ID ) ) {
-			echo '<p class="aimp-account-text">' . esc_html__( 'Please contact us if you would like your account to be removed.', 'atelier-irisee-master-plugin' ) . '</p>';
-			return;
-		}
-		$social_only = (bool) get_user_meta( $user->ID, AIMP_Login_Social::SOCIAL_ONLY, true );
-		?>
-		<p class="aimp-account-text"><?php esc_html_e( 'Your account, saved addresses and favorites are removed for good. Orders stay in our records because the law requires it, and gift cards keep their balance: you can still use their codes.', 'atelier-irisee-master-plugin' ); ?></p>
-		<form method="post" class="aimp-account-form aimp-account-form--danger">
-			<?php wp_nonce_field( 'aimp_account_delete', 'aimp_account_nonce' ); ?>
-			<input type="hidden" name="aimp_account_action" value="delete">
-			<p class="aimp-account-field">
-				<label for="aimp-delete-confirm"><?php echo $social_only ? esc_html__( 'Type your email address to confirm', 'atelier-irisee-master-plugin' ) : esc_html__( 'Your password', 'atelier-irisee-master-plugin' ); ?></label>
-				<input type="<?php echo $social_only ? 'email' : 'password'; ?>" id="aimp-delete-confirm" name="aimp_delete_confirm" required autocomplete="<?php echo $social_only ? 'email' : 'current-password'; ?>">
-			</p>
-			<p class="aimp-account-field">
-				<label class="aimp-account-check"><input type="checkbox" name="aimp_delete_sure" value="1" required> <?php esc_html_e( 'I understand that my account is removed for good.', 'atelier-irisee-master-plugin' ); ?></label>
-			</p>
-			<button type="submit" class="aimp-account-button aimp-account-button--danger"><?php esc_html_e( 'Remove my account', 'atelier-irisee-master-plugin' ); ?></button>
-		</form>
-		<?php
 	}
 
 	/* ---------- Gift cards ---------- */
@@ -434,13 +491,13 @@ class AIMP_Account {
 		}
 		$action = sanitize_key( wp_unslash( $_POST['aimp_account_action'] ) );
 		$nonce  = isset( $_POST['aimp_account_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['aimp_account_nonce'] ) ) : '';
-		if ( ! in_array( $action, array( 'refund', 'delete' ), true ) || ! wp_verify_nonce( $nonce, 'aimp_account_' . $action ) ) {
+		if ( ! in_array( $action, array( 'refund', 'address' ), true ) || ! wp_verify_nonce( $nonce, 'aimp_account_' . $action ) ) {
 			return;
 		}
 		if ( 'refund' === $action ) {
 			self::handle_refund();
 		} else {
-			self::handle_delete();
+			self::handle_address();
 		}
 	}
 
@@ -505,59 +562,74 @@ class AIMP_Account {
 		self::back( 'refund', 'refund_sent' );
 	}
 
-	private static function handle_delete() {
-		$user = wp_get_current_user();
-		if ( ! self::can_delete( $user->ID ) ) {
-			self::back( 'refund', 'delete_denied' );
-		}
+	/**
+	 * Saves a billing or shipping address from the lightbox, checked like WooCommerce's own address form.
+	 * The checkout is then filled in with it.
+	 */
+	private static function handle_address() {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified in handle_post().
-		if ( empty( $_POST['aimp_delete_sure'] ) ) {
-			self::back( 'refund', 'delete_ok' );
+		$type    = ( isset( $_POST['aimp_address_type'] ) && 'shipping' === $_POST['aimp_address_type'] ) ? 'shipping' : 'billing';
+		$user_id = get_current_user_id();
+		$country = isset( $_POST[ $type . '_country' ] ) ? wc_clean( wp_unslash( $_POST[ $type . '_country' ] ) ) : '';
+		$values  = array();
+		$errors  = array();
+		foreach ( self::address_fields( $type, $country ) as $key => $field ) {
+			$field_type = isset( $field['type'] ) ? $field['type'] : 'text';
+			$raw        = isset( $_POST[ $key ] ) ? wp_unslash( $_POST[ $key ] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized below.
+			$value      = 'email' === $field_type ? sanitize_email( $raw ) : wc_clean( $raw );
+			$label      = isset( $field['label'] ) ? wp_strip_all_tags( $field['label'] ) : $key;
+			$validate   = isset( $field['validate'] ) ? (array) $field['validate'] : array();
+
+			if ( ! empty( $field['required'] ) && '' === $value ) {
+				/* translators: %s: field name */
+				$errors[] = sprintf( __( '%s is required.', 'atelier-irisee-master-plugin' ), $label );
+			} elseif ( '' !== $value ) {
+				if ( in_array( 'postcode', $validate, true ) ) {
+					$value = wc_format_postcode( $value, $country );
+					if ( '' !== $country && ! WC_Validation::is_postcode( $value, $country ) ) {
+						$errors[] = __( 'Please enter a valid postcode.', 'atelier-irisee-master-plugin' );
+					}
+				}
+				if ( in_array( 'phone', $validate, true ) && ! WC_Validation::is_phone( $value ) ) {
+					/* translators: %s: field name */
+					$errors[] = sprintf( __( '%s is not a valid phone number.', 'atelier-irisee-master-plugin' ), $label );
+				}
+				if ( in_array( 'email', $validate, true ) && ! is_email( $value ) ) {
+					/* translators: %s: field name */
+					$errors[] = sprintf( __( '%s is not a valid email address.', 'atelier-irisee-master-plugin' ), $label );
+				}
+			}
+			$values[ $key ] = $value;
 		}
-		$confirm = isset( $_POST['aimp_delete_confirm'] ) ? (string) wp_unslash( $_POST['aimp_delete_confirm'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- password, checked below.
 		// phpcs:enable
-		$ok = get_user_meta( $user->ID, AIMP_Login_Social::SOCIAL_ONLY, true )
-			? strtolower( trim( $confirm ) ) === strtolower( $user->user_email )
-			: wp_check_password( $confirm, $user->user_pass, $user->ID );
-		if ( ! $ok ) {
-			self::back( 'refund', 'delete_pw' );
+
+		if ( $errors ) {
+			set_transient(
+				self::address_transient( $user_id ),
+				array(
+					'type'   => $type,
+					'values' => $values,
+					'errors' => $errors,
+				),
+				10 * MINUTE_IN_SECONDS
+			);
+			wp_safe_redirect( self::page_url( 'personal', array( 'aimp_open' => $type ) ) );
+			exit;
 		}
 
-		$lang  = get_user_meta( $user->ID, 'aimp_lang', true );
-		$email = $user->user_email;
-		$name  = $user->display_name;
-		AIMP_Giftcards::mail(
-			$email,
-			$lang,
-			function () use ( $name ) {
-				$site = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
-				return array(
-					/* translators: %s: shop name */
-					sprintf( __( 'Your account at %s has been removed', 'atelier-irisee-master-plugin' ), $site ),
-					/* translators: %s: customer name */
-					'<p>' . esc_html( sprintf( __( 'Hello %s,', 'atelier-irisee-master-plugin' ), $name ) ) . '</p><p>' . esc_html__( 'As you asked, your account has been removed. Thank you for having been our customer. You are always welcome back.', 'atelier-irisee-master-plugin' ) . '</p>',
-				);
+		// The session's customer too, so the cart and checkout use the new address right away.
+		$customer = ( WC()->customer && WC()->customer->get_id() === $user_id ) ? WC()->customer : new WC_Customer( $user_id );
+		foreach ( $values as $key => $value ) {
+			$setter = 'set_' . $key;
+			if ( is_callable( array( $customer, $setter ) ) ) {
+				$customer->$setter( $value );
+			} else {
+				$customer->update_meta_data( $key, $value );
 			}
-		);
-		AIMP_Giftcards::mail(
-			get_option( 'admin_email' ),
-			AIMP_I18n::default_language(),
-			function () use ( $name, $email ) {
-				return array(
-					/* translators: %s: customer name */
-					sprintf( __( 'A customer removed their account: %s', 'atelier-irisee-master-plugin' ), $name ),
-					/* translators: 1: customer name, 2: email */
-					'<p>' . esc_html( sprintf( __( '%1$s (%2$s) removed their account through the account page. Their orders are kept as guest orders.', 'atelier-irisee-master-plugin' ), $name, $email ) ) . '</p>',
-				);
-			}
-		);
-
-		require_once ABSPATH . 'wp-admin/includes/user.php';
-		$user_id = $user->ID;
-		wp_logout();
-		wp_delete_user( $user_id );
-		wp_safe_redirect( add_query_arg( 'aimp_el_msg', 'account_removed', home_url( '/' ) ) );
-		exit;
+		}
+		$customer->save();
+		do_action( 'woocommerce_customer_save_address', $user_id, $type );
+		self::back( 'personal', 'address_saved' );
 	}
 
 	/* ------------------------------------------------------------------

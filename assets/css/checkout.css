@@ -537,36 +537,42 @@
 
 /* ------------------------------------------------------------------
  * Payment methods (Mollie and others) as cards, two per row, like the product cards of the category
- * pages: gold double border, logo on top, name below; the chosen one is filled gold. WooCommerce's own
- * markup is kept, so its updates of the payment block keep working.
+ * pages: gold double border, logo on top, name below; the chosen one is filled gold.
+ * Each <li> is "display: contents", so its label (the card) and its payment box are items of the grid
+ * itself: an opened box (extra choice, text, a button) is a full-width panel under the row of the
+ * chosen card, and "dense" keeps the cards two per row. Nothing is moved, so WooCommerce's own
+ * opening and closing of the boxes keeps working.
  * ------------------------------------------------------------------ */
 .aimp-configurator.aimp-checkout #payment ul.payment_methods {
+	position: relative;
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-auto-flow: row dense;
 	gap: 0.75rem;
 }
 
-.aimp-configurator.aimp-checkout #payment ul.payment_methods li {
-	position: relative;
-	margin: 0;
-	padding: 0;
-	border: 5px double var(--aimp-gold);
-	border-radius: 48px;
-	background: transparent;
-	transition: background-color 0.3s ease;
+/* WooCommerce's clearfix would become an empty grid cell. */
+.aimp-configurator.aimp-checkout #payment ul.payment_methods::before,
+.aimp-configurator.aimp-checkout #payment ul.payment_methods::after,
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li::before,
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li::after {
+	content: none;
+	display: none;
 }
 
-.aimp-configurator.aimp-checkout #payment ul.payment_methods li:hover {
-	background: var(--aimp-gold-tint);
+.aimp-configurator.aimp-checkout #payment ul.payment_methods > li {
+	display: contents;
 }
 
 /* The radio stays for the keyboard, invisible; the label is the clickable card. */
 .aimp-configurator.aimp-checkout #payment ul.payment_methods li > input.input-radio {
 	position: absolute;
-	opacity: 0;
+	top: 0;
+	left: 0;
 	width: 1px;
 	height: 1px;
 	margin: 0;
+	opacity: 0;
 }
 
 .aimp-configurator.aimp-checkout #payment ul.payment_methods li > label {
@@ -575,14 +581,23 @@
 	align-items: center;
 	justify-content: center;
 	gap: 0.5rem;
+	box-sizing: border-box;
 	min-height: 6.5rem;
 	margin: 0;
 	padding: 1rem 1rem 1.1rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: 48px;
+	background: transparent;
 	color: var(--aimp-body-text);
 	font-weight: 600;
 	line-height: 1.3;
 	text-align: center;
 	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li > label:hover {
+	background: var(--aimp-gold-tint);
 }
 
 /* Logos on top. */
@@ -599,35 +614,62 @@
 .aimp-configurator.aimp-checkout #payment ul.payment_methods li > input.input-radio:focus-visible + label {
 	outline: 2px solid var(--aimp-gold);
 	outline-offset: 2px;
-	border-radius: 44px;
 }
 
 /* Chosen: filled gold, white text. */
-.aimp-configurator.aimp-checkout #payment ul.payment_methods li:is(.is-selected, :has(> input.input-radio:checked)) {
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li > input.input-radio:checked + label {
 	background: var(--aimp-gold);
-}
-
-.aimp-configurator.aimp-checkout #payment ul.payment_methods li:is(.is-selected, :has(> input.input-radio:checked)) > label {
 	color: #fff;
 }
 
-/* Only a method's own fields (card details, bank choice, …) are shown; plain descriptions are not. */
-.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box:not(:has(input, select, iframe, fieldset, textarea, .mollie-components)) {
+/* The opened box: a full-width panel under the row. */
+.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box {
+	grid-column: 1 / -1;
+	box-sizing: border-box;
+	width: 100%;
+	margin: 0;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+	background: #fff;
+	color: var(--aimp-body-text);
+	font-size: var(--aimp-body-size);
+	line-height: 1.5;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box:not(:has(*)) {
 	display: none !important;
 }
 
-.aimp-configurator.aimp-checkout #payment ul.payment_methods li:has(> input.input-radio:checked):has(div.payment_box :is(input, select, iframe, fieldset, textarea, .mollie-components)) {
-	grid-column: 1 / -1;
+.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box :is(p, label, span, li) {
+	color: var(--aimp-body-text);
 }
 
-.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box {
-	margin: 0 1rem 1rem;
+.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box p:last-child {
+	margin-bottom: 0;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box :is(select, input[type="text"], input[type="email"], input[type="tel"]) {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	min-height: 2.6rem;
+	border: 1px solid var(--aimp-gold);
 	border-radius: var(--aimp-radius);
-	background: #fff;
 }
 
-/* A single method with no choice to make ("no methods" notice etc.). */
+.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box :is(button, .button) {
+	max-width: 100%;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box img {
+	max-width: 100%;
+	height: auto;
+}
+
+/* "No payment methods" notice. */
 .aimp-configurator.aimp-checkout #payment ul.payment_methods li.woocommerce-notice {
+	display: block;
 	grid-column: 1 / -1;
 	padding: 1rem;
 }

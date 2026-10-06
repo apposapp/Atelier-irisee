@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.5.0
+Stable tag: 2.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.6.0 =
+* Account page: addresses are added and changed in a lightbox form; they are saved to the account and fill in the checkout. The menu buttons are all the same size, and the tab is now "Refunds": customers can no longer remove their own account there (the setting is gone too).
+* Shipping costs now show in the cart and checkout: the plugin adds its own shipping method ("Atelier Irisee shipping") to WooCommerce's "Locations not covered by your other zones" zone by itself. Without a known address no shipping row is shown. A warning appears when shipping is switched off in WooCommerce.
+* Payment step: no empty cell in the payment methods (WooCommerce's clearfix), and an opened payment box (extra choice, text, button) is a full-width panel under the row, so the cards stay two per row.
+* Favorites page: smaller cards, six per row.
 
 = 2.5.0 =
 * New: shipping costs in the settings (new Shipping tab): a cost for your own country, a cost per country, a cost for all other countries, each free from an order amount. Shown in the cart and checkout totals with a "Free shipping from …: … to go" line. No WooCommerce shipping zones needed; local pickup stays available.
