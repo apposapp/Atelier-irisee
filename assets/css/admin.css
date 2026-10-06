@@ -407,35 +407,8 @@
 	background: #f0f0f1;
 }
 
-.aimp-am-eye input {
-	position: absolute;
-	opacity: 0;
-	pointer-events: none;
-}
-
-.aimp-am-eye input:focus-visible + .dashicons {
-	outline: 2px solid #b38f4f;
-	outline-offset: 2px;
-}
-
 .aimp-am-item.is-hidden .aimp-am-eye .dashicons {
 	color: #a3352b;
-}
-
-.aimp-am-rules {
-	padding: 4px 14px 14px 44px;
-	border-top: 1px dashed #dcdcde;
-}
-
-.aimp-am-label {
-	margin: 10px 0 6px;
-	font-weight: 600;
-}
-
-.aimp-am-roles {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px 18px;
 }
 
 .aimp-am-placeholder {
@@ -444,4 +417,94 @@
 	border: 2px dashed #b38f4f;
 	border-radius: 6px;
 	background: #fbf8f2;
+}
+
+/* "Menu for:" bar */
+.aimp-am-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px 14px;
+	max-width: 720px;
+	padding: 12px 14px;
+	border: 1px solid #b38f4f;
+	border-radius: 8px;
+	background: #fbf8f2;
+}
+
+.aimp-am-bar-label {
+	font-weight: 600;
+}
+
+.aimp-am-status {
+	color: #646970;
+	font-style: italic;
+}
+
+.aimp-am-bar-buttons {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-left: auto;
+}
+
+.aimp-am-remove {
+	color: #a3352b;
+}
+
+.aimp-am-bar [hidden] {
+	display: none;
+}
+
+/* Eye and fold buttons */
+.aimp-am-eye {
+	border: 0;
+	background: none;
+}
+
+.aimp-am-eye:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.aimp-am-fold {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	color: #613907;
+	font-size: 12px;
+	text-decoration: none;
+}
+
+.aimp-am-count {
+	padding: 1px 8px;
+	border-radius: 100px;
+	background: #f7e3e1;
+	color: #a3352b;
+	font-size: 11px;
+}
+
+/* Submenu items: indented under their parent, with a thin gold line */
+.aimp-am-sublist {
+	margin: 0 10px 10px 34px;
+	padding: 0 0 0 10px;
+	border-left: 2px solid #e6d7b8;
+	list-style: none;
+}
+
+.aimp-am-sublist[hidden] {
+	display: none;
+}
+
+.aimp-am-subitem {
+	border-left-width: 1px;
+	border-left-color: #dcdcde;
+}
+
+.aimp-am-subitem .aimp-am-row {
+	padding: 5px 8px;
+}
+
+.aimp-am-subitem .aimp-am-title {
+	font-weight: 400;
 }

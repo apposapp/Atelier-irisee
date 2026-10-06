@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.9.0
+Stable tag: 2.9.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.9.1 =
+* Admin menu: choose a role or a person at the top ("Menu for:") and set up their whole menu at once: order and visibility of the main items and of the submenu items (for example inside WooCommerce). People without their own set-up use their role's, or else Everyone's. Settings from 2.9.0 are converted.
 
 = 2.9.0 =
 * New: Admin menu tab in the settings. Drag the dashboard menu items into your own order and hide items for chosen roles or people (WooCommerce stays visible for shop managers).
