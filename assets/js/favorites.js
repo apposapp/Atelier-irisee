@@ -249,3 +249,49 @@
 		boot();
 	}
 })();
+
+/**
+ * Favorites page: remove a saved sewing project kit (×).
+ */
+(function () {
+	'use strict';
+
+	document.addEventListener('click', function (e) {
+		var button = e.target.closest ? e.target.closest('[data-aimp-kit-remove]') : null;
+		if (!button) {
+			return;
+		}
+		var section = button.closest('[data-aimp-saved-kits]');
+		var cfg = window.aimpFavoritesConfig || {};
+		var body = new URLSearchParams();
+		body.append('kit', button.getAttribute('data-aimp-kit-remove'));
+		body.append('nonce', cfg.nonce || '');
+		button.disabled = true;
+		fetch(section.getAttribute('data-endpoint'), {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+			body: body.toString()
+		})
+			.then(function (response) {
+				return response.json();
+			})
+			.then(function (json) {
+				if (!json || !json.success) {
+					button.disabled = false;
+					return;
+				}
+				button.closest('[data-aimp-saved-kit]').remove();
+				if (!section.querySelector('[data-aimp-saved-kit]')) {
+					var next = section.nextElementSibling;
+					if (next && next.classList.contains('aimp-saved-kits-title')) {
+						next.remove();
+					}
+					section.remove();
+				}
+			})
+			.catch(function () {
+				button.disabled = false;
+			});
+	});
+})();

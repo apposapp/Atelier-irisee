@@ -149,7 +149,7 @@
 	border: 0;
 	background: none;
 	box-shadow: none;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 1.9rem;
 	font-weight: 400;
 	line-height: 1;
@@ -421,7 +421,7 @@
 }
 
 .aimp-configurator .aimp-recommended-name {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-weight: 700;
 }
 
@@ -528,7 +528,7 @@
 	flex: 0 0 auto;
 	width: 2rem;
 	height: 2rem;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-washing-tile span {
@@ -538,7 +538,7 @@
 }
 
 .aimp-configurator .aimp-washing-tile strong {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-weight: 700;
 }
 
@@ -553,7 +553,7 @@
 }
 
 .aimp-product-bullets li::marker {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-configurator .aimp-product-bullets strong {
@@ -689,5 +689,123 @@
 /* "Description" above the short description: gold, like the other subtitles. */
 .aimp-configurator .aimp-product-short-title {
 	margin: 1rem 0 0.4rem;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
+}
+
+/* "Email me when it's back" under a sold-out product's price bar. */
+.aimp-configurator .aimp-stock-alert {
+	margin: 0.75rem 0 1rem;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-configurator .aimp-stock-alert-title {
+	margin: 0 0 0.6rem;
+	color: var(--aimp-body-text);
+	font-weight: 700;
+}
+
+.aimp-configurator .aimp-stock-alert-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.aimp-configurator .aimp-stock-alert-row[hidden],
+.aimp-configurator .aimp-stock-alert .aimp-newsletter-hp {
+	display: none;
+}
+
+.aimp-configurator .aimp-stock-alert input[type="email"] {
+	flex: 1 1 14rem;
+	min-height: 2.6rem;
+	padding: 0.4rem 0.9rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: 100px;
+	color: var(--aimp-body-text);
+	font: inherit;
+}
+
+.aimp-configurator .aimp-stock-alert-message {
+	margin: 0.5rem 0 0;
+	color: var(--aimp-body-text);
+}
+
+.aimp-configurator .aimp-stock-alert-message.is-error {
+	color: #a3352b;
+}
+
+/* Phones: the small buy bar at the bottom (product.js), shown once the price bar has scrolled away. */
+.aimp-mobile-buy {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 900;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+	border-top: 1px solid #b38f4f;
+	background: #fff;
+	box-shadow: 0 -8px 20px rgba(97, 57, 7, 0.08);
+	color: #613907;
+	font-size: 15px;
+	transform: translateY(110%);
+	transition: transform 0.3s ease;
+}
+
+.aimp-mobile-buy.is-visible {
+	transform: none;
+}
+
+.aimp-mobile-buy-info {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.aimp-mobile-buy-name {
+	overflow: hidden;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.aimp-mobile-buy-price,
+.aimp-mobile-buy-price * {
+	color: #8a6a33;
+	font-size: 14px;
+}
+
+.aimp-mobile-buy-button {
+	flex: 0 0 auto;
+	padding: 0.55rem 1.2rem;
+	border: 4px double #b38f4f;
+	border-radius: 100px;
+	background: #b38f4f;
+	color: #fff;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+@media (min-width: 701px) {
+	.aimp-mobile-buy {
+		display: none;
+	}
+}
+
+@media (max-width: 700px) {
+	body.aimp-has-mobile-buy {
+		padding-bottom: 4.5rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-mobile-buy {
+		transition: none;
+	}
 }

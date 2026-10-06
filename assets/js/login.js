@@ -755,6 +755,19 @@
 			cleanUrl(['aimp_el', 'aimp_token']);
 			return true;
 		}
+		// "Create an account" on the thank-you page: the registration form, with the order's email filled in.
+		if (action === 'register') {
+			container = open('register');
+			if (container && urlParam('aimp_email')) {
+				container.querySelectorAll('input[type="email"]').forEach(function (field) {
+					if (!field.value) {
+						field.value = urlParam('aimp_email');
+					}
+				});
+			}
+			cleanUrl(['aimp_el', 'aimp_email']);
+			return true;
+		}
 		if (action === 'verify' && urlParam('aimp_email')) {
 			container = open('verify');
 			if (container) {

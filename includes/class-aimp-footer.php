@@ -38,6 +38,10 @@ class AIMP_Footer {
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wc_ajax_aimp_subscribe', array( __CLASS__, 'subscribe' ) );
+		add_action( 'wc_ajax_aimp_newsletter_status', array( __CLASS__, 'ajax_status' ) );
+		add_action( 'wc_ajax_aimp_unsubscribe', array( __CLASS__, 'unsubscribe' ) );
+		add_action( 'wc_ajax_aimp_newsletter_resend', array( __CLASS__, 'resend' ) );
+		add_action( 'template_redirect', array( __CLASS__, 'confirm' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 70 );
 		add_action( 'admin_post_aimp_newsletter_csv', array( __CLASS__, 'download_csv' ) );
 		add_action( 'admin_post_aimp_newsletter_delete', array( __CLASS__, 'delete_subscriber' ) );
@@ -246,8 +250,15 @@ class AIMP_Footer {
 			'aimp-footer',
 			'aimpFooter',
 			array(
-				'endpoint' => WC_AJAX::get_endpoint( 'aimp_subscribe' ),
-				'error'    => __( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ),
+				'endpoint'    => WC_AJAX::get_endpoint( 'aimp_subscribe' ),
+				'status'      => WC_AJAX::get_endpoint( 'aimp_newsletter_status' ),
+				'unsubscribe' => WC_AJAX::get_endpoint( 'aimp_unsubscribe' ),
+				'resend'      => WC_AJAX::get_endpoint( 'aimp_newsletter_resend' ),
+				'error'       => __( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ),
+				'messages'    => array(
+					'confirmed' => __( 'Thank you! Your subscription is confirmed.', 'atelier-irisee-master-plugin' ),
+					'invalid'   => __( 'This link is invalid or has expired.', 'atelier-irisee-master-plugin' ),
+				),
 			)
 		);
 	}
@@ -406,6 +417,17 @@ class AIMP_Footer {
 	 * Newsletter
 	 * ------------------------------------------------------------------ */
 
+	/*
+	 * Subscribers are private posts (title = email) with:
+	 * - _aimp_status: "pending" until the link in the confirmation email is clicked, then "confirmed"
+	 *   (subscribers from before 2.7 have no status and count as confirmed);
+	 * - _aimp_token: random; also kept in the visitor's aimp_nl cookie, so the footer can show their state
+	 *   on cached pages and they can unsubscribe;
+	 * - _aimp_lang.
+	 */
+
+	const COOKIE = 'aimp_nl';
+
 	/**
 	 * The subscriber with this address, if any.
 	 *
@@ -426,27 +448,128 @@ class AIMP_Footer {
 	}
 
 	/**
+	 * @param string $token Token.
+	 * @return int Post ID or 0.
+	 */
+	private static function find_by_token( $token ) {
+		if ( ! is_string( $token ) || ! preg_match( '/^[A-Za-z0-9]{32}$/', $token ) ) {
+			return 0;
+		}
+		$found = get_posts(
+			array(
+				'post_type'      => self::SUBSCRIBERS,
+				'post_status'    => 'private',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_key'       => '_aimp_token', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- small list.
+				'meta_value'     => $token, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- small list.
+			)
+		);
+		return $found ? (int) $found[0] : 0;
+	}
+
+	/**
+	 * @param int $id Subscriber.
+	 * @return string pending|confirmed
+	 */
+	public static function status( $id ) {
+		return 'pending' === get_post_meta( $id, '_aimp_status', true ) ? 'pending' : 'confirmed';
+	}
+
+	private static function token( $id ) {
+		$token = (string) get_post_meta( $id, '_aimp_token', true );
+		if ( ! preg_match( '/^[A-Za-z0-9]{32}$/', $token ) ) {
+			$token = wp_generate_password( 32, false, false );
+			update_post_meta( $id, '_aimp_token', $token );
+		}
+		return $token;
+	}
+
+	private static function set_cookie( $token ) {
+		wc_setcookie( self::COOKIE, $token, $token ? time() + YEAR_IN_SECONDS : time() - HOUR_IN_SECONDS, is_ssl(), false );
+	}
+
+	/**
+	 * The visitor's own subscription: by the token in their cookie, or by their account's email.
+	 *
+	 * @return int Post ID or 0.
+	 */
+	private static function current_subscriber() {
+		$id = self::find_by_token( isset( $_COOKIE[ self::COOKIE ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ self::COOKIE ] ) ) : '' );
+		if ( ! $id && is_user_logged_in() ) {
+			$id = self::find( strtolower( wp_get_current_user()->user_email ) );
+		}
+		return $id;
+	}
+
+	/**
+	 * The email with the confirmation link, in the subscriber's language.
+	 *
+	 * @param int $id Subscriber.
+	 */
+	private static function send_confirmation( $id ) {
+		$url = add_query_arg( 'aimp_nl_confirm', self::token( $id ), home_url( '/' ) );
+		AIMP_Giftcards::mail(
+			get_the_title( $id ),
+			(string) get_post_meta( $id, '_aimp_lang', true ),
+			function () use ( $url ) {
+				$site = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+				return array(
+					/* translators: %s: shop name */
+					sprintf( __( 'Confirm your subscription to the %s newsletter', 'atelier-irisee-master-plugin' ), $site ),
+					'<p>' . esc_html__( 'Hello,', 'atelier-irisee-master-plugin' ) . '</p>' .
+					'<p>' . esc_html__( 'Please confirm that you would like to receive our newsletter.', 'atelier-irisee-master-plugin' ) . '</p>' .
+					'<p><a href="' . esc_url( $url ) . '" style="display:inline-block;padding:12px 26px;border:4px double #b38f4f;border-radius:100px;color:#613907;font-weight:bold;text-decoration:none">' . esc_html__( 'Confirm my subscription', 'atelier-irisee-master-plugin' ) . '</a></p>' .
+					'<p>' . esc_html__( 'Did you not sign up? Then simply ignore this email.', 'atelier-irisee-master-plugin' ) . '</p>',
+				);
+			}
+		);
+	}
+
+	/**
+	 * Texts of the footer states.
+	 *
+	 * @param string $state confirmed|pending|none.
+	 * @return string
+	 */
+	private static function state_message( $state ) {
+		if ( 'confirmed' === $state ) {
+			return __( 'Thank you! You are subscribed to our newsletter.', 'atelier-irisee-master-plugin' );
+		}
+		if ( 'pending' === $state ) {
+			return __( 'Almost done! Check your inbox to confirm your subscription.', 'atelier-irisee-master-plugin' );
+		}
+		return __( 'You are unsubscribed from our newsletter.', 'atelier-irisee-master-plugin' );
+	}
+
+	private static function too_many() {
+		wp_send_json_error( array( 'message' => __( 'Too many attempts. Please try again later.', 'atelier-irisee-master-plugin' ) ) );
+	}
+
+	/**
 	 * ?wc-ajax=aimp_subscribe. No nonce on purpose: the form is also on cached pages, where a nonce
 	 * would expire. Bots are stopped by the hidden field and a limit per visitor.
 	 */
 	public static function subscribe() {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- see above.
-		$fail = function ( $message ) {
-			wp_send_json_error( array( 'message' => $message ) );
-		};
 		if ( AIMP_Login_Security::honeypot_triggered() ) {
-			wp_send_json_success( array( 'message' => __( 'Thank you! You are now subscribed to our newsletter.', 'atelier-irisee-master-plugin' ) ) );
+			wp_send_json_success(
+				array(
+					'state'   => 'pending',
+					'message' => self::state_message( 'pending' ),
+				)
+			);
 		}
 		if ( AIMP_Login_Security::rate_limited( 'newsletter', AIMP_Login_Security::ip(), 5 ) ) {
-			$fail( __( 'Too many attempts. Please try again later.', 'atelier-irisee-master-plugin' ) );
+			self::too_many();
 		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- see above.
 		$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-		// phpcs:enable
 		if ( ! is_email( $email ) ) {
-			$fail( __( 'Please enter a valid email address.', 'atelier-irisee-master-plugin' ) );
+			wp_send_json_error( array( 'message' => __( 'Please enter a valid email address.', 'atelier-irisee-master-plugin' ) ) );
 		}
 		$email = strtolower( $email );
-		if ( ! self::find( $email ) ) {
+		$id    = self::find( $email );
+		if ( ! $id ) {
 			$id = wp_insert_post(
 				array(
 					'post_type'   => self::SUBSCRIBERS,
@@ -454,11 +577,99 @@ class AIMP_Footer {
 					'post_title'  => $email,
 				)
 			);
-			if ( $id && ! is_wp_error( $id ) ) {
-				update_post_meta( $id, '_aimp_lang', AIMP_I18n::current() );
+			if ( ! $id || is_wp_error( $id ) ) {
+				wp_send_json_error( array( 'message' => __( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ) ) );
 			}
+			update_post_meta( $id, '_aimp_lang', AIMP_I18n::current() );
+			update_post_meta( $id, '_aimp_status', 'pending' );
 		}
-		wp_send_json_success( array( 'message' => __( 'Thank you! You are now subscribed to our newsletter.', 'atelier-irisee-master-plugin' ) ) );
+		$state = self::status( $id );
+		if ( 'pending' === $state ) {
+			self::send_confirmation( $id );
+		}
+		self::set_cookie( self::token( $id ) );
+		wp_send_json_success(
+			array(
+				'state'   => $state,
+				'message' => self::state_message( $state ),
+			)
+		);
+	}
+
+	/**
+	 * ?wc-ajax=aimp_newsletter_status: none, pending or confirmed for this visitor.
+	 */
+	public static function ajax_status() {
+		$id    = self::current_subscriber();
+		$state = $id ? self::status( $id ) : 'none';
+		if ( $id && empty( $_COOKIE[ self::COOKIE ] ) ) {
+			self::set_cookie( self::token( $id ) );
+		}
+		wp_send_json_success(
+			array(
+				'state'   => $state,
+				'message' => 'none' === $state ? '' : self::state_message( $state ),
+			)
+		);
+	}
+
+	/**
+	 * ?wc-ajax=aimp_unsubscribe (POST): removes the visitor's own subscription (their cookie token or
+	 * their account's email), nobody else's.
+	 */
+	public static function unsubscribe() {
+		$method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
+		if ( 'post' !== $method || AIMP_Login_Security::rate_limited( 'newsletter', AIMP_Login_Security::ip(), 5 ) ) {
+			self::too_many();
+		}
+		$id = self::current_subscriber();
+		if ( $id ) {
+			wp_delete_post( $id, true );
+		}
+		self::set_cookie( '' );
+		wp_send_json_success(
+			array(
+				'state'   => 'none',
+				'message' => self::state_message( 'none' ),
+			)
+		);
+	}
+
+	/**
+	 * ?wc-ajax=aimp_newsletter_resend: the confirmation email again.
+	 */
+	public static function resend() {
+		if ( AIMP_Login_Security::rate_limited( 'newsletter', AIMP_Login_Security::ip(), 5 ) ) {
+			self::too_many();
+		}
+		$id = self::current_subscriber();
+		if ( $id && 'pending' === self::status( $id ) ) {
+			self::send_confirmation( $id );
+		}
+		wp_send_json_success(
+			array(
+				'state'   => $id ? self::status( $id ) : 'none',
+				'message' => __( 'We sent the email again.', 'atelier-irisee-master-plugin' ),
+			)
+		);
+	}
+
+	/**
+	 * The link in the confirmation email: /?aimp_nl_confirm=TOKEN.
+	 */
+	public static function confirm() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the token is the proof.
+		if ( empty( $_GET['aimp_nl_confirm'] ) ) {
+			return;
+		}
+		$id = self::find_by_token( sanitize_text_field( wp_unslash( $_GET['aimp_nl_confirm'] ) ) );
+		// phpcs:enable
+		if ( $id ) {
+			update_post_meta( $id, '_aimp_status', 'confirmed' );
+			self::set_cookie( self::token( $id ) );
+		}
+		wp_safe_redirect( add_query_arg( 'aimp_nl_msg', $id ? 'confirmed' : 'invalid', home_url( '/' ) ) );
+		exit;
 	}
 
 	public static function admin_menu() {
@@ -500,19 +711,20 @@ class AIMP_Footer {
 				?>
 				&nbsp; <a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=aimp_newsletter_csv' ), 'aimp_newsletter_csv' ) ); ?>"><?php esc_html_e( 'Download CSV', 'atelier-irisee-master-plugin' ); ?></a>
 			</p>
-			<p class="description"><?php esc_html_e( 'Import the CSV in your mail program (Mailchimp, MailerLite, …) to send a newsletter.', 'atelier-irisee-master-plugin' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Import the CSV in your mail program (Mailchimp, MailerLite, …) to send a newsletter.', 'atelier-irisee-master-plugin' ); ?> <?php esc_html_e( 'New subscribers confirm their address through an email first; only confirmed subscribers are in the CSV.', 'atelier-irisee-master-plugin' ); ?></p>
 			<table class="widefat striped" style="max-width:780px">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Email', 'atelier-irisee-master-plugin' ); ?></th>
 						<th><?php esc_html_e( 'Language', 'atelier-irisee-master-plugin' ); ?></th>
 						<th><?php esc_html_e( 'Subscribed on', 'atelier-irisee-master-plugin' ); ?></th>
+						<th><?php esc_html_e( 'Status', 'atelier-irisee-master-plugin' ); ?></th>
 						<th></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php if ( ! $subscribers ) : ?>
-						<tr><td colspan="4"><?php esc_html_e( 'No subscribers yet.', 'atelier-irisee-master-plugin' ); ?></td></tr>
+						<tr><td colspan="5"><?php esc_html_e( 'No subscribers yet.', 'atelier-irisee-master-plugin' ); ?></td></tr>
 					<?php endif; ?>
 					<?php foreach ( $subscribers as $subscriber ) : ?>
 						<?php $lang = (string) get_post_meta( $subscriber->ID, '_aimp_lang', true ); ?>
@@ -520,6 +732,7 @@ class AIMP_Footer {
 							<td><?php echo esc_html( $subscriber->post_title ); ?></td>
 							<td><?php echo esc_html( isset( $languages[ $lang ] ) ? $languages[ $lang ]['name'] : '' ); ?></td>
 							<td><?php echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $subscriber->post_date_gmt . ' UTC' ) ) ); ?></td>
+							<td><?php echo 'pending' === self::status( $subscriber->ID ) ? esc_html__( 'Waiting for confirmation', 'atelier-irisee-master-plugin' ) : esc_html__( 'Confirmed', 'atelier-irisee-master-plugin' ); ?></td>
 							<td><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=aimp_newsletter_delete&id=' . $subscriber->ID ), 'aimp_newsletter_delete_' . $subscriber->ID ) ); ?>" class="aimp-confirm-delete"><?php esc_html_e( 'Delete', 'atelier-irisee-master-plugin' ); ?></a></td>
 						</tr>
 					<?php endforeach; ?>
@@ -539,6 +752,9 @@ class AIMP_Footer {
 		$out = fopen( 'php://output', 'w' );
 		fputcsv( $out, array( 'email', 'language', 'subscribed' ) );
 		foreach ( self::all_subscribers() as $subscriber ) {
+			if ( 'pending' === self::status( $subscriber->ID ) ) {
+				continue; // Only confirmed subscribers.
+			}
 			fputcsv( $out, array( $subscriber->post_title, (string) get_post_meta( $subscriber->ID, '_aimp_lang', true ), $subscriber->post_date ) );
 		}
 		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- php://output.

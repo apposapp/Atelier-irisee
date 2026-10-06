@@ -2,6 +2,7 @@
 
 .aimp-footer {
 	--aimp-gold: #b38f4f;
+	--aimp-gold-text: #8a6a33; /* Gold for text: readable on white (contrast about 5:1). */
 	--aimp-brown: #613907;
 	margin: 0;
 	padding: 1.75rem clamp(1rem, 4vw, 3rem) 0.9rem;
@@ -30,7 +31,7 @@
 .aimp-footer .aimp-footer-title {
 	margin: 0 0 0.5rem;
 	padding: 0;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 1rem;
 	font-weight: 700;
 	letter-spacing: 0.06em;
@@ -46,7 +47,7 @@
 }
 
 .aimp-footer a {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	text-decoration: none;
 }
 
@@ -75,7 +76,7 @@
 
 .aimp-footer .aimp-footer-menu a:hover,
 .aimp-footer .aimp-footer-menu a:focus-visible {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 /* Social icons: gold circles */
@@ -226,11 +227,11 @@
 .aimp-footer-bottom .aimp-footer-menu li + li::before {
 	content: "|";
 	margin: 0 0.6rem;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-footer-bottom .aimp-footer-menu a {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-footer .aimp-footer-copyright {
@@ -254,4 +255,27 @@ body.aimp-replace-theme-footer :is(#main-footer, .et-l--footer, #colophon, .site
 	.aimp-footer-columns {
 		grid-template-columns: minmax(0, 1fr);
 	}
+}
+
+/* Newsletter: subscribed / waiting for confirmation, instead of the form. */
+.aimp-footer .aimp-newsletter-state-text {
+	margin: 0 0 0.75rem;
+	color: var(--aimp-brown);
+	font-weight: 700;
+}
+
+.aimp-footer .aimp-newsletter-state-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.aimp-footer .aimp-footer-button--ghost {
+	border-style: solid;
+	border-width: 1px;
+}
+
+.aimp-footer [data-aimp-newsletter-state][hidden],
+.aimp-footer [data-aimp-newsletter][hidden] {
+	display: none;
 }

@@ -19,6 +19,8 @@ class AIMP_Site {
 		add_filter( 'upload_mimes', array( __CLASS__, 'font_mimes' ) );
 		add_filter( 'wp_check_filetype_and_ext', array( __CLASS__, 'font_filetype' ), 10, 4 );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue' ), 5 );
+		// Our front-end scripts don't block the page from showing.
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'defer_scripts' ), 999 );
 	}
 
 	/* ------------------------------------------------------------------
@@ -81,6 +83,19 @@ class AIMP_Site {
 		return array(
 			'close' => __( 'Close', 'atelier-irisee-master-plugin' ),
 		);
+	}
+
+	/**
+	 * Load our own front-end scripts with "defer" (WordPress 6.3+), so they never hold up the page.
+	 * Scripts that listen to WooCommerce's jQuery checkout events stay as they are.
+	 */
+	public static function defer_scripts() {
+		$handles = array( 'aimp-notices', 'aimp-favorites', 'aimp-header', 'aimp-search', 'aimp-footer', 'aimp-ui', 'aimp-configurator', 'aimp-shop', 'aimp-product', 'aimp-cart', 'aimp-account', 'aimp-giftcards' );
+		foreach ( $handles as $handle ) {
+			if ( wp_script_is( $handle, 'registered' ) ) {
+				wp_script_add_data( $handle, 'strategy', 'defer' );
+			}
+		}
 	}
 
 	public static function enqueue() {

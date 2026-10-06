@@ -252,16 +252,18 @@ class AIMP_Shipping {
 		if ( $missing <= 0 ) {
 			return;
 		}
+		$percent = (int) max( 0, min( 100, round( 100 * ( 1 - $missing / (float) $amounts['free'] ) ) ) );
+		$text    = sprintf(
+			/* translators: 1: order amount for free shipping, 2: amount still to go */
+			__( 'Free shipping from %1$s: %2$s to go.', 'atelier-irisee-master-plugin' ),
+			wc_price( (float) $amounts['free'] ),
+			wc_price( $missing )
+		);
 		printf(
-			'<span class="aimp-free-shipping-hint">%s</span>',
-			wp_kses_post(
-				sprintf(
-					/* translators: 1: order amount for free shipping, 2: amount still to go */
-					__( 'Free shipping from %1$s: %2$s to go.', 'atelier-irisee-master-plugin' ),
-					wc_price( (float) $amounts['free'] ),
-					wc_price( $missing )
-				)
-			)
+			'<span class="aimp-free-shipping-hint">%1$s<span class="aimp-free-shipping-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="%2$d" aria-label="%3$s"><span style="width:%2$d%%"></span></span></span>',
+			wp_kses_post( $text ),
+			$percent,
+			esc_attr( wp_strip_all_tags( $text ) )
 		);
 	}
 

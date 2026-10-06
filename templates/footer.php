@@ -69,6 +69,14 @@ defined( 'ABSPATH' ) || exit;
 				<button type="submit" class="aimp-footer-button"><?php esc_html_e( 'Subscribe', 'atelier-irisee-master-plugin' ); ?></button>
 				<p class="aimp-newsletter-message" aria-live="polite" hidden></p>
 			</form>
+			<?php // Shown instead of the form once the visitor is subscribed (footer.js asks, so it also works on cached pages). ?>
+			<div class="aimp-newsletter-state" data-aimp-newsletter-state aria-live="polite" hidden>
+				<p class="aimp-newsletter-state-text"></p>
+				<div class="aimp-newsletter-state-actions">
+					<button type="button" class="aimp-footer-button aimp-footer-button--ghost" data-aimp-nl-resend hidden><?php esc_html_e( 'Send the email again', 'atelier-irisee-master-plugin' ); ?></button>
+					<button type="button" class="aimp-footer-button" data-aimp-nl-unsubscribe><?php esc_html_e( 'Unsubscribe', 'atelier-irisee-master-plugin' ); ?></button>
+				</div>
+			</div>
 			<?php if ( $data['privacy_url'] ) : ?>
 				<p class="aimp-newsletter-consent">
 					<?php

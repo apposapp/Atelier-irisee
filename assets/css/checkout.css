@@ -371,7 +371,7 @@
 .aimp-configurator .aimp-os-name small,
 .aimp-configurator .aimp-os-name dl.variation {
 	margin: 0;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 0.85em;
 }
 
@@ -434,7 +434,7 @@
 	padding: 0;
 	border: 0;
 	background: none;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 	text-decoration: underline;
 	cursor: pointer;
@@ -684,7 +684,7 @@
 .aimp-configurator .aimp-free-shipping-hint {
 	display: block;
 	margin-top: 0.2rem;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 0.9em;
 	line-height: 1.4;
 }
@@ -704,4 +704,165 @@
 	opacity: 0.6;
 	cursor: wait;
 	transition: opacity 0.2s ease;
+}
+
+/* Progress towards free shipping. */
+.aimp-configurator .aimp-free-shipping-bar {
+	display: block;
+	height: 6px;
+	margin-top: 0.35rem;
+	overflow: hidden;
+	border-radius: 100px;
+	background: var(--aimp-gold-tint);
+}
+
+.aimp-configurator .aimp-free-shipping-bar > span {
+	display: block;
+	height: 100%;
+	border-radius: 100px;
+	background: var(--aimp-gold);
+	transition: width 0.4s ease;
+}
+
+/* Sewing project kits in an order (thank-you page, My orders): one row with the items listed inside. */
+.aimp-order-kit-title {
+	display: block;
+	margin-bottom: 0.4rem;
+}
+
+.aimp-order-kit-items {
+	display: grid;
+	gap: 0.35rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-order-kit-items li {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	margin: 0;
+	font-size: 0.92em;
+}
+
+.aimp-order-kit-items img {
+	flex: 0 0 auto;
+}
+
+.aimp-order-kit-name {
+	flex: 1 1 auto;
+}
+
+.aimp-order-kit-amount {
+	opacity: 0.8;
+}
+
+.aimp-order-kit-price {
+	margin-left: auto;
+	white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------
+ * Confirmation (thank-you page)
+ * ------------------------------------------------------------------ */
+.aimp-checkout.is-confirmation :is(.woocommerce-thankyou-order-received, .woocommerce-order-overview) {
+	display: none !important;
+}
+
+.aimp-configurator .aimp-thankyou {
+	margin: 0 0 1.5rem;
+	text-align: center;
+}
+
+.aimp-configurator .aimp-thankyou-title {
+	margin: 0 0 0.5rem;
+	color: var(--aimp-gold-text, #8a6a33);
+	font-size: 1.6em;
+	text-wrap: balance;
+}
+
+.aimp-configurator .aimp-thankyou-intro {
+	margin: 0 0 1.25rem;
+	color: var(--aimp-body-text);
+}
+
+.aimp-configurator .aimp-thankyou-facts {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.75rem;
+	margin: 0 0 1.25rem;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-thankyou-facts li {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	margin: 0;
+	padding: 0.8rem 0.6rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: 24px;
+}
+
+.aimp-configurator .aimp-thankyou-facts span {
+	font-size: 0.85em;
+}
+
+.aimp-configurator .aimp-thankyou-facts strong {
+	color: var(--aimp-body-text);
+	overflow-wrap: anywhere;
+}
+
+.aimp-configurator .aimp-thankyou-address {
+	display: inline-block;
+	padding: 0.9rem 1.5rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+	text-align: left;
+}
+
+.aimp-configurator .aimp-thankyou-address h3 {
+	margin: 0 0 0.35rem;
+	font-size: 1em;
+}
+
+.aimp-configurator .aimp-thankyou-address address {
+	margin: 0;
+	color: var(--aimp-body-text);
+	font-style: normal;
+	line-height: 1.6;
+}
+
+.aimp-configurator :is(.aimp-thankyou-next, .aimp-thankyou-account) {
+	margin: 1.5rem 0 0;
+	padding: 1.25rem 1.4rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-configurator .aimp-thankyou-account {
+	border: 5px double var(--aimp-gold);
+	text-align: center;
+}
+
+.aimp-configurator :is(.aimp-thankyou-next, .aimp-thankyou-account) h3 {
+	margin: 0 0 0.6rem;
+}
+
+.aimp-configurator .aimp-thankyou-next ol {
+	margin: 0 0 1rem;
+	padding-left: 1.25rem;
+	color: var(--aimp-body-text);
+}
+
+.aimp-configurator .aimp-thankyou-account p {
+	color: var(--aimp-body-text);
+}
+
+@container aimp (max-width: 640px) {
+	.aimp-configurator .aimp-thankyou-facts {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }

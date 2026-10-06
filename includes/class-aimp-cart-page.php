@@ -278,6 +278,46 @@ class AIMP_Cart_Page {
 		return count( $contents['sets'] ) + count( $contents['singles'] );
 	}
 
+	/**
+	 * Four best sellers in stock, for the empty cart (cached for an hour).
+	 *
+	 * @return WC_Product[]
+	 */
+	private static function popular() {
+		$key = 'aimp_cart_popular_' . AIMP_Shop::cache_version();
+		$ids = get_transient( $key );
+		if ( ! is_array( $ids ) ) {
+			$ids = get_posts(
+				array(
+					'post_type'      => 'product',
+					'post_status'    => 'publish',
+					'posts_per_page' => 4,
+					'fields'         => 'ids',
+					'meta_key'       => 'total_sales', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- cached.
+					'orderby'        => array(
+						'meta_value_num' => 'DESC',
+						'date'           => 'DESC',
+					),
+					'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- cached.
+						array(
+							'taxonomy' => 'product_visibility',
+							'field'    => 'name',
+							'terms'    => array( 'exclude-from-catalog', 'outofstock' ),
+							'operator' => 'NOT IN',
+						),
+					),
+				)
+			);
+			set_transient( $key, $ids, HOUR_IN_SECONDS );
+		}
+		return array_values( array_filter( array_map( 'wc_get_product', $ids ) ) );
+	}
+
+	private static function configurator_url() {
+		$page = AIMP_Settings::get( 'configurator_page' );
+		return ( $page && 'publish' === get_post_status( $page ) ) ? get_permalink( $page ) : '';
+	}
+
 	/* ------------------------------------------------------------------
 	 * Page
 	 * ------------------------------------------------------------------ */
@@ -307,6 +347,8 @@ class AIMP_Cart_Page {
 			'shop_url'   => wc_get_page_permalink( 'shop' ),
 			'cart_url'   => wc_get_cart_url(),
 			'crosssells' => array_slice( array_filter( array_map( 'wc_get_product', WC()->cart->get_cross_sells() ) ), 0, 4 ),
+			'popular'    => WC()->cart->is_empty() ? self::popular() : array(),
+			'kit_url'    => WC()->cart->is_empty() ? self::configurator_url() : '',
 		);
 
 		ob_start();

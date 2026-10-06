@@ -165,6 +165,11 @@
 
 	// "Complete it in the configurator" on a product page links here with ?aimp_pattern=ID: start with that pattern selected.
 	Configurator.prototype.openFromLink = function () {
+		var kit = window.location.search.match(/[?&]aimp_kit=([a-z0-9]+)/);
+		if (kit) {
+			this.openSavedKit(kit[1]);
+			return;
+		}
 		var match = window.location.search.match(/[?&]aimp_pattern=(\d+)/);
 		if (!match) {
 			return;
@@ -1212,8 +1217,9 @@
 		html +=
 			'<div class="aimp-actions">' +
 			'<button type="button" class="aimp-button aimp-button--ghost" data-action="back"' + (s.added ? ' hidden' : '') + '>' + esc(t.back) + '</button>' +
+			'<button type="button" class="aimp-button aimp-button--ghost" data-action="save">' + esc(t.saveKit) + '</button>' +
 			'<button type="button" class="aimp-button" data-action="add"' + (s.added ? ' hidden' : '') + '>' + esc(t.addToCart) + '</button>' +
-			'</div></div>';
+			'</div><div data-role="save-message"></div></div>';
 		this.body.innerHTML = html;
 
 		this.body.querySelector('[data-action="back"]').addEventListener('click', function () {
@@ -1222,6 +1228,89 @@
 		this.body.querySelector('[data-action="add"]').addEventListener('click', function () {
 			self.addToCart(this);
 		});
+		this.body.querySelector('[data-action="save"]').addEventListener('click', function () {
+			self.saveKit(this);
+		});
+	};
+
+	// "Save this kit": to the customer's account, listed on the favorites page. Guests are asked to log in.
+	Configurator.prototype.saveKit = function (button) {
+		var s = this.state;
+		var box = this.body.querySelector('[data-role="save-message"]');
+		if (!cfg.loggedIn) {
+			box.innerHTML = '<div class="aimp-notice"><p>' + esc(t.loginToSave) + ' <a href="#" class="aimp-login-tgr">' + esc(t.logIn) + '</a></p></div>';
+			return;
+		}
+		var params = {
+			nonce: cfg.nonce,
+			variation: s.size.id,
+			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0
+		};
+		NOTIONS.forEach(function (n) {
+			var selected = s.notions[n.type].selected;
+			params[n.role] = n.qty(s.size) > 0 && selected ? selected.id : 0;
+		});
+		button.disabled = true;
+		button.textContent = t.saving;
+		request('save_kit', params)
+			.then(function (data) {
+				button.hidden = true;
+				box.innerHTML =
+					'<div class="aimp-notice aimp-notice--success"><p>' + esc(data.message) +
+					(data.url ? ' <a href="' + esc(data.url) + '">' + esc(t.viewFavorites) + '</a>' : '') + '</p></div>';
+			})
+			.catch(function (err) {
+				button.disabled = false;
+				button.textContent = t.saveKit;
+				this.showError(box, err);
+			}.bind(this));
+	};
+
+	// "Continue" on a saved kit (favorites page) links here with ?aimp_kit=ID: open it with every choice made.
+	Configurator.prototype.openSavedKit = function (id) {
+		var self = this;
+		var s = this.state;
+		request('load_kit', { kit: id })
+			.then(function (data) {
+				var size = findById(data.sizes.sizes, data.size);
+				s.pattern = data.sizes.pattern;
+				s.patternImage = 0;
+				s.sizesData = data.sizes;
+				s.size = size && size.available ? size : null;
+				self.resetMaterials();
+				if (!s.size) {
+					self.renderPatternGrid();
+					self.renderSizePanel();
+					self.renderSteps();
+					return;
+				}
+				s.fabric = data.fabric || null;
+				NOTIONS.forEach(function (n) {
+					s.notions[n.type].selected = (data.notions && data.notions[n.type]) || null;
+				});
+				// The first step that still needs a choice, otherwise the overview.
+				var step = 'summary';
+				if (s.size.fabric_units > 0 && !s.fabric) {
+					step = 'fabric';
+				} else if (self.notionTypes().some(function (type) {
+					return !s.notions[type].selected;
+				})) {
+					step = 'notions';
+				}
+				self.goTo(step);
+				if (data.message) {
+					var note = document.createElement('div');
+					note.className = 'aimp-notice';
+					note.innerHTML = '<p>' + esc(data.message) + '</p>';
+					self.body.insertBefore(note, self.body.firstChild);
+				}
+			})
+			.catch(function (err) {
+				// The normal first step stays usable; the message goes above it.
+				var box = document.createElement('div');
+				self.body.insertBefore(box, self.body.firstChild);
+				self.showError(box, err);
+			});
 	};
 
 	Configurator.prototype.addToCart = function (button) {

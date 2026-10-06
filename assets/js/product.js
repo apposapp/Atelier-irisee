@@ -184,3 +184,136 @@
 		boot();
 	}
 })();
+
+/**
+ * "Email me when it's back" on sold-out products: sent in the background, answered under the field.
+ */
+(function () {
+	'use strict';
+
+	document.addEventListener('submit', function (e) {
+		var form = e.target.closest ? e.target.closest('[data-aimp-stock-alert]') : null;
+		if (!form) {
+			return;
+		}
+		e.preventDefault();
+		var email = form.querySelector('input[name="email"]');
+		var button = form.querySelector('button[type="submit"]');
+		var message = form.querySelector('.aimp-stock-alert-message');
+		var show = function (text, ok) {
+			message.textContent = text;
+			message.hidden = false;
+			message.classList.toggle('is-error', !ok);
+		};
+		if (!email.value.trim() || !email.checkValidity()) {
+			email.focus();
+			show(email.validationMessage || form.getAttribute('data-error'), false);
+			return;
+		}
+		var body = new URLSearchParams(new FormData(form));
+		button.disabled = true;
+		fetch(form.getAttribute('data-endpoint'), {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+			body: body.toString()
+		})
+			.then(function (response) {
+				return response.json();
+			})
+			.then(function (json) {
+				var text = json && json.data && json.data.message ? json.data.message : form.getAttribute('data-error');
+				show(text, !!(json && json.success));
+				if (json && json.success) {
+					form.querySelector('.aimp-stock-alert-row').hidden = true;
+				}
+			})
+			.catch(function () {
+				show(form.getAttribute('data-error'), false);
+			})
+			.then(function () {
+				button.disabled = false;
+			});
+	});
+})();
+
+/**
+ * Phones: when the product's own price bar scrolls out of view, a small bar with the name, the price and
+ * "Add to cart" stays at the bottom of the screen. It presses the real button, so the amount chosen in
+ * the price bar is used. It lives in <body>: the page wrapper is a CSS container and would trap it.
+ */
+(function () {
+	'use strict';
+
+	if (!('IntersectionObserver' in window) || !window.matchMedia) {
+		return;
+	}
+
+	function setup(bar) {
+		var real = bar.querySelector('.aimp-add-to-cart');
+		if (!real || real.disabled) {
+			return; // Sold out: nothing to buy.
+		}
+		var product = bar.closest('.aimp-product') || document;
+		var title = product.querySelector('h1');
+		var price = bar.querySelector('[data-aimp-price]');
+		var needsChoice = bar.hasAttribute('data-giftcard');
+
+		var mobile = document.createElement('div');
+		mobile.className = 'aimp-mobile-buy';
+		mobile.setAttribute('aria-hidden', 'true');
+		mobile.innerHTML =
+			'<div class="aimp-mobile-buy-info"><span class="aimp-mobile-buy-name"></span><span class="aimp-mobile-buy-price"></span></div>' +
+			'<button type="button" class="aimp-mobile-buy-button" tabindex="-1"></button>';
+		mobile.querySelector('.aimp-mobile-buy-name').textContent = title ? title.textContent.trim() : '';
+		mobile.querySelector('.aimp-mobile-buy-button').textContent = real.textContent.trim();
+		document.body.appendChild(mobile);
+
+		function syncPrice() {
+			mobile.querySelector('.aimp-mobile-buy-price').innerHTML = price ? price.innerHTML : '';
+		}
+		syncPrice();
+		if (price && 'MutationObserver' in window) {
+			new MutationObserver(syncPrice).observe(price, { childList: true, subtree: true, characterData: true });
+		}
+
+		mobile.querySelector('button').addEventListener('click', function () {
+			if (needsChoice) {
+				bar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				return;
+			}
+			real.click();
+		});
+
+		var phone = window.matchMedia('(max-width: 700px)');
+		var outOfView = false;
+		function update() {
+			var show = phone.matches && outOfView;
+			mobile.classList.toggle('is-visible', show);
+			mobile.setAttribute('aria-hidden', show ? 'false' : 'true');
+			document.body.classList.toggle('aimp-has-mobile-buy', phone.matches);
+		}
+		new IntersectionObserver(function (entries) {
+			// Only once the bar is above the screen (scrolled past), not before reaching it.
+			outOfView = !entries[0].isIntersecting && entries[0].boundingClientRect.top < 0;
+			update();
+		}).observe(bar);
+		if (phone.addEventListener) {
+			phone.addEventListener('change', update);
+		}
+		update();
+	}
+
+	function boot() {
+		var bar = document.querySelector('.aimp-product [data-aimp-buy]');
+		if (bar) {
+			setup(bar);
+		}
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', boot);
+	} else {
+		boot();
+	}
+})();

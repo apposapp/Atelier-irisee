@@ -28,7 +28,7 @@
 
 .aimp-gc-group legend {
 	margin-bottom: 0.6rem;
-	color: var(--aimp-gc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 1.1em;
 	font-weight: 700;
 }
@@ -143,7 +143,7 @@
 
 .aimp-gc-option strong {
 	display: block;
-	color: var(--aimp-gc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-gc-field {
@@ -176,7 +176,7 @@
 }
 
 .aimp-gc-total strong {
-	color: var(--aimp-gc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 1.2em;
 }
 
@@ -192,7 +192,7 @@
 
 .aimp-gc-redeem-title {
 	margin: 0 0 0.6rem;
-	color: var(--aimp-gc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-weight: 700;
 }
 
@@ -248,7 +248,7 @@
 	padding: 0;
 	border: 0;
 	background: none;
-	color: var(--aimp-gc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 	font-size: 0.9em;
 	text-decoration: underline;
@@ -312,7 +312,7 @@
 }
 
 .aimp-gc-item-value {
-	color: var(--aimp-gc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 1.3em !important;
 }
 

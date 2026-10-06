@@ -1,4 +1,4 @@
-/* Atelier Irisee favorites: heart buttons and the favorites page. */
+/* Atelier Irisee favorites: heart buttons and the toast (every page). The favorites page has favorites-page.css. */
 
 /* Heart button (same round double gold border as the configurator buttons) */
 .aimp-fav {
@@ -18,7 +18,7 @@
 	border-width: 5px;
 	border-color: #b38f4f;
 	border-style: double;
-	color: #b38f4f;
+	color: #8a6a33;
 	font: inherit;
 	line-height: 1;
 	box-shadow: none;
@@ -32,7 +32,7 @@
 .aimp-fav:hover,
 .aimp-fav:focus-visible {
 	background-color: #f6efe3;
-	color: #b38f4f;
+	color: #8a6a33;
 }
 
 .aimp-fav:disabled {
@@ -98,123 +98,7 @@
 }
 
 .aimp-fav-toast a {
-	color: #b38f4f;
+	color: #8a6a33;
 	font-weight: 600;
 	text-decoration: underline;
-}
-
-/* Favorites page */
-.aimp-favorites,
-.aimp-favorites p,
-.aimp-favorites a {
-	color: #b38f4f;
-}
-
-.aimp-favorites .aimp-fav-card-action,
-.aimp-favorites .aimp-fav-card-action.button {
-	display: inline-block;
-	margin-top: auto;
-	padding: 0.4rem 0.9rem;
-	max-width: 100%;
-	line-height: 1.2;
-	background-color: transparent;
-	border-top-left-radius: 100px;
-	border-top-right-radius: 100px;
-	border-bottom-left-radius: 100px;
-	border-bottom-right-radius: 100px;
-	border-width: 5px;
-	border-color: #b38f4f;
-	border-style: double;
-	color: #613907;
-	font-size: 15px;
-	font-weight: 700;
-	text-decoration: none;
-	transition-property: background-color, mask-position, mask-size;
-	transition-duration: 300ms;
-	transition-timing-function: ease;
-	transition-delay: 0ms;
-}
-
-.aimp-favorites .aimp-fav-card-action:hover {
-	background-color: rgba(179, 143, 79, 0.12);
-	color: #613907;
-}
-
-.aimp-fav-empty,
-.aimp-fav-loading {
-	padding: 1.5rem 0;
-}
-
-/* Favorites page: the category pages' cards (configurator.css), with "View product" at the bottom. */
-.aimp-configurator.aimp-favorites .aimp-favorites-grid {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.aimp-configurator.aimp-favorites .aimp-fav-item {
-	margin: 0;
-}
-
-.aimp-configurator.aimp-favorites .aimp-fav-item > .aimp-card {
-	height: 100%;
-	text-decoration: none;
-}
-
-.aimp-configurator.aimp-favorites .aimp-fav-view {
-	margin-top: auto;
-	padding: 0.35rem 1rem;
-	border-width: 3px;
-	line-height: 1.2;
-}
-
-/* The badge sits on the picture, the heart stays clickable on top. */
-.aimp-configurator.aimp-favorites .aimp-fav--overlay {
-	top: 0.8rem;
-	right: 0.8rem;
-}
-
-/* Smaller cards: 6 per row (4 on tablets, 3 on phones, 2 on small phones). */
-.aimp-configurator.aimp-favorites .aimp-favorites-grid {
-	grid-template-columns: repeat(6, minmax(0, 1fr));
-	gap: 0.75rem;
-}
-
-.aimp-configurator.aimp-favorites .aimp-fav-item > .aimp-card {
-	gap: 0.2rem;
-	padding: 0.5rem 0.5rem 0.8rem;
-	font-size: 0.85em;
-}
-
-.aimp-configurator.aimp-favorites .aimp-fav-item > .aimp-card :is(.aimp-card-name, .aimp-card-price, .aimp-card-price *) {
-	font-size: inherit;
-}
-
-/* The button keeps the 15px of all buttons; only less padding. */
-.aimp-configurator.aimp-favorites .aimp-fav-item .aimp-fav-view {
-	padding: 0.3rem 0.7rem;
-}
-
-.aimp-configurator.aimp-favorites .aimp-fav--overlay {
-	top: 0.5rem;
-	right: 0.5rem;
-	transform: scale(0.85);
-}
-
-@container aimp (max-width: 1000px) {
-	.aimp-configurator.aimp-favorites .aimp-favorites-grid {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-	}
-}
-
-@container aimp (max-width: 640px) {
-	.aimp-configurator.aimp-favorites .aimp-favorites-grid {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
-}
-
-@container aimp (max-width: 420px) {
-	.aimp-configurator.aimp-favorites .aimp-favorites-grid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
 }

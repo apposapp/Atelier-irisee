@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.6.2
+Stable tag: 2.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,18 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.7.0 =
+* Newsletter: double opt-in (a confirmation email; only confirmed subscribers are in the CSV). The footer shows "You are subscribed" with an Unsubscribe button, or "Check your inbox" with a resend button, also on cached pages.
+* New: search in the header with live results (pictures, prices), arrow keys and "See all results".
+* New: back-in-stock alerts on sold-out products ("Email me when it's back"), sent by themselves when the product is in stock again; list under WooCommerce → Stock alerts.
+* New: "Save this kit" in the configurator; saved kits are on the favorites page and "Continue" opens the configurator with every choice.
+* Orders: sewing project kits as one block on the thank-you page, under My orders and in the order emails.
+* Thank-you page in the Atelier Irisee style: order at a glance, delivery address, next steps, and for guests an offer to create an account.
+* WooCommerce emails in the Atelier Irisee style (gold and brown, logo, company details); setting under Site look.
+* Cart: a progress bar towards free shipping; an empty cart shows popular products and the sewing project kit configurator.
+* Phones: a small buy bar at the bottom of product pages once the price bar has scrolled away.
+* Gold texts are a little deeper so they are easy to read; the favorites page styles load only on that page and the scripts load deferred.
 
 = 2.6.2 =
 * Cart: no "Shipping to …" line under the shipping cost; the "Free shipping from …: … to go." line sits there instead (also in the checkout totals).

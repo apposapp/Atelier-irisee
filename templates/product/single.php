@@ -176,6 +176,9 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 						<?php endif; ?>
 					</div>
 				</div>
+				<?php if ( ! $aimp_buy['available'] && ! $aimp_giftcard ) : ?>
+					<?php echo AIMP_Stock_Alerts::form_html( $the_product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in form_html(). ?>
+				<?php endif; ?>
 			<?php elseif ( '' !== $the_product->get_price_html() ) : ?>
 				<div class="aimp-product-price">
 					<p class="aimp-details-price price"><?php echo wp_kses_post( $the_product->get_price_html() ); ?></p>

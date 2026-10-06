@@ -20,6 +20,37 @@ defined( 'ABSPATH' ) || exit;
 			<p><?php esc_html_e( 'Your cart is empty.', 'atelier-irisee-master-plugin' ); ?></p>
 			<a class="aimp-button" href="<?php echo esc_url( $data['shop_url'] ); ?>"><?php esc_html_e( 'Browse the shop', 'atelier-irisee-master-plugin' ); ?></a>
 		</div>
+
+		<?php if ( ! empty( $data['popular'] ) || ! empty( $data['kit_url'] ) ) : ?>
+			<?php // Something to start with: best sellers and the sewing project kit configurator. ?>
+			<section class="aimp-product-section aimp-cart-suggestions">
+				<h3><?php esc_html_e( 'Popular right now', 'atelier-irisee-master-plugin' ); ?></h3>
+				<ul class="aimp-grid aimp-product-cards aimp-cart-suggestion-grid">
+					<?php if ( ! empty( $data['kit_url'] ) ) : ?>
+						<?php
+						$aimp_kit_image = AIMP_Settings::get( 'overview_img_configurator' );
+						$aimp_kit_image = $aimp_kit_image ? wp_get_attachment_image_url( $aimp_kit_image, 'woocommerce_thumbnail' ) : '';
+						?>
+						<li class="aimp-product-card aimp-cart-kit-card">
+							<a class="aimp-card" href="<?php echo esc_url( $data['kit_url'] ); ?>">
+								<span class="aimp-card-image">
+									<?php if ( $aimp_kit_image ) : ?>
+										<img src="<?php echo esc_url( $aimp_kit_image ); ?>" alt="" loading="lazy">
+									<?php endif; ?>
+								</span>
+								<span class="aimp-card-name"><?php esc_html_e( 'Compose your own sewing project kit', 'atelier-irisee-master-plugin' ); ?></span>
+								<span class="aimp-card-price"><?php esc_html_e( 'Pattern, fabric and haberdashery together', 'atelier-irisee-master-plugin' ); ?></span>
+							</a>
+						</li>
+					<?php endif; ?>
+					<?php
+					foreach ( (array) $data['popular'] as $aimp_popular ) {
+						echo AIMP_Product_Page::card_html( $aimp_popular ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in card_html().
+					}
+					?>
+				</ul>
+			</section>
+		<?php endif; ?>
 	<?php else : ?>
 
 		<div class="aimp-cart-layout">

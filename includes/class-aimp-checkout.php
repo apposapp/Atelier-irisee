@@ -27,6 +27,100 @@ class AIMP_Checkout {
 		add_action( 'woocommerce_review_order_before_payment', array( __CLASS__, 'codes_close' ), 15 );
 		// Logged-in customers: empty fields are filled from their account.
 		add_filter( 'woocommerce_checkout_get_value', array( __CLASS__, 'prefill' ), 20, 2 );
+		// Confirmation step: a thank-you block on top, next steps (and an account offer) below the order.
+		add_action( 'woocommerce_before_thankyou', array( __CLASS__, 'thankyou_top' ), 5 );
+		add_action( 'woocommerce_thankyou', array( __CLASS__, 'thankyou_bottom' ), 30 );
+	}
+
+	/**
+	 * @param int $order_id Order.
+	 * @return WC_Order|null The order, when it is shown on our checkout page and was not a failed payment.
+	 */
+	private static function thankyou_order( $order_id ) {
+		$order = self::$rendering ? wc_get_order( $order_id ) : null;
+		return ( $order && ! $order->has_status( 'failed' ) ) ? $order : null;
+	}
+
+	/**
+	 * Title, the order at a glance (number, date, total, payment method) and the delivery address.
+	 *
+	 * @param int $order_id Order.
+	 */
+	public static function thankyou_top( $order_id ) {
+		$order = self::thankyou_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+		$name    = $order->get_billing_first_name();
+		$address = $order->has_shipping_address() ? $order->get_formatted_shipping_address() : $order->get_formatted_billing_address();
+		$facts   = array(
+			__( 'Order number', 'atelier-irisee-master-plugin' )   => $order->get_order_number(),
+			__( 'Date', 'atelier-irisee-master-plugin' )           => wc_format_datetime( $order->get_date_created() ),
+			__( 'Total', 'atelier-irisee-master-plugin' )          => wp_strip_all_tags( $order->get_formatted_order_total() ),
+			__( 'Payment method', 'atelier-irisee-master-plugin' ) => wp_strip_all_tags( $order->get_payment_method_title() ),
+		);
+		?>
+		<div class="aimp-thankyou">
+			<h2 class="aimp-thankyou-title">
+				<?php
+				echo esc_html(
+					'' !== $name
+						/* translators: %s: customer's first name */
+						? sprintf( __( 'Thank you for your order, %s!', 'atelier-irisee-master-plugin' ), $name )
+						: __( 'Thank you for your order!', 'atelier-irisee-master-plugin' )
+				);
+				?>
+			</h2>
+			<p class="aimp-thankyou-intro"><?php esc_html_e( 'We have received your order. You will get a confirmation by email.', 'atelier-irisee-master-plugin' ); ?></p>
+			<ul class="aimp-thankyou-facts">
+				<?php foreach ( $facts as $label => $value ) : ?>
+					<?php if ( '' !== (string) $value ) : ?>
+						<li><span><?php echo esc_html( $label ); ?></span><strong><?php echo esc_html( $value ); ?></strong></li>
+					<?php endif; ?>
+				<?php endforeach; ?>
+			</ul>
+			<?php if ( $address ) : ?>
+				<div class="aimp-thankyou-address">
+					<h3><?php esc_html_e( 'Delivery address', 'atelier-irisee-master-plugin' ); ?></h3>
+					<address><?php echo wp_kses_post( $address ); ?></address>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * What happens next, a link to My orders, and for guests an offer to create an account.
+	 *
+	 * @param int $order_id Order.
+	 */
+	public static function thankyou_bottom( $order_id ) {
+		$order = self::thankyou_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+		$account = AIMP_Settings::get( 'account_page' );
+		$account = ( $account && 'publish' === get_post_status( $account ) ) ? get_permalink( $account ) : wc_get_page_permalink( 'myaccount' );
+		?>
+		<div class="aimp-thankyou-next">
+			<h3><?php esc_html_e( 'What happens next?', 'atelier-irisee-master-plugin' ); ?></h3>
+			<ol>
+				<li><?php esc_html_e( 'You receive an order confirmation by email.', 'atelier-irisee-master-plugin' ); ?></li>
+				<li><?php esc_html_e( 'We prepare your order with care.', 'atelier-irisee-master-plugin' ); ?></li>
+				<li><?php esc_html_e( 'You get an email as soon as it is on its way.', 'atelier-irisee-master-plugin' ); ?></li>
+			</ol>
+			<?php if ( is_user_logged_in() ) : ?>
+				<a class="aimp-button" href="<?php echo esc_url( add_query_arg( 'tab', 'orders', $account ) ); ?>"><?php esc_html_e( 'My orders', 'atelier-irisee-master-plugin' ); ?></a>
+			<?php endif; ?>
+		</div>
+		<?php if ( ! is_user_logged_in() && $account ) : ?>
+			<div class="aimp-thankyou-account">
+				<h3><?php esc_html_e( 'Create an account', 'atelier-irisee-master-plugin' ); ?></h3>
+				<p><?php esc_html_e( 'Follow your order and order faster next time: your details are filled in for you.', 'atelier-irisee-master-plugin' ); ?></p>
+				<a class="aimp-button" href="<?php echo esc_url( add_query_arg( array( 'aimp_el' => 'register', 'aimp_email' => rawurlencode( $order->get_billing_email() ) ), $account ) ); ?>"><?php esc_html_e( 'Create an account', 'atelier-irisee-master-plugin' ); ?></a>
+			</div>
+		<?php endif; ?>
+		<?php
 	}
 
 	/**
@@ -204,7 +298,11 @@ class AIMP_Checkout {
 				</div>
 			<?php else : ?>
 				<p class="aimp-checkout-message" role="alert" hidden></p>
-				<?php WC_Shortcode_Checkout::output( array() ); // Prints WooCommerce's checkout (or the order confirmation). ?>
+				<?php
+				self::$rendering = true;
+				WC_Shortcode_Checkout::output( array() ); // Prints WooCommerce's checkout (or the order confirmation).
+				self::$rendering = false;
+				?>
 			<?php endif; ?>
 		</div>
 		<?php

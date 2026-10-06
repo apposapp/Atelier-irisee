@@ -70,6 +70,7 @@ class AIMP_Settings {
 			'font_regular'              => 0,
 			'font_bold'                 => 0,
 			'header_enabled'            => 0,
+			'email_style'               => 1,
 			'account_page'              => 0,
 			'overview_img_fabrics'      => 0,
 			'overview_img_patterns'     => 0,
@@ -293,6 +294,14 @@ class AIMP_Settings {
 			self::PAGE,
 			'aimp_site'
 		);
+
+		add_settings_field(
+			'aimp_email_style',
+			__( 'Emails', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_email_field' ),
+			self::PAGE,
+			'aimp_site'
+		);
 	}
 
 	/**
@@ -408,6 +417,16 @@ class AIMP_Settings {
 			)
 		);
 		echo '<p class="description">' . esc_html__( 'Upload the font files here; they stay on your own website. Check that your font licence allows use on a website.', 'atelier-irisee-master-plugin' ) . '</p>';
+	}
+
+	public static function render_email_field() {
+		printf(
+			'<label><input type="checkbox" name="%1$s[email_style]" value="1" %2$s> %3$s</label><p class="description">%4$s</p>',
+			esc_attr( self::OPTION ),
+			checked( 1, self::get( 'email_style' ), false ),
+			esc_html__( 'Atelier Irisee style for WooCommerce emails', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Order emails and the emails of this plugin get your gold and brown colours, your logo at the top and your company details at the bottom.', 'atelier-irisee-master-plugin' )
+		);
 	}
 
 	public static function render_header_fields() {
@@ -561,6 +580,7 @@ class AIMP_Settings {
 		}
 		$sanitized['site_font']      = empty( $input['site_font'] ) ? 0 : 1;
 		$sanitized['header_enabled'] = empty( $input['header_enabled'] ) ? 0 : 1;
+		$sanitized['email_style']    = empty( $input['email_style'] ) ? 0 : 1;
 
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;

@@ -176,6 +176,11 @@ class AIMP_Favorites {
 
 	public static function enqueue() {
 		wp_enqueue_style( 'aimp-favorites', AIMP_PLUGIN_URL . 'assets/css/favorites.css', array(), AIMP_VERSION );
+		// The favorites page: its card styles in <head> (no flash of unstyled cards).
+		 = get_post();
+		if ( is_singular() &&  && has_shortcode( ->post_content, self::SHORTCODE ) ) {
+			self::enqueue_card_styles();
+		}
 		wp_enqueue_script( 'aimp-favorites', AIMP_PLUGIN_URL . 'assets/js/favorites.js', array(), AIMP_VERSION, true );
 
 		$i18n = array();
@@ -305,12 +310,16 @@ class AIMP_Favorites {
 			AIMP_Shortcode::register_assets();
 		}
 		wp_enqueue_style( 'aimp-configurator' );
+		wp_enqueue_style( 'aimp-favorites-page', AIMP_PLUGIN_URL . 'assets/css/favorites-page.css', array( 'aimp-configurator', 'aimp-favorites' ), AIMP_VERSION );
 	}
 
 	public static function render_page() {
 		self::enqueue_card_styles();
-		return '<div class="aimp-configurator aimp-favorites" data-aimp-favorites-page><noscript>' .
+		$kits = class_exists( 'AIMP_Saved_Kits' ) ? AIMP_Saved_Kits::section_html() : '';
+		return '<div class="aimp-configurator aimp-favorites">' . $kits .
+			( $kits ? '<h2 class="aimp-saved-kits-title">' . esc_html__( 'My favorites', 'atelier-irisee-master-plugin' ) . '</h2>' : '' ) .
+			'<div class="aimp-favorites-list" data-aimp-favorites-page><noscript>' .
 			esc_html__( 'Please enable JavaScript to see your favorites.', 'atelier-irisee-master-plugin' ) .
-			'</noscript></div>';
+			'</noscript></div></div>';
 	}
 }

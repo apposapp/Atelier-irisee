@@ -43,6 +43,7 @@ class AIMP_Header {
 	public static function register_assets() {
 		wp_register_style( 'aimp-header', AIMP_PLUGIN_URL . 'assets/css/header.css', array(), AIMP_VERSION );
 		wp_register_script( 'aimp-header', AIMP_PLUGIN_URL . 'assets/js/header.js', array(), AIMP_VERSION, true );
+		wp_register_script( 'aimp-search', AIMP_PLUGIN_URL . 'assets/js/search.js', array(), AIMP_VERSION, true );
 		if ( AIMP_Settings::get( 'header_enabled' ) ) {
 			wp_enqueue_style( 'aimp-header' );
 		}
@@ -187,6 +188,7 @@ class AIMP_Header {
 			'user'  => '<circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c1-3.8 4-5.8 7.5-5.8s6.5 2 7.5 5.8"/>',
 			'menu'  => '<path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17"/>',
 			'close' => '<path d="M6 6l12 12M18 6L6 18"/>',
+			'search' => '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/>',
 		);
 		return '<svg class="aimp-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . ( isset( $paths[ $name ] ) ? $paths[ $name ] : '' ) . '</svg>';
 	}
@@ -203,6 +205,8 @@ class AIMP_Header {
 		}
 		wp_enqueue_style( 'aimp-header' );
 		wp_enqueue_script( 'aimp-header' );
+		wp_enqueue_script( 'aimp-search' );
+		wp_localize_script( 'aimp-search', 'aimpSearch', AIMP_Search::config() );
 		if ( wp_script_is( 'wc-cart-fragments', 'registered' ) ) {
 			wp_enqueue_script( 'wc-cart-fragments' );
 		}
@@ -212,6 +216,7 @@ class AIMP_Header {
 			'favorites_url' => ( $favorites && 'publish' === get_post_status( $favorites ) ) ? get_permalink( $favorites ) : '',
 			'cart_url'      => wc_get_cart_url(),
 			'account_url'   => self::account_url(),
+		'search_url'    => AIMP_Search::results_url(),
 			'cart_badge'    => self::cart_badge( self::cart_count() ),
 			'menu'          => has_nav_menu( self::LOCATION )
 				? wp_nav_menu(

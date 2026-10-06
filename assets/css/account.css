@@ -24,7 +24,7 @@
 }
 
 .aimp-account a {
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 /* Tabs: a gold side panel on the left, like the shop filters (always open). */
@@ -127,13 +127,13 @@
 
 .aimp-account .aimp-account-title {
 	margin: 0 0 1rem;
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 
 .aimp-account .aimp-account-subtitle {
 	margin: 2rem 0 0.75rem;
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-account-text,
@@ -196,7 +196,7 @@
 
 .aimp-account-address h4 {
 	margin: 0 0 0.5rem;
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-account-address address {
@@ -256,7 +256,7 @@
 
 .aimp-refund-items legend {
 	padding: 0 0.4rem;
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-refund-item {
@@ -323,7 +323,7 @@
 
 .aimp-account .woocommerce-orders-table th,
 .aimp-account .woocommerce-table th {
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 @media (max-width: 600px) {
@@ -374,14 +374,14 @@
 
 .aimp-address-head h3 {
 	margin: 0;
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-address-close {
 	padding: 0 0.25rem;
 	border: 0;
 	background: none;
-	color: var(--aimp-acc-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 28px;
 	line-height: 1;
 	cursor: pointer;
@@ -467,4 +467,43 @@
 	.aimp-address-form :is(.form-row-first, .form-row-last) {
 		flex-basis: 100%;
 	}
+}
+
+/* Sewing project kits in an order (thank-you page, My orders): one row with the items listed inside. */
+.aimp-order-kit-title {
+	display: block;
+	margin-bottom: 0.4rem;
+}
+
+.aimp-order-kit-items {
+	display: grid;
+	gap: 0.35rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-order-kit-items li {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	margin: 0;
+	font-size: 0.92em;
+}
+
+.aimp-order-kit-items img {
+	flex: 0 0 auto;
+}
+
+.aimp-order-kit-name {
+	flex: 1 1 auto;
+}
+
+.aimp-order-kit-amount {
+	opacity: 0.8;
+}
+
+.aimp-order-kit-price {
+	margin-left: auto;
+	white-space: nowrap;
 }

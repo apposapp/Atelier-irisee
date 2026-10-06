@@ -811,7 +811,7 @@ class AIMP_Catalog {
 	 * @param int        $qty     Required quantity.
 	 * @return array
 	 */
-	private static function material_card( $product, $qty ) {
+	public static function material_card( $product, $qty ) {
 		$card                = self::card( $product );
 		$card['qty']         = $qty;
 		$card['available']   = self::is_available( $product, $qty );

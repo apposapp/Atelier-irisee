@@ -45,7 +45,7 @@
 
 :is(.aimp-shop, .aimp-fabric-filters).is-filters-open .aimp-shop-toggle .aimp-shop-count {
 	background: #fff;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 /* ------------------------------------------------------------------
@@ -128,7 +128,7 @@
 
 :is(.aimp-configurator, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-shop-count {
 	background: #fff;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-shop-sidebar-head {
@@ -178,7 +178,7 @@
 .aimp-configurator .aimp-filter-label {
 	display: block;
 	margin-bottom: 0.4rem;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-weight: 700;
 	cursor: pointer;
 }
@@ -252,7 +252,7 @@
 	border: 1px solid var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 	background: transparent;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 }
 
@@ -267,7 +267,7 @@
 }
 
 .aimp-configurator .aimp-price-inputs input::placeholder {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	opacity: 0.6;
 }
 
@@ -276,7 +276,7 @@
 	padding: 0;
 	border: 0;
 	background: none;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 	font-weight: 700;
 	text-decoration: underline;
@@ -403,7 +403,7 @@
 
 .aimp-configurator .aimp-overview-card .aimp-card-name {
 	padding-bottom: 0.4rem;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
@@ -508,7 +508,7 @@
 
 .aimp-configurator .aimp-mosaic-name {
 	overflow: hidden;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 13px;
 	font-weight: 700;
 	text-overflow: ellipsis;

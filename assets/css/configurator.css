@@ -1,13 +1,14 @@
 /* Atelier Irisee configurator. Override the variables below in your theme to restyle. */
 .aimp-configurator {
 	--aimp-gold: #b38f4f;
+	--aimp-gold-text: #8a6a33; /* Gold for text: readable on white (contrast about 5:1). */
 	--aimp-gold-tint: rgba(179, 143, 79, 0.12);
 	--aimp-accent: var(--aimp-gold);
 	--aimp-accent-text: #fff;
-	--aimp-text: var(--aimp-gold);
+	--aimp-text: var(--aimp-gold-text);
 	--aimp-body-text: #613907;
 	--aimp-body-size: 15px;
-	--aimp-muted: var(--aimp-gold);
+	--aimp-muted: var(--aimp-gold-text);
 	--aimp-border: var(--aimp-gold);
 	--aimp-radius: 6px;
 	--aimp-panel-radius: 24px;
@@ -108,7 +109,7 @@
 	transition-duration: 300ms;
 	transition-timing-function: ease;
 	transition-delay: 0ms;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 	box-shadow: none;
 	text-shadow: none;
@@ -125,7 +126,7 @@
 .aimp-configurator .aimp-button:focus-visible,
 .aimp-configurator .aimp-card:focus-visible {
 	background-color: var(--aimp-gold-tint);
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 /* Selected: filled gold with white text. */
@@ -224,7 +225,7 @@
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-configurator .aimp-steps li::marker,
@@ -240,7 +241,7 @@
 	background: none;
 	border: 0;
 	padding: 0;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 	cursor: pointer;
 	text-decoration: underline;
@@ -254,7 +255,7 @@
 	height: 1.7em;
 	border-radius: 50%;
 	border: 1px solid var(--aimp-gold);
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 0.85em;
 }
 
@@ -378,7 +379,7 @@
 	border: 1px solid var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 	background: transparent;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 }
 
@@ -389,7 +390,7 @@
 }
 
 .aimp-configurator .aimp-search::placeholder {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	opacity: 0.7;
 }
 
@@ -500,7 +501,7 @@
 	border-radius: 999px;
 	border: 1px solid var(--aimp-gold);
 	background: #fff;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 0.75em;
 	white-space: nowrap;
 }
@@ -743,7 +744,7 @@
 	border: 0;
 	border-bottom: 1px solid var(--aimp-gold);
 	background: transparent;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	text-align: left;
 }
 
@@ -773,7 +774,7 @@
 }
 
 .aimp-configurator .aimp-step--summary h3 {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-configurator .aimp-step--summary .aimp-help {
@@ -827,7 +828,7 @@
 .aimp-configurator .aimp-notice--success {
 	background: transparent;
 	border: 5px double var(--aimp-gold);
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-notice .aimp-actions {
@@ -899,7 +900,7 @@
 	border: 0;
 	border-radius: 50%;
 	background: rgba(255, 255, 255, 0.9);
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-size: 1.8rem;
 	line-height: 1;
 	cursor: pointer;
@@ -935,7 +936,7 @@
 
 /* Titles and table headers: gold */
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6, th, legend, summary) {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6) {
@@ -945,7 +946,7 @@
 
 /* Links: gold */
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(p, li, dd, td, .woocommerce-breadcrumb, nav) a:not([class*="aimp-"]):not(.button) {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 /* Prices: brown and semi-bold like the configurator prices; the main price a little larger */
@@ -1021,7 +1022,7 @@
 	border-radius: var(--aimp-radius);
 	background: transparent;
 	box-shadow: none;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 	font-weight: 600;
 }
@@ -1034,7 +1035,7 @@
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) .star-rating,
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) .star-rating span::before,
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) p.stars a {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 /* Reviews: WooCommerce styles these through IDs, so these rules need IDs as well. */
@@ -1045,14 +1046,14 @@
 }
 
 #aimp-reviews :is(#reviews, #aimp-specificity) :is(#comments, #review_form_wrapper, #aimp-specificity) :is(h2, h3, .comment-reply-title) {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 }
 
 #aimp-reviews :is(#reviews, #aimp-specificity) :is(#review_form, #aimp-specificity) :is(#respond, #aimp-specificity) :is(input[type="text"], input[type="email"], textarea, select) {
 	border: 1px solid var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 	background: transparent;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 }
 
@@ -1061,7 +1062,7 @@
 	border: 5px double var(--aimp-gold);
 	border-radius: 100px;
 	background: transparent;
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font: inherit;
 	font-weight: 700;
 	cursor: pointer;
@@ -1172,7 +1173,7 @@
 }
 
 .aimp-configurator .aimp-summary .aimp-summary-discount :is(th, td) {
-	color: var(--aimp-gold);
+	color: var(--aimp-gold-text, #8a6a33);
 	font-weight: 700;
 }
 
