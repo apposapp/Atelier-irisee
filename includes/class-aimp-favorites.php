@@ -253,7 +253,7 @@ class AIMP_Favorites {
 		}
 		wp_send_json_success(
 			array(
-				'html' => $html ? '<ul class="aimp-favorites-grid">' . $html . '</ul>' : '',
+				'html' => $html ? '<ul class="aimp-grid aimp-grid--compact aimp-favorites-grid">' . $html . '</ul>' : '',
 			)
 		);
 	}
@@ -265,27 +265,31 @@ class AIMP_Favorites {
 	 * @return string
 	 */
 	private static function card_html( $product ) {
-		$link = $product->get_permalink();
-		// Always to the product page: the amount (length, size, …) is chosen there.
-		$action = sprintf(
-			'<a href="%1$s" class="aimp-fav-card-action button">%2$s</a>',
-			esc_url( $link ),
-			esc_html__( 'View product', 'atelier-irisee-master-plugin' )
-		);
+		// The card of the category pages, as a link to the product page (the amount, length or size is
+		// chosen there), with a "View product" button at the bottom.
+		$card   = AIMP_Catalog::card( $product );
+		$suffix = AIMP_Catalog::sold_per_10cm( $product ) ? ' <small>' . esc_html__( 'per 10 cm', 'atelier-irisee-master-plugin' ) . '</small>' : '';
+		$badge  = $product->is_in_stock() ? '' : '<span class="aimp-badge">' . esc_html__( 'Out of stock', 'atelier-irisee-master-plugin' ) . '</span>';
 
 		return sprintf(
-			'<li class="aimp-fav-card" data-aimp-fav-card="%1$d">' .
-			'<a class="aimp-fav-card-image" href="%2$s">%3$s</a>%4$s' .
-			'<a class="aimp-fav-card-name" href="%2$s">%5$s</a>' .
-			'<span class="aimp-fav-card-price">%6$s</span>%7$s' .
-			'</li>',
+			'<li class="aimp-fav-item aimp-fav-wrap" data-aimp-fav-card="%1$d">' .
+			'<a class="aimp-card%2$s" href="%3$s">' .
+			'<span class="aimp-card-image"><img src="%4$s" alt="%5$s" loading="lazy"></span>' .
+			'<span class="aimp-card-name">%6$s</span>' .
+			'<span class="aimp-card-price">%7$s%8$s</span>%9$s' .
+			'<span class="aimp-button aimp-fav-view">%10$s</span>' .
+			'</a>%11$s</li>',
 			$product->get_id(),
-			esc_url( $link ),
-			$product->get_image( 'woocommerce_thumbnail' ),
-			self::button_html( $product->get_id(), 'aimp-fav--overlay' ),
-			esc_html( wp_strip_all_tags( $product->get_name() ) ),
-			wp_kses_post( $product->get_price_html() ),
-			$action
+			$product->is_in_stock() ? '' : ' is-unavailable',
+			esc_url( $card['permalink'] ),
+			esc_url( $card['image'] ),
+			esc_attr( '' !== $card['image_alt'] ? $card['image_alt'] : $card['name'] ),
+			esc_html( $card['name'] ),
+			wp_kses_post( $card['price_html'] ),
+			$suffix, // Escaped above.
+			$badge, // Escaped above.
+			esc_html__( 'View product', 'atelier-irisee-master-plugin' ),
+			self::button_html( $product->get_id(), 'aimp-fav--overlay' )
 		);
 	}
 
@@ -293,8 +297,19 @@ class AIMP_Favorites {
 	 * Favorites page
 	 * ------------------------------------------------------------------ */
 
+	/**
+	 * The cards use the configurator's card styles.
+	 */
+	private static function enqueue_card_styles() {
+		if ( ! wp_style_is( 'aimp-configurator', 'registered' ) ) {
+			AIMP_Shortcode::register_assets();
+		}
+		wp_enqueue_style( 'aimp-configurator' );
+	}
+
 	public static function render_page() {
-		return '<div class="aimp-favorites" data-aimp-favorites-page><noscript>' .
+		self::enqueue_card_styles();
+		return '<div class="aimp-configurator aimp-favorites" data-aimp-favorites-page><noscript>' .
 			esc_html__( 'Please enable JavaScript to see your favorites.', 'atelier-irisee-master-plugin' ) .
 			'</noscript></div>';
 	}

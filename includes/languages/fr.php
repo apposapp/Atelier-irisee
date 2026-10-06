@@ -1007,4 +1007,18 @@ return array(
 	'all sizes are marked out of stock. Save the pattern once to give them the stock of the Inventory tab.' => 'toutes les tailles sont en rupture de stock. Enregistrez le patron une fois pour leur donner le stock de l\'onglet Inventaire.',
 	'the pattern is out of stock (Inventory tab).' => 'le patron est en rupture de stock (onglet Inventaire).',
 	'there is no pattern price (Pattern price field below).' => 'il n\'y a pas de prix du patron (champ Prix du patron ci-dessous).',
+
+	// 2.5.0
+	'Add country' => 'Ajouter un pays',
+	'All other countries' => 'Tous les autres pays',
+	'Countries not in the list above. Leave the cost empty to use the cost of your country.' => 'Les pays qui ne figurent pas dans la liste ci-dessus. Laissez le coût vide pour utiliser le coût de votre pays.',
+	'Free from' => 'Gratuit à partir de',
+	'Free shipping' => 'Livraison gratuite',
+	'Free shipping from %1$s: %2$s to go.' => 'Livraison gratuite dès %1$s : encore %2$s.',
+	'One shipping cost for every order, depending on the delivery country, and free from an order amount. The amounts are what the customer pays (VAT included when your prices include VAT). "Free from" counts the products in the cart after discounts; leave it empty for never free. Local pickup set up in WooCommerce stays available; other WooCommerce shipping methods are not used while this is on.' => 'Un seul coût de livraison par commande, selon le pays de livraison, et gratuit à partir d\'un montant de commande. Les montants sont ce que paie le client (TVA comprise si vos prix incluent la TVA). « Gratuit à partir de » compte les produits du panier après réductions ; laissez vide pour jamais gratuit. Le retrait sur place configuré dans WooCommerce reste disponible ; les autres modes de livraison de WooCommerce ne sont pas utilisés tant que cette option est active.',
+	'Other countries' => 'Autres pays',
+	'Shipping cost' => 'Frais de livraison',
+	'Shipping costs' => 'Frais de livraison',
+	'Use the Atelier Irisee shipping costs' => 'Utiliser les frais de livraison Atelier Irisee',
+	'Your country (%s)' => 'Votre pays (%s)',
 );

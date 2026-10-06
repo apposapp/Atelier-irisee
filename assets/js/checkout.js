@@ -138,6 +138,25 @@
 		});
 	}
 
+	// Payment method cards: mark the chosen one (the CSS also uses :has() where browsers support it).
+	function setupPaymentCards(root) {
+		function mark() {
+			root.querySelectorAll('#payment ul.payment_methods > li').forEach(function (li) {
+				var radio = li.querySelector('input[name="payment_method"]');
+				li.classList.toggle('is-selected', !!(radio && radio.checked));
+			});
+		}
+		root.addEventListener('change', function (e) {
+			if (e.target.name === 'payment_method') {
+				mark();
+			}
+		});
+		if ($) {
+			$(document.body).on('updated_checkout payment_method_selected', mark);
+		}
+		mark();
+	}
+
 	// "Your order": folded open and closed on phones, always open on wider screens.
 	function setupSummary(root) {
 		var summary = root.querySelector('[data-aimp-checkout-summary]');
@@ -309,6 +328,7 @@
 				root.aimpReady = true;
 				setupSummary(root);
 				setupCoupon(root);
+				setupPaymentCards(root);
 				setup(root);
 			}
 		});

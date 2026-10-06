@@ -101,3 +101,36 @@ jQuery(function ($) {
 
 	show((window.location.hash || '').replace('#tab-', ''));
 });
+
+/**
+ * Shipping tab: add and remove country rows.
+ */
+(function () {
+	'use strict';
+
+	var rows = document.querySelector('[data-aimp-ship-rows]');
+	var template = document.querySelector('[data-aimp-ship-template]');
+	var add = document.querySelector('[data-aimp-ship-add]');
+	if (!rows || !template || !add) {
+		return;
+	}
+
+	add.addEventListener('click', function () {
+		var index = 'n' + Date.now();
+		var wrap = document.createElement('div');
+		wrap.innerHTML = template.innerHTML.replace(/__i__/g, index);
+		var row = wrap.firstElementChild;
+		rows.appendChild(row);
+		var select = row.querySelector('select');
+		if (select) {
+			select.focus();
+		}
+	});
+
+	rows.addEventListener('click', function (e) {
+		var remove = e.target.closest ? e.target.closest('.aimp-ship-remove') : null;
+		if (remove) {
+			remove.closest('.aimp-ship-row').remove();
+		}
+	});
+})();

@@ -331,3 +331,11 @@
 	color: var(--aimp-gold);
 	font-weight: 700;
 }
+
+/* "Free shipping from …: … to go." under the shipping row. */
+.aimp-configurator .aimp-free-shipping-hint td {
+	padding-top: 0;
+	color: var(--aimp-gold);
+	font-size: 0.9em;
+	text-align: left !important;
+}

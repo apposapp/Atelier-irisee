@@ -1007,4 +1007,18 @@ return array(
 	'all sizes are marked out of stock. Save the pattern once to give them the stock of the Inventory tab.' => 'alle maten staan als uitverkocht. Sla het patroon één keer op om ze de voorraad van het tabblad Voorraad te geven.',
 	'the pattern is out of stock (Inventory tab).' => 'het patroon is uitverkocht (tabblad Voorraad).',
 	'there is no pattern price (Pattern price field below).' => 'er is geen patroonprijs (veld Patroonprijs hieronder).',
+
+	// 2.5.0
+	'Add country' => 'Land toevoegen',
+	'All other countries' => 'Alle andere landen',
+	'Countries not in the list above. Leave the cost empty to use the cost of your country.' => 'Landen die niet in de lijst hierboven staan. Laat de kosten leeg om de kosten van je eigen land te gebruiken.',
+	'Free from' => 'Gratis vanaf',
+	'Free shipping' => 'Gratis verzending',
+	'Free shipping from %1$s: %2$s to go.' => 'Gratis verzending vanaf %1$s: nog %2$s te gaan.',
+	'One shipping cost for every order, depending on the delivery country, and free from an order amount. The amounts are what the customer pays (VAT included when your prices include VAT). "Free from" counts the products in the cart after discounts; leave it empty for never free. Local pickup set up in WooCommerce stays available; other WooCommerce shipping methods are not used while this is on.' => 'Eén verzendkost per bestelling, afhankelijk van het land van levering, en gratis vanaf een bestelbedrag. De bedragen zijn wat de klant betaalt (btw inbegrepen als je prijzen btw bevatten). "Gratis vanaf" telt de producten in de winkelwagen na kortingen; laat leeg voor nooit gratis. Afhalen dat in WooCommerce is ingesteld blijft beschikbaar; andere verzendmethoden van WooCommerce worden niet gebruikt zolang dit aan staat.',
+	'Other countries' => 'Andere landen',
+	'Shipping cost' => 'Verzendkosten',
+	'Shipping costs' => 'Verzendkosten',
+	'Use the Atelier Irisee shipping costs' => 'De verzendkosten van Atelier Irisee gebruiken',
+	'Your country (%s)' => 'Je eigen land (%s)',
 );

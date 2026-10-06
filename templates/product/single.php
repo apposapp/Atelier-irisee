@@ -207,6 +207,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 			<?php endif; ?>
 
 			<?php if ( $aimp_show_short ) : ?>
+				<h4 class="aimp-product-subtitle aimp-product-short-title"><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h4>
 				<div class="aimp-description aimp-product-short"><?php echo wp_kses_post( wc_format_content( $the_product->get_short_description() ) ); ?></div>
 			<?php endif; ?>
 
@@ -224,7 +225,8 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 			<?php
 			// Patterns: description and details here, next to the picture.
 			if ( $aimp_pattern && $aimp_has_desc ) {
-				echo '<div class="aimp-product-text"><h4 class="aimp-product-subtitle">' . esc_html__( 'Description', 'atelier-irisee-master-plugin' ) . '</h4>';
+				// Without a second "Description" title when the short description already has one.
+				echo '<div class="aimp-product-text">' . ( $aimp_show_short ? '' : '<h4 class="aimp-product-subtitle">' . esc_html__( 'Description', 'atelier-irisee-master-plugin' ) . '</h4>' );
 				echo '<div class="aimp-description">' . wp_kses_post( wc_format_content( $aimp_description ) ) . '</div></div>';
 			}
 			?>

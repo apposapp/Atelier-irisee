@@ -529,3 +529,119 @@
 	border-top: 1px solid var(--aimp-gold-tint);
 	border-radius: 0;
 }
+
+/* Payment step: the block title already asks for a gift card. */
+.aimp-configurator .aimp-checkout-codes .aimp-gc-redeem-title {
+	display: none;
+}
+
+/* ------------------------------------------------------------------
+ * Payment methods (Mollie and others) as cards, two per row, like the product cards of the category
+ * pages: gold double border, logo on top, name below; the chosen one is filled gold. WooCommerce's own
+ * markup is kept, so its updates of the payment block keep working.
+ * ------------------------------------------------------------------ */
+.aimp-configurator.aimp-checkout #payment ul.payment_methods {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li {
+	position: relative;
+	margin: 0;
+	padding: 0;
+	border: 5px double var(--aimp-gold);
+	border-radius: 48px;
+	background: transparent;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li:hover {
+	background: var(--aimp-gold-tint);
+}
+
+/* The radio stays for the keyboard, invisible; the label is the clickable card. */
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li > input.input-radio {
+	position: absolute;
+	opacity: 0;
+	width: 1px;
+	height: 1px;
+	margin: 0;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li > label {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	min-height: 6.5rem;
+	margin: 0;
+	padding: 1rem 1rem 1.1rem;
+	color: var(--aimp-body-text);
+	font-weight: 600;
+	line-height: 1.3;
+	text-align: center;
+	cursor: pointer;
+}
+
+/* Logos on top. */
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li > label img {
+	order: -1;
+	float: none;
+	max-width: 100%;
+	max-height: 40px;
+	width: auto;
+	margin: 0 0.15rem;
+	vertical-align: middle;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li > input.input-radio:focus-visible + label {
+	outline: 2px solid var(--aimp-gold);
+	outline-offset: 2px;
+	border-radius: 44px;
+}
+
+/* Chosen: filled gold, white text. */
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li:is(.is-selected, :has(> input.input-radio:checked)) {
+	background: var(--aimp-gold);
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li:is(.is-selected, :has(> input.input-radio:checked)) > label {
+	color: #fff;
+}
+
+/* Only a method's own fields (card details, bank choice, …) are shown; plain descriptions are not. */
+.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box:not(:has(input, select, iframe, fieldset, textarea, .mollie-components)) {
+	display: none !important;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li:has(> input.input-radio:checked):has(div.payment_box :is(input, select, iframe, fieldset, textarea, .mollie-components)) {
+	grid-column: 1 / -1;
+}
+
+.aimp-configurator.aimp-checkout #payment ul.payment_methods div.payment_box {
+	margin: 0 1rem 1rem;
+	border-radius: var(--aimp-radius);
+	background: #fff;
+}
+
+/* A single method with no choice to make ("no methods" notice etc.). */
+.aimp-configurator.aimp-checkout #payment ul.payment_methods li.woocommerce-notice {
+	grid-column: 1 / -1;
+	padding: 1rem;
+}
+
+@media (max-width: 360px) {
+	.aimp-configurator.aimp-checkout #payment ul.payment_methods {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+/* "Free shipping from …: … to go." under the shipping row. */
+.aimp-configurator .aimp-free-shipping-hint td {
+	padding-top: 0;
+	color: var(--aimp-gold);
+	font-size: 0.9em;
+	text-align: left !important;
+}

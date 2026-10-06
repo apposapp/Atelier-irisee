@@ -297,3 +297,22 @@
 	border-left: 4px solid #b38f4f;
 	background: #fbf8f2;
 }
+
+/* Shipping tab */
+.aimp-settings .aimp-ship-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 12px;
+	margin-bottom: 8px;
+}
+
+.aimp-settings .aimp-ship-amount {
+	white-space: nowrap;
+}
+
+.aimp-settings .aimp-ship-remove {
+	font-size: 20px;
+	line-height: 1;
+	text-decoration: none;
+}

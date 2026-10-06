@@ -685,3 +685,9 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
+
+/* "Description" above the short description: gold, like the other subtitles. */
+.aimp-configurator .aimp-product-short-title {
+	margin: 1rem 0 0.4rem;
+	color: var(--aimp-gold);
+}

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.4.0
+Stable tag: 2.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.5.0 =
+* New: shipping costs in the settings (new Shipping tab): a cost for your own country, a cost per country, a cost for all other countries, each free from an order amount. Shown in the cart and checkout totals with a "Free shipping from …: … to go" line. No WooCommerce shipping zones needed; local pickup stays available.
+* Checkout: payment methods (Mollie and others) as cards like the category pages, two per row, logo on top; the chosen one is gold, and a method with its own fields spans the row. No "Do you have a gift card?" text in the Payment step.
+* Favorites page: the category pages' cards, with a "View product" button.
+* Product pages: a gold "Description" title above the short description.
+* Account page: the menu items are buttons with a fine white border; the open tab is white.
 
 = 2.4.0 =
 * Patterns are one product for both ways of selling: with a size in the configurator (for the fabric amounts) or on their own with all sizes. New "Pattern price" and "Sale price" on the pattern's Atelier Irisee tab, copied to every size on save. The stock is the pattern's (Inventory tab, "Manage stock?"); sizes no longer keep their own stock, so every sale lowers the one stock. The price and stock fields of the sizes are read-only.
