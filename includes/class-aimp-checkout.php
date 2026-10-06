@@ -25,6 +25,52 @@ class AIMP_Checkout {
 		// prints at priority 10 of the same hook).
 		add_action( 'woocommerce_review_order_before_payment', array( __CLASS__, 'codes_open' ), 5 );
 		add_action( 'woocommerce_review_order_before_payment', array( __CLASS__, 'codes_close' ), 15 );
+		// Logged-in customers: empty fields are filled from their account.
+		add_filter( 'woocommerce_checkout_get_value', array( __CLASS__, 'prefill' ), 20, 2 );
+	}
+
+	/**
+	 * Fills an empty checkout field for a logged-in customer from their saved account: the field itself
+	 * (when the session is older than the saved address), then, for billing fields, the saved shipping
+	 * address, the account email and name. Fields WooCommerce already has a value for are left alone.
+	 *
+	 * @param mixed  $value Value from earlier filters (null = none).
+	 * @param string $input Field name, e.g. billing_address_1.
+	 * @return mixed
+	 */
+	public static function prefill( $value, $input ) {
+		if ( null !== $value || ! is_user_logged_in() || ! function_exists( 'WC' ) || ( 0 !== strpos( (string) $input, 'billing_' ) && 0 !== strpos( (string) $input, 'shipping_' ) ) ) {
+			return $value;
+		}
+		$get = function ( $customer, $key ) {
+			$getter = 'get_' . $key;
+			return ( $customer && is_callable( array( $customer, $getter ) ) ) ? (string) $customer->$getter() : '';
+		};
+		if ( '' !== $get( WC()->customer, $input ) ) {
+			return $value; // WooCommerce fills it in itself.
+		}
+
+		static $account = null;
+		if ( null === $account ) {
+			$account = new WC_Customer( get_current_user_id() );
+		}
+		$found = $get( $account, $input );
+		if ( '' === $found && 0 === strpos( $input, 'billing_' ) ) {
+			$shipping_key = 'shipping_' . substr( $input, 8 );
+			$found        = $get( WC()->customer, $shipping_key );
+			$found        = '' !== $found ? $found : $get( $account, $shipping_key );
+			if ( '' === $found ) {
+				$user = wp_get_current_user();
+				if ( 'billing_email' === $input ) {
+					$found = (string) $user->user_email;
+				} elseif ( 'billing_first_name' === $input ) {
+					$found = (string) $user->first_name;
+				} elseif ( 'billing_last_name' === $input ) {
+					$found = (string) $user->last_name;
+				}
+			}
+		}
+		return '' !== $found ? $found : $value;
 	}
 
 	/** True while [atelier_irisee_checkout] prints WooCommerce's checkout. */

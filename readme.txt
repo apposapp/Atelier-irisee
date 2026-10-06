@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.6.1
+Stable tag: 2.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.6.2 =
+* Cart: no "Shipping to …" line under the shipping cost; the "Free shipping from …: … to go." line sits there instead (also in the checkout totals).
+* Checkout: logged-in customers get empty fields filled from their account: the saved address, and for the details step the saved shipping address, email and name when no billing address is saved.
 
 = 2.6.1 =
 * Fix: addresses from the account page's form are now saved to the account (they only reached the session before), so they show on the account page with an "Edit" button and fill in the checkout.

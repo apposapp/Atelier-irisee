@@ -680,12 +680,13 @@
 	}
 }
 
-/* "Free shipping from …: … to go." under the shipping row. */
-.aimp-configurator .aimp-free-shipping-hint td {
-	padding-top: 0;
+/* "Free shipping from …: … to go." right under the shipping cost. */
+.aimp-configurator .aimp-free-shipping-hint {
+	display: block;
+	margin-top: 0.2rem;
 	color: var(--aimp-gold);
 	font-size: 0.9em;
-	text-align: left !important;
+	line-height: 1.4;
 }
 
 /* While WooCommerce updates the totals and payment block (e.g. after choosing another payment method),

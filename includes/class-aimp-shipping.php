@@ -29,8 +29,8 @@ class AIMP_Shipping {
 		add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'register_method' ) );
 		add_action( 'woocommerce_shipping_init', array( __CLASS__, 'load_method' ) );
 		add_action( 'admin_init', array( __CLASS__, 'maybe_sync_zone' ), 20 );
-		add_action( 'woocommerce_cart_totals_after_shipping', array( __CLASS__, 'free_hint_row' ) );
-		add_action( 'woocommerce_review_order_after_shipping', array( __CLASS__, 'free_hint_row' ) );
+		// "Free shipping from …: … to go." right under the shipping cost (cart and checkout totals).
+		add_action( 'woocommerce_after_shipping_rate', array( __CLASS__, 'free_hint' ) );
 	}
 
 	/* ------------------------------------------------------------------
@@ -232,9 +232,14 @@ class AIMP_Shipping {
 	}
 
 	/**
-	 * "Free shipping from €75: €12.50 to go." under the shipping row of the cart and checkout totals.
+	 * "Free shipping from €75: €12.50 to go." under our shipping option in the cart and checkout totals.
+	 *
+	 * @param WC_Shipping_Rate $method Shipping option.
 	 */
-	public static function free_hint_row() {
+	public static function free_hint( $method ) {
+		if ( ! $method instanceof WC_Shipping_Rate || self::RATE_ID !== $method->get_method_id() ) {
+			return;
+		}
 		if ( ! self::enabled() || ! WC()->cart || ! WC()->cart->needs_shipping() || ! WC()->cart->show_shipping() ) {
 			return;
 		}
@@ -248,7 +253,7 @@ class AIMP_Shipping {
 			return;
 		}
 		printf(
-			'<tr class="aimp-free-shipping-hint"><td colspan="2">%s</td></tr>',
+			'<span class="aimp-free-shipping-hint">%s</span>',
 			wp_kses_post(
 				sprintf(
 					/* translators: 1: order amount for free shipping, 2: amount still to go */
