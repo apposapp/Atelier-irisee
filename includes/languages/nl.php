@@ -1087,4 +1087,20 @@ return array(
 	'Track & trace link' => 'Track & trace-link',
 	'Track my parcel' => 'Volg mijn pakket',
 	'Your order is on its way! Follow your parcel:' => 'Je bestelling is onderweg! Volg je pakket:',
+
+	// 2.9.0
+	'Added to your cart.' => 'Toegevoegd aan je winkelwagen.',
+	'Admin menu' => 'Beheermenu',
+	'Always visible for shop managers and administrators.' => 'Altijd zichtbaar voor winkelbeheerders en beheerders.',
+	'Divider' => 'Scheidingslijn',
+	'Drag the items into the order you like. Click the eye to hide an item for chosen roles or people. Hiding only takes the item out of the menu; the pages themselves stay reachable. WooCommerce stays visible for shop managers, so nobody locks themselves out of these settings.' => 'Sleep de onderdelen in de volgorde die je wilt. Klik op het oog om een onderdeel te verbergen voor gekozen rollen of personen. Verbergen haalt het onderdeel alleen uit het menu; de pagina\'s zelf blijven bereikbaar. WooCommerce blijft zichtbaar voor winkelbeheerders, zodat niemand zichzelf buitensluit van deze instellingen.',
+	'Drag to move' => 'Sleep om te verplaatsen',
+	'Hidden for these people' => 'Verborgen voor deze personen',
+	'Hidden for these roles' => 'Verborgen voor deze rollen',
+	'Hide for chosen roles or people' => 'Verbergen voor gekozen rollen of personen',
+	'Move down' => 'Omlaag',
+	'Move up' => 'Omhoog',
+	'Put the menu back in its normal order and show every item to everyone?' => 'Het menu terugzetten in de normale volgorde en alle onderdelen voor iedereen tonen?',
+	'Reset to default' => 'Standaard herstellen',
+	'Search for a person…' => 'Zoek een persoon…',
 );

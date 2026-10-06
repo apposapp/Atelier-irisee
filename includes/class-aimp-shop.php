@@ -216,6 +216,14 @@ class AIMP_Shop {
 			'noMatch'         => __( 'No products match your filters.', 'atelier-irisee-master-plugin' ),
 			'selectHint'      => __( 'Select a product to see its pictures and details.', 'atelier-irisee-master-plugin' ),
 			'viewProduct'     => __( 'View product', 'atelier-irisee-master-plugin' ),
+			'addToCart'       => __( 'Add to cart', 'atelier-irisee-master-plugin' ),
+			'adding'          => __( 'Adding…', 'atelier-irisee-master-plugin' ),
+			'viewCart'        => __( 'View cart', 'atelier-irisee-master-plugin' ),
+			'less'            => __( 'Less', 'atelier-irisee-master-plugin' ),
+			'more'            => __( 'More', 'atelier-irisee-master-plugin' ),
+			'lengthCm'        => __( 'Length in cm', 'atelier-irisee-master-plugin' ),
+			'quantity'        => __( 'Quantity', 'atelier-irisee-master-plugin' ),
+			'cm'              => __( 'cm', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -243,6 +251,13 @@ class AIMP_Shop {
 			array(
 				'endpoint'        => WC_AJAX::get_endpoint( '%%endpoint%%' ),
 				'currencySymbol'  => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
+				'currency'        => array(
+					'symbol'   => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
+					'position' => get_option( 'woocommerce_currency_pos', 'left' ),
+					'decimals' => wc_get_price_decimals(),
+					'decimal'  => wc_get_price_decimal_separator(),
+					'thousand' => wc_get_price_thousand_separator(),
+				),
 				'defaultLanguage' => AIMP_I18n::default_language(),
 				'languages'       => AIMP_Shortcode::languages_data(),
 				'i18n'            => $i18n,
@@ -656,6 +671,18 @@ class AIMP_Shop {
 		$item['short_description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
 		$item['gallery']           = AIMP_Catalog::images( $product );
 		$item['in_stock']          = $product->is_in_stock();
+		// The buy bar in the details panel: products that can be bought straight away (not gift cards).
+		$is_giftcard = class_exists( 'AIMP_Giftcards_Product' ) && AIMP_Giftcards_Product::is_giftcard( $product );
+		$buy         = $is_giftcard ? null : AIMP_Product_Page::buy_data( $product, $per_10cm );
+		$item['buy']   = ( $buy && $buy['available'] )
+			? array(
+				'per_10cm'   => (bool) $buy['per_10cm'],
+				'unit_price' => (float) $buy['unit_price'],
+				'min'        => (int) $buy['min'],
+				'max'        => (int) $buy['max'],
+				'step'       => (int) $buy['step'],
+			)
+			: null;
 		return $item;
 	}
 

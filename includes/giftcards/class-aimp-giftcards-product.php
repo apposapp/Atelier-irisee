@@ -35,6 +35,10 @@ class AIMP_Giftcards_Product {
 		add_filter( 'woocommerce_get_item_data', array( __CLASS__, 'item_data' ), 10, 2 );
 		add_action( 'woocommerce_checkout_create_order_line_item', array( __CLASS__, 'order_item_meta' ), 10, 3 );
 		add_filter( 'woocommerce_hidden_order_itemmeta', array( __CLASS__, 'hidden_meta' ) );
+		// The chosen design as the picture of the gift card in the cart, mini cart and order.
+		add_filter( 'woocommerce_cart_item_thumbnail', array( __CLASS__, 'cart_thumbnail' ), 10, 2 );
+		add_filter( 'woocommerce_order_item_thumbnail', array( __CLASS__, 'order_thumbnail' ), 10, 2 );
+		add_filter( 'woocommerce_admin_order_item_thumbnail', array( __CLASS__, 'admin_order_thumbnail' ), 10, 3 );
 
 		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'remember_language' ) );
 		add_action( 'woocommerce_store_api_checkout_update_order_meta', array( __CLASS__, 'remember_language' ) );
@@ -276,6 +280,46 @@ class AIMP_Giftcards_Product {
 			$data['aimp_gc'] = array_merge( self::$pending, array( 'key' => wp_generate_uuid4() ) );
 		}
 		return $data;
+	}
+
+	/**
+	 * The picture of a chosen design, or '' when there is none.
+	 *
+	 * @param array  $gc   Stored gift card choices (aimp_gc).
+	 * @param string $size Image size.
+	 * @return string <img>
+	 */
+	public static function design_img( $gc, $size = 'woocommerce_thumbnail' ) {
+		$design  = is_array( $gc ) && isset( $gc['design'] ) ? (string) $gc['design'] : '';
+		$designs = AIMP_Giftcards::designs( true );
+		if ( '' === $design || empty( $designs[ $design ]['image_id'] ) ) {
+			return '';
+		}
+		return (string) wp_get_attachment_image( (int) $designs[ $design ]['image_id'], $size, false, array( 'alt' => AIMP_Giftcards::design_name( $design ) ) );
+	}
+
+	/**
+	 * @param array  $cart_item Cart item.
+	 * @param string $size      Image size.
+	 * @return string <img> of the chosen design, or ''.
+	 */
+	public static function cart_item_image( $cart_item, $size = 'woocommerce_thumbnail' ) {
+		return empty( $cart_item['aimp_gc'] ) ? '' : self::design_img( $cart_item['aimp_gc'], $size );
+	}
+
+	public static function cart_thumbnail( $html, $cart_item ) {
+		$image = self::cart_item_image( $cart_item );
+		return '' !== $image ? $image : $html;
+	}
+
+	public static function order_thumbnail( $html, $item ) {
+		$image = ( $item instanceof WC_Order_Item_Product ) ? self::design_img( $item->get_meta( '_aimp_gc' ) ) : '';
+		return '' !== $image ? $image : $html;
+	}
+
+	public static function admin_order_thumbnail( $html, $item_id, $item ) {
+		$image = ( $item instanceof WC_Order_Item_Product ) ? self::design_img( $item->get_meta( '_aimp_gc' ), 'thumbnail' ) : '';
+		return '' !== $image ? $image : $html;
 	}
 
 	public static function set_prices( $cart ) {

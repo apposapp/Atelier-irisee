@@ -587,6 +587,9 @@
 			'<div class="aimp-details">' +
 			'<h3 class="aimp-details-title">' + esc(item.name) + '</h3>' +
 			'<p class="aimp-details-price">' + (item.price_html || '') + (item.price_suffix && item.price_html ? ' <small>' + esc(item.price_suffix) + '</small>' : '') + '</p>';
+		if (item.buy) {
+			html += this.buyBarHtml(item);
+		}
 		if (item.short_description) {
 			html += '<div class="aimp-description">' + item.short_description + '</div>';
 		}
@@ -598,6 +601,9 @@
 			'<a class="aimp-button aimp-button--block" href="' + esc(item.permalink) + '">' + esc(t.viewProduct) + '</a>' +
 			'</div></div>';
 		this.panelEl.innerHTML = html;
+		if (item.buy) {
+			this.bindBuyBar(item);
+		}
 
 		var show = UI.bindGallery(this.panelEl, item.gallery, function (i) {
 			s.image = i;
@@ -610,6 +616,92 @@
 			});
 		}
 		return show;
+	};
+
+	/* ---------------------------------------------------------------
+	 * Buy bar in the details panel (like the product page): ‹ amount ›, the price for that amount and
+	 * Add to cart, added in the background.
+	 * ------------------------------------------------------------- */
+
+	Shop.prototype.buyBarHtml = function (item) {
+		var b = item.buy;
+		var value = b.min || b.step || 1;
+		return (
+			'<div class="aimp-buy-bar aimp-shop-buy" data-aimp-shop-buy>' +
+			'<p class="aimp-shop-buy-total" data-role="total"></p>' +
+			'<div class="aimp-buy-controls">' +
+			'<div class="aimp-stepper">' +
+			'<button type="button" class="aimp-stepper-btn" data-dir="-1" aria-label="' + esc(t.less) + '">‹</button>' +
+			'<input type="number" class="aimp-stepper-input" inputmode="numeric" value="' + value + '" min="' + (b.min || 1) + '" step="' + (b.step || 1) + '"' +
+			(b.max ? ' max="' + b.max + '"' : '') + ' aria-label="' + esc(b.per_10cm ? t.lengthCm : t.quantity) + '">' +
+			(b.per_10cm ? '<span class="aimp-stepper-unit">' + esc(t.cm) + '</span>' : '') +
+			'<button type="button" class="aimp-stepper-btn" data-dir="1" aria-label="' + esc(t.more) + '">›</button>' +
+			'</div>' +
+			'<button type="button" class="aimp-button aimp-add-to-cart" data-role="add">' + esc(t.addToCart) + '</button>' +
+			'</div>' +
+			'<div class="aimp-shop-buy-message" data-role="message" aria-live="polite"></div>' +
+			'</div>'
+		);
+	};
+
+	Shop.prototype.bindBuyBar = function (item) {
+		var b = item.buy;
+		var bar = this.panelEl.querySelector('[data-aimp-shop-buy]');
+		if (!bar) {
+			return;
+		}
+		var field = bar.querySelector('.aimp-stepper-input');
+		var total = bar.querySelector('[data-role="total"]');
+		var message = bar.querySelector('[data-role="message"]');
+		var add = bar.querySelector('[data-role="add"]');
+		var step = b.step || 1;
+		var min = b.min || step;
+		var clean = function (value) {
+			var n = Math.max(min, Math.ceil((parseFloat(value) || 0) / step) * step);
+			return b.max ? Math.min(b.max, n) : n;
+		};
+		var show = function () {
+			var units = b.per_10cm ? parseInt(field.value, 10) / 10 : parseInt(field.value, 10);
+			total.textContent = b.unit_price && cfg.currency ? UI.money(b.unit_price * units, cfg.currency) : '';
+		};
+		bar.querySelectorAll('.aimp-stepper-btn').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				field.value = clean((parseInt(field.value, 10) || min) + step * parseInt(btn.getAttribute('data-dir'), 10));
+				show();
+			});
+		});
+		field.addEventListener('change', function () {
+			field.value = clean(field.value);
+			show();
+		});
+		show();
+
+		add.addEventListener('click', function () {
+			field.value = clean(field.value);
+			var qty = b.per_10cm ? parseInt(field.value, 10) / 10 : parseInt(field.value, 10);
+			add.disabled = true;
+			add.textContent = t.adding;
+			message.innerHTML = '';
+			UI.request(cfg.endpoint, 'add_to_cart', { product_id: item.id, quantity: qty }, lang, t.error)
+				.then(function (data) {
+					message.innerHTML =
+						'<p class="aimp-shop-buy-ok">' + esc(data.message) +
+						' <a href="' + esc(data.cart_url) + '">' + esc(t.viewCart) + '</a></p>';
+					// The cart count in the header and the mini cart.
+					if (window.jQuery) {
+						window.jQuery(document.body).trigger('wc_fragment_refresh');
+					}
+					document.body.dispatchEvent(new CustomEvent('wc-blocks_added_to_cart', { bubbles: true, detail: { preserveCartData: false } }));
+				})
+				.catch(function (err) {
+					var errors = (err && err.errors) || [t.error];
+					message.innerHTML = '<p class="aimp-shop-buy-error">' + errors.map(esc).join('<br>') + '</p>';
+				})
+				.then(function () {
+					add.disabled = false;
+					add.textContent = t.addToCart;
+				});
+		});
 	};
 
 	/* ---------------------------------------------------------------

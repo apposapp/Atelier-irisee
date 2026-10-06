@@ -316,3 +316,132 @@
 	line-height: 1;
 	text-decoration: none;
 }
+
+/* ------------------------------------------------------------------
+ * Settings → Admin menu
+ * ------------------------------------------------------------------ */
+.aimp-am-list {
+	max-width: 720px;
+	margin: 1rem 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-am-item {
+	margin: 0 0 6px;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #b38f4f;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.aimp-am-item.is-hidden {
+	border-left-color: #a3352b;
+	background: #fbf7f6;
+}
+
+.aimp-am-item.is-hidden .aimp-am-title {
+	color: #8c8f94;
+	text-decoration: line-through;
+}
+
+.aimp-am-item.is-separator {
+	border-left-color: #c3c4c7;
+	background: #f6f7f7;
+}
+
+.aimp-am-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 10px;
+}
+
+.aimp-am-handle {
+	color: #8c8f94;
+	cursor: grab;
+}
+
+.aimp-am-item .dashicons:not(.aimp-am-handle) {
+	color: #613907;
+}
+
+.aimp-am-img {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	background: center / 20px no-repeat;
+	filter: brightness(0.4);
+}
+
+.aimp-am-title {
+	flex: 1 1 auto;
+	font-weight: 600;
+}
+
+.aimp-am-separator-label {
+	color: #8c8f94;
+	font-style: italic;
+	font-weight: 400;
+}
+
+.aimp-am-buttons {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.aimp-am-move,
+.aimp-am-eye {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.aimp-am-move:hover,
+.aimp-am-eye:hover {
+	background: #f0f0f1;
+}
+
+.aimp-am-eye input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.aimp-am-eye input:focus-visible + .dashicons {
+	outline: 2px solid #b38f4f;
+	outline-offset: 2px;
+}
+
+.aimp-am-item.is-hidden .aimp-am-eye .dashicons {
+	color: #a3352b;
+}
+
+.aimp-am-rules {
+	padding: 4px 14px 14px 44px;
+	border-top: 1px dashed #dcdcde;
+}
+
+.aimp-am-label {
+	margin: 10px 0 6px;
+	font-weight: 600;
+}
+
+.aimp-am-roles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 18px;
+}
+
+.aimp-am-placeholder {
+	height: 44px;
+	margin: 0 0 6px;
+	border: 2px dashed #b38f4f;
+	border-radius: 6px;
+	background: #fbf8f2;
+}

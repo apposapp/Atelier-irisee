@@ -499,8 +499,8 @@ body.aimp-has-header .aimp-configurator .aimp-topbar:has(> .aimp-languages:only-
 	cursor: pointer;
 }
 
-/* Centred on the menu bar; fades in and out (search.js toggles .is-open). */
-.aimp-header .aimp-header-bar .aimp-header-inner {
+/* Centred in the top row between logo and icons; fades in and out (search.js toggles .is-open). */
+.aimp-header > .aimp-header-inner {
 	position: relative;
 }
 
@@ -509,7 +509,7 @@ body.aimp-has-header .aimp-configurator .aimp-topbar:has(> .aimp-languages:only-
 	top: 50%;
 	left: 50%;
 	z-index: 5;
-	width: min(520px, calc(100% - 15rem));
+	width: min(480px, 42%);
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
@@ -565,11 +565,12 @@ body.aimp-has-header .aimp-configurator .aimp-topbar:has(> .aimp-languages:only-
 	list-style: none;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
+	/* No room between logo and icons: the field covers the row (× closes it). */
 	.aimp-header .aimp-header-search {
 		right: 0;
-		left: auto;
-		width: calc(100% - 7.5rem);
+		left: 0;
+		width: auto;
 		transform: translateY(-50%) scale(0.97);
 	}
 

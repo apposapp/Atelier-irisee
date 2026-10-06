@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.8.0
+Stable tag: 2.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.9.0 =
+* New: Admin menu tab in the settings. Drag the dashboard menu items into your own order and hide items for chosen roles or people (WooCommerce stays visible for shop managers).
+* Shop pages: the details panel has the buy bar (amount, price, Add to cart) under the price; products are added in the background.
+* Gift cards show the chosen design as their picture in the cart, checkout, mini cart and orders.
+* Search: now in the top header row, centred between logo and icons.
 
 = 2.8.0 =
 * New: track & trace link on orders. Paste it in the "Track & trace" box on the order screen; when the order is set to Completed, the Completed order email has a "Track my parcel" button. Customers also see it with the order under My orders.

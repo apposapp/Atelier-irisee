@@ -123,7 +123,8 @@ class AIMP_Cart_Page {
 				'item'      => $item,
 				'product'   => $product,
 				'name'      => wp_strip_all_tags( $product->get_name() ),
-				'image'     => $product->get_image( 'woocommerce_thumbnail' ),
+				// Gift cards: the chosen design.
+				'image'     => apply_filters( 'woocommerce_cart_item_thumbnail', $product->get_image( 'woocommerce_thumbnail' ), $item, $key ),
 				'permalink' => $product->is_visible() ? $product->get_permalink( $item ) : '',
 				'price'     => WC()->cart->get_product_price( $product ),
 				'subtotal'  => WC()->cart->get_product_subtotal( $product, $item['quantity'] ),

@@ -40,6 +40,7 @@ class AIMP_Product_Page {
 		// Buy bar: length in cm, and patterns bought as one item with all sizes.
 		add_action( 'wp_loaded', array( __CLASS__, 'length_to_quantity' ), 19 );
 		add_action( 'wp_loaded', array( __CLASS__, 'add_pattern_to_cart' ), 20 );
+		add_action( 'wc_ajax_aimp_add_to_cart', array( __CLASS__, 'ajax_add_to_cart' ) );
 		add_filter( 'woocommerce_get_item_data', array( __CLASS__, 'all_sizes_item_data' ), 5, 2 );
 		add_filter( 'woocommerce_cart_item_name', array( __CLASS__, 'all_sizes_item_name' ), 10, 2 );
 		add_action( 'woocommerce_checkout_create_order_line_item', array( __CLASS__, 'all_sizes_order_item' ), 10, 3 );
@@ -222,6 +223,51 @@ class AIMP_Product_Page {
 			return __( 'the pattern is out of stock (Inventory tab).', 'atelier-irisee-master-plugin' );
 		}
 		return __( 'all sizes are marked out of stock. Save the pattern once to give them the stock of the Inventory tab.', 'atelier-irisee-master-plugin' );
+	}
+
+	/**
+	 * ?wc-ajax=aimp_add_to_cart: the buy bar in the shop's details panel. A simple product (amount in units;
+	 * 10 cm for fabric) or a pattern with all sizes. No nonce, like WooCommerce's own add-to-cart endpoint
+	 * (cached shop pages).
+	 */
+	public static function ajax_add_to_cart() {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- see above.
+		$product_id = isset( $_POST['product_id'] ) ? absint( wp_unslash( $_POST['product_id'] ) ) : 0;
+		$qty        = isset( $_POST['quantity'] ) ? max( 1, absint( wp_unslash( $_POST['quantity'] ) ) ) : 1;
+		// phpcs:enable
+		$product = wc_get_product( $product_id );
+		$added   = false;
+		if ( ! $product || ! function_exists( 'WC' ) || ! WC()->cart || 'publish' !== $product->get_status() ) {
+			wc_add_notice( __( 'This item is not available.', 'atelier-irisee-master-plugin' ), 'error' );
+		} elseif ( AIMP_Catalog::get_pattern( $product_id ) ) {
+			$variation = self::pattern_variation( $product );
+			if ( $variation ) {
+				$added = (bool) WC()->cart->add_to_cart( $product_id, $qty, $variation->get_id(), $variation->get_variation_attributes(), array( 'aimp_all_sizes' => 1 ) );
+			} else {
+				wc_add_notice( __( 'This item is not available.', 'atelier-irisee-master-plugin' ), 'error' );
+			}
+		} elseif ( $product->is_type( 'simple' ) && ! ( class_exists( 'AIMP_Giftcards_Product' ) && AIMP_Giftcards_Product::is_giftcard( $product ) ) ) {
+			$added = (bool) WC()->cart->add_to_cart( $product_id, $qty );
+		} else {
+			wc_add_notice( __( 'This item is not available.', 'atelier-irisee-master-plugin' ), 'error' );
+		}
+
+		$errors = array_map(
+			function ( $notice ) {
+				return wp_strip_all_tags( is_array( $notice ) ? $notice['notice'] : $notice );
+			},
+			wc_get_notices( 'error' )
+		);
+		wc_clear_notices(); // The answer is shown in the panel, not later as a page notice.
+		if ( ! $added ) {
+			wp_send_json_error( array( 'errors' => $errors ? $errors : array( __( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ) ) ) );
+		}
+		wp_send_json_success(
+			array(
+				'message'  => __( 'Added to your cart.', 'atelier-irisee-master-plugin' ),
+				'cart_url' => wc_get_cart_url(),
+			)
+		);
 	}
 
 	public static function add_pattern_to_cart() {

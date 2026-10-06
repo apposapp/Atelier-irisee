@@ -17,6 +17,18 @@ defined( 'ABSPATH' ) || exit;
 			<?php echo AIMP_Header::logo_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in logo_html(). ?>
 		</div>
 
+		<?php // Search: centred in this row between logo and icons, fades in (search.js). Without JavaScript the form opens the All products page. ?>
+		<div class="aimp-header-search" id="aimp-header-search" data-aimp-search hidden>
+			<form class="aimp-search-form" role="search" action="<?php echo esc_url( $data['search_url'] ); ?>" method="get">
+				<label class="screen-reader-text" for="aimp-search-input"><?php esc_html_e( 'Search products…', 'atelier-irisee-master-plugin' ); ?></label>
+				<span class="aimp-search-icon"><?php echo AIMP_Header::icon( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
+				<input type="search" id="aimp-search-input" class="aimp-search-input" name="aimp_q" placeholder="<?php esc_attr_e( 'Search products…', 'atelier-irisee-master-plugin' ); ?>" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="aimp-search-results" aria-autocomplete="list">
+				<button type="button" class="aimp-search-close" data-aimp-search-close aria-label="<?php esc_attr_e( 'Close', 'atelier-irisee-master-plugin' ); ?>"><?php echo AIMP_Header::icon( 'close' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></button>
+			</form>
+			<ul class="aimp-search-results" id="aimp-search-results" role="listbox" hidden></ul>
+			<p class="aimp-search-status" aria-live="polite"></p>
+		</div>
+
 		<nav class="aimp-header-icons" aria-label="<?php esc_attr_e( 'Shortcuts', 'atelier-irisee-master-plugin' ); ?>">
 			<button type="button" class="aimp-header-link aimp-header-search-toggle" data-aimp-search-toggle aria-expanded="false" aria-controls="aimp-header-search">
 				<span class="aimp-header-icon-wrap"><?php echo AIMP_Header::icon( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
@@ -74,17 +86,6 @@ defined( 'ABSPATH' ) || exit;
 				<?php echo AIMP_Header::icon( 'menu' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?>
 				<span><?php esc_html_e( 'Menu', 'atelier-irisee-master-plugin' ); ?></span>
 			</button>
-			<?php // Search: centred on this bar, fades in (search.js). Without JavaScript the form opens the All products page. ?>
-			<div class="aimp-header-search" id="aimp-header-search" data-aimp-search hidden>
-				<form class="aimp-search-form" role="search" action="<?php echo esc_url( $data['search_url'] ); ?>" method="get">
-					<label class="screen-reader-text" for="aimp-search-input"><?php esc_html_e( 'Search products…', 'atelier-irisee-master-plugin' ); ?></label>
-					<span class="aimp-search-icon"><?php echo AIMP_Header::icon( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
-					<input type="search" id="aimp-search-input" class="aimp-search-input" name="aimp_q" placeholder="<?php esc_attr_e( 'Search products…', 'atelier-irisee-master-plugin' ); ?>" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="aimp-search-results" aria-autocomplete="list">
-					<button type="button" class="aimp-search-close" data-aimp-search-close aria-label="<?php esc_attr_e( 'Close', 'atelier-irisee-master-plugin' ); ?>"><?php echo AIMP_Header::icon( 'close' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></button>
-				</form>
-				<ul class="aimp-search-results" id="aimp-search-results" role="listbox" hidden></ul>
-				<p class="aimp-search-status" aria-live="polite"></p>
-			</div>
 		</div>
 	</div>
 

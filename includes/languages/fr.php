@@ -1087,4 +1087,20 @@ return array(
 	'Track & trace link' => 'Lien de suivi',
 	'Track my parcel' => 'Suivre mon colis',
 	'Your order is on its way! Follow your parcel:' => 'Votre commande est en route ! Suivez votre colis :',
+
+	// 2.9.0
+	'Added to your cart.' => 'Ajouté à votre panier.',
+	'Admin menu' => 'Menu d\'administration',
+	'Always visible for shop managers and administrators.' => 'Toujours visible pour les gestionnaires de boutique et les administrateurs.',
+	'Divider' => 'Séparateur',
+	'Drag the items into the order you like. Click the eye to hide an item for chosen roles or people. Hiding only takes the item out of the menu; the pages themselves stay reachable. WooCommerce stays visible for shop managers, so nobody locks themselves out of these settings.' => 'Faites glisser les éléments dans l\'ordre souhaité. Cliquez sur l\'œil pour masquer un élément pour des rôles ou des personnes choisis. Masquer retire seulement l\'élément du menu ; les pages restent accessibles. WooCommerce reste visible pour les gestionnaires de boutique, pour que personne ne perde l\'accès à ces réglages.',
+	'Drag to move' => 'Faites glisser pour déplacer',
+	'Hidden for these people' => 'Masqué pour ces personnes',
+	'Hidden for these roles' => 'Masqué pour ces rôles',
+	'Hide for chosen roles or people' => 'Masquer pour des rôles ou personnes choisis',
+	'Move down' => 'Descendre',
+	'Move up' => 'Monter',
+	'Put the menu back in its normal order and show every item to everyone?' => 'Remettre le menu dans l\'ordre normal et afficher tous les éléments pour tout le monde ?',
+	'Reset to default' => 'Rétablir par défaut',
+	'Search for a person…' => 'Rechercher une personne…',
 );
