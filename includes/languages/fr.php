@@ -991,9 +991,20 @@ return array(
 	'Still seeing old information on the website after saving? Clear the cache of your caching plugin once.' => 'Vous voyez encore d\'anciennes informations sur le site après l\'enregistrement ? Videz une fois le cache de votre extension de cache.',
 	'The discount code has been removed.' => 'Le code de réduction a été supprimé.',
 	'Your order' => 'Votre commande',
-	'all sizes with a price are out of stock (Variations tab, stock status of each size).' => 'toutes les tailles avec un prix sont en rupture de stock (onglet Variations, état du stock de chaque taille).',
-	'none of the sizes has a price (Variations tab).' => 'aucune taille n\'a de prix (onglet Variations).',
 	'the pattern has no enabled sizes (Variations tab).' => 'le patron n\'a aucune taille activée (onglet Variations).',
 	'the pattern is not in the Patterns category set under WooCommerce > Atelier Irisee.' => 'le patron n\'est pas dans la catégorie Patrons définie sous WooCommerce > Atelier Irisee.',
 	'the pattern is not published.' => 'le patron n\'est pas publié.',
+
+	// 2.4.0
+	'Discount code or gift card' => 'Code de réduction ou carte cadeau',
+	'On the website: available. Stock: %d, shared by all sizes.' => 'Sur le site : disponible. Stock : %d, commun à toutes les tailles.',
+	'One price for the pattern, whatever size is chosen in the configurator, and when it is bought on its own (all sizes). It is copied to every size when you save.' => 'Un seul prix pour le patron, quelle que soit la taille choisie dans le configurateur, et lorsqu\'il est acheté seul (toutes les tailles). Il est copié vers chaque taille lors de l\'enregistrement.',
+	'Optional. Leave empty when the pattern is not on sale.' => 'Facultatif. Laissez vide si le patron n\'est pas en promotion.',
+	'Pattern price (%s)' => 'Prix du patron (%s)',
+	'Sale price (%s)' => 'Prix promo (%s)',
+	'The price and stock of a pattern are the same for all sizes: set the price on the Atelier Irisee tab and the stock on the Inventory tab. They are copied to the sizes when you save.' => 'Le prix et le stock d\'un patron sont les mêmes pour toutes les tailles : réglez le prix dans l\'onglet Atelier Irisee et le stock dans l\'onglet Inventaire. Ils sont copiés vers les tailles lors de l\'enregistrement.',
+	'Tip: tick "Manage stock?" on the Inventory tab and enter the number of patterns you have. Every sale (with or without a size) then lowers it by one.' => 'Astuce : cochez « Gérer le stock ? » dans l\'onglet Inventaire et indiquez le nombre de patrons dont vous disposez. Chaque vente (avec ou sans taille) le diminue alors d\'une unité.',
+	'all sizes are marked out of stock. Save the pattern once to give them the stock of the Inventory tab.' => 'toutes les tailles sont en rupture de stock. Enregistrez le patron une fois pour leur donner le stock de l\'onglet Inventaire.',
+	'the pattern is out of stock (Inventory tab).' => 'le patron est en rupture de stock (onglet Inventaire).',
+	'there is no pattern price (Pattern price field below).' => 'il n\'y a pas de prix du patron (champ Prix du patron ci-dessous).',
 );

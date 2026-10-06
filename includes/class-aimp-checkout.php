@@ -21,6 +21,33 @@ class AIMP_Checkout {
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
+		// Payment step: discount code and gift card together, above the payment methods (the gift card box
+		// prints at priority 10 of the same hook).
+		add_action( 'woocommerce_review_order_before_payment', array( __CLASS__, 'codes_open' ), 5 );
+		add_action( 'woocommerce_review_order_before_payment', array( __CLASS__, 'codes_close' ), 15 );
+	}
+
+	/** True while [atelier_irisee_checkout] prints WooCommerce's checkout. */
+	private static $rendering = false;
+
+	public static function codes_open() {
+		if ( ! self::$rendering ) {
+			return;
+		}
+		echo '<div class="aimp-checkout-codes"><h3>' . esc_html__( 'Discount code or gift card', 'atelier-irisee-master-plugin' ) . '</h3>';
+		if ( wc_coupons_enabled() ) {
+			echo '<div class="aimp-checkout-coupon" data-aimp-checkout-coupon>' .
+				'<label class="screen-reader-text" for="aimp-checkout-coupon-code">' . esc_html__( 'Discount code', 'atelier-irisee-master-plugin' ) . '</label>' .
+				'<input type="text" id="aimp-checkout-coupon-code" class="input-text" placeholder="' . esc_attr__( 'Discount code', 'atelier-irisee-master-plugin' ) . '" autocomplete="off">' .
+				'<button type="button" class="button" data-aimp-apply-coupon>' . esc_html__( 'Apply', 'atelier-irisee-master-plugin' ) . '</button>' .
+				'</div><div class="aimp-checkout-coupon-msg" aria-live="polite"></div>';
+		}
+	}
+
+	public static function codes_close() {
+		if ( self::$rendering ) {
+			echo '</div>';
+		}
 	}
 
 	public static function register_assets() {
@@ -122,7 +149,11 @@ class AIMP_Checkout {
 					</details>
 					<div class="aimp-checkout-main">
 						<p class="aimp-checkout-message" role="alert" hidden></p>
-						<?php WC_Shortcode_Checkout::output( array() ); // Prints WooCommerce's checkout. ?>
+						<?php
+						self::$rendering = true;
+						WC_Shortcode_Checkout::output( array() ); // Prints WooCommerce's checkout.
+						self::$rendering = false;
+						?>
 					</div>
 				</div>
 			<?php else : ?>

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.3.0
+Stable tag: 2.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 2.4.0 =
+* Patterns are one product for both ways of selling: with a size in the configurator (for the fabric amounts) or on their own with all sizes. New "Pattern price" and "Sale price" on the pattern's Atelier Irisee tab, copied to every size on save. The stock is the pattern's (Inventory tab, "Manage stock?"); sizes no longer keep their own stock, so every sale lowers the one stock. The price and stock fields of the sizes are read-only.
+* Favorites page: smaller cards, six per row.
+* Checkout: no empty "shipping fields" box. Discount code and gift card together in one block in the Payment step only (and in the cart); WooCommerce's coupon bar at the top is gone.
+* Account page: the tabs are a gold side panel on the left, like the shop filters, with "Log out" at the bottom.
 
 = 2.3.0 =
 * Settings page in tabs: General, Product categories, Shop pages, Discounts, Site look, Footer and Mosaic. Still one form, so saving one tab keeps the others; after saving you stay on the same tab.

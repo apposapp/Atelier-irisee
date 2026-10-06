@@ -198,6 +198,8 @@ Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_
 - **Checkout** (`includes/class-aimp-checkout.php`, `assets/js/checkout.js`): `[atelier_irisee_checkout]` prints WooCommerce's checkout. The JS adds `is-stepped` and `data-step`, and `checkout.css` shows the parts of one step.
   - "Your order" (`AIMP_Cart_Page::summary_html()`, read-only, kits grouped like the cart) sits next to the steps; WooCommerce's review table then only shows the totals.
   - The Overview step (key `delivery`) gets a delivery address box built by `checkout.js` from the billing or shipping fields.
+- **Patterns** (`AIMP_Product_Fields::sync_pattern`): the pattern price (`_aimp_pattern_price`, `_aimp_pattern_sale_price`) is written to every size, and sizes get `manage_stock = false`, so WooCommerce uses the pattern's stock ("managed by parent") for configurator sales and "All sizes" sales alike. Runs on `woocommerce_update_product` and `woocommerce_ajax_save_product_variations`.
+- **Checkout codes:** `AIMP_Checkout::codes_open/close` wrap the gift card box (`woocommerce_review_order_before_payment`) with a discount code field; `checkout.js` passes the code to WooCommerce's hidden `form.checkout_coupon`.
 - **Page caches** (`AIMP_Product_Page::purge_caches`): after a product or variation is saved, WooCommerce's product transients are cleared and common caching plugins are asked to refresh that page (action `aimp_purge_product_pages` for others).
 
 ## Languages

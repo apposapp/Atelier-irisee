@@ -84,6 +84,60 @@
 		render();
 	}
 
+	/*
+	 * Discount code in the Payment step. WooCommerce's coupon form lives outside the checkout form (forms
+	 * can't be nested) and is hidden; the code is passed to it and WooCommerce applies it in the background
+	 * and updates the totals. Its message is shown under the field.
+	 */
+	function setupCoupon(root) {
+		if (!$) {
+			return;
+		}
+		var waiting = false;
+
+		function apply() {
+			var field = root.querySelector('#aimp-checkout-coupon-code');
+			var $form = $(root).find('form.checkout_coupon');
+			var code = field ? field.value.trim() : '';
+			if (!code || !$form.length) {
+				return;
+			}
+			$form.find('input[name="coupon_code"]').val(code);
+			waiting = true;
+			$form.trigger('submit');
+		}
+
+		root.addEventListener('click', function (e) {
+			if (e.target.closest && e.target.closest('[data-aimp-apply-coupon]')) {
+				e.preventDefault();
+				apply();
+			}
+		});
+		root.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter' && e.target.id === 'aimp-checkout-coupon-code') {
+				e.preventDefault(); // Not the order form.
+				apply();
+			}
+		});
+		$(document.body).on('applied_coupon_in_checkout', function () {
+			if (!waiting) {
+				return;
+			}
+			waiting = false;
+			var msg = root.querySelector('.aimp-checkout-coupon-msg');
+			var form = root.querySelector('form.checkout_coupon');
+			var notice = form ? form.previousElementSibling : null;
+			if (msg && notice && /woocommerce-(error|message|info)|is-(error|success)/.test(notice.className)) {
+				msg.innerHTML = '';
+				msg.appendChild(notice);
+			}
+			var field = root.querySelector('#aimp-checkout-coupon-code');
+			if (field && notice && !/error/.test(notice.className)) {
+				field.value = '';
+			}
+		});
+	}
+
 	// "Your order": folded open and closed on phones, always open on wider screens.
 	function setupSummary(root) {
 		var summary = root.querySelector('[data-aimp-checkout-summary]');
@@ -254,6 +308,7 @@
 			if (!root.aimpReady) {
 				root.aimpReady = true;
 				setupSummary(root);
+				setupCoupon(root);
 				setup(root);
 			}
 		});

@@ -991,9 +991,20 @@ return array(
 	'Still seeing old information on the website after saving? Clear the cache of your caching plugin once.' => 'Zie je na het opslaan nog oude informatie op de website? Leeg dan één keer de cache van je cacheplugin.',
 	'The discount code has been removed.' => 'De kortingscode is verwijderd.',
 	'Your order' => 'Je bestelling',
-	'all sizes with a price are out of stock (Variations tab, stock status of each size).' => 'alle maten met een prijs zijn uitverkocht (tabblad Variaties, voorraadstatus van elke maat).',
-	'none of the sizes has a price (Variations tab).' => 'geen enkele maat heeft een prijs (tabblad Variaties).',
 	'the pattern has no enabled sizes (Variations tab).' => 'het patroon heeft geen ingeschakelde maten (tabblad Variaties).',
 	'the pattern is not in the Patterns category set under WooCommerce > Atelier Irisee.' => 'het patroon staat niet in de categorie Patronen die is ingesteld onder WooCommerce > Atelier Irisee.',
 	'the pattern is not published.' => 'het patroon is niet gepubliceerd.',
+
+	// 2.4.0
+	'Discount code or gift card' => 'Kortingscode of cadeaubon',
+	'On the website: available. Stock: %d, shared by all sizes.' => 'Op de website: beschikbaar. Voorraad: %d, gedeeld door alle maten.',
+	'One price for the pattern, whatever size is chosen in the configurator, and when it is bought on its own (all sizes). It is copied to every size when you save.' => 'Eén prijs voor het patroon, welke maat er ook gekozen wordt in de configurator, en wanneer het apart gekocht wordt (alle maten). Bij het opslaan wordt hij naar elke maat gekopieerd.',
+	'Optional. Leave empty when the pattern is not on sale.' => 'Optioneel. Laat leeg als het patroon niet in de aanbieding is.',
+	'Pattern price (%s)' => 'Patroonprijs (%s)',
+	'Sale price (%s)' => 'Actieprijs (%s)',
+	'The price and stock of a pattern are the same for all sizes: set the price on the Atelier Irisee tab and the stock on the Inventory tab. They are copied to the sizes when you save.' => 'Prijs en voorraad van een patroon zijn voor alle maten gelijk: stel de prijs in op het tabblad Atelier Irisee en de voorraad op het tabblad Voorraad. Bij het opslaan worden ze naar de maten gekopieerd.',
+	'Tip: tick "Manage stock?" on the Inventory tab and enter the number of patterns you have. Every sale (with or without a size) then lowers it by one.' => 'Tip: vink "Voorraad beheren?" aan op het tabblad Voorraad en vul het aantal patronen in dat je hebt. Elke verkoop (met of zonder maat) verlaagt het dan met één.',
+	'all sizes are marked out of stock. Save the pattern once to give them the stock of the Inventory tab.' => 'alle maten staan als uitverkocht. Sla het patroon één keer op om ze de voorraad van het tabblad Voorraad te geven.',
+	'the pattern is out of stock (Inventory tab).' => 'het patroon is uitverkocht (tabblad Voorraad).',
+	'there is no pattern price (Pattern price field below).' => 'er is geen patroonprijs (veld Patroonprijs hieronder).',
 );

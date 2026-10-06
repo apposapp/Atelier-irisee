@@ -216,9 +216,12 @@ class AIMP_Product_Page {
 			return __( 'the pattern has no enabled sizes (Variations tab).', 'atelier-irisee-master-plugin' );
 		}
 		if ( ! $priced ) {
-			return __( 'none of the sizes has a price (Variations tab).', 'atelier-irisee-master-plugin' );
+			return __( 'there is no pattern price (Pattern price field below).', 'atelier-irisee-master-plugin' );
 		}
-		return __( 'all sizes with a price are out of stock (Variations tab, stock status of each size).', 'atelier-irisee-master-plugin' );
+		if ( ! $pattern->is_in_stock() || $pattern->get_manage_stock() ) {
+			return __( 'the pattern is out of stock (Inventory tab).', 'atelier-irisee-master-plugin' );
+		}
+		return __( 'all sizes are marked out of stock. Save the pattern once to give them the stock of the Inventory tab.', 'atelier-irisee-master-plugin' );
 	}
 
 	public static function add_pattern_to_cart() {

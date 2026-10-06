@@ -284,3 +284,16 @@
 	font-weight: 400;
 	color: #646970;
 }
+
+/* Pattern sizes: price comes from the pattern. */
+.woocommerce_variation input.aimp-locked {
+	background: #f0f0f1;
+	color: #646970;
+}
+
+.aimp-variation-fields .aimp-variation-note {
+	margin: 0 0 0.75em;
+	padding: 8px 12px;
+	border-left: 4px solid #b38f4f;
+	background: #fbf8f2;
+}

@@ -11,7 +11,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class AIMP_Product_Fields {
 
+	/** Price of a pattern, the same for every size (written to the sizes on save). */
+	const META_PRICE      = '_aimp_pattern_price';
+	const META_SALE_PRICE = '_aimp_pattern_sale_price';
+
+	/** True while sync_pattern() saves sizes and the pattern (prevents a save loop). */
+	private static $syncing = false;
+
 	public static function init() {
+		// One price and one stock for all sizes of a pattern.
+		add_action( 'woocommerce_update_product', array( __CLASS__, 'sync_pattern' ), 20 );
+		add_action( 'woocommerce_ajax_save_product_variations', array( __CLASS__, 'sync_pattern' ), 20 );
+
 		add_action( 'woocommerce_product_after_variable_attributes', array( __CLASS__, 'render_variation_fields' ), 10, 3 );
 		add_action( 'woocommerce_admin_process_variation_object', array( __CLASS__, 'save_variation_fields' ), 10, 2 );
 		add_action( 'woocommerce_product_options_general_product_data', array( __CLASS__, 'render_zip_length_field' ) );
@@ -78,6 +89,75 @@ class AIMP_Product_Fields {
 	}
 
 	/**
+	 * Pattern price for the form: the saved one, or else the price of the first size that has one.
+	 *
+	 * @param WC_Product $product Pattern.
+	 * @return array [ regular, sale ]
+	 */
+	private static function pattern_prices( $product ) {
+		$regular = (string) $product->get_meta( self::META_PRICE );
+		$sale    = (string) $product->get_meta( self::META_SALE_PRICE );
+		if ( '' === $regular ) {
+			foreach ( $product->get_children() as $child_id ) {
+				$variation = wc_get_product( $child_id );
+				if ( $variation && '' !== (string) $variation->get_regular_price( 'edit' ) ) {
+					$regular = (string) $variation->get_regular_price( 'edit' );
+					$sale    = (string) $variation->get_sale_price( 'edit' );
+					break;
+				}
+			}
+		}
+		return array( $regular, $sale );
+	}
+
+	/**
+	 * A pattern is one product: every size gets the pattern price, and no size keeps its own stock, so
+	 * all sizes (and "All sizes" sales) use the stock on the pattern's Inventory tab. WooCommerce calls
+	 * this "stock managed by the parent product".
+	 *
+	 * @param int $product_id Pattern ID.
+	 */
+	public static function sync_pattern( $product_id ) {
+		if ( self::$syncing ) {
+			return;
+		}
+		$product = wc_get_product( $product_id );
+		if ( ! $product || ! $product->is_type( 'variable' ) || ! self::is_pattern( $product->get_id() ) ) {
+			return;
+		}
+		$regular = (string) $product->get_meta( self::META_PRICE );
+		$sale    = (string) $product->get_meta( self::META_SALE_PRICE );
+
+		self::$syncing = true;
+		foreach ( $product->get_children() as $child_id ) {
+			$variation = wc_get_product( $child_id );
+			if ( ! $variation ) {
+				continue;
+			}
+			$changed = false;
+			if ( '' !== $regular && ( (string) $variation->get_regular_price( 'edit' ) !== $regular || (string) $variation->get_sale_price( 'edit' ) !== $sale ) ) {
+				$variation->set_regular_price( $regular );
+				$variation->set_sale_price( $sale );
+				$changed = true;
+			}
+			if ( true === $variation->get_manage_stock( 'edit' ) ) {
+				$variation->set_manage_stock( false );
+				$changed = true;
+			}
+			if ( $changed ) {
+				$variation->save();
+			}
+		}
+		WC_Product_Variable::sync( $product->get_id() );
+		$product    = wc_get_product( $product->get_id() );
+		$data_store = $product ? $product->get_data_store() : null;
+		if ( $data_store && method_exists( $data_store, 'sync_managed_variation_stock_status' ) ) {
+			$data_store->sync_managed_variation_stock_status( $product ); // The sizes follow the pattern's stock status.
+		}
+		self::$syncing = false;
+	}
+
+	/**
 	 * @param int     $loop           Variation index.
 	 * @param array   $variation_data Unused.
 	 * @param WP_Post $variation_post Variation post.
@@ -92,6 +172,7 @@ class AIMP_Product_Fields {
 		}
 		?>
 		<div class="aimp-variation-fields">
+			<p class="aimp-variation-note"><?php esc_html_e( 'The price and stock of a pattern are the same for all sizes: set the price on the Atelier Irisee tab and the stock on the Inventory tab. They are copied to the sizes when you save.', 'atelier-irisee-master-plugin' ); ?></p>
 			<h4><?php esc_html_e( 'Atelier Irisee – material requirements & size measurements', 'atelier-irisee-master-plugin' ); ?></h4>
 			<div class="aimp-variation-grid">
 				<?php foreach ( self::number_fields() as $key => $field ) : ?>
@@ -210,14 +291,49 @@ class AIMP_Product_Fields {
 					<p class="<?php echo $issue ? 'aimp-availability--no' : 'aimp-availability--yes'; ?>">
 						<?php
 						if ( $issue ) {
-							/* translators: %s: reason, e.g. "none of the sizes has a price" */
+							/* translators: %s: reason, e.g. "there is no pattern price" */
 							echo esc_html( sprintf( __( 'On the website: shown as out of stock, because %s', 'atelier-irisee-master-plugin' ), $issue ) );
+						} elseif ( $product_object->get_manage_stock() ) {
+							/* translators: %d: stock quantity */
+							echo esc_html( sprintf( __( 'On the website: available. Stock: %d, shared by all sizes.', 'atelier-irisee-master-plugin' ), (int) $product_object->get_stock_quantity() ) );
 						} else {
 							esc_html_e( 'On the website: available.', 'atelier-irisee-master-plugin' );
 						}
 						?>
+						<?php if ( ! $product_object->get_manage_stock() ) : ?>
+							<br><span class="description"><?php esc_html_e( 'Tip: tick "Manage stock?" on the Inventory tab and enter the number of patterns you have. Every sale (with or without a size) then lowers it by one.', 'atelier-irisee-master-plugin' ); ?></span>
+						<?php endif; ?>
 						<br><span class="description"><?php esc_html_e( 'Still seeing old information on the website after saving? Clear the cache of your caching plugin once.', 'atelier-irisee-master-plugin' ); ?></span>
 					</p>
+				</div>
+			<?php endif; ?>
+			<?php if ( $is_product && self::is_pattern( $product_object->get_id() ) ) : ?>
+				<?php list( $regular, $sale ) = self::pattern_prices( $product_object ); ?>
+				<div class="options_group">
+					<?php
+					woocommerce_wp_text_input(
+						array(
+							'id'          => self::META_PRICE,
+							/* translators: %s: currency symbol */
+							'label'       => sprintf( __( 'Pattern price (%s)', 'atelier-irisee-master-plugin' ), get_woocommerce_currency_symbol() ),
+							'data_type'   => 'price',
+							'value'       => wc_format_localized_price( $regular ),
+							'description' => __( 'One price for the pattern, whatever size is chosen in the configurator, and when it is bought on its own (all sizes). It is copied to every size when you save.', 'atelier-irisee-master-plugin' ),
+							'desc_tip'    => true,
+						)
+					);
+					woocommerce_wp_text_input(
+						array(
+							'id'          => self::META_SALE_PRICE,
+							/* translators: %s: currency symbol */
+							'label'       => sprintf( __( 'Sale price (%s)', 'atelier-irisee-master-plugin' ), get_woocommerce_currency_symbol() ),
+							'data_type'   => 'price',
+							'value'       => wc_format_localized_price( $sale ),
+							'description' => __( 'Optional. Leave empty when the pattern is not on sale.', 'atelier-irisee-master-plugin' ),
+							'desc_tip'    => true,
+						)
+					);
+					?>
 				</div>
 			<?php endif; ?>
 			<div class="options_group">
@@ -295,6 +411,15 @@ class AIMP_Product_Fields {
 			} else {
 				$product->delete_meta_data( AIMP_Catalog::META_SKILL );
 			}
+		}
+		if ( isset( $_POST[ self::META_PRICE ] ) && current_user_can( 'edit_products' ) && $product->is_type( 'variable' ) ) {
+			$regular = wc_format_decimal( wc_clean( wp_unslash( $_POST[ self::META_PRICE ] ) ) );
+			$sale    = isset( $_POST[ self::META_SALE_PRICE ] ) ? wc_format_decimal( wc_clean( wp_unslash( $_POST[ self::META_SALE_PRICE ] ) ) ) : '';
+			if ( '' === $regular || ( '' !== $sale && (float) $sale >= (float) $regular ) ) {
+				$sale = ''; // A sale price needs a (higher) normal price.
+			}
+			$product->update_meta_data( self::META_PRICE, $regular );
+			$product->update_meta_data( self::META_SALE_PRICE, $sale );
 		}
 		if ( isset( $_POST[ AIMP_Catalog::META_SIZES_TEXT ] ) && current_user_can( 'edit_products' ) ) {
 			$sizes = sanitize_text_field( wp_unslash( $_POST[ AIMP_Catalog::META_SIZES_TEXT ] ) );

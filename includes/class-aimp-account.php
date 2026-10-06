@@ -140,22 +140,28 @@ class AIMP_Account {
 				/* translators: %s: customer name */
 				printf( esc_html__( 'Hello %s', 'atelier-irisee-master-plugin' ), '<strong>' . esc_html( $user->display_name ) . '</strong>' );
 				?>
-				· <a href="<?php echo esc_url( wp_logout_url( get_permalink() ) ); ?>"><?php esc_html_e( 'Log out', 'atelier-irisee-master-plugin' ); ?></a>
 			</p>
-			<nav class="aimp-account-tabs" aria-label="<?php esc_attr_e( 'My account', 'atelier-irisee-master-plugin' ); ?>">
-				<?php foreach ( self::tabs() as $key => $label ) : ?>
-					<a href="<?php echo esc_url( self::page_url( $key ) ); ?>" class="aimp-account-tab<?php echo $key === $tab ? ' is-active' : ''; ?>"<?php echo $key === $tab ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
-				<?php endforeach; ?>
-			</nav>
-			<div class="aimp-account-panel">
-				<?php
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
-				$message = isset( $_GET['aimp_msg'] ) ? self::message( sanitize_key( wp_unslash( $_GET['aimp_msg'] ) ) ) : null;
-				if ( $message ) {
-					echo '<div class="aimp-account-notice aimp-account-notice--' . esc_attr( $message[0] ) . '" role="status">' . esc_html( $message[1] ) . '</div>';
-				}
-				call_user_func( array( __CLASS__, 'tab_' . $tab ), $user );
-				?>
+			<div class="aimp-account-layout">
+				<?php // The tabs in a gold side panel, like the shop filters (always open). ?>
+				<nav class="aimp-account-tabs" aria-label="<?php esc_attr_e( 'My account', 'atelier-irisee-master-plugin' ); ?>">
+					<h3 class="aimp-account-tabs-title"><?php esc_html_e( 'My account', 'atelier-irisee-master-plugin' ); ?></h3>
+					<ul>
+						<?php foreach ( self::tabs() as $key => $label ) : ?>
+							<li><a href="<?php echo esc_url( self::page_url( $key ) ); ?>" class="aimp-account-tab<?php echo $key === $tab ? ' is-active' : ''; ?>"<?php echo $key === $tab ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a></li>
+						<?php endforeach; ?>
+					</ul>
+					<a class="aimp-account-logout" href="<?php echo esc_url( wp_logout_url( get_permalink() ) ); ?>"><?php esc_html_e( 'Log out', 'atelier-irisee-master-plugin' ); ?></a>
+				</nav>
+				<div class="aimp-account-panel">
+					<?php
+					// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
+					$message = isset( $_GET['aimp_msg'] ) ? self::message( sanitize_key( wp_unslash( $_GET['aimp_msg'] ) ) ) : null;
+					if ( $message ) {
+						echo '<div class="aimp-account-notice aimp-account-notice--' . esc_attr( $message[0] ) . '" role="status">' . esc_html( $message[1] ) . '</div>';
+					}
+					call_user_func( array( __CLASS__, 'tab_' . $tab ), $user );
+					?>
+				</div>
 			</div>
 		</div>
 		<?php

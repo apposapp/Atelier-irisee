@@ -475,3 +475,57 @@
 		margin-bottom: 0;
 	}
 }
+
+/* WooCommerce prints some parts even when they have nothing to show (e.g. "shipping fields" when orders
+ * always go to the billing address); no empty boxes. */
+.aimp-configurator.aimp-checkout :is(.woocommerce-shipping-fields, .woocommerce-additional-fields, .woocommerce-account-fields):not(:has(input, select, textarea, h3)) {
+	display: none !important;
+}
+
+/* ------------------------------------------------------------------
+ * Discount code and gift card: only in the Payment step, together above the payment methods. WooCommerce's
+ * own coupon bar at the top is hidden; its form stays in the page and is used by checkout.js.
+ * ------------------------------------------------------------------ */
+.aimp-checkout.is-stepped :is(.woocommerce-form-coupon-toggle, form.checkout_coupon) {
+	display: none !important;
+}
+
+.aimp-checkout.is-stepped:not([data-step="payment"]) .aimp-checkout-codes {
+	display: none !important;
+}
+
+.aimp-configurator .aimp-checkout-codes {
+	margin: 0 0 1rem;
+	padding: 1.25rem 1.4rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-checkout-coupon {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0 0 0.5rem;
+}
+
+.aimp-configurator .aimp-checkout-coupon input {
+	flex: 1 1 12rem;
+	min-height: 2.6rem;
+}
+
+.aimp-checkout-coupon-msg:empty {
+	display: none;
+}
+
+.aimp-checkout-coupon-msg {
+	margin: 0 0 0.75rem;
+}
+
+/* The gift card box inside the block: no second border. */
+.aimp-configurator .aimp-checkout-codes .aimp-gc-redeem {
+	margin: 0.75rem 0 0;
+	padding: 0.75rem 0 0;
+	border: 0;
+	border-top: 1px solid var(--aimp-gold-tint);
+	border-radius: 0;
+}
