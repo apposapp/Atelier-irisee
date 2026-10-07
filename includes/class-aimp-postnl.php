@@ -46,6 +46,9 @@ class AIMP_PostNL {
 		// PostNL 5.9.12: pickup points from its V4 API are dropped by its classic checkout list (see render_pickup()).
 		add_action( 'init', array( __CLASS__, 'swap_pickup_renderer' ), 20 );
 		add_action( 'postnl_checkout_content', array( __CLASS__, 'content_note' ), 1 );
+		// Belgian shops get no PostNL delivery days: a "Home delivery" choice next to the pickup points.
+		add_filter( 'postnl_frontend_checkout_tab', array( __CLASS__, 'checkout_tabs' ), 20, 2 );
+		add_action( 'postnl_checkout_content', array( __CLASS__, 'home_content' ), 5 );
 		// A WooCommerce Checkout block left on the checkout page puts PostNL in its block mode: warn, and remove it.
 		add_action( 'admin_notices', array( __CLASS__, 'checkout_block_notice' ) );
 		add_action( 'admin_post_aimp_postnl_fix_checkout', array( __CLASS__, 'fix_checkout_page' ) );
@@ -80,6 +83,87 @@ class AIMP_PostNL {
 				}
 			}
 		}
+	}
+
+	/** The "Home delivery" tab was added in this request. */
+	private static $home_tab = false;
+
+	const HOME_TAB = 'home_delivery';
+
+	/**
+	 * PostNL's checkout tabs: the pickup tab reads "Choose a pickup point", and when PostNL offers no
+	 * delivery days (as for Belgian shops) a "Home delivery" tab comes first, so customers can choose
+	 * standard delivery to their address instead of a pickup point.
+	 *
+	 * PostNL treats any other tab value as no choice of its own: no pickup point is saved, no pickup fee is
+	 * added and the label is a normal home delivery.
+	 *
+	 * @param array $tabs     Tabs [ id, name ].
+	 * @param array $response PostNL checkout response.
+	 * @return array
+	 */
+	public static function checkout_tabs( $tabs, $response ) {
+		$tabs = is_array( $tabs ) ? $tabs : array();
+		$ids  = array();
+		foreach ( $tabs as $i => $tab ) {
+			$ids[] = isset( $tab['id'] ) ? $tab['id'] : '';
+			if ( isset( $tab['id'] ) && 'dropoff_points' === $tab['id'] ) {
+				$tabs[ $i ]['name'] = esc_html__( 'Choose a pickup point', 'atelier-irisee-master-plugin' );
+			}
+		}
+		self::$home_tab = false;
+		if ( ! $tabs || in_array( 'delivery_day', $ids, true ) ) {
+			return $tabs;
+		}
+		self::$home_tab = true;
+		array_unshift(
+			$tabs,
+			array(
+				'id'   => self::HOME_TAB,
+				'name' => self::home_tab_name(),
+			)
+		);
+		return $tabs;
+	}
+
+	/**
+	 * "Home delivery (€5,00)", or without a price when shipping is free.
+	 *
+	 * @return string
+	 */
+	private static function home_tab_name() {
+		$name    = esc_html__( 'Home delivery', 'atelier-irisee-master-plugin' );
+		$country = ( function_exists( 'WC' ) && WC()->customer ) ? (string) WC()->customer->get_shipping_country() : '';
+		$amounts = self::amounts_for( '' !== $country ? $country : WC()->countries->get_base_country() );
+		$cost    = '' === $amounts['cost'] ? 0.0 : (float) $amounts['cost'];
+		$free    = '' !== $amounts['free'] && WC()->cart && (float) WC()->cart->get_displayed_subtotal() > (float) $amounts['free'];
+		if ( $cost <= 0 || $free ) {
+			return $name;
+		}
+		return $name . ' (' . wp_strip_all_tags( wc_price( $cost ) ) . ')';
+	}
+
+	/**
+	 * Content of the "Home delivery" tab: the delivery time and the expected date.
+	 */
+	public static function home_content() {
+		if ( ! self::$home_tab ) {
+			return;
+		}
+		$lines = array();
+		$time  = trim( AIMP_Settings::localized( AIMP_Settings::get_text( 'delivery_time', AIMP_Settings::default_delivery_time() ) ) );
+		/* translators: %s: delivery time, e.g. "2–4 working days" */
+		$lines[] = '' !== $time ? sprintf( __( 'Delivered to your address in %s.', 'atelier-irisee-master-plugin' ), $time ) : __( 'Delivered to your address.', 'atelier-irisee-master-plugin' );
+		$date    = class_exists( 'AIMP_Trust' ) ? AIMP_Trust::expected_date_from() : '';
+		if ( '' !== $date ) {
+			/* translators: %s: date */
+			$lines[] = sprintf( __( 'Expected delivery: %s', 'atelier-irisee-master-plugin' ), $date );
+		}
+		printf(
+			'<div class="postnl_content" id="postnl_%1$s_content"><div class="postnl_content_desc">%2$s</div></div>',
+			esc_attr( self::HOME_TAB ),
+			implode( '<br>', array_map( 'esc_html', $lines ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped per line.
+		);
 	}
 
 	/**
@@ -126,7 +210,9 @@ class AIMP_PostNL {
 			printf( '<!-- aimp-postnl groups-sample: %s -->', esc_html( $sample ) );
 		}
 		if ( ( $complete && $count ) || ! defined( 'POSTNL_WC_PLUGIN_DIR_PATH' ) ) {
+			ob_start();
 			$dropoff->display_content( $response, $post_data );
+			echo self::without_desc( (string) ob_get_clean() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PostNL's template escapes its output.
 			return;
 		}
 
@@ -177,7 +263,18 @@ class AIMP_PostNL {
 		$html = preg_replace( '#(<i>)[^<]*?\s*<br\s*/?>#', '$1', $html );
 		// No distance: no "0 m".
 		$html = preg_replace( '#<span class="distance">\s*0 m\s*</span>#', '<span class="distance"></span>', $html );
-		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PostNL's template escapes its output.
+		echo self::without_desc( $html ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PostNL's template escapes its output.
+	}
+
+	/**
+	 * With the "Home delivery" tab, PostNL's line "Receive shipment at home? Make a selection from the
+	 * Delivery Days." is wrong (there are no delivery days): it is left out.
+	 *
+	 * @param string $html Pickup list.
+	 * @return string
+	 */
+	private static function without_desc( $html ) {
+		return self::$home_tab ? (string) preg_replace( '#<div class="postnl_content_desc">.*?</div>#s', '', $html, 1 ) : $html;
 	}
 
 	/* ------------------------------------------------------------------
@@ -206,6 +303,7 @@ class AIMP_PostNL {
 			wp_enqueue_style( 'postnl-fe-checkout', POSTNL_WC_PLUGIN_DIR_URL . '/assets/css/fe-checkout.css', array(), POSTNL_WC_VERSION );
 		}
 		if ( wp_script_is( 'postnl-fe-checkout', 'enqueued' ) ) {
+			self::pickup_label_script();
 			return;
 		}
 		wp_enqueue_script( 'postnl-fe-checkout', POSTNL_WC_PLUGIN_DIR_URL . '/assets/js/fe-checkout.js', array( 'jquery' ), POSTNL_WC_VERSION, true );
@@ -236,6 +334,24 @@ class AIMP_PostNL {
 					'precision'         => wc_get_price_decimals(),
 				),
 			)
+		);
+		self::pickup_label_script();
+	}
+
+	/**
+	 * PostNL's script writes the pickup tab label from postnlParams.i18n.pickup on every update: the same
+	 * "Choose a pickup point" as the server side. Runs after PostNL's settings and before its script.
+	 */
+	public static function pickup_label_script() {
+		static $done = false;
+		if ( $done || ! wp_script_is( 'postnl-fe-checkout', 'enqueued' ) ) {
+			return;
+		}
+		$done = true;
+		wp_add_inline_script(
+			'postnl-fe-checkout',
+			'if (window.postnlParams && postnlParams.i18n) { postnlParams.i18n.pickup = ' . wp_json_encode( __( 'Choose a pickup point', 'atelier-irisee-master-plugin' ) ) . '; }',
+			'before'
 		);
 	}
 

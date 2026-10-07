@@ -1260,4 +1260,10 @@ return array(
 	'The WooCommerce Checkout block could not be removed automatically. Open the checkout page in the editor and delete the "Checkout" block (keep the Atelier Irisee checkout).' => 'Le bloc de paiement de WooCommerce n\'a pas pu être retiré automatiquement. Ouvrez la page de paiement dans l\'éditeur et supprimez le bloc « Validation de commande » (gardez la page de paiement Atelier Irisee).',
 	'The WooCommerce Checkout block was removed from the checkout page. PostNL\'s pickup points now work in the Atelier Irisee checkout.' => 'Le bloc de paiement de WooCommerce a été retiré de la page de paiement. Les points de retrait PostNL fonctionnent maintenant dans la page de paiement Atelier Irisee.',
 	'Your checkout page contains WooCommerce\'s Checkout block. PostNL then works in its block mode, so the pickup points, the Dutch house-number field and the pickup fee don\'t work in the Atelier Irisee checkout.' => 'Votre page de paiement contient le bloc de paiement de WooCommerce. PostNL fonctionne alors en mode bloc : les points de retrait, le champ de numéro de maison néerlandais et les frais de retrait ne fonctionnent pas dans la page de paiement Atelier Irisee.',
+
+	// 3.3.5: PostNL home delivery tab
+	'Choose a pickup point' => 'Choisir un point de retrait',
+	'Delivered to your address in %s.' => 'Livré à votre adresse en %s.',
+	'Delivered to your address.' => 'Livré à votre adresse.',
+	'Home delivery' => 'Livraison à domicile',
 );

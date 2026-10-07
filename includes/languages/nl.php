@@ -1260,4 +1260,10 @@ return array(
 	'The WooCommerce Checkout block could not be removed automatically. Open the checkout page in the editor and delete the "Checkout" block (keep the Atelier Irisee checkout).' => 'Het afrekenblok van WooCommerce kon niet automatisch verwijderd worden. Open de afrekenpagina in de editor en verwijder het blok "Afrekenen" (laat de Atelier Irisee-afrekenpagina staan).',
 	'The WooCommerce Checkout block was removed from the checkout page. PostNL\'s pickup points now work in the Atelier Irisee checkout.' => 'Het afrekenblok van WooCommerce is van de afrekenpagina verwijderd. De afhaalpunten van PostNL werken nu in de Atelier Irisee-afrekenpagina.',
 	'Your checkout page contains WooCommerce\'s Checkout block. PostNL then works in its block mode, so the pickup points, the Dutch house-number field and the pickup fee don\'t work in the Atelier Irisee checkout.' => 'Je afrekenpagina bevat het afrekenblok van WooCommerce. PostNL werkt dan in zijn blokmodus, waardoor de afhaalpunten, het Nederlandse huisnummerveld en de afhaalkosten niet werken in de Atelier Irisee-afrekenpagina.',
+
+	// 3.3.5: PostNL home delivery tab
+	'Choose a pickup point' => 'Kies een afhaalpunt',
+	'Delivered to your address in %s.' => 'Geleverd op je adres in %s.',
+	'Delivered to your address.' => 'Geleverd op je adres.',
+	'Home delivery' => 'Thuisbezorging',
 );

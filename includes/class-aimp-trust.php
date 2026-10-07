@@ -169,12 +169,22 @@ class AIMP_Trust {
 	 * @return string Formatted date, or ''.
 	 */
 	public static function expected_date( $order ) {
-		$days    = (int) AIMP_Settings::get( 'delivery_days' );
 		$created = $order instanceof WC_Order ? $order->get_date_created() : null;
-		if ( $days <= 0 || ! $created ) {
+		return $created ? self::expected_date_from( $created->date( 'Y-m-d' ) ) : '';
+	}
+
+	/**
+	 * A start date plus the delivery days, counting working days only (Belgian holidays skipped).
+	 *
+	 * @param string $start Y-m-d ('' = today).
+	 * @return string Formatted date, or ''.
+	 */
+	public static function expected_date_from( $start = '' ) {
+		$days = (int) AIMP_Settings::get( 'delivery_days' );
+		if ( $days <= 0 ) {
 			return '';
 		}
-		$date = new DateTimeImmutable( $created->date( 'Y-m-d' ) );
+		$date = new DateTimeImmutable( '' !== $start ? $start : current_time( 'Y-m-d' ) );
 		while ( $days > 0 ) {
 			$date = $date->modify( '+1 day' );
 			if ( (int) $date->format( 'N' ) >= 6 || in_array( $date->format( 'Y-m-d' ), self::holidays( (int) $date->format( 'Y' ) ), true ) ) {

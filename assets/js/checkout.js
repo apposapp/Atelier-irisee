@@ -611,6 +611,17 @@
 				postnlChoose(this);
 			}
 		});
+		// "Home delivery" (added by the plugin): no pickup point, and the totals without a pickup fee.
+		$(document).on('change', '#postnl_checkout_option .postnl_checkout_tab_list input.postnl_option', function () {
+			if (this.value !== 'home_delivery' || !this.checked) {
+				return;
+			}
+			var $box = $(this).closest('#postnl_checkout_option');
+			$box.find('input.postnl_sub_radio').prop('checked', false);
+			$box.find('.postnl_sub_list > li').removeClass('active');
+			$box.find('input[type="hidden"][id^="postnl_dropoff_points_"]').val('');
+			$(document.body).trigger('update_checkout');
+		});
 		postnlShow();
 	}
 
