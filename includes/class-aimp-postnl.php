@@ -41,6 +41,211 @@ class AIMP_PostNL {
 		add_action( 'woocommerce_after_shipping_rate', array( __CLASS__, 'free_hint' ) );
 		// My orders → order: the PostNL pickup point (the thank-you page shows it at the top instead).
 		add_action( 'woocommerce_order_details_after_order_table', array( __CLASS__, 'pickup_block' ) );
+		// PostNL's checkout script (pickup points), also when PostNL thinks the checkout page is a block checkout.
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'checkout_script' ), 20 );
+		// A WooCommerce Checkout block left on the checkout page puts PostNL in its block mode: warn, and remove it.
+		add_action( 'admin_notices', array( __CLASS__, 'checkout_block_notice' ) );
+		add_action( 'admin_post_aimp_postnl_fix_checkout', array( __CLASS__, 'fix_checkout_page' ) );
+	}
+
+	/* ------------------------------------------------------------------
+	 * Checkout page: PostNL's classic checkout
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * The checkout page contains WooCommerce's Checkout block (PostNL then uses its block mode).
+	 *
+	 * @return bool
+	 */
+	public static function checkout_has_block() {
+		$page = function_exists( 'wc_get_page_id' ) ? (int) wc_get_page_id( 'checkout' ) : 0;
+		return $page > 0 && has_block( 'woocommerce/checkout', $page );
+	}
+
+	/**
+	 * Loads PostNL's checkout script (and style) on the checkout when PostNL itself didn't: without it the
+	 * "Pick up" tab does nothing and the pickup points stay hidden.
+	 */
+	public static function checkout_script() {
+		if ( ! self::active() || ! function_exists( 'is_checkout' ) || ! is_checkout() || is_wc_endpoint_url( 'order-received' ) || is_wc_endpoint_url( 'order-pay' ) || ! defined( 'POSTNL_WC_PLUGIN_DIR_URL' ) || ! defined( 'POSTNL_WC_VERSION' ) ) {
+			return;
+		}
+		if ( ! wp_style_is( 'postnl-fe-checkout', 'enqueued' ) ) {
+			wp_enqueue_style( 'postnl-fe-checkout', POSTNL_WC_PLUGIN_DIR_URL . '/assets/css/fe-checkout.css', array(), POSTNL_WC_VERSION );
+		}
+		if ( wp_script_is( 'postnl-fe-checkout', 'enqueued' ) ) {
+			return;
+		}
+		wp_enqueue_script( 'postnl-fe-checkout', POSTNL_WC_PLUGIN_DIR_URL . '/assets/js/fe-checkout.js', array( 'jquery' ), POSTNL_WC_VERSION, true );
+
+		// The same values PostNL gives its script.
+		$day_fee    = '';
+		$pickup_fee = '';
+		$settings   = class_exists( '\PostNLWooCommerce\Shipping_Method\Settings' ) ? \PostNLWooCommerce\Shipping_Method\Settings::get_instance() : null;
+		if ( $settings && is_callable( array( '\PostNLWooCommerce\Utils', 'get_formatted_fee_total_price' ) ) ) {
+			$day_fee    = \PostNLWooCommerce\Utils::get_formatted_fee_total_price( $settings->get_delivery_days_fee() );
+			$pickup_fee = \PostNLWooCommerce\Utils::get_formatted_fee_total_price( $settings->get_pickup_delivery_fee() );
+		}
+		wp_localize_script(
+			'postnl-fe-checkout',
+			'postnlParams',
+			array(
+				'i18n'                       => array(
+					'deliveryDays' => esc_html__( 'Delivery Days', 'postnl-for-woocommerce' ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- PostNL's own text.
+					'pickup'       => esc_html__( 'Pickup', 'postnl-for-woocommerce' ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- PostNL's own text.
+				),
+				'delivery_day_fee_formatted' => $day_fee,
+				'pickup_fee_formatted'       => $pickup_fee,
+				'currency'                   => array(
+					'symbol'            => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
+					'symbolPosition'    => get_option( 'woocommerce_currency_pos', 'left' ),
+					'decimalSeparator'  => wc_get_price_decimal_separator(),
+					'thousandSeparator' => wc_get_price_thousand_separator(),
+					'precision'         => wc_get_price_decimals(),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Warning with a one-click fix when the checkout page still holds WooCommerce's Checkout block.
+	 */
+	public static function checkout_block_notice() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- only shows a message.
+		if ( isset( $_GET['aimp_postnl_fix'] ) ) {
+			$done = 'done' === sanitize_key( wp_unslash( $_GET['aimp_postnl_fix'] ) );
+			printf(
+				'<div class="notice %1$s is-dismissible"><p>%2$s</p></div>',
+				$done ? 'notice-success' : 'notice-error',
+				esc_html(
+					$done
+						? __( 'The WooCommerce Checkout block was removed from the checkout page. PostNL\'s pickup points now work in the Atelier Irisee checkout.', 'atelier-irisee-master-plugin' )
+						: __( 'The WooCommerce Checkout block could not be removed automatically. Open the checkout page in the editor and delete the "Checkout" block (keep the Atelier Irisee checkout).', 'atelier-irisee-master-plugin' )
+				)
+			);
+		}
+		// phpcs:enable
+		if ( ! self::active() || ! current_user_can( 'manage_woocommerce' ) || ! self::checkout_has_block() ) {
+			return;
+		}
+		$page = (int) wc_get_page_id( 'checkout' );
+		printf(
+			'<div class="notice notice-warning"><p><strong>%1$s</strong> %2$s</p><form method="post" action="%3$s"><input type="hidden" name="action" value="aimp_postnl_fix_checkout">%4$s<p><button type="submit" class="button button-primary">%5$s</button> <a href="%6$s">%7$s</a></p></form></div>',
+			esc_html__( 'PostNL:', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Your checkout page contains WooCommerce\'s Checkout block. PostNL then works in its block mode, so the pickup points, the Dutch house-number field and the pickup fee don\'t work in the Atelier Irisee checkout.', 'atelier-irisee-master-plugin' ),
+			esc_url( admin_url( 'admin-post.php' ) ),
+			wp_nonce_field( 'aimp_postnl_fix_checkout', '_wpnonce', true, false ),
+			esc_html__( 'Remove the block from the checkout page', 'atelier-irisee-master-plugin' ),
+			esc_url( (string) get_edit_post_link( $page ) ),
+			esc_html__( 'Open the page', 'atelier-irisee-master-plugin' )
+		);
+	}
+
+	/**
+	 * Blocks without the WooCommerce Checkout block (also inside other blocks).
+	 *
+	 * @param array $blocks Parsed blocks.
+	 * @param bool  $found  Set to true when one was removed.
+	 * @return array
+	 */
+	private static function without_checkout_block( $blocks, &$found ) {
+		$kept = array();
+		foreach ( $blocks as $block ) {
+			if ( self::is_checkout_block( $block ) ) {
+				$found = true;
+				continue;
+			}
+			if ( ! empty( $block['innerBlocks'] ) ) {
+				// innerContent holds a null where each inner block goes: drop the null of a removed block.
+				$keep = array();
+				foreach ( $block['innerBlocks'] as $i => $inner_block ) {
+					$keep[ $i ] = ! self::is_checkout_block( $inner_block );
+				}
+				$content = array();
+				$index   = 0;
+				foreach ( isset( $block['innerContent'] ) ? (array) $block['innerContent'] : array() as $piece ) {
+					if ( null === $piece ) {
+						if ( ! empty( $keep[ $index ] ) ) {
+							$content[] = null;
+						}
+						++$index;
+						continue;
+					}
+					$content[] = $piece;
+				}
+				$block['innerContent'] = $content;
+				$block['innerBlocks']  = self::without_checkout_block( $block['innerBlocks'], $found );
+			}
+			$kept[] = $block;
+		}
+		return $kept;
+	}
+
+	/**
+	 * @param array $block Parsed block.
+	 * @return bool
+	 */
+	private static function is_checkout_block( $block ) {
+		return isset( $block['blockName'] ) && 'woocommerce/checkout' === $block['blockName'];
+	}
+
+	/**
+	 * admin-post.php?action=aimp_postnl_fix_checkout: removes the Checkout block from the checkout page.
+	 * WordPress keeps a revision, so the change can be undone under Revisions.
+	 */
+	public static function fix_checkout_page() {
+		check_admin_referer( 'aimp_postnl_fix_checkout' );
+		$page = (int) wc_get_page_id( 'checkout' );
+		if ( $page <= 0 || ! current_user_can( 'edit_page', $page ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'atelier-irisee-master-plugin' ) );
+		}
+		$found   = false;
+		$content = (string) get_post_field( 'post_content', $page );
+		$blocks  = self::without_checkout_block( parse_blocks( $content ), $found );
+		$result  = 'failed';
+		if ( $found ) {
+			$updated = wp_update_post(
+				array(
+					'ID'           => $page,
+					'post_content' => wp_slash( serialize_blocks( $blocks ) ),
+				),
+				true
+			);
+			clean_post_cache( $page );
+			$result = ( ! is_wp_error( $updated ) && ! has_block( 'woocommerce/checkout', $page ) ) ? 'done' : 'failed';
+		}
+		wp_safe_redirect( add_query_arg( 'aimp_postnl_fix', $result, wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=' . AIMP_Settings::PAGE . '#tab-aimp_postnl' ) ) );
+		exit;
+	}
+
+	/**
+	 * "Checkout check" on the PostNL tab.
+	 */
+	private static function render_check() {
+		$page    = (int) wc_get_page_id( 'checkout' );
+		$blocked = self::checkout_has_block();
+		$zones   = count( self::rates() );
+		echo '<div class="aimp-postnl-check"><h3>' . esc_html__( 'Checkout check', 'atelier-irisee-master-plugin' ) . '</h3><ul>';
+		printf(
+			'<li>%1$s: %2$s</li>',
+			esc_html__( 'Checkout page', 'atelier-irisee-master-plugin' ),
+			$page > 0 ? '<a href="' . esc_url( (string) get_permalink( $page ) ) . '" target="_blank" rel="noopener">' . esc_html( get_the_title( $page ) ) . '</a>' : esc_html__( 'not set', 'atelier-irisee-master-plugin' )
+		);
+		printf(
+			'<li>%1$s %2$s</li>',
+			$blocked ? '✗' : '✓',
+			esc_html( $blocked ? __( 'The page contains WooCommerce\'s Checkout block: PostNL\'s pickup points and Dutch address fields don\'t work. Use the button in the notice above.', 'atelier-irisee-master-plugin' ) : __( 'No WooCommerce Checkout block on the page: PostNL works in the Atelier Irisee checkout.', 'atelier-irisee-master-plugin' ) )
+		);
+		printf(
+			'<li>%1$s %2$s</li></ul></div>',
+			$zones ? '✓' : '✗',
+			esc_html(
+				$zones
+					/* translators: %d: number of shipping zones */
+					? sprintf( _n( '%d shipping zone with PostNL.', '%d shipping zones with PostNL.', $zones, 'atelier-irisee-master-plugin' ), $zones )
+					: __( 'No shipping zone with PostNL: add your country on the Shipping and delivery tab.', 'atelier-irisee-master-plugin' )
+			)
+		);
 	}
 
 	/**
@@ -511,6 +716,7 @@ class AIMP_PostNL {
 			return;
 		}
 		echo '<p>' . esc_html__( 'These are the settings of the PostNL for WooCommerce plugin, saved by PostNL itself. Shipping costs per country are on the Shipping and delivery tab.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::render_check();
 		echo '<div class="aimp-postnl-form">';
 		echo '<table class="form-table">';
 		$method->generate_settings_html( $method->get_form_fields(), true );

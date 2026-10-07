@@ -1243,4 +1243,21 @@ return array(
 	'Shipping runs through the PostNL for WooCommerce plugin. Install and activate it under %s, then its settings and the shipping costs appear here.' => 'La livraison passe par l\'extension PostNL for WooCommerce. Installez-la et activez-la sous %s ; ses réglages et les frais de livraison apparaissent alors ici.',
 	'These are the settings of the PostNL for WooCommerce plugin, saved by PostNL itself. Shipping costs per country are on the Shipping and delivery tab.' => 'Ce sont les réglages de l\'extension PostNL for WooCommerce, enregistrés par PostNL lui-même. Les frais de livraison par pays se trouvent dans l\'onglet Expédition et livraison.',
 	'Zone' => 'Zone',
+
+	// 3.3.1: PostNL checkout check
+	'%d shipping zone with PostNL.' => '%d zone de livraison avec PostNL.',
+	'%d shipping zones with PostNL.' => '%d zones de livraison avec PostNL.',
+	'Checkout check' => 'Vérification de la page de paiement',
+	'Delivery Days' => 'Jours de livraison',
+	'No shipping zone with PostNL: add your country on the Shipping and delivery tab.' => 'Aucune zone de livraison avec PostNL : ajoutez votre pays dans l\'onglet Expédition et livraison.',
+	'No WooCommerce Checkout block on the page: PostNL works in the Atelier Irisee checkout.' => 'Pas de bloc de paiement WooCommerce sur la page : PostNL fonctionne dans la page de paiement Atelier Irisee.',
+	'not set' => 'non défini',
+	'Open the page' => 'Ouvrir la page',
+	'Pickup' => 'Retrait',
+	'PostNL:' => 'PostNL :',
+	'Remove the block from the checkout page' => 'Retirer le bloc de la page de paiement',
+	'The page contains WooCommerce\'s Checkout block: PostNL\'s pickup points and Dutch address fields don\'t work. Use the button in the notice above.' => 'La page contient le bloc de paiement de WooCommerce : les points de retrait et les champs d\'adresse néerlandais de PostNL ne fonctionnent pas. Utilisez le bouton dans l\'avis ci-dessus.',
+	'The WooCommerce Checkout block could not be removed automatically. Open the checkout page in the editor and delete the "Checkout" block (keep the Atelier Irisee checkout).' => 'Le bloc de paiement de WooCommerce n\'a pas pu être retiré automatiquement. Ouvrez la page de paiement dans l\'éditeur et supprimez le bloc « Validation de commande » (gardez la page de paiement Atelier Irisee).',
+	'The WooCommerce Checkout block was removed from the checkout page. PostNL\'s pickup points now work in the Atelier Irisee checkout.' => 'Le bloc de paiement de WooCommerce a été retiré de la page de paiement. Les points de retrait PostNL fonctionnent maintenant dans la page de paiement Atelier Irisee.',
+	'Your checkout page contains WooCommerce\'s Checkout block. PostNL then works in its block mode, so the pickup points, the Dutch house-number field and the pickup fee don\'t work in the Atelier Irisee checkout.' => 'Votre page de paiement contient le bloc de paiement de WooCommerce. PostNL fonctionne alors en mode bloc : les points de retrait, le champ de numéro de maison néerlandais et les frais de retrait ne fonctionnent pas dans la page de paiement Atelier Irisee.',
 );

@@ -768,3 +768,16 @@
 .aimp-settings .aimp-postnl-form h2 {
 	margin-top: 1.6em;
 }
+
+/* PostNL tab: checkout check. */
+.aimp-settings .aimp-postnl-check {
+	max-width: 54rem;
+	margin: 0 0 1rem;
+	padding: 4px 14px;
+	border-left: 4px solid #b38f4f;
+	background: #fff;
+}
+
+.aimp-settings .aimp-postnl-check h3 {
+	margin: 0.6em 0 0.3em;
+}

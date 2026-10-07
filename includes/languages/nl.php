@@ -1243,4 +1243,21 @@ return array(
 	'Shipping runs through the PostNL for WooCommerce plugin. Install and activate it under %s, then its settings and the shipping costs appear here.' => 'Verzending loopt via de plugin PostNL for WooCommerce. Installeer en activeer die onder %s; daarna verschijnen de instellingen en de verzendkosten hier.',
 	'These are the settings of the PostNL for WooCommerce plugin, saved by PostNL itself. Shipping costs per country are on the Shipping and delivery tab.' => 'Dit zijn de instellingen van de plugin PostNL for WooCommerce, opgeslagen door PostNL zelf. De verzendkosten per land staan op het tabblad Verzending en levering.',
 	'Zone' => 'Zone',
+
+	// 3.3.1: PostNL checkout check
+	'%d shipping zone with PostNL.' => '%d verzendzone met PostNL.',
+	'%d shipping zones with PostNL.' => '%d verzendzones met PostNL.',
+	'Checkout check' => 'Controle van de afrekenpagina',
+	'Delivery Days' => 'Bezorgdagen',
+	'No shipping zone with PostNL: add your country on the Shipping and delivery tab.' => 'Geen verzendzone met PostNL: voeg je land toe op het tabblad Verzending en levering.',
+	'No WooCommerce Checkout block on the page: PostNL works in the Atelier Irisee checkout.' => 'Geen WooCommerce-afrekenblok op de pagina: PostNL werkt in de Atelier Irisee-afrekenpagina.',
+	'not set' => 'niet ingesteld',
+	'Open the page' => 'Pagina openen',
+	'Pickup' => 'Afhalen',
+	'PostNL:' => 'PostNL:',
+	'Remove the block from the checkout page' => 'Het blok van de afrekenpagina verwijderen',
+	'The page contains WooCommerce\'s Checkout block: PostNL\'s pickup points and Dutch address fields don\'t work. Use the button in the notice above.' => 'De pagina bevat het afrekenblok van WooCommerce: de afhaalpunten en Nederlandse adresvelden van PostNL werken niet. Gebruik de knop in de melding hierboven.',
+	'The WooCommerce Checkout block could not be removed automatically. Open the checkout page in the editor and delete the "Checkout" block (keep the Atelier Irisee checkout).' => 'Het afrekenblok van WooCommerce kon niet automatisch verwijderd worden. Open de afrekenpagina in de editor en verwijder het blok "Afrekenen" (laat de Atelier Irisee-afrekenpagina staan).',
+	'The WooCommerce Checkout block was removed from the checkout page. PostNL\'s pickup points now work in the Atelier Irisee checkout.' => 'Het afrekenblok van WooCommerce is van de afrekenpagina verwijderd. De afhaalpunten van PostNL werken nu in de Atelier Irisee-afrekenpagina.',
+	'Your checkout page contains WooCommerce\'s Checkout block. PostNL then works in its block mode, so the pickup points, the Dutch house-number field and the pickup fee don\'t work in the Atelier Irisee checkout.' => 'Je afrekenpagina bevat het afrekenblok van WooCommerce. PostNL werkt dan in zijn blokmodus, waardoor de afhaalpunten, het Nederlandse huisnummerveld en de afhaalkosten niet werken in de Atelier Irisee-afrekenpagina.',
 );

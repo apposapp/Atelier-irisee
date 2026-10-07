@@ -544,7 +544,78 @@
 		show(start, false);
 	}
 
+	/*
+	 * PostNL pickup points: PostNL's own checkout script shows the chosen tab's content and handles the choice.
+	 * When that script is not on the page (window.postnlParams is missing), this does the same, so the
+	 * "Pick up" tab and its list always work. Nothing here runs when PostNL's script is there.
+	 */
+	var postnlBound = false;
+
+	function postnlMissing() {
+		return typeof window.postnlParams === 'undefined';
+	}
+
+	function postnlShow() {
+		if (!$ || !postnlMissing()) {
+			return;
+		}
+		var $box = $('#postnl_checkout_option').last();
+		if (!$box.length) {
+			return;
+		}
+		var $tab = $box.find('.postnl_checkout_tab_list input.postnl_option:checked');
+		if (!$tab.length) {
+			$tab = $box.find('.postnl_checkout_tab_list input.postnl_option').first().prop('checked', true);
+		}
+		$box.find('.postnl_checkout_tab_list > li').removeClass('active');
+		$tab.closest('li').addClass('active');
+		$box.find('.postnl_checkout_content_container .postnl_content').removeClass('active');
+		var $content = $box.find('#postnl_' + $tab.val() + '_content').addClass('active');
+		$content.find('.postnl_sub_radio:checked').closest('li').addClass('active');
+	}
+
+	function postnlChoose(radio) {
+		var $radio = $(radio);
+		var name = $radio.attr('name');
+		$radio.closest('.postnl_list').find('ul.postnl_sub_list > li').removeClass('active');
+		var $li = $radio.closest('li').addClass('active');
+		var data = $li.data() || {};
+		Object.keys(data).forEach(function (key) {
+			$('#' + name + '_' + key).val(data[key]);
+		});
+		$(document.body).trigger('update_checkout');
+	}
+
+	function setupPostnl() {
+		if (!$ || postnlBound) {
+			return;
+		}
+		postnlBound = true;
+		$(document.body).on('updated_checkout', postnlShow);
+		$(document).on('change', '#postnl_checkout_option .postnl_checkout_tab_list input.postnl_option', function () {
+			if (!postnlMissing()) {
+				return;
+			}
+			postnlShow();
+			var $content = $('#postnl_' + this.value + '_content');
+			var $first = $content.find('.postnl_sub_radio:checked');
+			if (!$first.length) {
+				$first = $content.find('.postnl_sub_radio').first().prop('checked', true);
+			}
+			if ($first.length) {
+				postnlChoose($first[0]);
+			}
+		});
+		$(document).on('change', '#postnl_checkout_option .postnl_checkout_content_container .postnl_sub_radio', function () {
+			if (postnlMissing()) {
+				postnlChoose(this);
+			}
+		});
+		postnlShow();
+	}
+
 	function boot() {
+		setupPostnl();
 		document.querySelectorAll('[data-aimp-checkout]').forEach(function (root) {
 			if (!root.aimpReady) {
 				root.aimpReady = true;

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.3.0
+Stable tag: 3.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.3.1 =
+* PostNL pickup points: PostNL's checkout script is always loaded on the checkout, and the Atelier Irisee checkout shows and handles the "Pick up" choice itself if that script is missing, so the list of pickup points opens and a point can be chosen.
+* When the checkout page still contains WooCommerce's Checkout block (PostNL then switches to its block mode: no pickup points, no Dutch house-number field, no pickup fee), a notice offers to remove that block in one click (a revision is kept).
+* PostNL tab: a "Checkout check" with the checkout page, the block check and the number of PostNL shipping zones.
 
 = 3.3.0 =
 * Shipping now runs fully through PostNL for WooCommerce. The Atelier Irisee shipping method is removed; your shipping costs were moved (once, automatically) to WooCommerce shipping zones with the PostNL method: your own country, every country you had listed, and "all other countries", each with its cost and "free from".
