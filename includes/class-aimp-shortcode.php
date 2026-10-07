@@ -47,6 +47,11 @@ class AIMP_Shortcode {
 			'measureImage'    => AIMP_PLUGIN_URL . 'assets/images/lichaamsmaten.png',
 			'kitDiscount'     => AIMP_Cart::kit_discount(),
 			'loggedIn'        => is_user_logged_in(),
+			// Gold line icons of the size needs (fabric, buttons, zip, ribbon, bias tape).
+			'icons'           => array_combine(
+				array( 'fabric', 'buttons', 'zips', 'ribbons', 'bias' ),
+				array_map( array( 'AIMP_Product_Page', 'fabric_icon' ), array( 'fabric', 'buttons', 'zips', 'ribbons', 'bias' ) )
+			),
 			'defaultLanguage' => AIMP_I18n::default_language(),
 			'languages'       => self::languages_data(),
 			'i18n'            => self::all_strings(),
@@ -151,7 +156,7 @@ class AIMP_Shortcode {
 			'kitDiscount'     => __( 'Sewing project kit discount: −%d%%', 'atelier-irisee-master-plugin' ),
 			'adding'          => __( 'Adding…', 'atelier-irisee-master-plugin' ),
 			'viewCart'        => __( 'View cart', 'atelier-irisee-master-plugin' ),
-			'configureAnother' => __( 'Configure another pattern', 'atelier-irisee-master-plugin' ),
+			'configureAnother' => __( 'Make another sewing project kit', 'atelier-irisee-master-plugin' ),
 			'saveKit'          => __( 'Save this kit', 'atelier-irisee-master-plugin' ),
 			'saving'           => __( 'Saving…', 'atelier-irisee-master-plugin' ),
 			'loginToSave'      => __( 'Log in to save your kit.', 'atelier-irisee-master-plugin' ),

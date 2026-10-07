@@ -363,9 +363,22 @@ class AIMP_Shop {
 	 */
 	public static function overview_html() {
 		$cards = '';
+		$hero  = '';
 		foreach ( self::overview_sections() as $key => $section ) {
 			list( $label, $link_id, $setting, $cat_keys ) = $section;
 			if ( ! $link_id ) {
+				continue;
+			}
+			if ( 'configurator' === $key ) {
+				// Sewing project kits: the hero, a large tile on the left (bento).
+				$hero = sprintf(
+					'<li class="aimp-overview-card aimp-overview-hero"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-overview-hero-text"><span class="aimp-card-name">%3$s</span><span class="aimp-overview-hero-line">%4$s</span><span class="aimp-button aimp-overview-hero-button">%5$s</span></span></a></li>',
+					esc_url( get_permalink( $link_id ) ),
+					esc_url( self::overview_image( $setting, $cat_keys, $link_id ) ),
+					esc_html( $label ),
+					esc_html__( 'Pattern, fabric and haberdashery together', 'atelier-irisee-master-plugin' ),
+					esc_html__( 'Compose your kit', 'atelier-irisee-master-plugin' )
+				);
 				continue;
 			}
 			$cards .= sprintf(
@@ -375,6 +388,7 @@ class AIMP_Shop {
 				esc_html( $label )
 			);
 		}
+		$cards = $hero . $cards;
 		if ( '' === $cards ) {
 			return '';
 		}
@@ -384,7 +398,7 @@ class AIMP_Shop {
 		}
 		wp_enqueue_style( 'aimp-shop' );
 		return '<div class="aimp-configurator aimp-shop aimp-overview"><div class="aimp-topbar">' . AIMP_Product_Page::languages_html() . '</div>' .
-			'<ul class="aimp-grid aimp-overview-grid">' . $cards . '</ul></div>';
+			'<ul class="aimp-grid aimp-overview-grid' . ( $hero ? ' has-hero' : '' ) . '">' . $cards . '</ul></div>';
 	}
 
 	/* ------------------------------------------------------------------

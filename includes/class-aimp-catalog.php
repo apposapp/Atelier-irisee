@@ -264,6 +264,8 @@ class AIMP_Catalog {
 				'colour'      => array( '_aimp_spec_colour', __( 'Fabric colour', 'atelier-irisee-master-plugin' ), false ),
 				'width'       => array( '_aimp_spec_width', __( 'Fabric width', 'atelier-irisee-master-plugin' ), false ),
 				'weight'      => array( '_aimp_spec_weight', __( 'Fabric weight', 'atelier-irisee-master-plugin' ), false ),
+				// Optional: only shown when filled in.
+				'certification' => array( '_aimp_spec_certification', __( 'Certification', 'atelier-irisee-master-plugin' ), true ),
 			),
 			'washing' => array(
 				'washing' => array( '_aimp_wash_washing', __( 'Washing', 'atelier-irisee-master-plugin' ), false ),

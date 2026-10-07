@@ -21,6 +21,16 @@ class AIMP_Site {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue' ), 5 );
 		// Our front-end scripts don't block the page from showing.
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'defer_scripts' ), 999 );
+		// Divi's viewport blocks pinch zoom on phones; allow it again.
+		add_action( 'wp_head', array( __CLASS__, 'viewport' ), 0 );
+	}
+
+	public static function viewport() {
+		if ( ! function_exists( 'et_add_viewport_meta' ) || ! has_action( 'wp_head', 'et_add_viewport_meta' ) ) {
+			return;
+		}
+		remove_action( 'wp_head', 'et_add_viewport_meta' );
+		echo '<meta name="viewport" content="width=device-width, initial-scale=1">' . "\n";
 	}
 
 	/* ------------------------------------------------------------------

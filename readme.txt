@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.9.1
+Stable tag: 3.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,16 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.0.0 =
+* New: write and send newsletters under WooCommerce → Newsletter: subject, text with pictures, optional button and attachment; preview, test email, then send to all confirmed subscribers in the background, each with a personal unsubscribe link (WooCommerce email "Newsletter").
+* New: product workspace for fabrics and patterns: only the fields they use, as numbered cards (price and stock, texts, specifications, washing, sizes, recommendation); all other fields grouped under "Show all other fields".
+* New: gold info bar under the header (Site look → Info bar), with sparkles; it folds away while scrolling.
+* New: Shop icon in the header (All products); the All products overview shows the sewing project kits as a large hero tile.
+* New: "Certification" fabric specification (shown when filled in).
+* Configurator: the size needs as cards with icons; body measurements and account gift cards with a single line; "Make another sewing project kit".
+* Registration: the cat/dog question answers Cat, Dog, Both or No, in the visitor's language.
+* Mobile: compact header that slims down while scrolling, pinch zoom allowed, 44px tap areas and 16px fields; shop details as a bottom sheet; fixed Next bar in the configurator and checkout; account menu as swipeable buttons; foldable footer menus; size chart and overview as cards.
 
 = 2.9.1 =
 * Admin menu: choose a role or a person at the top ("Menu for:") and set up their whole menu at once: order and visibility of the main items and of the submenu items (for example inside WooCommerce). People without their own set-up use their role's, or else Everyone's. Settings from 2.9.0 are converted.

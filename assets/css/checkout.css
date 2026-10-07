@@ -876,3 +876,56 @@
 	gap: 0.75rem;
 	margin: 0 0 1.25rem;
 }
+
+/* Phones: the order total and the step's button, fixed at the bottom (checkout.js). */
+.aimp-checkout-bar {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 900;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+	border-top: 1px solid #b38f4f;
+	background: #fff;
+	box-shadow: 0 -8px 20px rgba(97, 57, 7, 0.08);
+	color: #613907;
+	font-size: 15px;
+}
+
+.aimp-checkout-bar[hidden] {
+	display: none;
+}
+
+.aimp-checkout-bar-total {
+	flex: 1 1 auto;
+	font-size: 17px;
+	font-weight: 700;
+}
+
+.aimp-checkout-bar-button {
+	flex: 0 0 auto;
+	min-height: 44px;
+	padding: 0.5rem 1.3rem;
+	border: 4px double #b38f4f;
+	border-radius: 100px;
+	background: #b38f4f;
+	color: #fff;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+@media (max-width: 700px) {
+	body.aimp-has-checkout-bar {
+		padding-bottom: 4.75rem;
+	}
+}
+
+@media (min-width: 701px) {
+	.aimp-checkout-bar {
+		display: none !important;
+	}
+}

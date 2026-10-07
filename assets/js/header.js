@@ -134,6 +134,67 @@
 		}
 	}
 
+	// Scrolled down: a slimmer header, and the gold info bar folds away (header.css, .is-scrolled).
+	function trackScroll(header) {
+		var ticking = false;
+		var update = function () {
+			ticking = false;
+			// Two thresholds, so the header doesn't flicker when its own height change moves the page.
+			var y = window.scrollY;
+			if (y > 60) {
+				header.classList.add('is-scrolled');
+			} else if (y < 10) {
+				header.classList.remove('is-scrolled');
+			}
+		};
+		window.addEventListener(
+			'scroll',
+			function () {
+				if (!ticking) {
+					ticking = true;
+					window.requestAnimationFrame(update);
+				}
+			},
+			{ passive: true }
+		);
+		update();
+	}
+
+	// Info bar: when the items don't fit next to each other (phones), they take turns.
+	function setupInfoBar(header) {
+		var bar = header.querySelector('[data-aimp-info-bar]');
+		var items = bar ? bar.querySelectorAll('li') : [];
+		if (items.length < 2) {
+			return;
+		}
+		var list = bar.querySelector('ul');
+		var index = 0;
+		var timer = null;
+		var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		var show = function () {
+			items.forEach(function (item, i) {
+				item.classList.toggle('is-current', i === index);
+			});
+		};
+		var check = function () {
+			bar.classList.remove('is-rotating');
+			var fits = list.scrollWidth <= bar.clientWidth;
+			clearInterval(timer);
+			if (!fits) {
+				bar.classList.add('is-rotating');
+				show();
+				if (!reduce) {
+					timer = setInterval(function () {
+						index = (index + 1) % items.length;
+						show();
+					}, 3500);
+				}
+			}
+		};
+		check();
+		window.addEventListener('resize', check);
+	}
+
 	// Language: the active flag opens a list with the other languages (links that also set the cookie).
 	function setupLanguages(header) {
 		var wrap = header.querySelector('[data-aimp-lang-switch]');
@@ -178,6 +239,8 @@
 				header.aimpReady = true;
 				setup(header);
 				trackOffset(header);
+				trackScroll(header);
+				setupInfoBar(header);
 				setupLanguages(header);
 			}
 		});

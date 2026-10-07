@@ -690,3 +690,176 @@
 .aimp-configurator .aimp-shop-buy-message .aimp-shop-buy-error {
 	color: #a3352b;
 }
+
+/* All products: "Sewing project kits" as the hero (bento): a large tile on the left, two rows high,
+ * the four other sections in a 2×2 grid next to it. Phones: hero on top, then two per row. */
+.aimp-configurator .aimp-overview-grid.has-hero {
+	grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr));
+	grid-auto-rows: auto;
+	gap: var(--aimp-gap);
+}
+
+.aimp-configurator .aimp-overview-grid.has-hero .aimp-overview-hero {
+	grid-row: span 2;
+}
+
+.aimp-configurator .aimp-overview-hero a.aimp-card {
+	justify-content: flex-start;
+	padding: 1.1rem 1.1rem 1.6rem;
+}
+
+.aimp-configurator .aimp-overview-hero .aimp-card-image {
+	flex: 1 1 auto;
+	aspect-ratio: auto;
+	min-height: 18rem;
+}
+
+.aimp-configurator .aimp-overview-hero-text {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.5rem;
+	padding-top: 0.6rem;
+}
+
+.aimp-configurator .aimp-overview-hero .aimp-card-name {
+	font-size: 1.35em;
+}
+
+.aimp-configurator .aimp-overview-hero-line {
+	color: var(--aimp-body-text);
+}
+
+.aimp-configurator .aimp-overview-hero-button {
+	margin-top: 0.3rem;
+}
+
+@container aimp (max-width: 900px) {
+	.aimp-configurator .aimp-overview-grid.has-hero {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.aimp-configurator .aimp-overview-grid.has-hero .aimp-overview-hero {
+		grid-column: 1 / -1;
+		grid-row: auto;
+	}
+
+	.aimp-configurator .aimp-overview-hero .aimp-card-image {
+		min-height: 0;
+		aspect-ratio: 16 / 10;
+	}
+}
+
+/* ------------------------------------------------------------------
+ * Phones: product details as a sheet from the bottom (shop.js), and a Filters button that stays in reach.
+ * ------------------------------------------------------------------ */
+.aimp-sheet {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+}
+
+.aimp-sheet[hidden] {
+	display: none;
+}
+
+.aimp-sheet-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(97, 57, 7, 0.4);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.aimp-sheet.is-open .aimp-sheet-backdrop {
+	opacity: 1;
+}
+
+.aimp-configurator.aimp-sheet-panel {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	max-height: 88vh;
+	margin: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 0 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+	border-radius: 24px 24px 0 0;
+	background: #fff;
+	box-shadow: 0 -12px 30px rgba(97, 57, 7, 0.18);
+	transform: translateY(100%);
+	transition: transform 0.3s ease;
+}
+
+.aimp-sheet.is-open .aimp-sheet-panel {
+	transform: none;
+}
+
+.aimp-sheet-head {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.75rem;
+	margin: 0 -1rem 0.5rem;
+	background: #fff;
+}
+
+.aimp-sheet-handle {
+	width: 44px;
+	height: 5px;
+	border-radius: 100px;
+	background: rgba(179, 143, 79, 0.45);
+}
+
+.aimp-configurator .aimp-sheet-close {
+	position: absolute;
+	top: 0;
+	right: 0.25rem;
+	width: 44px;
+	height: 44px;
+	border: 0;
+	background: none;
+	color: var(--aimp-gold-text, #8a6a33);
+	font-size: 28px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.aimp-sheet-body [data-role="panel"] {
+	position: static !important;
+	top: auto !important;
+	max-height: none;
+	border: 0;
+}
+
+html.aimp-sheet-open,
+html.aimp-sheet-open body {
+	overflow: hidden;
+}
+
+@media (max-width: 700px) {
+	.aimp-configurator.aimp-shop .aimp-shop-toggle {
+		position: fixed;
+		bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+		left: 50%;
+		z-index: 900;
+		background: #fff;
+		box-shadow: 0 6px 18px rgba(97, 57, 7, 0.18);
+		transform: translateX(-50%);
+	}
+
+	.aimp-configurator.aimp-shop.is-filters-open .aimp-shop-toggle {
+		background: var(--aimp-gold);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-sheet-backdrop,
+	.aimp-configurator.aimp-sheet-panel {
+		transition: none;
+	}
+}

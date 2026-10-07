@@ -519,3 +519,50 @@
 	border: 5px double var(--aimp-acc-gold);
 	border-radius: 24px;
 }
+
+/* Phones: the gold menu becomes one swipeable row of buttons above the content. */
+@media (max-width: 800px) {
+	.aimp-account .aimp-account-tabs {
+		padding: 0.6rem;
+		border-radius: 18px;
+	}
+
+	.aimp-account .aimp-account-tabs-title {
+		display: none;
+	}
+
+	.aimp-account .aimp-account-tabs ul {
+		display: flex;
+		gap: 0.5rem;
+		overflow-x: auto;
+		scroll-snap-type: x proximity;
+		scrollbar-width: none;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.aimp-account .aimp-account-tabs ul::-webkit-scrollbar {
+		display: none;
+	}
+
+	.aimp-account .aimp-account-tabs li {
+		flex: 0 0 auto;
+		scroll-snap-align: start;
+	}
+
+	.aimp-account .aimp-account-tabs li + li {
+		margin-top: 0;
+	}
+
+	.aimp-account .aimp-account-tab {
+		width: auto;
+		padding: 0.5rem 1rem;
+		white-space: nowrap;
+	}
+
+	.aimp-account .aimp-account-logout {
+		display: inline-flex;
+		width: auto;
+		margin-top: 0.5rem;
+		padding: 0.4rem 1rem;
+	}
+}

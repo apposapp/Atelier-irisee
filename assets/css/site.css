@@ -172,3 +172,27 @@
 .aimp-welcome .aimp-welcome-button:focus-visible {
 	background: rgba(179, 143, 79, 0.12);
 }
+
+/* ------------------------------------------------------------------
+ * Phones and tablets: easy tapping (44px) and no zooming in on fields (16px).
+ * ------------------------------------------------------------------ */
+@media (pointer: coarse) {
+	:is(.aimp-configurator, .aimp-account, .aimp-footer, .aimp-header) :is(.aimp-button, .aimp-account-button, .aimp-account-tab, .aimp-footer-button, .aimp-filter, .aimp-size, .aimp-page, .aimp-language, .aimp-add-to-cart, button.button, a.button) {
+		min-height: 44px;
+	}
+
+	:is(.aimp-configurator, .aimp-account) .aimp-stepper-btn,
+	:is(.aimp-configurator, .aimp-header, .aimp-footer) .aimp-fav,
+	.aimp-header .aimp-search-close,
+	.aimp-address-close,
+	.aimp-cart-remove--x {
+		min-width: 44px;
+		min-height: 44px;
+	}
+}
+
+@media (max-width: 700px) {
+	:is(.aimp-configurator, .aimp-account, .aimp-footer, .aimp-header, .aimp-el) :is(input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="search"], input[type="number"], input[type="url"], select, textarea) {
+		font-size: 16px;
+	}
+}

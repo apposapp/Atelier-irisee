@@ -283,3 +283,32 @@ body.aimp-replace-theme-footer :is(#main-footer, .et-l--footer, #colophon, .site
 .aimp-footer :is(.aimp-newsletter-intro, .aimp-newsletter-consent)[hidden] {
 	display: none;
 }
+
+/* Phones: menu columns fold open with their title (footer.js). */
+.aimp-footer .aimp-footer-col.is-foldable > .aimp-footer-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 44px;
+	margin: 0;
+	border-bottom: 1px solid rgba(179, 143, 79, 0.35);
+	cursor: pointer;
+}
+
+.aimp-footer .aimp-footer-col.is-foldable > .aimp-footer-title::after {
+	content: "";
+	width: 0.5em;
+	height: 0.5em;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: translateY(-0.15em) rotate(45deg);
+	transition: transform 0.2s ease;
+}
+
+.aimp-footer .aimp-footer-col.is-foldable:not(.is-folded) > .aimp-footer-title::after {
+	transform: translateY(0.1em) rotate(-135deg);
+}
+
+.aimp-footer .aimp-footer-col.is-folded > :not(.aimp-footer-title) {
+	display: none;
+}

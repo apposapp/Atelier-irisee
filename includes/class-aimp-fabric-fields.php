@@ -35,6 +35,7 @@ class AIMP_Fabric_Fields {
 			'colour'      => __( 'e.g. ochre yellow', 'atelier-irisee-master-plugin' ),
 			'width'       => __( 'e.g. 145 cm', 'atelier-irisee-master-plugin' ),
 			'weight'      => __( 'e.g. 180 g/m²', 'atelier-irisee-master-plugin' ),
+			'certification' => __( 'Optional, e.g. OEKO-TEX® Standard 100. Not shown when empty.', 'atelier-irisee-master-plugin' ),
 			'washing'     => __( 'e.g. 30 °C, gentle cycle', 'atelier-irisee-master-plugin' ),
 			'drying'      => __( 'e.g. do not tumble dry', 'atelier-irisee-master-plugin' ),
 			'ironing'     => __( 'e.g. medium heat, inside out', 'atelier-irisee-master-plugin' ),

@@ -820,6 +820,14 @@ class AIMP_Product_Page {
 			'drying'      => '<rect x="3.5" y="3.5" width="17" height="17" rx="2"/><circle cx="12" cy="12" r="5"/>',
 			'ironing'     => '<path d="M3 17.5h18l-1.6-6.4a3 3 0 0 0-2.9-2.3H8.5"/><path d="M3 17.5c.6-4.3 3.7-6.9 8-6.9h8.6"/><path d="M9 14.5h.01M12 14.5h.01M15 14.5h.01"/>',
 			'tips'        => '<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/>',
+			// A seal with a tick.
+			'certification' => '<circle cx="12" cy="9" r="5.5"/><path d="M9.6 9.1l1.6 1.6 3.3-3.3"/><path d="M8.6 13.4L7 21l5-2.6 5 2.6-1.6-7.6"/>',
+			// Configurator: what a size needs.
+			'fabric'      => '<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H20v11H6.5A2.5 2.5 0 0 0 4 18.5z"/><path d="M4 7.5v11A2.5 2.5 0 0 0 6.5 21H20v-5"/>',
+			'buttons'     => '<circle cx="12" cy="12" r="8.5"/><circle cx="10" cy="10" r="1"/><circle cx="14" cy="10" r="1"/><circle cx="10" cy="14" r="1"/><circle cx="14" cy="14" r="1"/>',
+			'zips'        => '<path d="M12 3v12"/><path d="M9.5 5H12M12 7.5h2.5M9.5 10H12M12 12.5h2.5"/><rect x="9" y="15" width="6" height="6" rx="1.5"/>',
+			'ribbons'     => '<path d="M12 10c-2-3.5-6.5-4-7-1.5S8 13 12 10zm0 0c2-3.5 6.5-4 7-1.5S16 13 12 10z"/><path d="M11 11l-3 9M13 11l3 9"/>',
+			'bias'        => '<path d="M3 16c3-6 6-6 9 0s6 6 9 0"/><path d="M3 11c3-6 6-6 9 0s6 6 9 0"/>',
 		);
 		$path  = isset( $paths[ $subject ] ) ? $paths[ $subject ] : $paths['tips'];
 		return '<svg class="aimp-washing-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';

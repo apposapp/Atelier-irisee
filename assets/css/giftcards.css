@@ -285,7 +285,7 @@
 	align-items: center;
 	gap: 1rem 1.25rem;
 	padding: 1rem;
-	border: 5px double var(--aimp-gc-gold);
+	border: 1px solid var(--aimp-gc-gold);
 	border-radius: 24px;
 }
 

@@ -302,6 +302,36 @@ class AIMP_Settings {
 			self::PAGE,
 			'aimp_site'
 		);
+
+		add_settings_field(
+			'aimp_info_bar',
+			__( 'Info bar', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_info_bar_field' ),
+			self::PAGE,
+			'aimp_site',
+			array( 'label_for' => 'aimp_info_bar' )
+		);
+	}
+
+	/**
+	 * A text setting (not a number), or its default when it was never saved.
+	 *
+	 * @param string $key     Setting.
+	 * @param string $default Default.
+	 * @return string
+	 */
+	public static function get_text( $key, $default = '' ) {
+		$options = (array) get_option( self::OPTION, array() );
+		return isset( $options[ $key ] ) && is_string( $options[ $key ] ) ? $options[ $key ] : $default;
+	}
+
+	public static function render_info_bar_field() {
+		printf(
+			'<textarea id="aimp_info_bar" name="%1$s[info_bar]" rows="3" class="large-text code">%2$s</textarea><p class="description">%3$s</p>',
+			esc_attr( self::OPTION ),
+			esc_textarea( self::get_text( 'info_bar', AIMP_Header::default_info_bar() ) ),
+			esc_html__( 'The gold bar under the header. One item per line; write the languages as "Dutch | French | English" or one text for all. Leave empty for no bar.', 'atelier-irisee-master-plugin' )
+		);
 	}
 
 	/**
@@ -581,6 +611,7 @@ class AIMP_Settings {
 		$sanitized['site_font']      = empty( $input['site_font'] ) ? 0 : 1;
 		$sanitized['header_enabled'] = empty( $input['header_enabled'] ) ? 0 : 1;
 		$sanitized['email_style']    = empty( $input['email_style'] ) ? 0 : 1;
+		$sanitized['info_bar']       = isset( $input['info_bar'] ) ? sanitize_textarea_field( wp_unslash( $input['info_bar'] ) ) : AIMP_Header::default_info_bar();
 
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;

@@ -637,7 +637,7 @@
 .aimp-measurements div {
 	padding: 0.7rem 0.5rem;
 	background: transparent;
-	border: 5px double var(--aimp-gold);
+	border: 1px solid var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 	text-align: center;
 }
@@ -666,9 +666,47 @@
 	text-align: right;
 }
 
+/* What the chosen size needs: small cards with a gold icon and a single line. */
 .aimp-needs {
-	margin: 0.25rem 0 1rem;
-	padding-left: 1.2rem;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+	gap: 0.5rem;
+	margin: 0.4rem 0 1rem;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-need {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin: 0;
+	padding: 0.55rem 0.7rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-radius);
+}
+
+.aimp-configurator .aimp-need .aimp-washing-icon {
+	flex: 0 0 auto;
+	width: 1.7rem;
+	height: 1.7rem;
+	color: var(--aimp-gold-text, #8a6a33);
+}
+
+.aimp-need-text {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	line-height: 1.25;
+}
+
+.aimp-configurator .aimp-need-label {
+	font-size: 0.85em;
+}
+
+.aimp-configurator .aimp-need-value {
+	color: var(--aimp-body-text);
+	font-weight: 700;
 }
 
 .aimp-needs-title {
@@ -1185,4 +1223,131 @@
 :is(.aimp-configurator, #aimp-specificity#aimp-specificity) :is(.aimp-button, .aimp-filter, .aimp-size, .aimp-language, .aimp-page, .aimp-add-to-cart, .aimp-shop-toggle):not(.is-active, .is-current, .is-selected, .is-filters-open .aimp-shop-toggle, .aimp-shop-sidebar *) {
 	color: var(--aimp-body-text);
 	font-size: var(--aimp-body-size);
+}
+
+/* ------------------------------------------------------------------
+ * Phones: compact step bar and a fixed bar with the current choice and the step's main button.
+ * ------------------------------------------------------------------ */
+.aimp-config-bar {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 900;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+	border-top: 1px solid #b38f4f;
+	background: #fff;
+	box-shadow: 0 -8px 20px rgba(97, 57, 7, 0.08);
+	color: #613907;
+	font-size: 15px;
+}
+
+.aimp-config-bar[hidden] {
+	display: none;
+}
+
+.aimp-config-bar-label {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.aimp-config-bar-button {
+	flex: 0 0 auto;
+	min-height: 44px;
+	padding: 0.5rem 1.2rem;
+	border: 4px double #b38f4f;
+	border-radius: 100px;
+	background: #b38f4f;
+	color: #fff;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+@media (max-width: 700px) {
+	body.aimp-has-config-bar {
+		padding-bottom: 4.75rem;
+	}
+
+	/* Step bar: numbers only, the current step with its name. */
+	.aimp-configurator .aimp-steps li:not(.is-current) {
+		font-size: 0;
+	}
+
+	.aimp-configurator .aimp-steps li:not(.is-current) .aimp-step-num {
+		font-size: 13px;
+	}
+}
+
+@media (min-width: 701px) {
+	.aimp-config-bar {
+		display: none !important;
+	}
+}
+
+/* Phones: the size chart and the overview table as stacked cards (labels from configurator.js). */
+@media (max-width: 600px) {
+	.aimp-configurator :is(table.aimp-size-chart, table.aimp-summary) thead {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+	}
+
+	.aimp-configurator :is(table.aimp-size-chart, table.aimp-summary),
+	.aimp-configurator :is(table.aimp-size-chart, table.aimp-summary) tbody {
+		display: block;
+		width: 100%;
+	}
+
+	.aimp-configurator :is(table.aimp-size-chart, table.aimp-summary) tbody tr {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.25rem 0.75rem;
+		margin: 0 0 0.6rem;
+		padding: 0.6rem 0.8rem;
+		border: 1px solid var(--aimp-gold);
+		border-radius: var(--aimp-radius);
+	}
+
+	.aimp-configurator :is(table.aimp-size-chart, table.aimp-summary) tbody :is(th, td) {
+		display: block;
+		padding: 0;
+		border: 0;
+		text-align: left;
+	}
+
+	/* The first cell (size or product) is the card's title. */
+	.aimp-configurator :is(table.aimp-size-chart, table.aimp-summary) tbody :is(th, td):first-child {
+		grid-column: 1 / -1;
+		font-weight: 700;
+	}
+
+	.aimp-configurator :is(table.aimp-size-chart, table.aimp-summary) tbody :is(th, td)[data-label]:not(:first-child)::before {
+		content: attr(data-label) ": ";
+		color: var(--aimp-gold-text, #8a6a33);
+		font-size: 0.85em;
+	}
+
+	.aimp-configurator .aimp-table-scroll {
+		overflow: visible;
+	}
+
+	.aimp-configurator table.aimp-summary tfoot {
+		display: block;
+	}
+
+	.aimp-configurator table.aimp-summary tfoot tr {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+	}
 }

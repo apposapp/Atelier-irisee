@@ -17,6 +17,7 @@ class AIMP_Login_Fields {
 	const FILE_MAX_MB   = 10;
 
 	public static function init() {
+		add_action( 'init', array( __CLASS__, 'migrate_pet_field' ), 20 );
 		// Admin user profile.
 		add_action( 'show_user_profile', array( __CLASS__, 'admin_profile_fields' ) );
 		add_action( 'edit_user_profile', array( __CLASS__, 'admin_profile_fields' ) );
@@ -113,6 +114,46 @@ class AIMP_Login_Fields {
 	 * @param string $context '' (all), 'register', 'profile' or 'admin'.
 	 * @return array[]
 	 */
+	/**
+	 * The pet question's answers, in the visitor's language.
+	 *
+	 * @return array value => label
+	 */
+	private static function pet_options() {
+		return array(
+			'cat'  => __( 'Cat', 'atelier-irisee-master-plugin' ),
+			'dog'  => __( 'Dog', 'atelier-irisee-master-plugin' ),
+			'both' => __( 'Both', 'atelier-irisee-master-plugin' ),
+			'no'   => __( 'No', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * Once: the registration question about a cat or dog gets the answers Cat, Dog, Both and No.
+	 */
+	public static function migrate_pet_field() {
+		if ( '1' === get_option( 'aimp_pet_field_v' ) ) {
+			return;
+		}
+		$options = get_option( AIMP_Login::OPTION, array() );
+		if ( is_array( $options ) && ! empty( $options['fields'] ) && is_array( $options['fields'] ) ) {
+			foreach ( $options['fields'] as $i => $field ) {
+				$text = strtolower( ( isset( $field['key'] ) ? $field['key'] : '' ) . ' ' . ( isset( $field['label'] ) ? $field['label'] : '' ) );
+				if ( isset( $field['type'] ) && in_array( $field['type'], array( 'select', 'radio' ), true ) && preg_match( '/\b(kat|katten|hond|honden|cat|cats|dog|dogs|huisdier|huisdieren|pet|pets|chat|chien)\b/u', $text ) ) {
+					$options['fields'][ $i ]['options'] = array(
+						'cat'  => 'Cat',
+						'dog'  => 'Dog',
+						'both' => 'Both',
+						'no'   => 'No',
+					);
+				}
+			}
+			update_option( AIMP_Login::OPTION, $options );
+			AIMP_Login::flush_cache();
+		}
+		update_option( 'aimp_pet_field_v', '1', false );
+	}
+
 	public static function custom( $context = '' ) {
 		$fields = array();
 		foreach ( (array) AIMP_Login::opt( 'fields' ) as $field ) {
@@ -121,6 +162,10 @@ class AIMP_Login_Fields {
 			}
 			if ( $context && ! in_array( $context, (array) $field['contexts'], true ) ) {
 				continue;
+			}
+			// The pet question: its answers in the visitor's language.
+			if ( ! empty( $field['options'] ) && array( 'cat', 'dog', 'both', 'no' ) === array_keys( (array) $field['options'] ) ) {
+				$field['options'] = self::pet_options();
 			}
 			$fields[] = $field;
 		}

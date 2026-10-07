@@ -149,7 +149,7 @@
 			return;
 		}
 		var box = document.createElement('div');
-		box.className = code === 'confirmed' ? 'woocommerce-message' : 'woocommerce-error';
+		box.className = code === 'invalid' ? 'woocommerce-error' : 'woocommerce-message';
 		box.setAttribute('role', 'status');
 		box.textContent = text;
 		var main = document.querySelector('#main-content, main, #page-container') || document.body;
@@ -193,4 +193,67 @@
 	} else {
 		start();
 	}
+})();
+
+/**
+ * Phones: the menu columns of the footer (My account, Customer service) fold open with their title, so the
+ * footer stays short. The company details and the newsletter stay open.
+ */
+(function () {
+	'use strict';
+
+	if (!window.matchMedia) {
+		return;
+	}
+	var phone = window.matchMedia('(max-width: 700px)');
+	var columns = Array.prototype.slice.call(document.querySelectorAll('.aimp-footer .aimp-footer-col')).filter(function (col) {
+		return col.querySelector(':scope > .aimp-footer-title') && col.querySelector('ul') && !col.querySelector('[data-aimp-newsletter]');
+	});
+	if (!columns.length) {
+		return;
+	}
+
+	function toggle(col, open) {
+		var title = col.querySelector(':scope > .aimp-footer-title');
+		col.classList.toggle('is-folded', !open);
+		title.setAttribute('aria-expanded', open ? 'true' : 'false');
+	}
+
+	function apply() {
+		columns.forEach(function (col) {
+			var title = col.querySelector(':scope > .aimp-footer-title');
+			if (phone.matches) {
+				col.classList.add('is-foldable');
+				title.setAttribute('role', 'button');
+				title.setAttribute('tabindex', '0');
+				toggle(col, false);
+			} else {
+				col.classList.remove('is-foldable', 'is-folded');
+				title.removeAttribute('role');
+				title.removeAttribute('tabindex');
+				title.removeAttribute('aria-expanded');
+			}
+		});
+	}
+
+	columns.forEach(function (col) {
+		var title = col.querySelector(':scope > .aimp-footer-title');
+		var flip = function () {
+			if (col.classList.contains('is-foldable')) {
+				toggle(col, col.classList.contains('is-folded'));
+			}
+		};
+		title.addEventListener('click', flip);
+		title.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				flip();
+			}
+		});
+	});
+
+	if (phone.addEventListener) {
+		phone.addEventListener('change', apply);
+	}
+	apply();
 })();

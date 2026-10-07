@@ -138,6 +138,60 @@
 		});
 	}
 
+	/*
+	 * Phones: a fixed bar at the bottom with the order total and the step's button ("Next", "To payment",
+	 * "Place order"); it presses the real button.
+	 */
+	function setupMobileBar(root) {
+		if (!window.matchMedia || root.classList.contains('is-confirmation') || !root.querySelector('form.checkout')) {
+			return;
+		}
+		var phone = window.matchMedia('(max-width: 700px)');
+		var bar = document.createElement('div');
+		bar.className = 'aimp-checkout-bar';
+		bar.hidden = true;
+		bar.innerHTML = '<span class="aimp-checkout-bar-total"></span><button type="button" class="aimp-checkout-bar-button"></button>';
+		document.body.appendChild(bar);
+
+		function primary() {
+			var next = root.querySelector('[data-checkout-next]');
+			if (next && !next.hidden) {
+				return next;
+			}
+			var place = root.querySelector('#place_order');
+			return place && place.offsetParent !== null ? place : null;
+		}
+
+		function update() {
+			var button = phone.matches ? primary() : null;
+			bar.hidden = !button;
+			document.body.classList.toggle('aimp-has-checkout-bar', !!button);
+			if (!button) {
+				return;
+			}
+			var total = root.querySelector('.order-total .woocommerce-Price-amount');
+			bar.querySelector('.aimp-checkout-bar-total').textContent = total ? total.textContent.trim() : '';
+			bar.querySelector('.aimp-checkout-bar-button').textContent = (button.textContent || button.value || '').trim();
+		}
+
+		bar.querySelector('button').addEventListener('click', function () {
+			var button = primary();
+			if (button) {
+				button.click();
+			}
+		});
+		new MutationObserver(function () {
+			window.requestAnimationFrame(update);
+		}).observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'data-step'] });
+		if ($) {
+			$(document.body).on('updated_checkout', update);
+		}
+		if (phone.addEventListener) {
+			phone.addEventListener('change', update);
+		}
+		update();
+	}
+
 	// "Your order": folded open and closed on phones, always open on wider screens.
 	function setupSummary(root) {
 		var summary = root.querySelector('[data-aimp-checkout-summary]');
@@ -309,6 +363,7 @@
 				root.aimpReady = true;
 				setupSummary(root);
 				setupCoupon(root);
+				setupMobileBar(root);
 				setup(root);
 			}
 		});

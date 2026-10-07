@@ -79,3 +79,15 @@
 		}
 	});
 })();
+
+/**
+ * Phones: the open tab of the swipeable account menu is scrolled into view.
+ */
+(function () {
+	'use strict';
+
+	var active = document.querySelector('.aimp-account-tabs .aimp-account-tab.is-active');
+	if (active && active.scrollIntoView && window.matchMedia && window.matchMedia('(max-width: 800px)').matches) {
+		active.scrollIntoView({ block: 'nearest', inline: 'center' });
+	}
+})();

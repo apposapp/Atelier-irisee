@@ -176,6 +176,35 @@ class AIMP_Header {
 	}
 
 	/**
+	 * The info bar's default text: one item per line, the languages as "NL | FR | EN".
+	 *
+	 * @return string
+	 */
+	public static function default_info_bar() {
+		return "Gratis levering vanaf €75 | Livraison gratuite dès 75 € | Free delivery from €75\n14 dagen retour | Retour sous 14 jours | 14 days return";
+	}
+
+	/**
+	 * The items of the gold info bar under the header, in the visitor's language.
+	 *
+	 * @return string[]
+	 */
+	public static function info_bar_items() {
+		$text  = AIMP_Settings::get_text( 'info_bar', self::default_info_bar() );
+		$index = array_search( AIMP_I18n::current(), array_keys( AIMP_I18n::languages() ), true );
+		$items = array();
+		foreach ( preg_split( '/\r\n|\r|\n/', $text ) as $line ) {
+			$parts = array_map( 'trim', explode( '|', $line ) );
+			// One text for every language, or "NL | FR | EN".
+			$item = ( count( $parts ) > 1 && false !== $index && isset( $parts[ $index ] ) && '' !== $parts[ $index ] ) ? $parts[ $index ] : $parts[0];
+			if ( '' !== $item ) {
+				$items[] = $item;
+			}
+		}
+		return $items;
+	}
+
+	/**
 	 * Gold line icons.
 	 *
 	 * @param string $name heart, bag, user, menu or close.
@@ -189,6 +218,7 @@ class AIMP_Header {
 			'menu'  => '<path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17"/>',
 			'close' => '<path d="M6 6l12 12M18 6L6 18"/>',
 			'search' => '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/>',
+			'shop'   => '<path d="M4 9.5h16l-1.2 10.5H5.2z"/><path d="M3.5 9.5l2.2-5h12.6l2.2 5"/><path d="M9.5 13.5a2.5 2.5 0 0 0 5 0"/>',
 		);
 		return '<svg class="aimp-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . ( isset( $paths[ $name ] ) ? $paths[ $name ] : '' ) . '</svg>';
 	}
@@ -216,7 +246,9 @@ class AIMP_Header {
 			'favorites_url' => ( $favorites && 'publish' === get_post_status( $favorites ) ) ? get_permalink( $favorites ) : '',
 			'cart_url'      => wc_get_cart_url(),
 			'account_url'   => self::account_url(),
-		'search_url'    => AIMP_Search::results_url(),
+			'search_url'    => AIMP_Search::results_url(),
+			'shop_url'      => AIMP_Search::results_url(),
+			'info_bar'      => self::info_bar_items(),
 			'cart_badge'    => self::cart_badge( self::cart_count() ),
 			'menu'          => has_nav_menu( self::LOCATION )
 				? wp_nav_menu(

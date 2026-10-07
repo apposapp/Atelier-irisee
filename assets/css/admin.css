@@ -508,3 +508,182 @@
 .aimp-am-subitem .aimp-am-title {
 	font-weight: 400;
 }
+
+/* WooCommerce → Newsletter: composer */
+.aimp-nl-composer {
+	max-width: 900px;
+	margin: 1rem 0 2rem;
+	padding: 16px 20px 20px;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #b38f4f;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.aimp-nl-extra {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 32px;
+	margin-top: 12px;
+}
+
+.aimp-nl-extra input[type="text"],
+.aimp-nl-extra input[type="url"] {
+	width: 260px;
+	max-width: 100%;
+}
+
+.aimp-nl-file {
+	display: inline-block;
+	margin-right: 8px;
+	color: #50575e;
+}
+
+.aimp-nl-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+/* ------------------------------------------------------------------
+ * Product edit: the Atelier Irisee workspace (fabrics and patterns)
+ * ------------------------------------------------------------------ */
+.aimp-ws-emptied {
+	display: none !important;
+}
+
+#aimp-workspace .inside {
+	margin: 0;
+	padding: 12px;
+}
+
+.aimp-ws-card {
+	margin: 0 0 10px;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #b38f4f;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.aimp-ws-card > summary {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 14px;
+	cursor: pointer;
+	list-style: none;
+}
+
+.aimp-ws-card > summary::-webkit-details-marker {
+	display: none;
+}
+
+.aimp-ws-num {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background: #b38f4f;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.aimp-ws-title {
+	color: #613907;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.aimp-ws-body {
+	padding: 0 14px 12px;
+}
+
+/* WooCommerce's rows inside a card: label above the field, full width. */
+.aimp-ws-body .options_group,
+.aimp-ws-body .form-field,
+.aimp-ws-body .stock_fields {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.aimp-ws-body p.form-field {
+	padding: 6px 0 !important;
+}
+
+.aimp-ws-body p.form-field label {
+	float: none;
+	display: block;
+	width: auto;
+	margin: 0 0 4px;
+}
+
+.aimp-ws-body p.form-field input[type="text"],
+.aimp-ws-body p.form-field input[type="number"],
+.aimp-ws-body p.form-field select {
+	float: none;
+	width: 100%;
+	max-width: 360px;
+}
+
+.aimp-ws-body .woocommerce-help-tip {
+	float: none;
+}
+
+.aimp-ws-body fieldset > legend {
+	display: none; /* The card has the title. */
+}
+
+/* Pattern: only Attributes and Variations of the product data box, unless all fields are shown. */
+.aimp-ws:not(.is-showing-all) .aimp-ws-sizes .product_data_tabs li:not(.attribute_options):not(.variations_options) {
+	display: none;
+}
+
+.aimp-ws .aimp-ws-sizes > .postbox-header {
+	display: none;
+}
+
+/* Show all other fields */
+.aimp-ws-other {
+	margin-top: 14px;
+	padding: 10px 14px;
+	border: 1px dashed #c3c4c7;
+	border-radius: 6px;
+}
+
+.aimp-ws-other > summary {
+	color: #613907;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-ws-group {
+	margin: 10px 0 0;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.aimp-ws-group > summary {
+	padding: 8px 12px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-ws-group > .postbox {
+	margin: 0;
+	border: 0;
+	box-shadow: none;
+}
+
+.aimp-ws-group > .postbox > .postbox-header {
+	display: none;
+}
+
+.aimp-ws-group > .postbox.closed .inside {
+	display: block;
+}

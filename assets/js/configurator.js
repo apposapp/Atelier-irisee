@@ -197,6 +197,85 @@
 	// Fit the side panels and mark the favorite hearts after every change (see ui.js).
 	Configurator.prototype.watchLayout = function () {
 		UI.watchLayout(this.root);
+		this.setupMobileBar();
+	};
+
+	/*
+	 * Phones: a fixed bar at the bottom with the current choice and the step's main button ("Confirm",
+	 * "Continue", "Add to cart"); it presses the real button. It lives in <body>, because the
+	 * configurator is a CSS container and would trap a fixed bar.
+	 */
+	Configurator.prototype.setupMobileBar = function () {
+		var self = this;
+		if (!window.matchMedia || this.mobileBar) {
+			return;
+		}
+		var bar = document.createElement('div');
+		bar.className = 'aimp-config-bar';
+		bar.hidden = true;
+		bar.innerHTML = '<span class="aimp-config-bar-label"></span><button type="button" class="aimp-config-bar-button"></button>';
+		document.body.appendChild(bar);
+		this.mobileBar = bar;
+		var phone = window.matchMedia('(max-width: 700px)');
+		var primary = function () {
+			var buttons = self.root.querySelectorAll('[data-action="confirm"], [data-action="confirm-fabric"], [data-action="continue"], [data-action="add"]');
+			for (var i = 0; i < buttons.length; i++) {
+				if (!buttons[i].hidden && !buttons[i].disabled && buttons[i].offsetParent !== null) {
+					return buttons[i];
+				}
+			}
+			return null;
+		};
+		var label = function () {
+			var s = self.state;
+			if (s.step === 'pattern') {
+				return s.pattern ? s.pattern.name + (s.size ? ' – ' + s.size.label : '') : '';
+			}
+			if (s.step === 'fabric') {
+				return s.fabric ? s.fabric.name : '';
+			}
+			return '';
+		};
+		var timer = null;
+		// Phones show the tables as cards: every cell gets its column name (configurator.css).
+		var labelTables = function () {
+			self.root.querySelectorAll('table.aimp-size-chart, table.aimp-summary').forEach(function (table) {
+				var heads = Array.prototype.map.call(table.querySelectorAll('thead th'), function (th) {
+					return th.textContent.trim();
+				});
+				table.querySelectorAll('tbody tr').forEach(function (tr) {
+					Array.prototype.forEach.call(tr.children, function (cell, i) {
+						if (heads[i] && !cell.hasAttribute('data-label')) {
+							cell.setAttribute('data-label', heads[i]);
+						}
+					});
+				});
+			});
+		};
+		var update = function () {
+			var button = phone.matches ? primary() : null;
+			bar.hidden = !button;
+			document.body.classList.toggle('aimp-has-config-bar', !!button);
+			labelTables();
+			if (button) {
+				bar.querySelector('.aimp-config-bar-label').textContent = label();
+				bar.querySelector('.aimp-config-bar-button').textContent = button.textContent.trim();
+			}
+		};
+		bar.querySelector('button').addEventListener('click', function () {
+			var button = primary();
+			if (button) {
+				button.click();
+			}
+		});
+		new MutationObserver(function () {
+			clearTimeout(timer);
+			timer = setTimeout(update, 50);
+		}).observe(this.root, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'hidden'] });
+		if (phone.addEventListener) {
+			phone.addEventListener('change', update);
+		}
+		update();
 	};
 
 	Configurator.prototype.reset = function () {
@@ -577,17 +656,26 @@
 	};
 
 	Configurator.prototype.needsHtml = function (size) {
+		// Cards with a gold icon, like the fabric specifications.
+		var icons = cfg.icons || {};
+		var card = function (icon, label, value) {
+			return (
+				'<li class="aimp-need">' + (icons[icon] || '') +
+				'<span class="aimp-need-text"><span class="aimp-need-label">' + esc(label) + '</span>' +
+				(value !== '' ? '<strong class="aimp-need-value">' + esc(value) + '</strong>' : '') + '</span></li>'
+			);
+		};
 		var rows = [];
 		if (size.fabric_units > 0) {
-			rows.push('<li><strong>' + esc(t.fabricNeeded) + ':</strong> ' + esc(size.fabric_text) + '</li>');
+			rows.push(card('fabric', t.fabricNeeded, size.fabric_text));
 		}
 		NOTIONS.forEach(function (n) {
 			if (n.qty(size) > 0) {
-				rows.push('<li><strong>' + esc(t[n.label]) + ':</strong> ' + esc(n.need(size)) + '</li>');
+				rows.push(card(n.type, t[n.label], n.need(size)));
 			}
 		});
 		if (!rows.length) {
-			rows.push('<li>' + esc(t.none) + '</li>');
+			rows.push(card('', t.none, ''));
 		}
 		return '<ul class="aimp-needs">' + rows.join('') + '</ul>';
 	};

@@ -42,6 +42,7 @@ class AIMP_Footer {
 		add_action( 'wc_ajax_aimp_unsubscribe', array( __CLASS__, 'unsubscribe' ) );
 		add_action( 'wc_ajax_aimp_newsletter_resend', array( __CLASS__, 'resend' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'confirm' ) );
+		add_action( 'template_redirect', array( __CLASS__, 'unsubscribe_link' ) );
 		add_filter( 'woocommerce_email_classes', array( __CLASS__, 'register_email' ) );
 		add_action( 'admin_post_aimp_newsletter_action', array( __CLASS__, 'admin_subscriber_action' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 70 );
@@ -260,6 +261,7 @@ class AIMP_Footer {
 				'messages'    => array(
 					'confirmed' => __( 'Thank you! Your subscription is confirmed.', 'atelier-irisee-master-plugin' ),
 					'invalid'   => __( 'This link is invalid or has expired.', 'atelier-irisee-master-plugin' ),
+					'unsubscribed' => __( 'You are unsubscribed from our newsletter.', 'atelier-irisee-master-plugin' ),
 				),
 			)
 		);
@@ -691,6 +693,49 @@ class AIMP_Footer {
 	/**
 	 * The link in the confirmation email: /?aimp_nl_confirm=TOKEN.
 	 */
+	/**
+	 * Confirmed subscribers (for sending a newsletter).
+	 *
+	 * @return int[] Post IDs.
+	 */
+	public static function confirmed_subscriber_ids() {
+		$ids = array();
+		foreach ( self::all_subscribers() as $subscriber ) {
+			if ( 'confirmed' === self::status( $subscriber->ID ) ) {
+				$ids[] = (int) $subscriber->ID;
+			}
+		}
+		return $ids;
+	}
+
+	/**
+	 * The personal one-click unsubscribe link of a subscriber (in newsletters).
+	 *
+	 * @param int $id Subscriber.
+	 * @return string
+	 */
+	public static function unsubscribe_url( $id ) {
+		return add_query_arg( 'aimp_nl_unsub', self::token( $id ), home_url( '/' ) );
+	}
+
+	/**
+	 * The unsubscribe link of a newsletter: /?aimp_nl_unsub=TOKEN removes that subscriber.
+	 */
+	public static function unsubscribe_link() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the token is the proof.
+		if ( empty( $_GET['aimp_nl_unsub'] ) ) {
+			return;
+		}
+		$id = self::find_by_token( sanitize_text_field( wp_unslash( $_GET['aimp_nl_unsub'] ) ) );
+		// phpcs:enable
+		if ( $id ) {
+			wp_delete_post( $id, true );
+			self::set_cookie( '' );
+		}
+		wp_safe_redirect( add_query_arg( 'aimp_nl_msg', $id ? 'unsubscribed' : 'invalid', home_url( '/' ) ) );
+		exit;
+	}
+
 	public static function confirm() {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- the token is the proof.
 		if ( empty( $_GET['aimp_nl_confirm'] ) ) {
@@ -738,6 +783,7 @@ class AIMP_Footer {
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Newsletter', 'atelier-irisee-master-plugin' ); ?></h1>
+			<?php do_action( 'aimp_newsletter_admin_top' ); // The newsletter composer (AIMP_Newsletter). ?>
 			<?php
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- message after a redirect.
 			$notice   = isset( $_GET['aimp_msg'] ) ? sanitize_key( wp_unslash( $_GET['aimp_msg'] ) ) : '';

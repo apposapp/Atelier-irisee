@@ -562,7 +562,11 @@
 					}
 					self.renderGrid();
 					self.renderPanel();
-					UI.scrollIntoViewIfNeeded(self.panelEl);
+					if (self.isPhone()) {
+						self.openSheet();
+					} else {
+						UI.scrollIntoViewIfNeeded(self.panelEl);
+					}
 				},
 				onPage: function (page) {
 					s.page = page;
@@ -616,6 +620,94 @@
 			});
 		}
 		return show;
+	};
+
+	/* ---------------------------------------------------------------
+	 * Phones: the details panel as a sheet that slides up from the bottom. It lives in <body>, because
+	 * the shop is a CSS container and would trap a fixed panel.
+	 * ------------------------------------------------------------- */
+
+	Shop.prototype.isPhone = function () {
+		return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
+	};
+
+	Shop.prototype.openSheet = function () {
+		var self = this;
+		if (!this.sheet) {
+			this.panelHome = { parent: this.panelEl.parentNode, next: this.panelEl.nextSibling };
+			var sheet = document.createElement('div');
+			sheet.className = 'aimp-sheet';
+			sheet.hidden = true;
+			sheet.innerHTML =
+				'<div class="aimp-sheet-backdrop" data-sheet-close></div>' +
+				'<div class="aimp-sheet-panel aimp-configurator aimp-shop" role="dialog" aria-modal="true">' +
+				'<div class="aimp-sheet-head"><span class="aimp-sheet-handle" aria-hidden="true"></span>' +
+				'<button type="button" class="aimp-sheet-close" data-sheet-close aria-label="' + esc(t.close || 'Close') + '">×</button></div>' +
+				'<div class="aimp-sheet-body"></div></div>';
+			document.body.appendChild(sheet);
+			this.sheet = sheet;
+			sheet.addEventListener('click', function (e) {
+				if (e.target.closest('[data-sheet-close]')) {
+					self.closeSheet();
+				}
+			});
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape' && self.sheet && !self.sheet.hidden) {
+					self.closeSheet();
+				}
+			});
+			// Swipe down on the top of the sheet to close it.
+			var head = sheet.querySelector('.aimp-sheet-head');
+			var startY = null;
+			head.addEventListener('touchstart', function (e) {
+				startY = e.touches[0].clientY;
+			}, { passive: true });
+			head.addEventListener('touchend', function (e) {
+				if (startY !== null && e.changedTouches[0].clientY - startY > 60) {
+					self.closeSheet();
+				}
+				startY = null;
+			});
+			// Back to a normal column on wider screens.
+			if (window.matchMedia) {
+				var mq = window.matchMedia('(max-width: 700px)');
+				var onChange = function () {
+					if (!mq.matches) {
+						self.closeSheet(true);
+					}
+				};
+				if (mq.addEventListener) {
+					mq.addEventListener('change', onChange);
+				} else if (mq.addListener) {
+					mq.addListener(onChange);
+				}
+			}
+		}
+		this.sheet.querySelector('.aimp-sheet-body').appendChild(this.panelEl);
+		this.sheet.hidden = false;
+		document.documentElement.classList.add('aimp-sheet-open');
+		window.requestAnimationFrame(function () {
+			self.sheet.classList.add('is-open');
+		});
+	};
+
+	Shop.prototype.closeSheet = function (immediately) {
+		var self = this;
+		if (!this.sheet || this.sheet.hidden) {
+			return;
+		}
+		this.sheet.classList.remove('is-open');
+		document.documentElement.classList.remove('aimp-sheet-open');
+		var done = function () {
+			self.sheet.hidden = true;
+			// The panel goes back to its place in the shop.
+			self.panelHome.parent.insertBefore(self.panelEl, self.panelHome.next);
+		};
+		if (immediately) {
+			done();
+		} else {
+			setTimeout(done, 300);
+		}
 	};
 
 	/* ---------------------------------------------------------------

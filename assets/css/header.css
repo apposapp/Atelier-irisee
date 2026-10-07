@@ -673,3 +673,127 @@ body.aimp-has-header .aimp-configurator .aimp-topbar:has(> .aimp-languages:only-
 	color: var(--aimp-brown);
 	text-align: center;
 }
+
+/* ------------------------------------------------------------------
+ * Gold info bar under the header (Site look → Info bar)
+ * ------------------------------------------------------------------ */
+.aimp-header .aimp-info-bar {
+	overflow: hidden;
+	max-height: 3rem;
+	background: linear-gradient(90deg, rgba(179, 143, 79, 0.94) 0%, rgba(179, 143, 79, 0.9) 75%, rgba(179, 143, 79, 0.82) 100%);
+	opacity: 1;
+	transition: max-height 0.35s ease, opacity 0.3s ease;
+}
+
+.aimp-header .aimp-info-bar-items {
+	display: flex;
+	flex-wrap: nowrap;
+	justify-content: center;
+	gap: 0.5rem 2.25rem;
+	margin: 0;
+	padding: 0.35rem 1rem;
+	list-style: none;
+	white-space: nowrap;
+}
+
+.aimp-header .aimp-info-bar-items li {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	margin: 0;
+	color: #fff;
+	font-size: 12.5px;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+}
+
+/* A small sparkle instead of a list dot: "irisée". */
+.aimp-header .aimp-info-bar-mark {
+	color: #fff;
+	font-size: 0.85em;
+	opacity: 0.9;
+}
+
+/* Not enough room (phones): the items take turns, fading. */
+.aimp-header .aimp-info-bar.is-rotating .aimp-info-bar-items {
+	display: grid;
+	justify-content: center;
+}
+
+.aimp-header .aimp-info-bar.is-rotating li {
+	grid-area: 1 / 1;
+	justify-content: center;
+	opacity: 0;
+	transition: opacity 0.5s ease;
+}
+
+.aimp-header .aimp-info-bar.is-rotating li.is-current {
+	opacity: 1;
+}
+
+/* Scrolled down: the bar folds away and the header gets slimmer. */
+.aimp-header.is-scrolled .aimp-info-bar {
+	max-height: 0;
+	opacity: 0;
+}
+
+.aimp-header > .aimp-header-inner {
+	transition: padding 0.3s ease;
+}
+
+.aimp-header-brand img,
+.aimp-header-brand .custom-logo {
+	transition: max-height 0.3s ease;
+}
+
+.aimp-header.is-scrolled > .aimp-header-inner {
+	padding-top: 0.4rem;
+	padding-bottom: 0.4rem;
+}
+
+.aimp-header.is-scrolled .aimp-header-brand img,
+.aimp-header.is-scrolled .aimp-header-brand .custom-logo {
+	max-height: 48px;
+}
+
+/* M1 phones: icons without labels (44px tap areas), smaller logo. */
+@media (max-width: 700px) {
+	.aimp-header .aimp-header-label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+
+	.aimp-header .aimp-header-link {
+		justify-content: center;
+		min-width: 44px;
+		min-height: 44px;
+	}
+
+	.aimp-header-icons {
+		align-items: center;
+		gap: 0.15rem;
+	}
+
+	.aimp-header-brand img,
+	.aimp-header-brand .custom-logo {
+		max-width: 130px;
+		max-height: 44px;
+	}
+
+	.aimp-header.is-scrolled .aimp-header-brand img,
+	.aimp-header.is-scrolled .aimp-header-brand .custom-logo {
+		max-height: 36px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-header .aimp-info-bar,
+	.aimp-header > .aimp-header-inner,
+	.aimp-header .aimp-info-bar.is-rotating li {
+		transition: none;
+	}
+}

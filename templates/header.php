@@ -34,6 +34,12 @@ defined( 'ABSPATH' ) || exit;
 				<span class="aimp-header-icon-wrap"><?php echo AIMP_Header::icon( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
 				<span class="aimp-header-label"><?php esc_html_e( 'Search', 'atelier-irisee-master-plugin' ); ?></span>
 			</button>
+			<?php if ( $data['shop_url'] ) : ?>
+				<a class="aimp-header-link" href="<?php echo esc_url( $data['shop_url'] ); ?>">
+					<span class="aimp-header-icon-wrap"><?php echo AIMP_Header::icon( 'shop' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
+					<span class="aimp-header-label"><?php esc_html_e( 'Shop', 'atelier-irisee-master-plugin' ); ?></span>
+				</a>
+			<?php endif; ?>
 			<?php if ( $data['favorites_url'] ) : ?>
 				<a class="aimp-header-link" href="<?php echo esc_url( $data['favorites_url'] ); ?>">
 					<span class="aimp-header-icon-wrap"><?php echo AIMP_Header::icon( 'heart' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span class="aimp-header-count" data-aimp-fav-count hidden></span></span>
@@ -88,6 +94,17 @@ defined( 'ABSPATH' ) || exit;
 			</button>
 		</div>
 	</div>
+
+	<?php if ( ! empty( $data['info_bar'] ) ) : ?>
+		<?php // Gold info bar (Site look → Info bar); folds away while scrolling down (header.js). ?>
+		<div class="aimp-info-bar" data-aimp-info-bar>
+			<ul class="aimp-info-bar-items">
+				<?php foreach ( $data['info_bar'] as $aimp_info ) : ?>
+					<li><span class="aimp-info-bar-mark" aria-hidden="true">✦</span><?php echo esc_html( $aimp_info ); ?></li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+	<?php endif; ?>
 
 	<div class="aimp-side-menu-backdrop" data-aimp-menu-close hidden></div>
 	<nav class="aimp-side-menu" id="aimp-side-menu" aria-label="<?php esc_attr_e( 'Menu', 'atelier-irisee-master-plugin' ); ?>" aria-hidden="true">
