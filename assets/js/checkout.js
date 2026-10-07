@@ -192,6 +192,94 @@
 		update();
 	}
 
+	/*
+	 * Fewer fields at first sight: "Address line 2" and the order note sit behind a "+ Add …" link
+	 * (rows marked aimp-behind-link by the plugin). A row that already has a value stays open.
+	 */
+	function setupRevealLinks(form) {
+		form.querySelectorAll('.form-row.aimp-behind-link').forEach(function (row) {
+			var field = row.querySelector('input, textarea');
+			if (!field || String(field.value || '').trim()) {
+				return;
+			}
+			var link = document.createElement('button');
+			link.type = 'button';
+			link.className = 'aimp-reveal-link';
+			link.textContent = field.id === 'order_comments' ? t.addNote : t.addAddress2;
+			row.parentNode.insertBefore(link, row);
+			row.hidden = true;
+			link.addEventListener('click', function () {
+				row.hidden = false;
+				link.remove();
+				field.focus();
+			});
+		});
+	}
+
+	/*
+	 * Checked when leaving a field: WooCommerce marks the row valid or invalid; here a short message is
+	 * shown under an invalid field (a gold ✓ for valid fields comes from the CSS).
+	 */
+	function setupInlineValidation(form) {
+		function message(row) {
+			if (row.classList.contains('woocommerce-invalid-required-field')) {
+				return t.fieldRequired;
+			}
+			if (row.classList.contains('woocommerce-invalid-email')) {
+				return t.fieldEmail;
+			}
+			if (row.classList.contains('woocommerce-invalid-phone')) {
+				return t.fieldPhone;
+			}
+			return row.classList.contains('woocommerce-invalid') ? t.fieldInvalid : '';
+		}
+		function update(row) {
+			var text = message(row);
+			var note = row.querySelector('.aimp-field-error');
+			var field = row.querySelector('input, select, textarea');
+			if (!text) {
+				if (note) {
+					note.remove();
+				}
+				if (field) {
+					field.removeAttribute('aria-invalid');
+				}
+				return;
+			}
+			if (!note) {
+				note = document.createElement('span');
+				note.className = 'aimp-field-error';
+				note.id = (field && field.id ? field.id : 'aimp-field') + '-error';
+				note.setAttribute('aria-live', 'polite');
+				row.appendChild(note);
+			}
+			note.textContent = text;
+			if (field) {
+				field.setAttribute('aria-invalid', 'true');
+				field.setAttribute('aria-describedby', note.id);
+			}
+		}
+		// After WooCommerce's own check of the field (same events, so wait a moment).
+		['focusout', 'change'].forEach(function (type) {
+			form.addEventListener(type, function (e) {
+				var row = e.target.closest ? e.target.closest('.form-row') : null;
+				if (row) {
+					setTimeout(function () {
+						update(row);
+					}, 0);
+				}
+			});
+		});
+		// The "Next" check and checkout errors mark rows too.
+		new MutationObserver(function (records) {
+			records.forEach(function (record) {
+				if (record.target.classList && record.target.classList.contains('form-row')) {
+					update(record.target);
+				}
+			});
+		}).observe(form, { subtree: true, attributes: true, attributeFilter: ['class'] });
+	}
+
 	// "Your order": folded open and closed on phones, always open on wider screens.
 	function setupSummary(root) {
 		var summary = root.querySelector('[data-aimp-checkout-summary]');
@@ -209,6 +297,16 @@
 				e.preventDefault();
 			}
 		});
+		// The total in the title follows shipping and discount changes.
+		var total = summary.querySelector('[data-aimp-summary-total]');
+		if (total && $) {
+			$(document.body).on('updated_checkout', function () {
+				var amount = root.querySelector('.woocommerce-checkout-review-order-table .order-total .amount');
+				if (amount) {
+					total.textContent = '· ' + amount.textContent.trim();
+				}
+			});
+		}
 	}
 
 	function setup(root) {
@@ -237,6 +335,8 @@
 		setupAddress(form, function () {
 			show('details', true);
 		});
+		setupRevealLinks(form);
+		setupInlineValidation(form);
 
 		function scrollTop() {
 			var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

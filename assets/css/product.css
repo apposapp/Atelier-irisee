@@ -809,3 +809,123 @@
 		transition: none;
 	}
 }
+
+/* "✦ Delivered in … · Free shipping from … · 14 days to return" under the buy bar (and in the cart). */
+.aimp-configurator .aimp-delivery-line {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem 1.1rem;
+	margin: 0.6rem 0 1rem;
+	padding: 0;
+	list-style: none;
+	color: var(--aimp-body-text);
+	font-size: 0.9em;
+}
+
+.aimp-configurator .aimp-delivery-line li {
+	display: flex;
+	align-items: baseline;
+	gap: 0.4rem;
+	margin: 0;
+	padding: 0;
+}
+
+.aimp-configurator .aimp-delivery-mark {
+	color: var(--aimp-gold);
+}
+
+/* "Only 3 left": only shown when the stock is low. */
+.aimp-configurator .aimp-low-stock {
+	margin: 0.5rem 0 0;
+	color: var(--aimp-gold-text, #8a6a33);
+	font-weight: 700;
+}
+
+/* The rating link scrolls gently to the reviews. */
+html:has(.aimp-product-reviews) {
+	scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html:has(.aimp-product-reviews) {
+		scroll-behavior: auto;
+	}
+}
+
+/* Desktop: the main picture zooms in where the mouse is (product.js); a click still opens the lightbox. */
+@media (hover: hover) and (pointer: fine) {
+	.aimp-configurator .aimp-gallery-main {
+		overflow: hidden;
+	}
+
+	.aimp-configurator .aimp-gallery-main img.is-zoomable {
+		transition: transform 0.25s ease;
+	}
+
+	.aimp-configurator .aimp-gallery-main.is-zooming img.is-zoomable {
+		transform: scale(2);
+		cursor: zoom-in;
+	}
+}
+
+/* Swipe dots: phones only (the thumbnails are hidden there). */
+.aimp-gallery-dots {
+	display: none;
+}
+
+@container aimp (max-width: 700px) {
+	.aimp-configurator .aimp-gallery-thumbs {
+		display: none;
+	}
+
+	.aimp-configurator .aimp-product-media {
+		max-width: none;
+	}
+
+	.aimp-configurator .aimp-gallery-main img {
+		width: 100%;
+		touch-action: pan-y;
+	}
+
+	.aimp-configurator .aimp-gallery-dots {
+		display: flex;
+		justify-content: center;
+		gap: 0.5rem;
+		margin-top: 0.6rem;
+	}
+
+	.aimp-configurator .aimp-gallery-dot {
+		width: 0.6rem;
+		height: 0.6rem;
+		min-height: 0;
+		padding: 0;
+		border: 1px solid var(--aimp-gold);
+		border-radius: 50%;
+		background: transparent;
+		cursor: pointer;
+	}
+
+	.aimp-configurator .aimp-gallery-dot.is-active {
+		background: var(--aimp-gold);
+	}
+
+	/* Inspiration, specification and washing tiles: one per row. */
+	.aimp-configurator .aimp-inspiration-grid,
+	.aimp-configurator .aimp-washing-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	/* The recommendation box right under the buy bar and delivery line. */
+	.aimp-configurator .aimp-product-summary > * {
+		order: 2;
+	}
+
+	.aimp-configurator .aimp-product-summary > :is(.aimp-product-title, .aimp-product-rating, .aimp-buy-bar, .aimp-product-price, .aimp-stock-alert, .aimp-low-stock, .aimp-delivery-line) {
+		order: 0;
+	}
+
+	.aimp-configurator .aimp-product-summary > .aimp-recommend-box {
+		order: 1;
+		margin-top: 0.5rem;
+	}
+}

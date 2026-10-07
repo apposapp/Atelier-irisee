@@ -44,6 +44,13 @@
 		} catch (e) {}
 	}
 
+	// "Continue shopping" in the cart goes back to the last shop page (with its filters).
+	function rememberShop() {
+		try {
+			window.sessionStorage.setItem('aimp_last_shop', window.location.href);
+		} catch (e) {}
+	}
+
 	var uid = 0;
 
 	function Shop(root, syncUrl) {
@@ -131,6 +138,7 @@
 		}
 		var query = params.toString();
 		window.history.replaceState(null, '', window.location.pathname + (query ? '?' + query : '') + window.location.hash);
+		rememberShop();
 	};
 
 	/* ---------------------------------------------------------------
@@ -141,7 +149,10 @@
 		var self = this;
 		this.root.innerHTML =
 			'<div class="aimp-topbar aimp-shop-topbar">' +
+			'<div class="aimp-shop-tools">' +
 			'<button type="button" class="aimp-button aimp-shop-toggle" data-action="toggle-filters" aria-controls="' + this.id + '-filters"></button>' +
+			'<div class="aimp-shop-sort" data-role="sortbar"></div>' +
+			'</div>' +
 			'<div class="aimp-languages" role="group"></div>' +
 			'</div>' +
 			'<div class="aimp-shop-layout">' +
@@ -153,7 +164,7 @@
 			'</aside>' +
 			'<div class="aimp-shop-backdrop" data-action="close-filters" hidden></div>' +
 			'<div class="aimp-split aimp-shop-content">' +
-			'<div class="aimp-split-main" data-role="grid"></div>' +
+			'<div class="aimp-split-main"><div class="aimp-shop-summary" data-role="summary" aria-live="polite"></div><div data-role="grid"></div></div>' +
 			'<aside class="aimp-split-side" data-role="panel"></aside>' +
 			'</div>' +
 			'</div>';
@@ -164,6 +175,8 @@
 		this.toggleBtn = this.root.querySelector('[data-action="toggle-filters"]');
 		this.filtersEl = this.root.querySelector('[data-role="filters"]');
 		this.gridEl = this.root.querySelector('[data-role="grid"]');
+		this.summaryEl = this.root.querySelector('[data-role="summary"]');
+		this.sortEl = this.root.querySelector('[data-role="sortbar"]');
 		this.panelEl = this.root.querySelector('[data-role="panel"]');
 
 		this.root.addEventListener('click', function (e) {
@@ -178,6 +191,8 @@
 				self.setSidebar(false);
 			} else if (action === 'clear-filters') {
 				self.clearFilters();
+			} else if (action === 'remove-filter') {
+				self.removeFilter(target.getAttribute('data-kind'), target.getAttribute('data-value'), target.getAttribute('data-taxonomy'));
 			}
 		});
 		this.root.addEventListener('keydown', function (e) {
@@ -254,6 +269,8 @@
 		this.root.querySelector('[data-role="show-results"]').textContent = t.showResults;
 		this.sidebar.setAttribute('aria-label', t.filters);
 
+		this.renderSort();
+
 		this.languagesEl.setAttribute('aria-label', t.language);
 		this.languagesEl.innerHTML = UI.languagesHtml(cfg.languages, lang);
 		this.languagesEl.querySelectorAll('[data-lang]').forEach(function (btn) {
@@ -287,24 +304,6 @@
 			'<label class="screen-reader-text" for="' + id + '-search">' + esc(t.search) + '</label>' +
 			'<input type="search" id="' + id + '-search" class="aimp-search" data-role="search" value="' + esc(f.search) + '" placeholder="' + esc(t.searchProducts) + '">' +
 			'</div>';
-
-		// Sort
-		var sorts = [
-			['recommended', t.sortRecommended],
-			['name_asc', t.sortNameAsc],
-			['name_desc', t.sortNameDesc],
-			['price_asc', t.sortPriceAsc],
-			['price_desc', t.sortPriceDesc],
-			['newest', t.sortNewest]
-		];
-		html +=
-			'<div class="aimp-filter-group">' +
-			'<label class="aimp-filter-label" for="' + id + '-sort">' + esc(t.sortBy) + '</label>' +
-			'<select id="' + id + '-sort" class="aimp-shop-select" data-role="sort">' +
-			sorts.map(function (o) {
-				return '<option value="' + o[0] + '"' + (f.sort === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
-			}).join('') +
-			'</select></div>';
 
 		// Categories
 		if (facets.categories && facets.categories.length) {
@@ -396,11 +395,6 @@
 			}, 350);
 		});
 
-		el.querySelector('[data-role="sort"]').addEventListener('change', function (e) {
-			f.sort = e.target.value;
-			changed();
-		});
-
 		el.querySelectorAll('[data-role="category"]').forEach(function (input) {
 			input.addEventListener('change', function () {
 				f.category = parseInt(input.value, 10) || 0;
@@ -476,6 +470,112 @@
 		});
 	};
 
+	// Sort: next to the Filters button, so it is always at hand.
+	Shop.prototype.renderSort = function () {
+		var self = this;
+		var f = this.state.filters;
+		var sorts = [
+			['recommended', t.sortRecommended],
+			['name_asc', t.sortNameAsc],
+			['name_desc', t.sortNameDesc],
+			['price_asc', t.sortPriceAsc],
+			['price_desc', t.sortPriceDesc],
+			['newest', t.sortNewest]
+		];
+		this.sortEl.innerHTML =
+			'<label class="screen-reader-text" for="' + this.id + '-sort">' + esc(t.sortBy) + '</label>' +
+			'<select id="' + this.id + '-sort" class="aimp-shop-select" data-role="sort">' +
+			sorts.map(function (o) {
+				return '<option value="' + o[0] + '"' + (f.sort === o[0] ? ' selected' : '') + '>' + esc(t.sortBy + ': ' + o[1]) + '</option>';
+			}).join('') +
+			'</select>';
+		this.sortEl.querySelector('select').addEventListener('change', function (e) {
+			f.sort = e.target.value;
+			self.state.page = 1;
+			self.load(false);
+		});
+	};
+
+	// Above the grid: the number of results and the active filters as chips (× removes one).
+	Shop.prototype.renderSummary = function () {
+		var s = this.state;
+		var f = s.filters;
+		var facets = s.facets || {};
+		if (!s.data) {
+			return;
+		}
+		var chips = [];
+		var chip = function (label, kind, value, taxonomy) {
+			chips.push(
+				'<button type="button" class="aimp-shop-chip" data-action="remove-filter" data-kind="' + kind + '" data-value="' + esc(value) + '"' +
+				(taxonomy ? ' data-taxonomy="' + esc(taxonomy) + '"' : '') + ' aria-label="' + esc(t.removeFilter.replace('%s', label)) + '">' +
+				'<span>' + esc(label) + '</span><span aria-hidden="true">×</span></button>'
+			);
+		};
+		if (f.category) {
+			var cat = (facets.categories || []).filter(function (c) {
+				return c.id === f.category;
+			})[0];
+			chip(cat ? cat.name : t.category, 'category', f.category);
+		}
+		if (f.search) {
+			chip('“' + f.search + '”', 'search', '');
+		}
+		if (f.min !== '' || f.max !== '') {
+			chip(cfg.currencySymbol + (f.min !== '' ? f.min : '0') + ' – ' + (f.max !== '' ? cfg.currencySymbol + f.max : '…'), 'price', '');
+		}
+		f.skills.forEach(function (key) {
+			var level = (facets.skills || []).filter(function (l) {
+				return l.key === key;
+			})[0];
+			chip(level ? level.label : key, 'skill', key);
+		});
+		(facets.attributes || []).forEach(function (attr) {
+			(f.attrs[attr.taxonomy] || []).forEach(function (slug) {
+				var term = attr.terms.filter(function (tm) {
+					return tm.slug === slug;
+				})[0];
+				chip(term ? term.name : slug, 'attr', slug, attr.taxonomy);
+			});
+		});
+		if (f.inStock) {
+			chip(t.inStockOnly, 'stock', '');
+		}
+		var total = parseInt(s.data.total, 10) || 0;
+		this.summaryEl.innerHTML =
+			'<p class="aimp-shop-results">' + esc((total === 1 ? t.resultOne : t.resultMany).replace('%d', total)) + '</p>' +
+			(chips.length ? '<div class="aimp-shop-chips">' + chips.join('') + (chips.length > 1 ? '<button type="button" class="aimp-shop-chip-clear" data-action="clear-filters">' + esc(t.clearAll) + '</button>' : '') + '</div>' : '');
+	};
+
+	Shop.prototype.removeFilter = function (kind, value, taxonomy) {
+		var f = this.state.filters;
+		if (kind === 'category') {
+			f.category = 0;
+		} else if (kind === 'search') {
+			f.search = '';
+		} else if (kind === 'price') {
+			f.min = '';
+			f.max = '';
+		} else if (kind === 'skill') {
+			f.skills = f.skills.filter(function (key) {
+				return key !== value;
+			});
+		} else if (kind === 'attr' && f.attrs[taxonomy]) {
+			f.attrs[taxonomy] = f.attrs[taxonomy].filter(function (slug) {
+				return slug !== value;
+			});
+			if (!f.attrs[taxonomy].length) {
+				delete f.attrs[taxonomy];
+			}
+		} else if (kind === 'stock') {
+			f.inStock = false;
+		}
+		this.state.page = 1;
+		this.renderTexts();
+		this.renderFilters();
+		this.load(false);
+	};
+
 	Shop.prototype.clearFilters = function () {
 		var sort = this.state.filters.sort;
 		this.state.filters = defaultFilters();
@@ -548,6 +648,7 @@
 	Shop.prototype.renderGrid = function () {
 		var self = this;
 		var s = this.state;
+		this.renderSummary();
 		UI.renderGrid(
 			this.gridEl,
 			s.data,

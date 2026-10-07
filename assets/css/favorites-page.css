@@ -166,3 +166,14 @@
 	line-height: 1;
 	cursor: pointer;
 }
+
+/* Phones: 2 per row (was 3) with bigger name and price. */
+@container aimp (max-width: 640px) {
+	.aimp-configurator.aimp-favorites .aimp-favorites-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.aimp-configurator.aimp-favorites .aimp-fav-item > .aimp-card {
+		font-size: 1rem;
+	}
+}

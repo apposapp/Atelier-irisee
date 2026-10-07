@@ -179,6 +179,22 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 				<?php if ( ! $aimp_buy['available'] && ! $aimp_giftcard ) : ?>
 					<?php echo AIMP_Stock_Alerts::form_html( $the_product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in form_html(). ?>
 				<?php endif; ?>
+				<?php if ( ! empty( $aimp_buy['low'] ) ) : ?>
+					<p class="aimp-low-stock">
+						<?php
+						echo esc_html(
+							$aimp_buy['per_10cm']
+								/* translators: %d: centimetres */
+								? sprintf( __( 'Only %d cm left', 'atelier-irisee-master-plugin' ), $aimp_buy['low'] )
+								/* translators: %d: number of items */
+								: sprintf( _n( 'Only %d left', 'Only %d left', $aimp_buy['low'], 'atelier-irisee-master-plugin' ), $aimp_buy['low'] )
+						);
+						?>
+					</p>
+				<?php endif; ?>
+				<?php if ( $aimp_buy['available'] && ! $aimp_giftcard ) : ?>
+					<?php echo AIMP_Trust::delivery_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in delivery_html(). ?>
+				<?php endif; ?>
 			<?php elseif ( '' !== $the_product->get_price_html() ) : ?>
 				<div class="aimp-product-price">
 					<p class="aimp-details-price price"><?php echo wp_kses_post( $the_product->get_price_html() ); ?></p>

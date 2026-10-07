@@ -84,6 +84,21 @@
 			}
 		});
 
+		// "All products" (the All products page, or else the first item with sub-items) starts unfolded.
+		var clean = function (url) {
+			return String(url || '').replace(/[?#].*$/, '').replace(/\/+$/, '');
+		};
+		var allUrl = clean(panel.getAttribute('data-all-url'));
+		var parents = panel.querySelectorAll('.menu-item-has-children');
+		var startOpen = null;
+		parents.forEach(function (item) {
+			var a = item.querySelector(':scope > a');
+			if (!startOpen && a && allUrl && clean(a.href) === allUrl) {
+				startOpen = item;
+			}
+		});
+		startOpen = startOpen || parents[0] || null;
+
 		// Sub-items: an arrow button next to the item opens them; they fade and unfold (see header.css).
 		panel.querySelectorAll('.menu-item-has-children').forEach(function (item, i) {
 			var sub = item.querySelector(':scope > .sub-menu');
@@ -109,7 +124,7 @@
 				btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 				wrap.inert = !open; // Closed sub-items can't be reached with Tab.
 			};
-			setOpen(item.classList.contains('current-menu-ancestor'));
+			setOpen(item === startOpen || item.classList.contains('current-menu-ancestor'));
 			btn.addEventListener('click', function () {
 				setOpen(!item.classList.contains('is-open'));
 			});

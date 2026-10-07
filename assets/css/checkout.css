@@ -929,3 +929,67 @@
 		display: none !important;
 	}
 }
+
+.aimp-configurator .aimp-thankyou-contact {
+	margin: 0 0 1rem;
+	color: var(--aimp-body-text);
+}
+
+/* Checked when leaving a field: a gold ✓ when fine, a short message when not (checkout.js). */
+.aimp-configurator.aimp-checkout .form-row.woocommerce-validated:not(.woocommerce-invalid) > label::after {
+	content: "✓";
+	margin-left: 0.4rem;
+	color: var(--aimp-gold);
+	font-weight: 700;
+}
+
+.aimp-configurator.aimp-checkout .aimp-field-error {
+	display: block;
+	margin-top: 0.25rem;
+	color: #a3352b;
+	font-size: 0.85em;
+}
+
+/* "+ Add apartment, suite…" and "+ Add a note to your order". */
+.aimp-configurator.aimp-checkout .aimp-reveal-link {
+	display: block;
+	clear: both;
+	min-height: 0;
+	margin: -0.25rem 0 0.85rem;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--aimp-gold-text, #8a6a33);
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.aimp-configurator.aimp-checkout .aimp-reveal-link:hover,
+.aimp-configurator.aimp-checkout .aimp-reveal-link:focus-visible {
+	text-decoration: underline;
+}
+
+/* "No account needed — you can also order as a guest." */
+.aimp-configurator.aimp-checkout .aimp-guest-note {
+	margin: 0 0 0.6rem;
+	color: var(--aimp-body-text);
+	font-size: 0.9em;
+}
+
+.aimp-configurator .aimp-checkout-summary-total {
+	color: var(--aimp-gold-text, #8a6a33);
+	font-weight: 700;
+}
+
+/* Phones: every field full width, one payment method per row. */
+@container aimp (max-width: 700px) {
+	.aimp-configurator.aimp-checkout :is(.form-row-first, .form-row-last) {
+		float: none;
+		width: 100%;
+	}
+
+	.aimp-configurator.aimp-checkout #payment ul.payment_methods {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

@@ -732,6 +732,11 @@ class AIMP_Footer {
 			wp_delete_post( $id, true );
 			self::set_cookie( '' );
 		}
+		// One-click unsubscribe from the inbox (List-Unsubscribe-Post): a POST that only needs "OK".
+		if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] ) {
+			status_header( 200 );
+			exit;
+		}
 		wp_safe_redirect( add_query_arg( 'aimp_nl_msg', $id ? 'unsubscribed' : 'invalid', home_url( '/' ) ) );
 		exit;
 	}

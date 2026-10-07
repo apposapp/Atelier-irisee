@@ -69,4 +69,14 @@
 		field.value = clean(field, field.value);
 		submitUpdate(field.closest('form'));
 	});
+
+	// "Continue shopping": back to the last shop page visited in this tab (shop.js remembers it).
+	try {
+		var last = window.sessionStorage.getItem('aimp_last_shop');
+		if (last && last.indexOf(window.location.origin + '/') === 0) {
+			document.querySelectorAll('[data-aimp-continue]').forEach(function (link) {
+				link.href = last;
+			});
+		}
+	} catch (e) {}
 })();

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.0.0
+Stable tag: 3.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,20 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.1.0 =
+* New: "Add a fabric" and "Add a pattern" in the WooCommerce menu. The new product starts in Stoffen or Patronen (patterns as Variable), so the workspace opens straight away.
+* Pattern edit screen: the short description is card 1 ("Description"); the long description is under "Show all other fields".
+* Newsletters: the content can be a page on the website (for example designed with Divi). The email then shows your intro, the page's picture and a "Read the newsletter" button. Every newsletter has a "View in browser" link and an optional preview text.
+* Delivery information (Site look → Delivery and stock): "Delivered in … · Free shipping from … · 14 days to return" under the buy bar and in the cart, plus the payment logos and "Continue shopping" in the cart.
+* Product pages: "Only 3 left" when stock is low (setting, 0 = off), zoom on hover over the picture, swipe with dots on phones.
+* Shop pages: number of results, the active filters as chips with ×, and the sort menu next to Filters.
+* Search: matching categories first, "Did you mean …" for typos, and your last five searches.
+* Checkout: no company field unless switched on; address line 2 and order note behind a "+ Add …" link; "No account needed" for guests; fields are checked as you leave them (also in the login and registration forms).
+* Orders: expected delivery date (working days, Belgian holidays skipped) on the thank-you page and in the order emails, with a "Questions?" contact line.
+* Emails: preview line in the inbox, mobile and dark mode styles, buttons that work in Outlook, sender name "Atelier Irisée", replies go to the shop email, one-click unsubscribe for newsletters.
+* Phones: product grids as list rows; cart products as stacked cards; one payment method per row; favorites 2 per row; All products overview fits the screen on desktop.
+* The side menu opens with "All products" unfolded; the configurator's "added to cart" notice has a single border.
 
 = 3.0.0 =
 * New: write and send newsletters under WooCommerce → Newsletter: subject, text with pictures, optional button and attachment; preview, test email, then send to all confirmed subscribers in the background, each with a personal unsubscribe link (WooCommerce email "Newsletter").

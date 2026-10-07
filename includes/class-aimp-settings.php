@@ -71,6 +71,10 @@ class AIMP_Settings {
 			'font_bold'                 => 0,
 			'header_enabled'            => 0,
 			'email_style'               => 1,
+			'return_days'               => 14,
+			'delivery_days'             => 4,
+			'low_stock'                 => 5,
+			'checkout_company'          => 0,
 			'account_page'              => 0,
 			'overview_img_fabrics'      => 0,
 			'overview_img_patterns'     => 0,
@@ -311,6 +315,14 @@ class AIMP_Settings {
 			'aimp_site',
 			array( 'label_for' => 'aimp_info_bar' )
 		);
+
+		add_settings_field(
+			'aimp_delivery',
+			__( 'Delivery and stock', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_delivery_fields' ),
+			self::PAGE,
+			'aimp_site'
+		);
 	}
 
 	/**
@@ -323,6 +335,45 @@ class AIMP_Settings {
 	public static function get_text( $key, $default = '' ) {
 		$options = (array) get_option( self::OPTION, array() );
 		return isset( $options[ $key ] ) && is_string( $options[ $key ] ) ? $options[ $key ] : $default;
+	}
+
+	public static function default_delivery_time() {
+		return '2–4 werkdagen | 2–4 jours ouvrables | 2–4 working days';
+	}
+
+	/**
+	 * A text written as "NL | FR | EN" (or one text for all) in the visitor's language.
+	 *
+	 * @param string $text Text.
+	 * @return string
+	 */
+	public static function localized( $text ) {
+		$parts = array_map( 'trim', explode( '|', (string) $text ) );
+		$index = array_search( AIMP_I18n::current(), array_keys( AIMP_I18n::languages() ), true );
+		return ( count( $parts ) > 1 && false !== $index && isset( $parts[ $index ] ) && '' !== $parts[ $index ] ) ? $parts[ $index ] : $parts[0];
+	}
+
+	public static function render_delivery_fields() {
+		printf(
+			'<p><label>%1$s<br><input type="text" class="regular-text" name="%2$s[delivery_time]" value="%3$s"></label></p>' .
+			'<p><label>%4$s <input type="number" min="0" max="60" class="small-text" name="%2$s[delivery_days]" value="%5$d"></label></p>' .
+			'<p><label>%6$s <input type="number" min="0" max="365" class="small-text" name="%2$s[return_days]" value="%7$d"></label></p>' .
+			'<p><label>%8$s <input type="number" min="0" max="999" class="small-text" name="%2$s[low_stock]" value="%9$d"></label></p>' .
+			'<p><label><input type="checkbox" name="%2$s[checkout_company]" value="1" %10$s> %11$s</label></p>' .
+			'<p class="description">%12$s</p>',
+			esc_html__( 'Delivery time (shown under "Add to cart" and in the cart)', 'atelier-irisee-master-plugin' ),
+			esc_attr( self::OPTION ),
+			esc_attr( self::get_text( 'delivery_time', self::default_delivery_time() ) ),
+			esc_html__( 'Working days until delivery, for the expected delivery date', 'atelier-irisee-master-plugin' ),
+			(int) self::get( 'delivery_days' ),
+			esc_html__( 'Days to return', 'atelier-irisee-master-plugin' ),
+			(int) self::get( 'return_days' ),
+			esc_html__( 'Show "Only … left" from this stock (0 = never)', 'atelier-irisee-master-plugin' ),
+			(int) self::get( 'low_stock' ),
+			checked( 1, self::get( 'checkout_company' ), false ),
+			esc_html__( 'Ask for a company name at checkout', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Write the delivery time as "Dutch | French | English" or one text for all.', 'atelier-irisee-master-plugin' )
+		);
 	}
 
 	public static function render_info_bar_field() {
@@ -612,6 +663,11 @@ class AIMP_Settings {
 		$sanitized['header_enabled'] = empty( $input['header_enabled'] ) ? 0 : 1;
 		$sanitized['email_style']    = empty( $input['email_style'] ) ? 0 : 1;
 		$sanitized['info_bar']       = isset( $input['info_bar'] ) ? sanitize_textarea_field( wp_unslash( $input['info_bar'] ) ) : AIMP_Header::default_info_bar();
+		$sanitized['delivery_time']  = isset( $input['delivery_time'] ) ? sanitize_text_field( wp_unslash( $input['delivery_time'] ) ) : self::default_delivery_time();
+		$sanitized['return_days']    = isset( $input['return_days'] ) ? min( 365, absint( $input['return_days'] ) ) : 14;
+		$sanitized['delivery_days']  = isset( $input['delivery_days'] ) ? min( 60, absint( $input['delivery_days'] ) ) : 4;
+		$sanitized['low_stock']      = isset( $input['low_stock'] ) ? min( 999, absint( $input['low_stock'] ) ) : 5;
+		$sanitized['checkout_company'] = empty( $input['checkout_company'] ) ? 0 : 1;
 
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;

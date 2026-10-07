@@ -14,6 +14,7 @@
 	var type = ws.getAttribute('data-type');
 	var other = ws.querySelector('[data-ws-slot="other"]');
 	var STORE = 'aimp_ws_other_open';
+	var pendingOther = []; // Made here, tucked under "other fields" below.
 
 	function slot(name) {
 		return ws.querySelector('[data-ws-slot="' + name + '"]');
@@ -74,6 +75,21 @@
 			}
 		}
 	} else if (type === 'pattern') {
+		// The short description is the pattern's description; the long one goes under "other fields".
+		var excerpt = q('#postexcerpt');
+		if (excerpt) {
+			move('description', [excerpt]);
+			excerpt.classList.add('aimp-ws-inline-box');
+		}
+		var longText = q('#postdivrich');
+		if (longText) {
+			var longBox = document.createElement('div');
+			longBox.className = 'postbox aimp-ws-longtext';
+			longBox.innerHTML = '<div class="postbox-header"><h2 class="hndle"></h2></div>';
+			longBox.querySelector('.hndle').textContent = ws.getAttribute('data-long-label') || 'Long description';
+			longBox.appendChild(longText);
+			pendingOther.push(longBox);
+		}
 		var panel = q('#aimp_pattern_data');
 		move('check', [panel ? q('.aimp-availability', panel) : null]);
 		move('price', [closestGroup('#' + ws.getAttribute('data-price'))].concat(stockRows));
@@ -109,6 +125,9 @@
 	}
 
 	// Everything else, grouped.
+	pendingOther.forEach(function (box) {
+		tuck(box);
+	});
 	if (type === 'fabric') {
 		tuck(q('#woocommerce-product-data'));
 	}

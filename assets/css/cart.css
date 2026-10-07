@@ -392,3 +392,101 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
+
+/* Under the totals: delivery line, payment methods and "Continue shopping". */
+.aimp-configurator .aimp-cart-trust {
+	display: grid;
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+.aimp-configurator .aimp-cart-trust .aimp-delivery-line {
+	flex-direction: column;
+	margin: 0;
+}
+
+.aimp-configurator .aimp-cart-payments {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.aimp-configurator .aimp-cart-payments img {
+	width: auto;
+	height: 1.6rem;
+}
+
+.aimp-configurator .aimp-cart-continue {
+	color: var(--aimp-gold-text, #8a6a33);
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.aimp-configurator .aimp-cart-continue:hover,
+.aimp-configurator .aimp-cart-continue:focus-visible {
+	text-decoration: underline;
+}
+
+/* Phones: every product a stacked card (picture and name, then amount and price on their own line);
+ * the totals come after the products, full width. */
+@container aimp (max-width: 560px) {
+	.aimp-configurator .aimp-cart-single {
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		grid-template-areas:
+			"thumb info remove"
+			"qty qty subtotal";
+		margin: 0 0 0.75rem;
+		padding: 0.85rem 1rem;
+		border: 1px solid var(--aimp-gold);
+		border-radius: var(--aimp-panel-radius);
+	}
+
+	.aimp-configurator .aimp-cart-single > .aimp-cart-thumb {
+		grid-area: thumb;
+	}
+
+	.aimp-configurator .aimp-cart-single > .aimp-cart-single-info {
+		grid-area: info;
+	}
+
+	.aimp-configurator .aimp-cart-single > .aimp-cart-single-qty {
+		grid-area: qty;
+		grid-column: auto;
+		justify-self: start;
+	}
+
+	.aimp-configurator .aimp-cart-single > .aimp-cart-single-subtotal {
+		grid-area: subtotal;
+		font-weight: 700;
+	}
+
+	.aimp-configurator .aimp-cart-single > .aimp-cart-remove {
+		grid-area: remove;
+		align-self: start;
+	}
+
+	.aimp-configurator .aimp-cart-set {
+		padding: 0.85rem 1rem;
+	}
+
+	.aimp-configurator .aimp-cart-set-item {
+		flex-wrap: wrap;
+	}
+
+	.aimp-configurator .aimp-cart-set-name {
+		flex-basis: calc(100% - 64px - 0.85rem);
+	}
+
+	.aimp-configurator .aimp-cart-set-price {
+		margin-left: calc(64px + 0.85rem);
+	}
+
+	.aimp-configurator .aimp-cart-side {
+		padding: 1rem;
+	}
+
+	.aimp-configurator .aimp-cart-coupon {
+		flex: 1 1 100%;
+	}
+}

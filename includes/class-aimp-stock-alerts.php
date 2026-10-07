@@ -185,7 +185,7 @@ class AIMP_Stock_Alerts {
 					/* translators: %s: product name */
 					'<p>' . esc_html( sprintf( __( 'Good news: %s is back in stock. Be quick, the stock is limited.', 'atelier-irisee-master-plugin' ), $name ) ) . '</p>' .
 					( $image ? '<p><a href="' . esc_url( $url ) . '"><img src="' . esc_url( $image ) . '" alt="' . esc_attr( $name ) . '" width="220" style="border-radius:16px;max-width:100%;height:auto"></a></p>' : '' ) .
-					'<p><a href="' . esc_url( $url ) . '" style="display:inline-block;padding:12px 26px;border:4px double #b38f4f;border-radius:100px;color:#613907;font-weight:bold;text-decoration:none">' . esc_html__( 'View product', 'atelier-irisee-master-plugin' ) . '</a></p>',
+					AIMP_Emails::button( __( 'View product', 'atelier-irisee-master-plugin' ), $url ),
 				);
 			}
 		);

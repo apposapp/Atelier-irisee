@@ -92,7 +92,7 @@ class AIMP_Orders {
 
 	private static function thumb( $product, $size = 48 ) {
 		$url = ( $product && $product->get_image_id() ) ? wp_get_attachment_image_url( $product->get_image_id(), 'woocommerce_gallery_thumbnail' ) : wc_placeholder_img_src( 'woocommerce_gallery_thumbnail' );
-		return '<img src="' . esc_url( $url ) . '" alt="" width="' . (int) $size . '" height="' . (int) $size . '" style="width:' . (int) $size . 'px;height:' . (int) $size . 'px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px">';
+		return '<img src="' . esc_url( $url ) . '" alt="' . esc_attr( $product ? wp_strip_all_tags( $product->get_name() ) : '' ) . '" width="' . (int) $size . '" height="' . (int) $size . '" style="width:' . (int) $size . 'px;height:' . (int) $size . 'px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px">';
 	}
 
 	/**

@@ -203,6 +203,11 @@ class AIMP_Shop {
 			'sortNewest'      => __( 'Newest', 'atelier-irisee-master-plugin' ),
 			'skillLevel'      => __( 'Skill level', 'atelier-irisee-master-plugin' ),
 			'clearFilters'    => __( 'Clear all filters', 'atelier-irisee-master-plugin' ),
+			'clearAll'        => __( 'Clear all', 'atelier-irisee-master-plugin' ),
+			/* translators: %s: filter, e.g. a colour */
+			'removeFilter'    => __( 'Remove filter: %s', 'atelier-irisee-master-plugin' ),
+			'resultOne'       => __( '%d product', 'atelier-irisee-master-plugin' ),
+			'resultMany'      => __( '%d products', 'atelier-irisee-master-plugin' ),
 			'loading'         => __( 'Loading…', 'atelier-irisee-master-plugin' ),
 			'error'           => __( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ),
 			'previous'        => __( 'Previous', 'atelier-irisee-master-plugin' ),

@@ -149,6 +149,7 @@ defined( 'ABSPATH' ) || exit;
 
 			<aside class="aimp-cart-side">
 				<?php woocommerce_cart_totals(); ?>
+				<?php echo AIMP_Trust::cart_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in cart_html(). ?>
 			</aside>
 		</div>
 

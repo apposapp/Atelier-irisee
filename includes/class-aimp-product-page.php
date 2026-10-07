@@ -408,6 +408,9 @@ class AIMP_Product_Page {
 		$min       = $available ? max( 1, (int) $buyable->get_min_purchase_quantity() ) : 1;
 		$max       = $available ? (int) $buyable->get_max_purchase_quantity() : 0; // -1 = no maximum.
 		$factor    = $per_10cm ? AIMP_Catalog::FABRIC_UNIT_CM : 1;
+		// Only when the stock is low (setting; 0 = never), the one place a stock level is shown.
+		$threshold = (int) AIMP_Settings::get( 'low_stock' );
+		$left      = $available && $threshold > 0 && $buyable->managing_stock() ? (int) $buyable->get_stock_quantity() : 0;
 
 		return array(
 			'available'  => $available,
@@ -419,6 +422,7 @@ class AIMP_Product_Page {
 			'max'        => $max > 0 ? $max * $factor : 0,
 			'step'       => $factor,
 			'value'      => $min * $factor,
+			'low'        => $left > 0 && $left <= $threshold ? $left * $factor : 0,
 		);
 	}
 

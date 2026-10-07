@@ -103,10 +103,9 @@ class AIMP_Tracking {
 			return;
 		}
 		printf(
-			'<div style="margin:0 0 24px;padding:16px 20px;border:4px double #b38f4f;border-radius:20px;text-align:center"><p style="margin:0 0 12px">%1$s</p><p style="margin:0"><a href="%2$s" style="display:inline-block;padding:12px 26px;border:4px double #b38f4f;border-radius:100px;color:#613907;font-weight:bold;text-decoration:none">%3$s</a></p></div>',
+			'<div style="margin:0 0 24px;padding:16px 20px 4px;border:1px solid #b38f4f;border-radius:20px;text-align:center"><p style="margin:0">%1$s</p>%2$s</div>',
 			esc_html__( 'Your order is on its way! Follow your parcel:', 'atelier-irisee-master-plugin' ),
-			esc_url( $url ),
-			esc_html__( 'Track my parcel', 'atelier-irisee-master-plugin' )
+			AIMP_Emails::button( __( 'Track my parcel', 'atelier-irisee-master-plugin' ), $url ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button().
 		);
 	}
 

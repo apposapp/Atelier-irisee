@@ -687,3 +687,37 @@
 .aimp-ws-group > .postbox.closed .inside {
 	display: block;
 }
+
+/* Pattern: the short description box inside card 1; the long one under "other fields". */
+.aimp-ws .aimp-ws-inline-box {
+	margin: 0;
+	border: 0;
+	box-shadow: none;
+}
+
+.aimp-ws .aimp-ws-inline-box > .postbox-header,
+.aimp-ws .aimp-ws-inline-box .inside > p:last-child {
+	display: none;
+}
+
+.aimp-ws .aimp-ws-inline-box .inside {
+	margin: 0;
+	padding: 0;
+}
+
+.aimp-ws .aimp-ws-longtext {
+	padding: 10px 12px;
+}
+
+.aimp-nl-source {
+	margin: 0 0 12px;
+}
+
+.aimp-nl-source label {
+	display: inline-block;
+	margin: 4px 18px 4px 0;
+}
+
+.aimp-nl-page select {
+	max-width: 100%;
+}

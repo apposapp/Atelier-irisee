@@ -40,6 +40,9 @@
 				toggle.setAttribute('aria-expanded', 'true');
 			}
 			input.focus();
+			if (input.value.trim().length < 2) {
+				showRecent();
+			}
 		}
 
 		// keepFocus: closed by clicking elsewhere, so the focus stays where the visitor clicked.
@@ -72,19 +75,93 @@
 			}
 		}
 
-		function show(q, data) {
+		/* Recent searches: the last five, kept in this browser only. */
+		var RECENT_KEY = 'aimp_recent_searches';
+
+		function recentList() {
+			try {
+				var stored = JSON.parse(window.localStorage.getItem(RECENT_KEY) || '[]');
+				return Array.isArray(stored) ? stored.slice(0, 5) : [];
+			} catch (e) {
+				return [];
+			}
+		}
+
+		function remember(q) {
+			q = (q || '').trim();
+			if (q.length < 2) {
+				return;
+			}
+			var recent = recentList().filter(function (other) {
+				return other.toLowerCase() !== q.toLowerCase();
+			});
+			recent.unshift(q);
+			try {
+				window.localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, 5)));
+			} catch (e) {}
+		}
+
+		function allUrl(q) {
+			return cfg.allUrl + (cfg.allUrl.indexOf('?') === -1 ? '?' : '&') + 'aimp_q=' + encodeURIComponent(q);
+		}
+
+		function heading(text) {
+			return '<li class="aimp-search-heading" role="presentation">' + esc(text) + '</li>';
+		}
+
+		function showRecent() {
+			var recent = recentList();
 			active = -1;
 			input.removeAttribute('aria-activedescendant');
-			if (!data.items.length) {
+			status.textContent = '';
+			if (!recent.length) {
 				list.hidden = true;
 				list.innerHTML = '';
 				input.setAttribute('aria-expanded', 'false');
-				status.textContent = cfg.none.replace('%s', q);
+				return;
+			}
+			list.innerHTML =
+				heading(cfg.recent) +
+				recent
+					.map(function (q, i) {
+						return (
+							'<li role="option" id="aimp-search-recent-' + i + '" aria-selected="false">' +
+							'<a class="aimp-search-recent" href="' + esc(allUrl(q)) + '" data-q="' + esc(q) + '" tabindex="-1">' + esc(q) + '</a></li>'
+						);
+					})
+					.join('');
+			list.hidden = false;
+			input.setAttribute('aria-expanded', 'true');
+		}
+
+		function show(q, data) {
+			active = -1;
+			input.removeAttribute('aria-activedescendant');
+			var categories = data.categories || [];
+			if (!data.items.length && !categories.length) {
+				list.hidden = true;
+				list.innerHTML = '';
+				input.setAttribute('aria-expanded', 'false');
+				status.innerHTML = esc(cfg.none.replace('%s', q)) +
+					(data.suggest ? ' ' + esc(cfg.didYouMean).replace('%s', '<button type="button" class="aimp-search-suggest" data-q="' + esc(data.suggest) + '">' + esc(data.suggest) + '</button>') : '');
 				return;
 			}
 			status.textContent = '';
-			list.innerHTML =
-				data.items
+			var html = '';
+			if (categories.length) {
+				html += heading(cfg.categories) + categories
+					.map(function (cat, i) {
+						return (
+							'<li role="option" id="aimp-search-category-' + i + '" aria-selected="false">' +
+							'<a class="aimp-search-category" href="' + esc(cat.url) + '" tabindex="-1">' +
+							'<span class="aimp-search-name">' + esc(cat.name) + '</span> <span class="aimp-search-count">(' + parseInt(cat.count, 10) + ')</span>' +
+							'</a></li>'
+						);
+					})
+					.join('');
+			}
+			if (data.items.length) {
+				html += (categories.length ? heading(cfg.products) : '') + data.items
 					.map(function (item, i) {
 						return (
 							'<li role="option" id="aimp-search-option-' + i + '" aria-selected="false">' +
@@ -95,12 +172,34 @@
 							'</a></li>'
 						);
 					})
-					.join('') +
+					.join('');
+			}
+			list.innerHTML = html +
 				'<li role="option" id="aimp-search-option-all" aria-selected="false" class="aimp-search-all-item">' +
 				'<a class="aimp-search-all" href="' + esc(data.all) + '" tabindex="-1">' + esc(cfg.all) + ' →</a></li>';
 			list.hidden = false;
 			input.setAttribute('aria-expanded', 'true');
 		}
+
+		// A recent search or "Did you mean …": search for it here.
+		function searchFor(q) {
+			input.value = q;
+			input.focus();
+			run();
+		}
+
+		panel.addEventListener('click', function (e) {
+			var target = e.target.closest ? e.target.closest('[data-q]') : null;
+			if (target && panel.contains(target)) {
+				e.preventDefault();
+				searchFor(target.getAttribute('data-q'));
+				return;
+			}
+			// Going to a result: remember what was searched for.
+			if (e.target.closest && e.target.closest('.aimp-search-results a')) {
+				remember(input.value);
+			}
+		});
 
 		function run() {
 			var q = input.value.trim();
@@ -109,10 +208,7 @@
 			}
 			last = q;
 			if (q.length < 2) {
-				list.hidden = true;
-				list.innerHTML = '';
-				status.textContent = '';
-				input.setAttribute('aria-expanded', 'false');
+				showRecent();
 				return;
 			}
 			if (cache[q]) {
@@ -163,7 +259,13 @@
 				}
 			} else if (e.key === 'Enter' && active >= 0) {
 				e.preventDefault();
-				window.location.href = options()[active].querySelector('a').href;
+				var chosen = options()[active].querySelector('a');
+				if (chosen.hasAttribute('data-q')) {
+					searchFor(chosen.getAttribute('data-q'));
+					return;
+				}
+				remember(input.value);
+				window.location.href = chosen.href;
 			} else if (e.key === 'Escape') {
 				e.preventDefault();
 				close();
@@ -174,7 +276,9 @@
 		form.addEventListener('submit', function (e) {
 			if (input.value.trim().length < 2) {
 				e.preventDefault();
+				return;
 			}
+			remember(input.value);
 		});
 
 		document.addEventListener('click', function (e) {

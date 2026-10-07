@@ -389,6 +389,7 @@ class AIMP_Login {
 			),
 			'mismatch'       => __( 'The passwords do not match.', 'atelier-irisee-master-plugin' ),
 			'required'       => __( 'This field is required.', 'atelier-irisee-master-plugin' ),
+			'invalidEmail'   => __( 'Please enter a valid email address.', 'atelier-irisee-master-plugin' ),
 			'captcha'        => __( 'Please complete the captcha.', 'atelier-irisee-master-plugin' ),
 			'noResults'      => __( 'No addresses found.', 'atelier-irisee-master-plugin' ),
 			'messages'       => array(

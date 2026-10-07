@@ -27,13 +27,69 @@
 		}
 
 		var current = 0;
+		var dots = [];
 		var show = UI.bindGallery(root.querySelector('.aimp-product-media'), images, function (i) {
 			current = i;
+			dots.forEach(function (dot, n) {
+				dot.classList.toggle('is-active', n === i);
+				dot.setAttribute('aria-pressed', n === i ? 'true' : 'false');
+			});
 		});
 
-		gallery.querySelector('.aimp-gallery-main img').addEventListener('click', function () {
+		var main = gallery.querySelector('.aimp-gallery-main');
+		var img = main.querySelector('img');
+		img.addEventListener('click', function () {
 			UI.openLightbox(root, images, current, t);
 		});
+
+		// Desktop: zoom in where the mouse is.
+		if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+			main.addEventListener('mousemove', function (e) {
+				var box = main.getBoundingClientRect();
+				img.style.transformOrigin = ((e.clientX - box.left) / box.width) * 100 + '% ' + ((e.clientY - box.top) / box.height) * 100 + '%';
+				main.classList.add('is-zooming');
+			});
+			main.addEventListener('mouseleave', function () {
+				main.classList.remove('is-zooming');
+			});
+		}
+
+		// Phones: swipe through the pictures, with dots under the picture (the thumbnails are hidden there).
+		if (images.length > 1) {
+			var dotRow = document.createElement('div');
+			dotRow.className = 'aimp-gallery-dots';
+			images.forEach(function (image, i) {
+				var dot = document.createElement('button');
+				dot.type = 'button';
+				dot.className = 'aimp-gallery-dot' + (i === 0 ? ' is-active' : '');
+				dot.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+				dot.setAttribute('aria-label', (t.showPicture || '%d').replace('%d', i + 1));
+				dot.addEventListener('click', function () {
+					show(i);
+				});
+				dots.push(dot);
+				dotRow.appendChild(dot);
+			});
+			main.insertAdjacentElement('afterend', dotRow);
+
+			var startX = null;
+			var startY = 0;
+			main.addEventListener('touchstart', function (e) {
+				startX = e.touches[0].clientX;
+				startY = e.touches[0].clientY;
+			}, { passive: true });
+			main.addEventListener('touchend', function (e) {
+				if (startX === null) {
+					return;
+				}
+				var dx = e.changedTouches[0].clientX - startX;
+				var dy = e.changedTouches[0].clientY - startY;
+				startX = null;
+				if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+					show((current + (dx < 0 ? 1 : images.length - 1)) % images.length);
+				}
+			}, { passive: true });
+		}
 
 		// Pattern sizes (and other variations) with their own picture: show it when the size is chosen.
 		if (window.jQuery) {

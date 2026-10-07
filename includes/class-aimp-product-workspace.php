@@ -21,6 +21,41 @@ class AIMP_Product_Workspace {
 	public static function init() {
 		add_action( 'add_meta_boxes_product', array( __CLASS__, 'add_box' ), 1 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ), 20 );
+		// Patterns: the long description sits under "other fields"; WordPress's sticky editor toolbar would misbehave there.
+		add_filter( 'wp_editor_expand', array( __CLASS__, 'editor_expand' ), 10, 2 );
+		// WooCommerce → Add a fabric / Add a pattern: a new product with the right category (and type) at once.
+		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 60 );
+		add_action( 'save_post_product', array( __CLASS__, 'prepare_new' ), 10, 3 );
+	}
+
+	public static function editor_expand( $expand, $post_type ) {
+		return ( 'product' === $post_type && 'pattern' === self::current_type() ) ? false : $expand;
+	}
+
+	public static function menu() {
+		add_submenu_page( 'woocommerce', __( 'Add a fabric', 'atelier-irisee-master-plugin' ), __( 'Add a fabric', 'atelier-irisee-master-plugin' ), 'edit_products', 'post-new.php?post_type=product&aimp_new=fabric' );
+		add_submenu_page( 'woocommerce', __( 'Add a pattern', 'atelier-irisee-master-plugin' ), __( 'Add a pattern', 'atelier-irisee-master-plugin' ), 'edit_products', 'post-new.php?post_type=product&aimp_new=pattern' );
+	}
+
+	/**
+	 * The new draft from "Add a fabric" or "Add a pattern": its category (Stoffen / Patronen) is ticked, and a
+	 * pattern becomes a variable product, so the workspace opens straight away.
+	 *
+	 * @param int     $post_id Product.
+	 * @param WP_Post $post    Post.
+	 * @param bool    $update  Existing post.
+	 */
+	public static function prepare_new( $post_id, $post, $update ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only on the "new product" screen, for its own draft.
+		$kind = isset( $_GET['aimp_new'] ) ? sanitize_key( wp_unslash( $_GET['aimp_new'] ) ) : '';
+		if ( $update || 'auto-draft' !== $post->post_status || ! in_array( $kind, array( 'fabric', 'pattern' ), true ) || ! current_user_can( 'edit_products' ) ) {
+			return;
+		}
+		$cat = AIMP_Settings::get( 'fabric' === $kind ? 'fabric_cat' : 'pattern_cat' );
+		if ( $cat ) {
+			wp_set_object_terms( $post_id, array( (int) $cat ), 'product_cat' );
+		}
+		wp_set_object_terms( $post_id, 'pattern' === $kind ? 'variable' : 'simple', 'product_type' );
 	}
 
 	/**
@@ -84,7 +119,7 @@ class AIMP_Product_Workspace {
 
 	public static function render() {
 		$type = self::current_type();
-		echo '<div class="aimp-ws" data-aimp-ws data-type="' . esc_attr( $type ) . '" data-skill="' . esc_attr( AIMP_Catalog::META_SKILL ) . '" data-price="' . esc_attr( AIMP_Product_Fields::META_PRICE ) . '">';
+		echo '<div class="aimp-ws" data-aimp-ws data-type="' . esc_attr( $type ) . '" data-skill="' . esc_attr( AIMP_Catalog::META_SKILL ) . '" data-price="' . esc_attr( AIMP_Product_Fields::META_PRICE ) . '" data-long-label="' . esc_attr__( 'Long description', 'atelier-irisee-master-plugin' ) . '">';
 		echo '<div data-ws-slot="check"></div>';
 		if ( 'fabric' === $type ) {
 			self::card( 1, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'The price is per 10 cm.', 'atelier-irisee-master-plugin' ) );
@@ -93,11 +128,12 @@ class AIMP_Product_Workspace {
 			self::card( 4, __( 'Washing instructions', 'atelier-irisee-master-plugin' ), 'washing' );
 			self::card( 5, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
 		} else {
-			self::card( 1, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'One price and one stock for all sizes.', 'atelier-irisee-master-plugin' ) );
-			self::card( 2, __( 'Pattern details', 'atelier-irisee-master-plugin' ), 'details' );
-			self::card( 3, __( 'Sizes and material needs', 'atelier-irisee-master-plugin' ), 'sizes', __( 'Attributes: the sizes. Variations: per size the fabric, buttons, zip, ribbon and bias tape it needs, and the measurements.', 'atelier-irisee-master-plugin' ) );
-			self::card( 4, __( 'Fabric categories shown first', 'atelier-irisee-master-plugin' ), 'priority' );
-			self::card( 5, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
+			self::card( 1, __( 'Description', 'atelier-irisee-master-plugin' ), 'description', __( 'Shown on the pattern page under "Description".', 'atelier-irisee-master-plugin' ) );
+			self::card( 2, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'One price and one stock for all sizes.', 'atelier-irisee-master-plugin' ) );
+			self::card( 3, __( 'Pattern details', 'atelier-irisee-master-plugin' ), 'details' );
+			self::card( 4, __( 'Sizes and material needs', 'atelier-irisee-master-plugin' ), 'sizes', __( 'Attributes: the sizes. Variations: per size the fabric, buttons, zip, ribbon and bias tape it needs, and the measurements.', 'atelier-irisee-master-plugin' ) );
+			self::card( 5, __( 'Fabric categories shown first', 'atelier-irisee-master-plugin' ), 'priority' );
+			self::card( 6, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
 		}
 		printf(
 			'<details class="aimp-ws-other" data-ws-other><summary>%1$s</summary><p class="description">%2$s</p><div data-ws-slot="other"></div></details>',

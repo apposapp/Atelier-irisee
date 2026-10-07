@@ -107,7 +107,7 @@ defined( 'ABSPATH' ) || exit;
 	<?php endif; ?>
 
 	<div class="aimp-side-menu-backdrop" data-aimp-menu-close hidden></div>
-	<nav class="aimp-side-menu" id="aimp-side-menu" aria-label="<?php esc_attr_e( 'Menu', 'atelier-irisee-master-plugin' ); ?>" aria-hidden="true">
+	<nav class="aimp-side-menu" id="aimp-side-menu" data-all-url="<?php echo esc_url( $data['shop_url'] ); ?>" aria-label="<?php esc_attr_e( 'Menu', 'atelier-irisee-master-plugin' ); ?>" aria-hidden="true">
 		<div class="aimp-side-menu-head">
 			<span class="aimp-side-menu-title"><?php esc_html_e( 'Menu', 'atelier-irisee-master-plugin' ); ?></span>
 			<button type="button" class="aimp-side-menu-close" data-aimp-menu-close aria-label="<?php esc_attr_e( 'Close menu', 'atelier-irisee-master-plugin' ); ?>">

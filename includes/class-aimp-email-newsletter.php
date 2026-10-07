@@ -55,6 +55,8 @@ if ( ! class_exists( 'AIMP_Email_Newsletter' ) && class_exists( 'WC_Email' ) ) {
 			$headers = parent::get_headers();
 			if ( ! empty( $this->newsletter['unsubscribe'] ) ) {
 				$headers .= 'List-Unsubscribe: <' . esc_url_raw( $this->newsletter['unsubscribe'] ) . ">\r\n";
+				// One-click unsubscribe (required by Gmail and Yahoo for bulk mail).
+				$headers .= "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n";
 			}
 			return $headers;
 		}

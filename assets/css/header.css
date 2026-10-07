@@ -674,6 +674,40 @@ body.aimp-has-header .aimp-configurator .aimp-topbar:has(> .aimp-languages:only-
 	text-align: center;
 }
 
+/* Section titles (Categories, Products, Recent searches), categories and recent searches. */
+.aimp-header .aimp-search-results .aimp-search-heading {
+	padding: 0.5rem 0.6rem 0.2rem;
+	color: var(--aimp-gold-text, #8a6a33);
+	font-size: 0.75em;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.aimp-header :is(.aimp-search-category, .aimp-search-recent) {
+	display: block;
+	padding: 0.45rem 0.6rem;
+	border-radius: 12px;
+	color: var(--aimp-brown);
+	text-decoration: none;
+}
+
+.aimp-header .aimp-search-count {
+	color: var(--aimp-gold-text, #8a6a33);
+}
+
+.aimp-header .aimp-search-suggest {
+	min-height: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--aimp-gold-text, #8a6a33);
+	font: inherit;
+	font-weight: 700;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
 /* ------------------------------------------------------------------
  * Gold info bar under the header (Site look → Info bar)
  * ------------------------------------------------------------------ */

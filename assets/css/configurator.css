@@ -865,7 +865,7 @@
 
 .aimp-configurator .aimp-notice--success {
 	background: transparent;
-	border: 5px double var(--aimp-gold);
+	border: 1px solid var(--aimp-gold);
 	color: var(--aimp-gold-text, #8a6a33);
 }
 
@@ -1349,5 +1349,75 @@
 		display: flex;
 		justify-content: space-between;
 		gap: 1rem;
+	}
+}
+
+/* ------------------------------------------------------------------
+ * Phones: product grids as list rows. Picture on the left, name, price and badge on the right, a thin
+ * gold line between the rows instead of double-bordered cards. (Not the overview and favorites grids.)
+ * ------------------------------------------------------------------ */
+@container aimp (max-width: 560px) {
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0;
+		border-top: 1px solid var(--aimp-gold);
+	}
+
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) > li {
+		border-bottom: 1px solid var(--aimp-gold);
+	}
+
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card {
+		display: grid;
+		grid-template-columns: 35% minmax(0, 1fr);
+		grid-auto-rows: min-content;
+		align-content: center;
+		align-items: center;
+		column-gap: 0.9rem;
+		row-gap: 0.2rem;
+		padding: 0.7rem 2.75rem 0.7rem 0.5rem;
+		border: 0;
+		border-radius: 0;
+		font-size: 1rem;
+		text-align: left;
+	}
+
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) > .aimp-card {
+		border-bottom: 1px solid var(--aimp-gold);
+	}
+
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card-image {
+		grid-row: 1 / span 4;
+		border-radius: 16px;
+	}
+
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card > :not(.aimp-card-image) {
+		grid-column: 2;
+		padding: 0;
+	}
+
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card .aimp-badge {
+		position: static;
+		justify-self: start;
+		transform: none;
+	}
+
+	/* Selected in the configurator: a gold bar on the left instead of a gold card. */
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card.is-selected,
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card.is-selected:hover {
+		box-shadow: inset 4px 0 0 var(--aimp-gold);
+		background-color: var(--aimp-gold-tint);
+		color: var(--aimp-gold-text, #8a6a33);
+	}
+
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card.is-selected :is(.aimp-card-name, .aimp-card-price, .aimp-card-price *) {
+		color: var(--aimp-gold-text, #8a6a33);
+	}
+
+	/* The heart on the right of the row. */
+	.aimp-configurator .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-fav--overlay {
+		top: 50%;
+		right: 0.25rem;
+		transform: translateY(-50%);
 	}
 }

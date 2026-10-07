@@ -690,6 +690,44 @@
 		if (e.target.matches && e.target.matches('[data-aimp-strength]')) {
 			updateStrength(e.target);
 		}
+		if (e.target.setAttribute) {
+			e.target.setAttribute('data-aimp-touched', '');
+		}
+	});
+
+	// Checked when leaving a field: a short message right away instead of only after sending.
+	document.addEventListener('focusout', function (e) {
+		var input = e.target;
+		var form = input.closest ? input.closest('form[data-aimp-form]') : null;
+		var field = input.closest ? input.closest('[data-field]') : null;
+		if (!form || !field || !form.closest('[data-aimp-el]') || !input.matches('input, select, textarea') || input.type === 'checkbox' || input.type === 'radio' || input.type === 'file') {
+			return;
+		}
+		var value = String(input.value || '').trim();
+		var message = '';
+		if (input.required && !value) {
+			// Only once something was typed: just passing through an empty field is not an error yet.
+			if (!input.hasAttribute('data-aimp-touched')) {
+				return;
+			}
+			message = t().required;
+		} else if (value && input.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+			message = t().invalidEmail;
+		} else if (value && input.hasAttribute('data-aimp-confirm')) {
+			var other = document.getElementById(input.getAttribute('data-aimp-confirm'));
+			message = other && other.value !== input.value ? t().mismatch : '';
+		}
+		var key = field.getAttribute('data-field');
+		if (message) {
+			fieldError(form, key, message);
+			return;
+		}
+		field.classList.remove('has-error');
+		input.removeAttribute('aria-invalid');
+		var box = field.querySelector('.aimp-el-field-error');
+		if (box) {
+			box.textContent = '';
+		}
 	});
 
 	document.addEventListener('change', function (e) {

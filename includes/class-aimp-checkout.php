@@ -59,6 +59,9 @@ class AIMP_Checkout {
 			__( 'Total', 'atelier-irisee-master-plugin' )          => wp_strip_all_tags( $order->get_formatted_order_total() ),
 			__( 'Payment method', 'atelier-irisee-master-plugin' ) => wp_strip_all_tags( $order->get_payment_method_title() ),
 		);
+		if ( $order->needs_shipping_address() && ! $order->has_status( array( 'failed', 'cancelled' ) ) ) {
+			$facts[ __( 'Expected delivery', 'atelier-irisee-master-plugin' ) ] = AIMP_Trust::expected_date( $order );
+		}
 		?>
 		<div class="aimp-thankyou">
 			<h2 class="aimp-thankyou-title">
@@ -109,6 +112,10 @@ class AIMP_Checkout {
 				<li><?php esc_html_e( 'We prepare your order with care.', 'atelier-irisee-master-plugin' ); ?></li>
 				<li><?php esc_html_e( 'You get an email as soon as it is on its way.', 'atelier-irisee-master-plugin' ); ?></li>
 			</ol>
+			<?php $aimp_contact = AIMP_Trust::contact_page_text(); ?>
+			<?php if ( $aimp_contact ) : ?>
+				<p class="aimp-thankyou-contact"><?php echo esc_html( $aimp_contact ); ?></p>
+			<?php endif; ?>
 			<?php if ( is_user_logged_in() ) : ?>
 				<a class="aimp-button" href="<?php echo esc_url( add_query_arg( 'tab', 'orders', $account ) ); ?>"><?php esc_html_e( 'My orders', 'atelier-irisee-master-plugin' ); ?></a>
 			<?php endif; ?>
@@ -221,12 +228,18 @@ class AIMP_Checkout {
 	 */
 	public static function strings() {
 		return array(
-			'next'     => __( 'Next', 'atelier-irisee-master-plugin' ),
-			'back'     => __( 'Back', 'atelier-irisee-master-plugin' ),
-			'toPay'    => __( 'To payment', 'atelier-irisee-master-plugin' ),
-			'required' => __( 'Please fill in the required fields.', 'atelier-irisee-master-plugin' ),
-			'address'  => __( 'Delivery address', 'atelier-irisee-master-plugin' ),
-			'change'   => __( 'Change', 'atelier-irisee-master-plugin' ),
+			'next'          => __( 'Next', 'atelier-irisee-master-plugin' ),
+			'back'          => __( 'Back', 'atelier-irisee-master-plugin' ),
+			'toPay'         => __( 'To payment', 'atelier-irisee-master-plugin' ),
+			'required'      => __( 'Please fill in the required fields.', 'atelier-irisee-master-plugin' ),
+			'address'       => __( 'Delivery address', 'atelier-irisee-master-plugin' ),
+			'change'        => __( 'Change', 'atelier-irisee-master-plugin' ),
+			'addAddress2'   => __( '+ Add apartment, suite…', 'atelier-irisee-master-plugin' ),
+			'addNote'       => __( '+ Add a note to your order', 'atelier-irisee-master-plugin' ),
+			'fieldRequired' => __( 'This field is required.', 'atelier-irisee-master-plugin' ),
+			'fieldEmail'    => __( 'Please enter a valid email address.', 'atelier-irisee-master-plugin' ),
+			'fieldPhone'    => __( 'Please enter a valid phone number.', 'atelier-irisee-master-plugin' ),
+			'fieldInvalid'  => __( 'Please check this field.', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -284,6 +297,7 @@ class AIMP_Checkout {
 						<summary>
 							<span class="aimp-checkout-summary-title"><?php esc_html_e( 'Your order', 'atelier-irisee-master-plugin' ); ?></span>
 							<span class="aimp-checkout-summary-count">(<?php echo (int) AIMP_Cart_Page::summary_count(); ?>)</span>
+							<span class="aimp-checkout-summary-total" data-aimp-summary-total>· <?php echo wp_kses_post( WC()->cart ? WC()->cart->get_total() : '' ); ?></span>
 						</summary>
 						<?php echo AIMP_Cart_Page::summary_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in summary_html(). ?>
 					</details>
