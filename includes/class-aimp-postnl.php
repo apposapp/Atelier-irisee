@@ -45,6 +45,7 @@ class AIMP_PostNL {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'checkout_script' ), 20 );
 		// PostNL 5.9.12: pickup points from its V4 API are dropped by its classic checkout list (see render_pickup()).
 		add_action( 'init', array( __CLASS__, 'swap_pickup_renderer' ), 20 );
+		add_action( 'postnl_checkout_content', array( __CLASS__, 'content_note' ), 1 );
 		// A WooCommerce Checkout block left on the checkout page puts PostNL in its block mode: warn, and remove it.
 		add_action( 'admin_notices', array( __CLASS__, 'checkout_block_notice' ) );
 		add_action( 'admin_post_aimp_postnl_fix_checkout', array( __CLASS__, 'fix_checkout_page' ) );
@@ -82,6 +83,13 @@ class AIMP_PostNL {
 	}
 
 	/**
+	 * Invisible note in the page source: whose pickup list renderer is in place (for support).
+	 */
+	public static function content_note() {
+		printf( '<!-- aimp-postnl renderer=%s -->', self::$dropoff ? 'atelier-irisee' : 'postnl' );
+	}
+
+	/**
 	 * The pickup points list: PostNL's own when the locations are complete, otherwise the same list built from
 	 * the V4 locations, with PostNL's template (so its script, hidden fields and order saving keep working).
 	 *
@@ -95,15 +103,23 @@ class AIMP_PostNL {
 		}
 		$groups   = ! empty( $response['PickupOptions'] ) && is_array( $response['PickupOptions'] ) ? $response['PickupOptions'] : array();
 		$complete = true;
+		$count    = 0;
+		$missing  = array();
 		foreach ( $groups as $group ) {
-			foreach ( ! empty( $group['Locations'] ) ? (array) $group['Locations'] : array() as $location ) {
-				if ( empty( $location['PartnerID'] ) || empty( $location['PickupTime'] ) ) {
-					$complete = false;
-					break 2;
+			foreach ( ! empty( $group['Locations'] ) && is_array( $group['Locations'] ) ? $group['Locations'] : array() as $location ) {
+				++$count;
+				// The fields PostNL's own list requires (Frontend\Dropoff_Points::get_content_data()).
+				foreach ( array( 'PartnerID', 'PickupTime', 'Distance', 'Address' ) as $key ) {
+					if ( empty( $location[ $key ] ) ) {
+						$complete        = false;
+						$missing[ $key ] = true;
+					}
 				}
 			}
 		}
-		if ( $complete || ! defined( 'POSTNL_WC_PLUGIN_DIR_PATH' ) ) {
+		// Invisible note in the page source, to see what PostNL delivered when pickup points don't show.
+		printf( '<!-- aimp-postnl pickup: groups=%1$d locations=%2$d missing=%3$s -->', count( $groups ), (int) $count, esc_html( $missing ? implode( ',', array_keys( $missing ) ) : 'none' ) );
+		if ( ( $complete && $count ) || ! defined( 'POSTNL_WC_PLUGIN_DIR_PATH' ) ) {
 			$dropoff->display_content( $response, $post_data );
 			return;
 		}
@@ -115,17 +131,19 @@ class AIMP_PostNL {
 		foreach ( $groups as $group ) {
 			foreach ( ! empty( $group['Locations'] ) ? (array) $group['Locations'] : array() as $location ) {
 				$address = isset( $location['Address'] ) && is_array( $location['Address'] ) ? $location['Address'] : array();
-				if ( empty( $location['LocationCode'] ) || ! $address ) {
+				if ( ! $address ) {
 					continue;
 				}
-				$get       = function ( $key ) use ( $address ) {
+				$get = function ( $key ) use ( $address ) {
 					return isset( $address[ $key ] ) ? (string) $address[ $key ] : '';
 				};
+				// Location code, or else one made from the address (only used for the radio value).
+				$code = ! empty( $location['LocationCode'] ) ? (string) $location['LocationCode'] : sanitize_title( $get( 'Zipcode' ) . '-' . $get( 'Street' ) . '-' . $get( 'HouseNr' ) );
 				$options[] = array(
 					'show_desc'  => $show_desc,
 					// Only part of the radio value; the label uses the address of the point.
 					'partner_id' => ! empty( $location['PartnerID'] ) ? (string) $location['PartnerID'] : 'PNPNL-01',
-					'loc_code'   => (string) $location['LocationCode'],
+					'loc_code'   => $code,
 					'time'       => ! empty( $location['PickupTime'] ) ? (string) $location['PickupTime'] : '',
 					'distance'   => isset( $location['Distance'] ) ? (string) $location['Distance'] : '',
 					'date'       => ! empty( $group['PickupDate'] ) ? (string) $group['PickupDate'] : '',
