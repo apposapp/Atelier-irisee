@@ -209,7 +209,10 @@ Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_
   - Low stock: `AIMP_Product_Page::buy_data()` returns `low` when the stock is at or under `low_stock`.
 - **Search** (`AIMP_Search`): the response has `categories` (`name__like`, linked with `AIMP_Shop::category_url()`) and, when nothing matches, `suggest` (Levenshtein against the cached product names and their words). `search.js` keeps the last five searches in `localStorage` (`aimp_recent_searches`).
 - **Newsletter source** (`AIMP_Newsletter`): `_aimp_source` (`editor` or `page`), `_aimp_page` and `_aimp_preheader`. The web version of a written newsletter is `?aimp_nl_view=ID&key=…`; a page newsletter links to the page.
-- **Add a fabric / pattern** (`AIMP_Product_Workspace`): `post-new.php?post_type=product&aimp_new=fabric|pattern`; `save_post_product` sets the category and type on the auto-draft.
+- **Products menu** (`AIMP_Product_Workspace::menu()`): All fabrics / All patterns (`edit.php?post_type=product&product_cat=<root slug>`) and Add a fabric / Add a pattern (`post-new.php?post_type=product&aimp_new=fabric|pattern`; `save_post_product` sets the category and type on the auto-draft). `submenu_file` highlights the right item.
+- **Pattern-wide fields (3.2):** `_aimp_fabric_cats`, `_aimp_height` and `_aimp_project_time` live on the pattern. `AIMP_Catalog::pattern_fabric_cats()` and `pattern_height()` fall back to the old per-size values while the pattern has none.
+- **Multi-select categories:** the shop (`aimp_cat=12,15`), the configurator fabric filter and the configurator pattern buttons send a comma list; `AIMP_Ajax::int_list_param()` reads it, and the queries keep only IDs inside the allowed tree (any of them).
+- **Low stock per category:** option key `low_stock_cats` (term ID => number), read with `AIMP_Settings::low_stock_categories()`; `AIMP_Trust::low_stock_threshold()` takes the nearest category with a number, else `low_stock`.
 - **Page caches** (`AIMP_Product_Page::purge_caches`): after a product or variation is saved, WooCommerce's product transients are cleared and common caching plugins are asked to refresh that page (action `aimp_purge_product_pages` for others).
 
 ## Languages

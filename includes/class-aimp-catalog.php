@@ -32,6 +32,7 @@ class AIMP_Catalog {
 	const META_ORDER_INFO      = '_aimp_order_info';
 	const META_SKILL           = '_aimp_skill';
 	const META_SIZES_TEXT      = '_aimp_sizes_text';
+	const META_PROJECT_TIME    = '_aimp_project_time';
 	const META_RECOMMENDED     = '_aimp_recommended_pattern';
 
 	/** Number of inspiration cards on a fabric. */
@@ -206,6 +207,66 @@ class AIMP_Catalog {
 		}
 		asort( $clean );
 		return $clean;
+	}
+
+	/**
+	 * The fitting fabric categories of a pattern, the same for all sizes (Atelier Irisee tab). Patterns saved
+	 * before 3.2 kept them per size: then the size's own list counts, or with $size 0 all sizes together.
+	 *
+	 * @param int $pattern_id Pattern.
+	 * @param int $size_id    A size (variation) for the fallback, or 0.
+	 * @return int[] Term IDs.
+	 */
+	public static function pattern_fabric_cats( $pattern_id, $size_id = 0 ) {
+		if ( metadata_exists( 'post', $pattern_id, self::META_FABRIC_CATS ) ) {
+			$cats = get_post_meta( $pattern_id, self::META_FABRIC_CATS, true );
+			return is_array( $cats ) ? array_values( array_filter( array_map( 'absint', $cats ) ) ) : array();
+		}
+		$sizes = $size_id ? array( $size_id ) : get_children(
+			array(
+				'post_parent' => $pattern_id,
+				'post_type'   => 'product_variation',
+				'fields'      => 'ids',
+			)
+		);
+		$cats = array();
+		foreach ( $sizes as $id ) {
+			$own = get_post_meta( $id, self::META_FABRIC_CATS, true );
+			if ( is_array( $own ) ) {
+				$cats = array_merge( $cats, array_map( 'absint', $own ) );
+			}
+		}
+		return array_values( array_unique( array_filter( $cats ) ) );
+	}
+
+	/**
+	 * The body length (height) of a pattern, the same for all sizes; older patterns kept it per size.
+	 *
+	 * @param int $pattern_id Pattern.
+	 * @param int $size_id    A size for the fallback, or 0 (then the first size that has one).
+	 * @return string
+	 */
+	public static function pattern_height( $pattern_id, $size_id = 0 ) {
+		$height = (string) get_post_meta( $pattern_id, self::META_HEIGHT, true );
+		if ( '' !== $height ) {
+			return $height;
+		}
+		$sizes = $size_id ? array( $size_id ) : get_children(
+			array(
+				'post_parent' => $pattern_id,
+				'post_type'   => 'product_variation',
+				'fields'      => 'ids',
+				'orderby'     => 'menu_order',
+				'order'       => 'ASC',
+			)
+		);
+		foreach ( $sizes as $id ) {
+			$own = (string) get_post_meta( $id, self::META_HEIGHT, true );
+			if ( '' !== $own ) {
+				return $own;
+			}
+		}
+		return '';
 	}
 
 	/* ------------------------------------------------------------------
@@ -505,15 +566,18 @@ class AIMP_Catalog {
 	/**
 	 * Patterns for the grid.
 	 *
-	 * @param int $cat_id Filter category (0 = all patterns).
+	 * @param int[]|int $cat_id Filter categories (empty = all patterns).
 	 * @param int $page   Page.
 	 * @return array
 	 */
 	public static function get_patterns( $cat_id, $page ) {
 		$root = AIMP_Settings::get( 'pattern_cat' );
 		$tree = self::category_tree( $root );
-		$cat  = absint( $cat_id );
-		$cats = ( $cat && in_array( $cat, $tree, true ) ) ? array( $cat ) : ( $root ? array( $root ) : array() );
+		// One or more pattern categories (any of them); none = all patterns.
+		$cats = array_values( array_intersect( array_map( 'absint', (array) $cat_id ), $tree ) );
+		if ( ! $cats ) {
+			$cats = $root ? array( $root ) : array();
+		}
 
 		$result = self::query_products( $cats, 'variable', $page, AIMP_Settings::get( 'per_page' ) );
 		$items  = array();
@@ -565,8 +629,8 @@ class AIMP_Catalog {
 			return null;
 		}
 
-		$fabric_cats = $variation->get_meta( self::META_FABRIC_CATS );
-		$fabric_cats = is_array( $fabric_cats ) ? array_map( 'absint', $fabric_cats ) : array();
+		// The same for all sizes: set on the pattern (older patterns: on the size).
+		$fabric_cats = self::pattern_fabric_cats( $variation->get_parent_id(), $variation->get_id() );
 		// Only subcategories that still belong to the Fabrics tree count.
 		$fabric_cats = array_values( array_intersect( $fabric_cats, self::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) ) );
 
@@ -585,7 +649,7 @@ class AIMP_Catalog {
 			'bias_qty'     => self::units_for_cm( $variation->get_meta( self::META_BIAS_LENGTH ) ),
 			'bust'         => (string) $variation->get_meta( self::META_BUST ),
 			'waist'        => (string) $variation->get_meta( self::META_WAIST ),
-			'height'       => (string) $variation->get_meta( self::META_HEIGHT ),
+			'height'       => self::pattern_height( $variation->get_parent_id(), $variation->get_id() ),
 			'hip'          => (string) $variation->get_meta( self::META_HIP ),
 			'inside_leg'   => (string) $variation->get_meta( self::META_INSIDE_LEG ),
 		);
@@ -939,13 +1003,13 @@ class AIMP_Catalog {
 			return $result;
 		}
 
-		// Category filter: only one of the allowed categories (or a subcategory of one).
+		// Category filter: one or more of the allowed categories (or their subcategories).
 		$allowed_tree = array();
 		foreach ( $req['fabric_cats'] as $cat ) {
 			$allowed_tree = array_merge( $allowed_tree, self::category_tree( $cat ) );
 		}
-		$category = absint( $args['category'] );
-		$cats     = ( $category && in_array( $category, $allowed_tree, true ) ) ? array( $category ) : $req['fabric_cats'];
+		$chosen = array_values( array_intersect( array_map( 'absint', (array) $args['category'] ), $allowed_tree ) );
+		$cats   = $chosen ? $chosen : $req['fabric_cats'];
 
 		$query_args                   = self::base_query_args( $cats, 'simple' );
 		$query_args['posts_per_page'] = -1;

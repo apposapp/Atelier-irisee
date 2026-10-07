@@ -34,6 +34,8 @@ class AIMP_Settings {
 		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ), 60 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register' ) );
+		// On the "Shipping and delivery" tab, under the shipping costs.
+		add_action( 'admin_init', array( __CLASS__, 'register_delivery' ), 20 );
 		add_filter( 'plugin_action_links_' . AIMP_PLUGIN_BASENAME, array( __CLASS__, 'action_links' ) );
 	}
 
@@ -306,13 +308,18 @@ class AIMP_Settings {
 			self::PAGE,
 			'aimp_site'
 		);
+	}
 
+	/**
+	 * Info bar and delivery and stock, on the "Shipping and delivery" tab (same option, same form).
+	 */
+	public static function register_delivery() {
 		add_settings_field(
 			'aimp_info_bar',
 			__( 'Info bar', 'atelier-irisee-master-plugin' ),
 			array( __CLASS__, 'render_info_bar_field' ),
 			self::PAGE,
-			'aimp_site',
+			'aimp_shipping',
 			array( 'label_for' => 'aimp_info_bar' )
 		);
 
@@ -321,7 +328,7 @@ class AIMP_Settings {
 			__( 'Delivery and stock', 'atelier-irisee-master-plugin' ),
 			array( __CLASS__, 'render_delivery_fields' ),
 			self::PAGE,
-			'aimp_site'
+			'aimp_shipping'
 		);
 	}
 
@@ -374,6 +381,72 @@ class AIMP_Settings {
 			esc_html__( 'Ask for a company name at checkout', 'atelier-irisee-master-plugin' ),
 			esc_html__( 'Write the delivery time as "Dutch | French | English" or one text for all.', 'atelier-irisee-master-plugin' )
 		);
+		self::render_low_stock_categories();
+	}
+
+	/**
+	 * "Only … left" per category: every product category as an indented list with a number. Empty = the
+	 * same as the parent category (or the general number above); 0 = never for that category.
+	 */
+	private static function render_low_stock_categories() {
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => false,
+				'orderby'    => 'name',
+			)
+		);
+		if ( ! is_array( $terms ) || ! $terms ) {
+			return;
+		}
+		$saved    = self::low_stock_categories();
+		$children = array();
+		foreach ( $terms as $term ) {
+			$children[ (int) $term->parent ][] = $term;
+		}
+		$rows = '';
+		$walk = function ( $parent, $depth ) use ( &$walk, $children, $saved, &$rows ) {
+			foreach ( isset( $children[ $parent ] ) ? $children[ $parent ] : array() as $term ) {
+				$id    = 'aimp_low_stock_' . (int) $term->term_id;
+				$rows .= sprintf(
+					'<tr><td style="padding-left:%1$.1fem"><label for="%2$s">%3$s</label></td><td><input type="number" min="0" max="999" class="small-text" id="%2$s" name="%4$s[low_stock_cats][%5$d]" value="%6$s"></td></tr>',
+					0.6 + 1.4 * $depth,
+					esc_attr( $id ),
+					esc_html( $term->name ),
+					esc_attr( self::OPTION ),
+					(int) $term->term_id,
+					isset( $saved[ $term->term_id ] ) ? (int) $saved[ $term->term_id ] : ''
+				);
+				$walk( (int) $term->term_id, $depth + 1 );
+			}
+		};
+		$walk( 0, 0 );
+		printf(
+			'<details class="aimp-low-stock-cats"%1$s><summary>%2$s</summary><p class="description">%3$s</p><table class="widefat striped"><thead><tr><th>%4$s</th><th>%5$s</th></tr></thead><tbody>%6$s</tbody></table></details>',
+			$saved ? ' open' : '',
+			esc_html__( 'Low stock per category', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Show "Only … left" from another stock for some categories. Empty = the same as the category above it (or the general number); 0 = never for that category. For fabrics the number is in pieces of 10 cm (20 = 2 m).', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Category', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Show "Only … left" from', 'atelier-irisee-master-plugin' ),
+			$rows // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+		);
+	}
+
+	/**
+	 * The per-category low stock numbers: term ID => number.
+	 *
+	 * @return int[]
+	 */
+	public static function low_stock_categories() {
+		$options = get_option( self::OPTION, array() );
+		$saved   = isset( $options['low_stock_cats'] ) && is_array( $options['low_stock_cats'] ) ? $options['low_stock_cats'] : array();
+		$clean   = array();
+		foreach ( $saved as $term_id => $number ) {
+			if ( absint( $term_id ) && '' !== (string) $number ) {
+				$clean[ absint( $term_id ) ] = min( 999, absint( $number ) );
+			}
+		}
+		return $clean;
 	}
 
 	public static function render_info_bar_field() {
@@ -668,6 +741,13 @@ class AIMP_Settings {
 		$sanitized['delivery_days']  = isset( $input['delivery_days'] ) ? min( 60, absint( $input['delivery_days'] ) ) : 4;
 		$sanitized['low_stock']      = isset( $input['low_stock'] ) ? min( 999, absint( $input['low_stock'] ) ) : 5;
 		$sanitized['checkout_company'] = empty( $input['checkout_company'] ) ? 0 : 1;
+		$sanitized['low_stock_cats']   = array();
+		foreach ( isset( $input['low_stock_cats'] ) && is_array( $input['low_stock_cats'] ) ? $input['low_stock_cats'] : array() as $term_id => $number ) {
+			$number = trim( (string) $number );
+			if ( absint( $term_id ) && '' !== $number ) {
+				$sanitized['low_stock_cats'][ absint( $term_id ) ] = min( 999, absint( $number ) );
+			}
+		}
 
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;

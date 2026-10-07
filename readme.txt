@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.1.0
+Stable tag: 3.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,15 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.2.0 =
+* Products menu: All fabrics, Add a fabric, All patterns, Add a pattern (moved from the WooCommerce menu).
+* Patterns: the height (body length) and the fitting fabrics are set once on the pattern (Atelier Irisee tab), for all sizes; the fitting fabrics table ticks the allowed categories and their position together. Existing patterns show the values of their sizes until saved.
+* Patterns: new "Average project time". The pattern page shows skill level (stars), sizes and project time as three bordered tiles with a sewing machine, tape measure and clock icon.
+* Filters: several categories can be ticked at once on the shop pages and in the configurator (fabrics and pattern categories); the Filters button has a single thin border.
+* Settings: the info bar and Delivery and stock are on the "Shipping and delivery" tab; "Only … left" can be set per product category.
+* Product pages: the delivery line is one line and a bit smaller; "Only … left" keeps its gold colour.
+* Configurator: a roll of fabric icon for the fabric needed.
 
 = 3.1.0 =
 * New: "Add a fabric" and "Add a pattern" in the WooCommerce menu. The new product starts in Stoffen or Patronen (patterns as Variable), so the workspace opens straight away.

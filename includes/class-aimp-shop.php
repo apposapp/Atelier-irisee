@@ -725,7 +725,8 @@ class AIMP_Shop {
 		$sort = sanitize_key( $text( 'sort', 20 ) );
 		$args = array(
 			'type'     => in_array( $type, self::TYPES, true ) ? $type : 'all',
-			'category' => absint( $text( 'category', 20 ) ),
+			// One or more categories: "12" or "12,15".
+			'category' => array_slice( array_values( array_unique( array_filter( array_map( 'absint', explode( ',', $text( 'category', 200 ) ) ) ) ) ), 0, 20 ),
 			'search'   => $text( 'search' ),
 			'min'      => $price( 'min' ),
 			'max'      => $price( 'max' ),
@@ -784,22 +785,27 @@ class AIMP_Shop {
 			return $empty;
 		}
 
-		// Category filter: only within this page's categories.
-		$cats = $roots;
-		if ( $args['category'] ) {
-			$term = get_term( $args['category'], 'product_cat' );
-			if ( $term && ! is_wp_error( $term ) ) {
-				$allowed = ! $roots;
-				foreach ( $roots as $root ) {
-					if ( in_array( (int) $term->term_id, AIMP_Catalog::category_tree( $root ), true ) ) {
-						$allowed = true;
-						break;
-					}
-				}
-				if ( $allowed ) {
-					$cats = array( (int) $term->term_id );
+		// Category filter: one or more categories (any of them), only within this page's categories.
+		$cats   = $roots;
+		$chosen = array();
+		foreach ( (array) $args['category'] as $term_id ) {
+			$term = get_term( absint( $term_id ), 'product_cat' );
+			if ( ! $term || is_wp_error( $term ) ) {
+				continue;
+			}
+			$allowed = ! $roots;
+			foreach ( $roots as $root ) {
+				if ( in_array( (int) $term->term_id, AIMP_Catalog::category_tree( $root ), true ) ) {
+					$allowed = true;
+					break;
 				}
 			}
+			if ( $allowed ) {
+				$chosen[] = (int) $term->term_id;
+			}
+		}
+		if ( $chosen ) {
+			$cats = $chosen;
 		}
 
 		$tax_query = self::scope_tax_query( $cats );

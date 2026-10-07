@@ -51,6 +51,37 @@ class AIMP_Trust {
 	}
 
 	/**
+	 * From which stock "Only … left" shows for a product: the number set for its category, or for the
+	 * nearest category above it, or else the general number (Shipping and delivery → Delivery and stock).
+	 *
+	 * @param WC_Product $product Product or size.
+	 * @return int 0 = never.
+	 */
+	public static function low_stock_threshold( $product ) {
+		$general  = (int) AIMP_Settings::get( 'low_stock' );
+		$per_cat  = AIMP_Settings::low_stock_categories();
+		$owner_id = $product->get_parent_id() ? $product->get_parent_id() : $product->get_id();
+		if ( ! $per_cat ) {
+			return $general;
+		}
+		$best = null;
+		$step = PHP_INT_MAX;
+		foreach ( wc_get_product_term_ids( $owner_id, 'product_cat' ) as $term_id ) {
+			// The category itself, then its parents, nearest first.
+			foreach ( array_merge( array( (int) $term_id ), array_map( 'intval', get_ancestors( $term_id, 'product_cat', 'taxonomy' ) ) ) as $distance => $id ) {
+				if ( isset( $per_cat[ $id ] ) ) {
+					if ( $distance < $step ) {
+						$step = $distance;
+						$best = $per_cat[ $id ];
+					}
+					break;
+				}
+			}
+		}
+		return null === $best ? $general : (int) $best;
+	}
+
+	/**
 	 * @param string $class Extra CSS class.
 	 * @return string
 	 */

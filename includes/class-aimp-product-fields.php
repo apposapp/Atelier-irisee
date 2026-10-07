@@ -59,7 +59,6 @@ class AIMP_Product_Fields {
 			AIMP_Catalog::META_WAIST        => array( __( 'Waist (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
 			AIMP_Catalog::META_HIP          => array( __( 'Hip (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
 			AIMP_Catalog::META_INSIDE_LEG   => array( __( 'Inside leg (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
-			AIMP_Catalog::META_HEIGHT       => array( __( 'Height (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
 		);
 	}
 
@@ -186,27 +185,8 @@ class AIMP_Product_Fields {
 					</p>
 				<?php endforeach; ?>
 			</div>
-			<fieldset class="form-field aimp-fabric-cats">
-				<legend><?php esc_html_e( 'Fabric categories allowed', 'atelier-irisee-master-plugin' ); ?></legend>
-				<?php
-				$terms    = AIMP_Catalog::get_fabric_categories();
-				$selected = (array) $variation->get_meta( AIMP_Catalog::META_FABRIC_CATS );
-				$selected = array_map( 'absint', $selected );
-				if ( ! $terms ) {
-					echo '<p class="description">' . esc_html__( 'No fabric subcategories found. Set the Fabrics category under WooCommerce > Atelier Irisee and give it subcategories.', 'atelier-irisee-master-plugin' ) . '</p>';
-				}
-				foreach ( $terms as $term ) {
-					printf(
-						'<label><input type="checkbox" class="aimp-fabric-cat-checkbox" name="%s[]" value="%d" %s> %s</label>',
-						esc_attr( 'aimp' . AIMP_Catalog::META_FABRIC_CATS . '[' . $loop . ']' ),
-						(int) $term->term_id,
-						checked( in_array( (int) $term->term_id, $selected, true ), true, false ),
-						esc_html( $term->name )
-					);
-				}
-				?>
-				<input type="hidden" name="<?php echo esc_attr( 'aimp_fields_present[' . $loop . ']' ); ?>" value="1">
-			</fieldset>
+			<p class="aimp-variation-note"><?php esc_html_e( 'The height and the fitting fabrics are the same for all sizes: set them on the Atelier Irisee tab.', 'atelier-irisee-master-plugin' ); ?></p>
+			<input type="hidden" name="<?php echo esc_attr( 'aimp_fields_present[' . $loop . ']' ); ?>" value="1">
 		</div>
 		<?php
 	}
@@ -234,10 +214,7 @@ class AIMP_Product_Fields {
 			$variation->update_meta_data( $key, $value );
 		}
 
-		$name = 'aimp' . AIMP_Catalog::META_FABRIC_CATS;
-		$cats = isset( $_POST[ $name ][ $i ] ) ? array_map( 'absint', (array) wp_unslash( $_POST[ $name ][ $i ] ) ) : array();
 		// phpcs:enable
-		$variation->update_meta_data( AIMP_Catalog::META_FABRIC_CATS, array_values( array_filter( $cats ) ) );
 	}
 
 	/**
@@ -257,31 +234,17 @@ class AIMP_Product_Fields {
 	}
 
 	/**
-	 * Saved "Fabric categories allowed" of each size of a pattern: variation ID => term IDs.
-	 *
-	 * @param WC_Product $product Pattern product.
-	 * @return array
-	 */
-	private static function checked_fabric_categories( $product ) {
-		$map = array();
-		foreach ( $product->get_children() as $variation_id ) {
-			$variation = wc_get_product( $variation_id );
-			$cats      = $variation ? $variation->get_meta( AIMP_Catalog::META_FABRIC_CATS ) : array();
-			$map[ (int) $variation_id ] = is_array( $cats ) ? array_values( array_filter( array_map( 'absint', $cats ) ) ) : array();
-		}
-		return $map;
-	}
-
-	/**
-	 * Position table. It lists the fabric categories ticked on the sizes of this pattern;
-	 * assets/js/admin.js adds categories as soon as they are ticked on a size, before saving.
+	 * The pattern's Atelier Irisee tab: availability, price, details (skill level, sizes, project time, height)
+	 * and the fitting fabrics with their order. A pattern saved before 3.2 shows the values of its sizes,
+	 * so saving once moves them to the pattern.
 	 */
 	public static function render_pattern_panel() {
 		global $product_object;
 		$is_product = $product_object instanceof WC_Product;
+		$pattern_id = $is_product ? (int) $product_object->get_id() : 0;
 		$priority   = $is_product ? AIMP_Catalog::get_fabric_priority( $product_object ) : array();
-		$saved      = $is_product ? self::checked_fabric_categories( $product_object ) : array();
-		$checked    = $saved ? array_values( array_unique( array_merge( ...array_values( $saved ) ) ) ) : array();
+		$checked    = $pattern_id ? AIMP_Catalog::pattern_fabric_cats( $pattern_id ) : array();
+		$height     = $pattern_id ? AIMP_Catalog::pattern_height( $pattern_id ) : '';
 		$terms      = AIMP_Catalog::get_fabric_categories();
 		?>
 		<div id="aimp_pattern_data" class="panel woocommerce_options_panel hidden">
@@ -354,37 +317,67 @@ class AIMP_Product_Fields {
 						'label'       => __( 'Included sizes', 'atelier-irisee-master-plugin' ),
 						'placeholder' => __( 'e.g. XS – XXL (32 – 50)', 'atelier-irisee-master-plugin' ),
 						'value'       => $is_product ? (string) $product_object->get_meta( AIMP_Catalog::META_SIZES_TEXT ) : '',
-						'description' => __( 'Shown under the skill level on the pattern page.', 'atelier-irisee-master-plugin' ),
+						'description' => __( 'Shown next to the skill level on the pattern page, e.g. 34 → 52.', 'atelier-irisee-master-plugin' ),
 						'desc_tip'    => true,
+					)
+				);
+				woocommerce_wp_text_input(
+					array(
+						'id'          => AIMP_Catalog::META_PROJECT_TIME,
+						'label'       => __( 'Average project time', 'atelier-irisee-master-plugin' ),
+						'placeholder' => __( 'e.g. 5h', 'atelier-irisee-master-plugin' ),
+						'value'       => $is_product ? (string) $product_object->get_meta( AIMP_Catalog::META_PROJECT_TIME ) : '',
+						'description' => __( 'How long sewing it takes on average. Shown next to the skill level and the sizes on the pattern page.', 'atelier-irisee-master-plugin' ),
+						'desc_tip'    => true,
+					)
+				);
+				woocommerce_wp_text_input(
+					array(
+						'id'                => AIMP_Catalog::META_HEIGHT,
+						'label'             => __( 'Height (cm)', 'atelier-irisee-master-plugin' ),
+						'type'              => 'number',
+						'value'             => $height,
+						'custom_attributes' => array(
+							'min'  => '0',
+							'step' => '0.1',
+						),
+						'description'       => __( 'The body length the pattern is drafted for, the same for all sizes. Shown with the size measurements in the configurator.', 'atelier-irisee-master-plugin' ),
+						'desc_tip'          => true,
 					)
 				);
 				?>
 			</div>
 			<div class="options_group aimp-priority">
-				<h4><?php esc_html_e( 'Fabric categories shown first', 'atelier-irisee-master-plugin' ); ?></h4>
-				<p class="description"><?php esc_html_e( 'Choose which fabric categories customers see first when they pick a fabric for this pattern. The list shows the fabric categories ticked under "Fabric categories allowed" on the sizes of this pattern. Give them a position: 1 is shown first, then 2, and so on. Categories without a position come after them.', 'atelier-irisee-master-plugin' ); ?></p>
+				<h4><?php esc_html_e( 'Fitting fabrics', 'atelier-irisee-master-plugin' ); ?></h4>
+				<p class="description"><?php esc_html_e( 'Tick the fabric categories that suit this pattern; they are the same for all sizes. Customers choose their fabric from these categories. Give them a position to choose which they see first: 1 is shown first, then 2, and so on. Categories without a position come after them.', 'atelier-irisee-master-plugin' ); ?></p>
 				<?php if ( ! $terms ) : ?>
 					<p class="description"><?php esc_html_e( 'No fabric subcategories found. Set the Fabrics category under WooCommerce > Atelier Irisee and give it subcategories.', 'atelier-irisee-master-plugin' ); ?></p>
 				<?php else : ?>
-					<p class="description aimp-priority-empty"<?php echo $checked ? ' style="display:none"' : ''; ?>>
-						<?php esc_html_e( 'No fabric categories are ticked yet. Tick the allowed fabric categories on the sizes first (Variations tab, "Fabric categories allowed"). They will then appear here.', 'atelier-irisee-master-plugin' ); ?>
-					</p>
-					<table class="widefat aimp-priority-table" data-saved="<?php echo esc_attr( wp_json_encode( (object) $saved ) ); ?>"<?php echo $checked ? '' : ' style="display:none"'; ?>>
+					<table class="widefat aimp-priority-table">
 						<thead>
 							<tr>
 								<th><?php esc_html_e( 'Fabric category', 'atelier-irisee-master-plugin' ); ?></th>
+								<th><?php esc_html_e( 'Allowed', 'atelier-irisee-master-plugin' ); ?></th>
 								<th><?php esc_html_e( 'Position', 'atelier-irisee-master-plugin' ); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php foreach ( $terms as $term ) : ?>
-								<?php $id = 'aimp_priority_' . (int) $term->term_id; ?>
-								<tr data-term="<?php echo (int) $term->term_id; ?>"<?php echo in_array( (int) $term->term_id, $checked, true ) ? '' : ' style="display:none"'; ?>>
-									<td><label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $term->name ); ?></label></td>
+								<?php
+								$term_id = (int) $term->term_id;
+								$allowed = in_array( $term_id, $checked, true );
+								?>
+								<tr data-term="<?php echo esc_attr( $term_id ); ?>"<?php echo $allowed ? '' : ' class="is-off"'; ?>>
+									<td><label for="<?php echo esc_attr( 'aimp_fitting_' . $term_id ); ?>"><?php echo esc_html( $term->name ); ?></label></td>
 									<td>
-										<input type="number" min="1" step="1" class="small-text" id="<?php echo esc_attr( $id ); ?>"
-											name="aimp_fabric_priority[<?php echo (int) $term->term_id; ?>]"
-											value="<?php echo isset( $priority[ $term->term_id ] ) ? (int) $priority[ $term->term_id ] : ''; ?>">
+										<input type="checkbox" class="aimp-fitting-checkbox" id="<?php echo esc_attr( 'aimp_fitting_' . $term_id ); ?>"
+											name="aimp_fitting_fabrics[]" value="<?php echo esc_attr( $term_id ); ?>"<?php checked( $allowed ); ?>>
+									</td>
+									<td>
+										<input type="number" min="1" step="1" class="small-text" id="<?php echo esc_attr( 'aimp_priority_' . $term_id ); ?>"
+											name="aimp_fabric_priority[<?php echo esc_attr( $term_id ); ?>]"
+											aria-label="<?php echo esc_attr( sprintf( /* translators: %s: fabric category */ __( 'Position of %s', 'atelier-irisee-master-plugin' ), $term->name ) ); ?>"
+											value="<?php echo isset( $priority[ $term_id ] ) ? (int) $priority[ $term_id ] : ''; ?>"<?php disabled( ! $allowed ); ?>>
 									</td>
 								</tr>
 							<?php endforeach; ?>
@@ -429,9 +422,25 @@ class AIMP_Product_Fields {
 				$product->update_meta_data( AIMP_Catalog::META_SIZES_TEXT, $sizes );
 			}
 		}
+		if ( isset( $_POST[ AIMP_Catalog::META_PROJECT_TIME ] ) && current_user_can( 'edit_products' ) ) {
+			$time = sanitize_text_field( wp_unslash( $_POST[ AIMP_Catalog::META_PROJECT_TIME ] ) );
+			if ( '' === $time ) {
+				$product->delete_meta_data( AIMP_Catalog::META_PROJECT_TIME );
+			} else {
+				$product->update_meta_data( AIMP_Catalog::META_PROJECT_TIME, $time );
+			}
+		}
+		if ( isset( $_POST[ AIMP_Catalog::META_HEIGHT ] ) && current_user_can( 'edit_products' ) ) {
+			$height = wc_clean( wp_unslash( $_POST[ AIMP_Catalog::META_HEIGHT ] ) );
+			// Empty is saved too, so the old heights of the sizes no longer count.
+			$product->update_meta_data( AIMP_Catalog::META_HEIGHT, '' === $height ? '' : wc_format_decimal( max( 0, (float) $height ), 2, true ) );
+		}
 		if ( empty( $_POST['aimp_priority_present'] ) || ! current_user_can( 'edit_products' ) ) {
 			return;
 		}
+		// Fitting fabrics: the same for all sizes (an empty list is saved too).
+		$fitting = isset( $_POST['aimp_fitting_fabrics'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['aimp_fitting_fabrics'] ) ) : array();
+		$product->update_meta_data( AIMP_Catalog::META_FABRIC_CATS, array_values( array_filter( $fitting ) ) );
 		$input = isset( $_POST['aimp_fabric_priority'] ) ? (array) wp_unslash( $_POST['aimp_fabric_priority'] ) : array();
 		// phpcs:enable
 		$priority = array();

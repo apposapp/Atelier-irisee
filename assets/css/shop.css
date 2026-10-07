@@ -18,6 +18,8 @@
 	align-items: center;
 	gap: 0.5rem;
 	padding: 0.45rem 1.2rem;
+	/* A single thin line instead of the double border of the other buttons. */
+	border: 1px solid var(--aimp-gold);
 }
 
 .aimp-shop-toggle svg {

@@ -319,32 +319,59 @@
 /* ------------------------------------------------------------------
  * Skill level (patterns), order information (fabrics)
  * ------------------------------------------------------------------ */
-.aimp-configurator .aimp-skill {
+/* Patterns: skill level, sizes and project time as three tiles (icon, small label, value). */
+.aimp-pattern-tiles {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.6rem;
+	margin: 0.25rem 0 1rem;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-pattern-tile {
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
 	align-items: center;
-	gap: 0.4rem 0.6rem;
-	margin: 0 0 1rem;
-}
-
-.aimp-configurator .aimp-skill strong {
-	font-weight: 700;
-}
-
-.aimp-skill-dots {
-	display: inline-flex;
-	gap: 0.3rem;
-}
-
-.aimp-skill-dots span {
-	width: 0.65rem;
-	height: 0.65rem;
+	gap: 0.2rem;
+	margin: 0;
+	padding: 0.7rem 0.5rem;
 	border: 1px solid var(--aimp-gold);
-	border-radius: 50%;
+	border-radius: var(--aimp-radius);
+	text-align: center;
 }
 
-.aimp-skill-dots span.is-on {
-	background: var(--aimp-gold);
+.aimp-pattern-tile .aimp-washing-icon {
+	width: 2.2rem;
+	height: 2.2rem;
+}
+
+.aimp-configurator .aimp-pattern-tile-label {
+	color: var(--aimp-gold-text, #8a6a33);
+	font-size: 0.75em;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.aimp-configurator .aimp-pattern-tile-value {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	color: var(--aimp-body-text);
+	font-weight: 700;
+	line-height: 1.3;
+}
+
+.aimp-configurator .aimp-pattern-stars {
+	color: var(--aimp-gold);
+	font-size: 1.15em;
+	letter-spacing: 0.1em;
+}
+
+.aimp-configurator .aimp-pattern-level {
+	font-size: 0.8em;
+	font-weight: 400;
 }
 
 .aimp-product-order-info {
@@ -927,5 +954,32 @@ html:has(.aimp-product-reviews) {
 	.aimp-configurator .aimp-product-summary > .aimp-recommend-box {
 		order: 1;
 		margin-top: 0.5rem;
+	}
+}
+
+/* The delivery line and "Only … left" keep their own size and colour (the general text rule above has the
+ * weight of an ID, so these do too). On product pages the delivery line is one line, a bit smaller. */
+.aimp-configurator:is(.aimp-product, #aimp-specificity) .aimp-delivery-line li {
+	font-size: 0.8rem;
+	white-space: nowrap;
+}
+
+.aimp-configurator:is(.aimp-product, #aimp-specificity) .aimp-delivery-line {
+	flex-wrap: nowrap;
+	gap: 0.9rem;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.aimp-configurator:is(.aimp-product, #aimp-specificity) p.aimp-low-stock {
+	color: var(--aimp-gold-text, #8a6a33);
+	font-weight: 700;
+}
+
+/* Very narrow: the delivery line may wrap rather than scroll. */
+@container aimp (max-width: 420px) {
+	.aimp-configurator:is(.aimp-product, #aimp-specificity) .aimp-delivery-line {
+		flex-wrap: wrap;
+		gap: 0.25rem 0.9rem;
 	}
 }

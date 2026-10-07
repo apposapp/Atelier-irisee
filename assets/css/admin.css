@@ -721,3 +721,34 @@
 .aimp-nl-page select {
 	max-width: 100%;
 }
+
+/* Fitting fabrics: categories that are not allowed are dimmed (no position). */
+.aimp-priority-table tr.is-off td:first-child {
+	opacity: 0.55;
+}
+
+.aimp-priority-table td:nth-child(2) {
+	width: 5rem;
+	text-align: center;
+}
+
+/* Settings: "Only … left" per category. */
+.aimp-low-stock-cats {
+	margin-top: 1rem;
+}
+
+.aimp-low-stock-cats summary {
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-low-stock-cats table {
+	max-width: 32rem;
+	margin-top: 0.5rem;
+}
+
+.aimp-low-stock-cats td {
+	padding-top: 0.35rem;
+	padding-bottom: 0.35rem;
+	vertical-align: middle;
+}

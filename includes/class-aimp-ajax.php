@@ -28,12 +28,23 @@ class AIMP_Ajax {
 		return isset( $_POST[ $name ] ) ? absint( wp_unslash( $_POST[ $name ] ) ) : 0;
 	}
 
+	/**
+	 * A comma list of IDs ("12,15"), for filters where several can be chosen.
+	 *
+	 * @param string $name Field.
+	 * @return int[]
+	 */
+	private static function int_list_param( $name ) {
+		$value = isset( $_POST[ $name ] ) ? substr( sanitize_text_field( wp_unslash( $_POST[ $name ] ) ), 0, 200 ) : '';
+		return array_slice( array_values( array_unique( array_filter( array_map( 'absint', explode( ',', $value ) ) ) ) ), 0, 20 );
+	}
+
 	private static function not_found() {
 		wp_send_json_error( array( 'errors' => array( __( 'This item is not available.', 'atelier-irisee-master-plugin' ) ) ), 404 );
 	}
 
 	public static function patterns() {
-		wp_send_json_success( AIMP_Catalog::get_patterns( self::int_param( 'category' ), max( 1, self::int_param( 'page' ) ) ) );
+		wp_send_json_success( AIMP_Catalog::get_patterns( self::int_list_param( 'category' ), max( 1, self::int_param( 'page' ) ) ) );
 	}
 
 	public static function sizes() {
@@ -49,7 +60,7 @@ class AIMP_Ajax {
 			self::int_param( 'variation' ),
 			array(
 				'page'     => max( 1, self::int_param( 'page' ) ),
-				'category' => self::int_param( 'category' ),
+				'category' => self::int_list_param( 'category' ),
 				'search'   => isset( $_POST['search'] ) ? substr( sanitize_text_field( wp_unslash( $_POST['search'] ) ), 0, 100 ) : '',
 				'in_stock' => 1 === self::int_param( 'in_stock' ),
 				'sort'     => isset( $_POST['sort'] ) ? sanitize_key( wp_unslash( $_POST['sort'] ) ) : 'recommended',

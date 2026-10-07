@@ -409,7 +409,7 @@ class AIMP_Product_Page {
 		$max       = $available ? (int) $buyable->get_max_purchase_quantity() : 0; // -1 = no maximum.
 		$factor    = $per_10cm ? AIMP_Catalog::FABRIC_UNIT_CM : 1;
 		// Only when the stock is low (setting; 0 = never), the one place a stock level is shown.
-		$threshold = (int) AIMP_Settings::get( 'low_stock' );
+		$threshold = $available ? AIMP_Trust::low_stock_threshold( $buyable ) : 0;
 		$left      = $available && $threshold > 0 && $buyable->managing_stock() ? (int) $buyable->get_stock_quantity() : 0;
 
 		return array(
@@ -679,6 +679,7 @@ class AIMP_Product_Page {
 			'pattern'          => (bool) $pattern,
 			'skill'            => $pattern ? (string) $product->get_meta( AIMP_Catalog::META_SKILL ) : '',
 			'sizes_text'       => $pattern ? (string) $product->get_meta( AIMP_Catalog::META_SIZES_TEXT ) : '',
+			'project_time'     => $pattern ? (string) $product->get_meta( AIMP_Catalog::META_PROJECT_TIME ) : '',
 			'recommended'      => self::recommended_product( $product ),
 			'fabrics'          => $pattern ? self::recommended_fabrics( $pattern ) : array(),
 			'buy'              => self::buy_data( $product, $per_10cm ),
@@ -749,19 +750,8 @@ class AIMP_Product_Page {
 					)
 				);
 				foreach ( $patterns->posts as $pattern_id ) {
-					foreach ( get_children(
-						array(
-							'post_parent' => $pattern_id,
-							'post_type'   => 'product_variation',
-							'post_status' => 'publish',
-							'fields'      => 'ids',
-						)
-					) as $variation_id ) {
-						$allowed = get_post_meta( $variation_id, AIMP_Catalog::META_FABRIC_CATS, true );
-						if ( is_array( $allowed ) && array_intersect( array_map( 'absint', $allowed ), $fabric_terms ) ) {
-							$ids[] = (int) $pattern_id;
-							break;
-						}
+					if ( array_intersect( AIMP_Catalog::pattern_fabric_cats( (int) $pattern_id ), $fabric_terms ) ) {
+						$ids[] = (int) $pattern_id;
 					}
 					if ( count( $ids ) >= self::FITTING ) {
 						break;
@@ -827,7 +817,12 @@ class AIMP_Product_Page {
 			// A seal with a tick.
 			'certification' => '<circle cx="12" cy="9" r="5.5"/><path d="M9.6 9.1l1.6 1.6 3.3-3.3"/><path d="M8.6 13.4L7 21l5-2.6 5 2.6-1.6-7.6"/>',
 			// Configurator: what a size needs.
-			'fabric'      => '<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H20v11H6.5A2.5 2.5 0 0 0 4 18.5z"/><path d="M4 7.5v11A2.5 2.5 0 0 0 6.5 21H20v-5"/>',
+			// A roll of fabric seen from the side, with its loose end hanging down.
+			'fabric'      => '<ellipse cx="6" cy="8" rx="2.5" ry="4.5"/><ellipse cx="6" cy="8" rx="0.9" ry="1.6"/><path d="M6 3.5h12a2.5 4.5 0 0 1 0 9H6"/><path d="M11 12.5v8h9.5l-1.6-8.2"/>',
+			// Pattern page: skill level, sizes, project time.
+			'sewing_machine' => '<rect x="3" y="17" width="18" height="3" rx="1"/><path d="M6 17V7.5A2.5 2.5 0 0 1 8.5 5H18a2 2 0 0 1 2 2v3.5h-8.5V17"/><path d="M17 10.5v3.5M15.5 14h3"/><circle cx="16.5" cy="7.6" r="0.9"/>',
+			'tape_measure' => '<circle cx="9" cy="12" r="6"/><circle cx="9" cy="12" r="2"/><path d="M9 18h12v-4h-6.5"/><path d="M13 18v-1.6M16 18v-1.6M19 18v-1.6"/>',
+			'clock'        => '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/><path d="M12 4.2v.01M19.8 12h.01M12 19.8v.01M4.2 12h.01"/>',
 			'buttons'     => '<circle cx="12" cy="12" r="8.5"/><circle cx="10" cy="10" r="1"/><circle cx="14" cy="10" r="1"/><circle cx="10" cy="14" r="1"/><circle cx="14" cy="14" r="1"/>',
 			'zips'        => '<path d="M12 3v12"/><path d="M9.5 5H12M12 7.5h2.5M9.5 10H12M12 12.5h2.5"/><rect x="9" y="15" width="6" height="6" rx="1.5"/>',
 			'ribbons'     => '<path d="M12 10c-2-3.5-6.5-4-7-1.5S8 13 12 10zm0 0c2-3.5 6.5-4 7-1.5S16 13 12 10z"/><path d="M11 11l-3 9M13 11l3 9"/>',

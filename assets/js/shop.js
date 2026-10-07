@@ -23,7 +23,7 @@
 	UI.persistLang(lang);
 
 	function defaultFilters() {
-		return { category: 0, search: '', min: '', max: '', inStock: false, sort: 'recommended', attrs: {}, skills: [] };
+		return { category: [], search: '', min: '', max: '', inStock: false, sort: 'recommended', attrs: {}, skills: [] };
 	}
 
 	function isDrawer() {
@@ -81,7 +81,10 @@
 	Shop.prototype.readUrl = function () {
 		var params = new URLSearchParams(window.location.search);
 		var f = this.state.filters;
-		f.category = parseInt(params.get('aimp_cat') || '0', 10) || 0;
+		// One or more categories: aimp_cat=12 or aimp_cat=12,15.
+		f.category = (params.get('aimp_cat') || '').split(',').map(function (n) {
+			return parseInt(n, 10) || 0;
+		}).filter(Boolean);
 		f.search = (params.get('aimp_q') || '').slice(0, 100);
 		f.min = params.get('aimp_min') || '';
 		f.max = params.get('aimp_max') || '';
@@ -107,8 +110,8 @@
 				params.delete(key);
 			}
 		});
-		if (f.category) {
-			params.set('aimp_cat', f.category);
+		if (f.category.length) {
+			params.set('aimp_cat', f.category.join(','));
 		}
 		if (f.search) {
 			params.set('aimp_q', f.search);
@@ -244,7 +247,7 @@
 
 	Shop.prototype.activeCount = function () {
 		var f = this.state.filters;
-		var count = (f.category ? 1 : 0) + (f.search ? 1 : 0) + (f.min !== '' || f.max !== '' ? 1 : 0) + (f.inStock ? 1 : 0) + f.skills.length;
+		var count = f.category.length + (f.search ? 1 : 0) + (f.min !== '' || f.max !== '' ? 1 : 0) + (f.inStock ? 1 : 0) + f.skills.length;
 		Object.keys(f.attrs).forEach(function (taxonomy) {
 			count += f.attrs[taxonomy].length;
 		});
@@ -308,10 +311,11 @@
 		// Categories
 		if (facets.categories && facets.categories.length) {
 			html += '<details class="aimp-filter-group" open><summary>' + esc(t.category) + '</summary><ul class="aimp-filter-options">';
-			[{ id: 0, name: t.all, depth: 0 }].concat(facets.categories).forEach(function (cat) {
+			// Several can be ticked; none ticked = all.
+			facets.categories.forEach(function (cat) {
 				html +=
 					'<li style="--aimp-depth:' + parseInt(cat.depth, 10) + '"><label class="aimp-filter-option">' +
-					'<input type="radio" name="' + id + '-cat" value="' + esc(cat.id) + '" data-role="category"' + (f.category === cat.id ? ' checked' : '') + '> ' +
+					'<input type="checkbox" value="' + esc(cat.id) + '" data-role="category"' + (f.category.indexOf(cat.id) !== -1 ? ' checked' : '') + '> ' +
 					'<span>' + esc(cat.name) + '</span></label></li>';
 			});
 			html += '</ul></details>';
@@ -397,7 +401,13 @@
 
 		el.querySelectorAll('[data-role="category"]').forEach(function (input) {
 			input.addEventListener('change', function () {
-				f.category = parseInt(input.value, 10) || 0;
+				var value = parseInt(input.value, 10) || 0;
+				f.category = f.category.filter(function (other) {
+					return other !== value;
+				});
+				if (input.checked && value) {
+					f.category.push(value);
+				}
 				changed();
 			});
 		});
@@ -512,12 +522,12 @@
 				'<span>' + esc(label) + '</span><span aria-hidden="true">×</span></button>'
 			);
 		};
-		if (f.category) {
+		f.category.forEach(function (id) {
 			var cat = (facets.categories || []).filter(function (c) {
-				return c.id === f.category;
+				return c.id === id;
 			})[0];
-			chip(cat ? cat.name : t.category, 'category', f.category);
-		}
+			chip(cat ? cat.name : t.category, 'category', id);
+		});
 		if (f.search) {
 			chip('“' + f.search + '”', 'search', '');
 		}
@@ -550,7 +560,9 @@
 	Shop.prototype.removeFilter = function (kind, value, taxonomy) {
 		var f = this.state.filters;
 		if (kind === 'category') {
-			f.category = 0;
+			f.category = f.category.filter(function (id) {
+				return String(id) !== String(value);
+			});
 		} else if (kind === 'search') {
 			f.search = '';
 		} else if (kind === 'price') {
@@ -597,7 +609,7 @@
 		var params = {
 			type: this.type,
 			page: s.page,
-			category: f.category,
+			category: f.category.join(','),
 			search: f.search,
 			min: f.min,
 			max: f.max,

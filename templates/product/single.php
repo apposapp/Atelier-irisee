@@ -201,24 +201,37 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 				</div>
 			<?php endif; ?>
 
-			<?php if ( $aimp_pattern && isset( $aimp_skills[ $data['skill'] ] ) ) : ?>
-				<?php $aimp_level = array_search( $data['skill'], array_keys( $aimp_skills ), true ) + 1; ?>
-				<p class="aimp-skill">
-					<span class="aimp-skill-label"><?php esc_html_e( 'Skill level', 'atelier-irisee-master-plugin' ); ?>:</span>
-					<strong><?php echo esc_html( $aimp_skills[ $data['skill'] ] ); ?></strong>
-					<span class="aimp-skill-dots" aria-hidden="true">
-						<?php for ( $aimp_dot = 1; $aimp_dot <= count( $aimp_skills ); $aimp_dot++ ) : ?>
-							<span class="<?php echo $aimp_dot <= $aimp_level ? 'is-on' : ''; ?>"></span>
-						<?php endfor; ?>
-					</span>
-				</p>
-			<?php endif; ?>
-
-			<?php if ( $aimp_pattern && '' !== trim( $data['sizes_text'] ) ) : ?>
-				<p class="aimp-skill aimp-sizes">
-					<span class="aimp-skill-label"><?php esc_html_e( 'Sizes', 'atelier-irisee-master-plugin' ); ?>:</span>
-					<strong><?php echo esc_html( $data['sizes_text'] ); ?></strong>
-				</p>
+			<?php
+			// Patterns: skill level, sizes and project time as tiles with an icon (only those filled in).
+			$aimp_pattern_tiles = array();
+			if ( $aimp_pattern && isset( $aimp_skills[ $data['skill'] ] ) ) {
+				$aimp_level = array_search( $data['skill'], array_keys( $aimp_skills ), true ) + 1;
+				$aimp_stars = '';
+				for ( $aimp_star = 1; $aimp_star <= count( $aimp_skills ); $aimp_star++ ) {
+					$aimp_stars .= $aimp_star <= $aimp_level ? '★' : '☆';
+				}
+				$aimp_pattern_tiles['sewing_machine'] = array(
+					__( 'Skill level', 'atelier-irisee-master-plugin' ),
+					'<span class="aimp-pattern-stars" aria-hidden="true">' . $aimp_stars . '</span><span class="aimp-pattern-level">' . esc_html( $aimp_skills[ $data['skill'] ] ) . '</span>',
+				);
+			}
+			if ( $aimp_pattern && '' !== trim( $data['sizes_text'] ) ) {
+				$aimp_pattern_tiles['tape_measure'] = array( __( 'Sizes', 'atelier-irisee-master-plugin' ), esc_html( $data['sizes_text'] ) );
+			}
+			if ( $aimp_pattern && '' !== trim( $data['project_time'] ) ) {
+				$aimp_pattern_tiles['clock'] = array( __( 'Project time', 'atelier-irisee-master-plugin' ), esc_html( $data['project_time'] ) );
+			}
+			?>
+			<?php if ( $aimp_pattern_tiles ) : ?>
+				<ul class="aimp-pattern-tiles">
+					<?php foreach ( $aimp_pattern_tiles as $aimp_icon => $aimp_tile ) : ?>
+						<li class="aimp-pattern-tile">
+							<?php echo AIMP_Product_Page::fabric_icon( $aimp_icon ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?>
+							<span class="aimp-pattern-tile-label"><?php echo esc_html( $aimp_tile[0] ); ?></span>
+							<span class="aimp-pattern-tile-value"><?php echo $aimp_tile[1]; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above. ?></span>
+						</li>
+					<?php endforeach; ?>
+				</ul>
 			<?php endif; ?>
 
 			<?php if ( $aimp_fabric && $aimp_has_text( $aimp_fabric['order_info'] ) ) : ?>

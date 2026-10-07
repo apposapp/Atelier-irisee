@@ -140,7 +140,7 @@
 
 
 	function defaultFabricFilters() {
-		return { category: 0, search: '', inStock: false, sort: 'recommended' };
+		return { category: [], search: '', inStock: false, sort: 'recommended' };
 	}
 
 	/* ---------------------------------------------------------------
@@ -281,7 +281,7 @@
 	Configurator.prototype.reset = function () {
 		this.state = {
 			step: 'pattern',
-			category: 0,
+			category: [],
 			patternPage: 1,
 			patterns: null,
 			pattern: null,
@@ -542,7 +542,8 @@
 		if (cfg.categories && cfg.categories.length) {
 			html += '<div class="aimp-filters" role="group">';
 			[{ id: 0, name: t.all }].concat(cfg.categories).forEach(function (cat) {
-				var active = s.category === cat.id;
+				// Several categories can be on; "All" is on when none is.
+				var active = cat.id ? s.category.indexOf(cat.id) !== -1 : !s.category.length;
 				html +=
 					'<button type="button" class="aimp-filter' + (active ? ' is-active' : '') + '" data-cat="' + esc(cat.id) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' +
 					esc(cat.name) +
@@ -562,7 +563,11 @@
 
 		this.body.querySelectorAll('[data-cat]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
-				s.category = parseInt(btn.getAttribute('data-cat'), 10);
+				var id = parseInt(btn.getAttribute('data-cat'), 10) || 0;
+				var on = s.category.indexOf(id) !== -1;
+				s.category = !id ? [] : on ? s.category.filter(function (other) {
+					return other !== id;
+				}) : s.category.concat([id]);
 				s.patternPage = 1;
 				s.patterns = null;
 				self.renderPatternStep();
@@ -580,13 +585,13 @@
 	Configurator.prototype.loadPatterns = function () {
 		var self = this;
 		var s = this.state;
-		var wanted = lang + ':' + s.category + ':' + s.patternPage;
+		var wanted = lang + ':' + s.category.join(',') + ':' + s.patternPage;
 		s.patterns = null;
 		this.renderPatternGrid();
-		request('patterns', { category: s.category, page: s.patternPage })
+		request('patterns', { category: s.category.join(','), page: s.patternPage })
 			.then(function (data) {
 				// Ignore stale responses after a quick filter or language change.
-				if (wanted !== lang + ':' + s.category + ':' + s.patternPage) {
+				if (wanted !== lang + ':' + s.category.join(',') + ':' + s.patternPage) {
 					return;
 				}
 				s.patterns = data;
@@ -981,14 +986,14 @@
 			return;
 		}
 		var f = this.state.fabricFilters;
-		var count = (f.category ? 1 : 0) + (f.search ? 1 : 0) + (f.inStock ? 1 : 0);
+		var count = f.category.length + (f.search ? 1 : 0) + (f.inStock ? 1 : 0);
 		toggle.innerHTML =
 			'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>' +
 			'<span>' + esc(t.filters) + '</span>' +
 			(count ? '<span class="aimp-shop-count">' + count + '</span>' : '');
 	};
 
-	// Fabric categories in the filter panel: one choice (radio buttons), "All" first.
+	// Fabric categories in the filter panel: tick boxes, several at once.
 	Configurator.prototype.renderFabricCategories = function () {
 		var self = this;
 		var s = this.state;
@@ -1004,20 +1009,26 @@
 			return;
 		}
 		group.hidden = false;
-		container.innerHTML = [{ id: 0, name: t.all }]
-			.concat(cats)
+		// Several can be ticked; none ticked = all allowed fabrics.
+		container.innerHTML = cats
 			.map(function (cat) {
-				var active = s.fabricFilters.category === cat.id;
+				var active = s.fabricFilters.category.indexOf(cat.id) !== -1;
 				return (
 					'<li><label class="aimp-filter-option">' +
-					'<input type="radio" name="aimp-fabric-cat" value="' + esc(cat.id) + '" data-fabric-cat' + (active ? ' checked' : '') + '> ' +
+					'<input type="checkbox" value="' + esc(cat.id) + '" data-fabric-cat' + (active ? ' checked' : '') + '> ' +
 					'<span>' + esc(cat.name) + '</span></label></li>'
 				);
 			})
 			.join('');
 		container.querySelectorAll('[data-fabric-cat]').forEach(function (input) {
 			input.addEventListener('change', function () {
-				s.fabricFilters.category = parseInt(input.value, 10) || 0;
+				var id = parseInt(input.value, 10) || 0;
+				s.fabricFilters.category = s.fabricFilters.category.filter(function (other) {
+					return other !== id;
+				});
+				if (input.checked && id) {
+					s.fabricFilters.category.push(id);
+				}
 				s.fabricPage = 1;
 				self.renderFilterToggle();
 				self.loadFabrics();
@@ -1032,7 +1043,7 @@
 		var params = {
 			variation: s.size.id,
 			page: s.fabricPage,
-			category: f.category,
+			category: f.category.join(','),
 			search: f.search,
 			in_stock: f.inStock ? 1 : 0,
 			sort: f.sort
@@ -1074,7 +1085,7 @@
 		if (!container) {
 			return;
 		}
-		var filtered = s.fabricFilters.category || s.fabricFilters.search || s.fabricFilters.inStock;
+		var filtered = s.fabricFilters.category.length || s.fabricFilters.search || s.fabricFilters.inStock;
 		this.renderGrid(container, s.fabrics, {
 			selectedId: s.fabric ? s.fabric.id : null,
 			emptyText: filtered ? t.noFabricsMatch : t.noFabrics,

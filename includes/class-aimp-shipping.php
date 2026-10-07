@@ -281,7 +281,7 @@ class AIMP_Shipping {
 				'default'           => array(),
 			)
 		);
-		add_settings_section( 'aimp_shipping', __( 'Shipping', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'section_intro' ), AIMP_Settings::PAGE );
+		add_settings_section( 'aimp_shipping', __( 'Shipping and delivery', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'section_intro' ), AIMP_Settings::PAGE );
 		add_settings_field( 'aimp_shipping_enabled', __( 'Shipping costs', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'render_enabled' ), AIMP_Settings::PAGE, 'aimp_shipping' );
 		add_settings_field(
 			'aimp_shipping_home',
