@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.3.1
+Stable tag: 3.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.3.2 =
+* PostNL pickup points show again in the Atelier Irisee checkout. PostNL for WooCommerce 5.9.12 gets pickup points from its new V4 API without a partner ID and pickup time, and its classic checkout then drops every point (only the empty "Pick up" tab remained). The plugin now builds that list from the V4 points, with PostNL's own template, so choosing a point, saving it on the order and labels work as before. When PostNL sends complete points, its own list is used unchanged.
 
 = 3.3.1 =
 * PostNL pickup points: PostNL's checkout script is always loaded on the checkout, and the Atelier Irisee checkout shows and handles the "Pick up" choice itself if that script is missing, so the list of pickup points opens and a point can be chosen.

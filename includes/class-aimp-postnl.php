@@ -43,9 +43,117 @@ class AIMP_PostNL {
 		add_action( 'woocommerce_order_details_after_order_table', array( __CLASS__, 'pickup_block' ) );
 		// PostNL's checkout script (pickup points), also when PostNL thinks the checkout page is a block checkout.
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'checkout_script' ), 20 );
+		// PostNL 5.9.12: pickup points from its V4 API are dropped by its classic checkout list (see render_pickup()).
+		add_action( 'init', array( __CLASS__, 'swap_pickup_renderer' ), 20 );
 		// A WooCommerce Checkout block left on the checkout page puts PostNL in its block mode: warn, and remove it.
 		add_action( 'admin_notices', array( __CLASS__, 'checkout_block_notice' ) );
 		add_action( 'admin_post_aimp_postnl_fix_checkout', array( __CLASS__, 'fix_checkout_page' ) );
+	}
+
+	/* ------------------------------------------------------------------
+	 * Pickup points list (workaround for PostNL 5.9.12)
+	 * ------------------------------------------------------------------ */
+
+	/** PostNL's Frontend\Dropoff_Points object, whose list renderer is replaced. */
+	private static $dropoff = null;
+
+	/**
+	 * With a validated "New API Key", PostNL gets pickup points from its V4 API. Those locations have no
+	 * PartnerID and PickupTime, and PostNL's classic (shortcode) checkout list skips every location without
+	 * them: the "Pick up" tab shows, but its list stays empty. Our renderer takes the place of PostNL's for
+	 * the action postnl_checkout_content.
+	 */
+	public static function swap_pickup_renderer() {
+		global $wp_filter;
+		if ( ! self::active() || empty( $wp_filter['postnl_checkout_content'] ) || ! class_exists( '\PostNLWooCommerce\Frontend\Dropoff_Points' ) ) {
+			return;
+		}
+		foreach ( $wp_filter['postnl_checkout_content']->callbacks as $priority => $callbacks ) {
+			foreach ( $callbacks as $callback ) {
+				$function = $callback['function'];
+				if ( is_array( $function ) && $function[0] instanceof \PostNLWooCommerce\Frontend\Dropoff_Points && 'display_content' === $function[1] ) {
+					self::$dropoff = $function[0];
+					remove_action( 'postnl_checkout_content', $function, $priority );
+					add_action( 'postnl_checkout_content', array( __CLASS__, 'render_pickup' ), $priority, 2 );
+					return;
+				}
+			}
+		}
+	}
+
+	/**
+	 * The pickup points list: PostNL's own when the locations are complete, otherwise the same list built from
+	 * the V4 locations, with PostNL's template (so its script, hidden fields and order saving keep working).
+	 *
+	 * @param array $response  PostNL checkout response.
+	 * @param array $post_data Checkout post data.
+	 */
+	public static function render_pickup( $response, $post_data ) {
+		$dropoff = self::$dropoff;
+		if ( ! $dropoff ) {
+			return;
+		}
+		$groups   = ! empty( $response['PickupOptions'] ) && is_array( $response['PickupOptions'] ) ? $response['PickupOptions'] : array();
+		$complete = true;
+		foreach ( $groups as $group ) {
+			foreach ( ! empty( $group['Locations'] ) ? (array) $group['Locations'] : array() as $location ) {
+				if ( empty( $location['PartnerID'] ) || empty( $location['PickupTime'] ) ) {
+					$complete = false;
+					break 2;
+				}
+			}
+		}
+		if ( $complete || ! defined( 'POSTNL_WC_PLUGIN_DIR_PATH' ) ) {
+			$dropoff->display_content( $response, $post_data );
+			return;
+		}
+
+		$settings  = class_exists( '\PostNLWooCommerce\Shipping_Method\Settings' ) ? \PostNLWooCommerce\Shipping_Method\Settings::get_instance() : null;
+		$show_desc = empty( $response['DeliveryOptions'] ) || ( $settings && ! $settings->is_delivery_days_enabled() );
+		$data      = $dropoff->get_init_content_data( $post_data );
+		$options   = array();
+		foreach ( $groups as $group ) {
+			foreach ( ! empty( $group['Locations'] ) ? (array) $group['Locations'] : array() as $location ) {
+				$address = isset( $location['Address'] ) && is_array( $location['Address'] ) ? $location['Address'] : array();
+				if ( empty( $location['LocationCode'] ) || ! $address ) {
+					continue;
+				}
+				$get       = function ( $key ) use ( $address ) {
+					return isset( $address[ $key ] ) ? (string) $address[ $key ] : '';
+				};
+				$options[] = array(
+					'show_desc'  => $show_desc,
+					// Only part of the radio value; the label uses the address of the point.
+					'partner_id' => ! empty( $location['PartnerID'] ) ? (string) $location['PartnerID'] : 'PNPNL-01',
+					'loc_code'   => (string) $location['LocationCode'],
+					'time'       => ! empty( $location['PickupTime'] ) ? (string) $location['PickupTime'] : '',
+					'distance'   => isset( $location['Distance'] ) ? (string) $location['Distance'] : '',
+					'date'       => ! empty( $group['PickupDate'] ) ? (string) $group['PickupDate'] : '',
+					'address'    => array(
+						'company'   => '' !== $get( 'CompanyName' ) ? $get( 'CompanyName' ) : ( isset( $location['Name'] ) ? (string) $location['Name'] : '' ),
+						'address_1' => $get( 'Street' ),
+						'address_2' => $get( 'HouseNr' ),
+						'postcode'  => $get( 'Zipcode' ),
+						'city'      => $get( 'City' ),
+						'country'   => $get( 'Countrycode' ),
+					),
+					'type'       => ! empty( $group['Option'] ) ? (string) $group['Option'] : '',
+				);
+			}
+		}
+		if ( ! $options ) {
+			return;
+		}
+		$data['dropoff_options'] = $options;
+
+		ob_start();
+		wc_get_template( 'checkout/postnl-dropoff-points.php', array( 'data' => $data ), '', POSTNL_WC_PLUGIN_DIR_PATH . '/templates/' );
+		$html = (string) ob_get_clean();
+		// No pickup time from V4: show only the date ("Vanaf <time><br>" would be empty).
+		$html = preg_replace( '#(<i>)[^<]*?\s*<br\s*/?>#', '$1', $html );
+		// No distance: no "0 m".
+		$html = preg_replace( '#<span class="distance">\s*0 m\s*</span>#', '<span class="distance"></span>', $html );
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PostNL's template escapes its output.
 	}
 
 	/* ------------------------------------------------------------------
