@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.2.1
+Stable tag: 3.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,14 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.3.0 =
+* Shipping now runs fully through PostNL for WooCommerce. The Atelier Irisee shipping method is removed; your shipping costs were moved (once, automatically) to WooCommerce shipping zones with the PostNL method: your own country, every country you had listed, and "all other countries", each with its cost and "free from".
+* Shipping and delivery tab: the PostNL cost and "free from" of every zone, "Add country" and remove. New PostNL tab: all PostNL settings (API key, sender, checkout, labels, Fill in with PostNL), saved by PostNL itself. PostNL's own settings pages open this tab.
+* "Free shipping from …" (delivery line) and "… to go" with the bar now use PostNL's amounts.
+* Orders with a PostNL pickup point show "Pickup point" on the thank-you page and under the order in My orders.
+* Track & trace: without a pasted link, the PostNL track & trace of the label is used in the Completed email and in My orders.
+* Cart: WooCommerce's "Calculate shipping" and the shipping options (PostNL logo, local pickup) in the Atelier Irisee look.
 
 = 3.2.1 =
 * PostNL for WooCommerce: while the Atelier Irisee shipping costs are on, they count as a PostNL shipping method, so PostNL's pickup points (and delivery options where PostNL offers them), its fees and its labels work. PostNL's fees are added on top of our shipping cost.

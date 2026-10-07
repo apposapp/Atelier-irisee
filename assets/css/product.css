@@ -983,3 +983,30 @@ html:has(.aimp-product-reviews) {
 		gap: 0.25rem 0.9rem;
 	}
 }
+
+/* Shipping options (PostNL, local pickup) in the cart and checkout totals: one per line, the PostNL logo small. */
+.aimp-configurator :is(#shipping_method, .woocommerce-shipping-methods) li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35rem 0.5rem;
+	margin: 0 0 0.4rem;
+	text-align: left;
+}
+
+.aimp-configurator :is(#shipping_method, .woocommerce-shipping-methods) li label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0;
+}
+
+.aimp-configurator :is(#shipping_method, .woocommerce-shipping-methods) .postnl_shipping_method_icon {
+	max-height: 24px;
+	width: auto;
+	margin: 0;
+}
+
+.aimp-configurator :is(#shipping_method, .woocommerce-shipping-methods) li .aimp-free-shipping-hint {
+	flex-basis: 100%;
+}

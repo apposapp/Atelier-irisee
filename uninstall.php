@@ -67,6 +67,10 @@ foreach ( $aimp_subscribers as $aimp_subscriber ) {
 
 // Shop pages and product pages: cached filter options and "fits these patterns" lists.
 delete_option( 'aimp_shop_cache_version' );
+delete_option( 'aimp_shipping' );
+delete_option( 'aimp_shipping_zone_synced' );
+delete_option( 'aimp_postnl_migrated' );
+// The PostNL zones and settings belong to WooCommerce and PostNL and are kept.
 $wpdb->query(
 	$wpdb->prepare(
 		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",

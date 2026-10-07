@@ -28,6 +28,24 @@ class AIMP_Tracking {
 	 * @return string
 	 */
 	public static function url( $order ) {
+		if ( ! $order instanceof WC_Order ) {
+			return '';
+		}
+		$url = (string) $order->get_meta( self::META );
+		// No link pasted: PostNL's track & trace once a PostNL label was made.
+		if ( '' === $url && class_exists( 'AIMP_PostNL' ) ) {
+			$url = AIMP_PostNL::tracking_url( $order );
+		}
+		return $url;
+	}
+
+	/**
+	 * Only the pasted link (for the box on the order screen).
+	 *
+	 * @param WC_Order $order Order.
+	 * @return string
+	 */
+	private static function pasted_url( $order ) {
 		return $order instanceof WC_Order ? (string) $order->get_meta( self::META ) : '';
 	}
 
@@ -49,9 +67,9 @@ class AIMP_Tracking {
 		printf(
 			'<p><label for="aimp_tracking_url" class="screen-reader-text">%1$s</label><input type="url" id="aimp_tracking_url" name="aimp_tracking_url" value="%2$s" placeholder="%3$s" style="width:100%%"></p><p class="description">%4$s</p>',
 			esc_html__( 'Track & trace link', 'atelier-irisee-master-plugin' ),
-			esc_attr( self::url( $order ) ),
+			esc_attr( self::pasted_url( $order ) ),
 			esc_attr__( 'Paste the track & trace link', 'atelier-irisee-master-plugin' ),
-			esc_html__( 'Added to the Completed order email when you set the order to Completed, and shown with the order in the customer account.', 'atelier-irisee-master-plugin' )
+			esc_html__( 'Added to the Completed order email when you set the order to Completed, and shown with the order in the customer account. Left empty: the PostNL track & trace is used once you made a PostNL label.', 'atelier-irisee-master-plugin' )
 		);
 		if ( self::url( $order ) ) {
 			printf( '<p><a href="%1$s" target="_blank" rel="noopener">%2$s</a></p>', esc_url( self::url( $order ) ), esc_html__( 'Open the link', 'atelier-irisee-master-plugin' ) );

@@ -566,3 +566,20 @@
 		padding: 0.4rem 1rem;
 	}
 }
+
+/* My orders → order: the PostNL pickup point. */
+.aimp-pickup-point {
+	margin: 1rem 0;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius, 24px);
+}
+
+.aimp-pickup-point h3 {
+	margin: 0 0 0.4rem;
+}
+
+.aimp-pickup-point address {
+	margin: 0;
+	font-style: normal;
+}

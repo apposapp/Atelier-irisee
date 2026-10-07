@@ -490,3 +490,32 @@
 		flex: 1 1 100%;
 	}
 }
+
+/* WooCommerce's "Calculate shipping" (country and postcode) in the totals, in the Atelier Irisee look. */
+.aimp-configurator .aimp-cart-side .shipping-calculator-button {
+	color: var(--aimp-gold-text, #8a6a33);
+	font-weight: 700;
+	text-decoration: underline;
+}
+
+.aimp-configurator .aimp-cart-side .shipping-calculator-form {
+	display: grid;
+	gap: 0.5rem;
+	margin-top: 0.6rem;
+}
+
+.aimp-configurator .aimp-cart-side .shipping-calculator-form p {
+	margin: 0;
+}
+
+.aimp-configurator .aimp-cart-side .shipping-calculator-form :is(input.input-text, select),
+.aimp-configurator .aimp-cart-side .shipping-calculator-form .select2-container .select2-selection {
+	width: 100%;
+	min-height: 2.4rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-radius);
+}
+
+.aimp-configurator .aimp-cart-side .shipping-calculator-form button {
+	justify-self: start;
+}

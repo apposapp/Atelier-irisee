@@ -988,28 +988,19 @@ return array(
 	// 2.5.0
 	'Add country' => 'Ajouter un pays',
 	'All other countries' => 'Tous les autres pays',
-	'Countries not in the list above. Leave the cost empty to use the cost of your country.' => 'Les pays qui ne figurent pas dans la liste ci-dessus. Laissez le coût vide pour utiliser le coût de votre pays.',
 	'Free from' => 'Gratuit à partir de',
-	'Free shipping' => 'Livraison gratuite',
 	'Free shipping from %1$s: %2$s to go.' => 'Livraison gratuite dès %1$s : encore %2$s.',
-	'One shipping cost for every order, depending on the delivery country, and free from an order amount. The amounts are what the customer pays (VAT included when your prices include VAT). "Free from" counts the products in the cart after discounts; leave it empty for never free. Local pickup set up in WooCommerce stays available; other WooCommerce shipping methods are not used while this is on.' => 'Un seul coût de livraison par commande, selon le pays de livraison, et gratuit à partir d\'un montant de commande. Les montants sont ce que paie le client (TVA comprise si vos prix incluent la TVA). « Gratuit à partir de » compte les produits du panier après réductions ; laissez vide pour jamais gratuit. Le retrait sur place configuré dans WooCommerce reste disponible ; les autres modes de livraison de WooCommerce ne sont pas utilisés tant que cette option est active.',
-	'Other countries' => 'Autres pays',
 	'Shipping cost' => 'Frais de livraison',
-	'Shipping costs' => 'Frais de livraison',
-	'Use the Atelier Irisee shipping costs' => 'Utiliser les frais de livraison Atelier Irisee',
-	'Your country (%s)' => 'Votre pays (%s)',
 
 	// 2.6.0
 	'%s is not a valid email address.' => '%s n\'est pas une adresse e-mail valide.',
 	'%s is not a valid phone number.' => '%s n\'est pas un numéro de téléphone valide.',
 	'Address saved.' => 'Adresse enregistrée.',
-	'Atelier Irisee shipping' => 'Livraison Atelier Irisee',
 	'Cancel' => 'Annuler',
 	'Please enter a valid postcode.' => 'Veuillez saisir un code postal valide.',
 	'Refunds' => 'Remboursements',
 	'Save address' => 'Enregistrer l\'adresse',
 	'Shipping is switched off in WooCommerce, so no shipping costs are shown. Choose a shipping location under %s ("Shipping location(s)").' => 'La livraison est désactivée dans WooCommerce : aucun frais de livraison n\'est affiché. Choisissez une zone de livraison sous %s (« Zone(s) de livraison »).',
-	'The shipping costs set under WooCommerce → Atelier Irisee → Shipping.' => 'Les frais de livraison définis sous WooCommerce → Atelier Irisee → Livraison.',
 	'WooCommerce → Settings → General' => 'WooCommerce → Réglages → Général',
 
 	// 2.7.0
@@ -1064,7 +1055,6 @@ return array(
 	'You receive an order confirmation by email.' => 'Vous recevez une confirmation de commande par e-mail.',
 
 	// 2.8.0
-	'Added to the Completed order email when you set the order to Completed, and shown with the order in the customer account.' => 'Ajouté à l\'e-mail « Commande terminée » lorsque vous passez la commande à Terminée, et affiché avec la commande dans le compte client.',
 	'Confirm' => 'Confirmer',
 	'Confirm your subscription' => 'Confirmez votre inscription',
 	'Confirm your subscription to the {site_title} newsletter' => 'Confirmez votre inscription à la newsletter de {site_title}',
@@ -1237,5 +1227,20 @@ return array(
 	'e.g. 5h' => 'p. ex. 5h',
 
 	// 3.2.1: PostNL
-	'PostNL: while these shipping costs are on, they are linked to PostNL by themselves. Customers see PostNL\'s pickup points (and its fees) at checkout, and you make PostNL labels for these orders as usual.' => 'PostNL : tant que ces frais de livraison sont activés, ils sont liés automatiquement à PostNL. Les clients voient les points de retrait PostNL (et leurs frais) lors de la commande, et vous créez les étiquettes PostNL de ces commandes comme d\'habitude.',
+
+	// 3.3.0: shipping with PostNL
+	'Added to the Completed order email when you set the order to Completed, and shown with the order in the customer account. Left empty: the PostNL track & trace is used once you made a PostNL label.' => 'Ajouté à l\'e-mail « Commande terminée » quand vous passez la commande à Terminée, et affiché avec la commande dans le compte client. Laissé vide : le suivi PostNL est utilisé dès que vous avez créé une étiquette PostNL.',
+	'All shipping zones in WooCommerce' => 'Toutes les zones de livraison dans WooCommerce',
+	'Amounts' => 'Montants',
+	'Countries without a zone of their own' => 'Pays sans zone propre',
+	'Empty "free from" = never free. Removing a country (✓ and save) sends its orders to "All other countries".' => '« Gratuit à partir de » vide = jamais gratuit. Supprimer un pays (✓ et enregistrer) envoie ses commandes vers « Tous les autres pays ».',
+	'No shipping zone has PostNL yet. Add your own country below.' => 'Aucune zone de livraison n\'a encore PostNL. Ajoutez votre propre pays ci-dessous.',
+	'Orders are shipped with PostNL. Every country has its own shipping zone with the PostNL method: its cost and the order amount from which shipping is free. The amounts are what the customer pays (VAT included when your prices include VAT). The PostNL settings themselves (API key, sender, pickup points, labels …) are on the PostNL tab.' => 'Les commandes sont expédiées avec PostNL. Chaque pays a sa propre zone de livraison avec la méthode PostNL : ses frais et le montant de commande à partir duquel la livraison est gratuite. Les montants sont ceux que paie le client (TVA comprise si vos prix incluent la TVA). Les réglages PostNL eux-mêmes (clé API, expéditeur, points de retrait, étiquettes …) se trouvent dans l\'onglet PostNL.',
+	'Pickup point' => 'Point de retrait',
+	'Plugins → Add New' => 'Extensions → Ajouter',
+	'PostNL' => 'PostNL',
+	'Shipping costs (PostNL)' => 'Frais de livraison (PostNL)',
+	'Shipping runs through the PostNL for WooCommerce plugin. Install and activate it under %s, then its settings and the shipping costs appear here.' => 'La livraison passe par l\'extension PostNL for WooCommerce. Installez-la et activez-la sous %s ; ses réglages et les frais de livraison apparaissent alors ici.',
+	'These are the settings of the PostNL for WooCommerce plugin, saved by PostNL itself. Shipping costs per country are on the Shipping and delivery tab.' => 'Ce sont les réglages de l\'extension PostNL for WooCommerce, enregistrés par PostNL lui-même. Les frais de livraison par pays se trouvent dans l\'onglet Expédition et livraison.',
+	'Zone' => 'Zone',
 );

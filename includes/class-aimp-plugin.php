@@ -35,7 +35,7 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-cart-page.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-coupons.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-checkout.php';
-		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-shipping.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-postnl.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-search.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-stock-alerts.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-saved-kits.php';
@@ -67,7 +67,7 @@ class AIMP_Plugin {
 		AIMP_Cart_Page::init();
 		AIMP_Coupons::init();
 		AIMP_Checkout::init();
-		AIMP_Shipping::init();
+		AIMP_PostNL::init();
 		AIMP_Search::init();
 		AIMP_Stock_Alerts::init();
 		AIMP_Saved_Kits::init();

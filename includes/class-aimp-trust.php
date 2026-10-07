@@ -35,9 +35,11 @@ class AIMP_Trust {
 			/* translators: %s: delivery time, e.g. "2–4 working days" */
 			$items[] = sprintf( __( 'Delivered in %s', 'atelier-irisee-master-plugin' ), $time );
 		}
-		if ( class_exists( 'AIMP_Shipping' ) && AIMP_Shipping::enabled() ) {
-			$free = (string) AIMP_Shipping::options()['home_free'];
-			if ( '' !== $free ) {
+		if ( class_exists( 'AIMP_PostNL' ) ) {
+			// "Free from" of PostNL in the zone of the shop's own country.
+			$amounts = AIMP_PostNL::amounts_for( WC()->countries->get_base_country() );
+			$free    = $amounts['free'];
+			if ( '' !== $free && (float) $free > 0 ) {
 				/* translators: %s: order amount */
 				$items[] = sprintf( __( 'Free shipping from %s', 'atelier-irisee-master-plugin' ), wp_strip_all_tags( wc_price( (float) $free, array( 'decimals' => 0 ) ) ) );
 			}

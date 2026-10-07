@@ -752,3 +752,19 @@
 	padding-bottom: 0.35rem;
 	vertical-align: middle;
 }
+
+/* Shipping and delivery tab: PostNL costs per zone. */
+.aimp-settings .aimp-postnl-rates {
+	max-width: 54rem;
+	margin-bottom: 10px;
+}
+
+.aimp-settings .aimp-postnl-rates td {
+	vertical-align: middle;
+}
+
+/* PostNL tab: PostNL's own settings form. */
+.aimp-settings .aimp-postnl-form h3,
+.aimp-settings .aimp-postnl-form h2 {
+	margin-top: 1.6em;
+}

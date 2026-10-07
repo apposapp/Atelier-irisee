@@ -82,7 +82,13 @@ class AIMP_Checkout {
 					<?php endif; ?>
 				<?php endforeach; ?>
 			</ul>
-			<?php if ( $address ) : ?>
+			<?php $pickup = class_exists( 'AIMP_PostNL' ) ? AIMP_PostNL::pickup_point( $order ) : array(); ?>
+			<?php if ( $pickup ) : ?>
+				<div class="aimp-thankyou-address">
+					<h3><?php esc_html_e( 'Pickup point', 'atelier-irisee-master-plugin' ); ?></h3>
+					<address><?php echo implode( '<br>', array_map( 'esc_html', $pickup ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped per line. ?></address>
+				</div>
+			<?php elseif ( $address ) : ?>
 				<div class="aimp-thankyou-address">
 					<h3><?php esc_html_e( 'Delivery address', 'atelier-irisee-master-plugin' ); ?></h3>
 					<address><?php echo wp_kses_post( $address ); ?></address>
