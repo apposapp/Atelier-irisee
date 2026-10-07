@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.3.3
+Stable tag: 3.3.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.3.4 =
+* PostNL pickup points: when PostNL returns pickup groups without locations, the page source note shows what PostNL received, to find the cause.
 
 = 3.3.3 =
 * PostNL pickup points: also points without a distance (PostNL drops those too) are now listed, and a point without a location code still gets a unique choice. The page source has a short note (aimp-postnl) with what PostNL delivered, for support.

@@ -119,6 +119,12 @@ class AIMP_PostNL {
 		}
 		// Invisible note in the page source, to see what PostNL delivered when pickup points don't show.
 		printf( '<!-- aimp-postnl pickup: groups=%1$d locations=%2$d missing=%3$s -->', count( $groups ), (int) $count, esc_html( $missing ? implode( ',', array_keys( $missing ) ) : 'none' ) );
+		if ( $groups && ! $count ) {
+			// No locations: show the shape of what PostNL got (keys and a short sample), without "--".
+			$sample = wp_json_encode( array_slice( $groups, 0, 2 ) );
+			$sample = str_replace( '--', '- -', substr( (string) $sample, 0, 900 ) );
+			printf( '<!-- aimp-postnl groups-sample: %s -->', esc_html( $sample ) );
+		}
 		if ( ( $complete && $count ) || ! defined( 'POSTNL_WC_PLUGIN_DIR_PATH' ) ) {
 			$dropoff->display_content( $response, $post_data );
 			return;
