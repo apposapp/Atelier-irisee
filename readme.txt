@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.2.0
+Stable tag: 3.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.2.1 =
+* PostNL for WooCommerce: while the Atelier Irisee shipping costs are on, they count as a PostNL shipping method, so PostNL's pickup points (and delivery options where PostNL offers them), its fees and its labels work. PostNL's fees are added on top of our shipping cost.
+* Dutch addresses with PostNL: the house number extension field is always shown (no "+ Add apartment" link), "Street 12A" from address autocomplete or a saved address is split into street, house number and extension, and the address box shows the house number.
+* The PostNL choice at checkout in the Atelier Irisee look (gold tabs, readable text, aligned left).
 
 = 3.2.0 =
 * Products menu: All fabrics, Add a fabric, All patterns, Add a pattern (moved from the WooCommerce menu).

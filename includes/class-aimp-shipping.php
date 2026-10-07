@@ -21,7 +21,10 @@ class AIMP_Shipping {
 
 	public static function init() {
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
-		add_filter( 'woocommerce_package_rates', array( __CLASS__, 'package_rates' ), 50, 2 );
+		// Before PostNL (letterbox 15, pickup and delivery fees 20), so PostNL adds its fees to our rate.
+		add_filter( 'woocommerce_package_rates', array( __CLASS__, 'package_rates' ), 10, 2 );
+		// PostNL for WooCommerce: our rate counts as a PostNL method (pickup points, delivery options, labels).
+		add_filter( 'option_woocommerce_postnl_settings', array( __CLASS__, 'postnl_settings' ) );
 		// No shipping row (and no shipping calculator) until the customer's address is known.
 		add_filter( 'pre_option_woocommerce_shipping_cost_requires_address', array( __CLASS__, 'requires_address' ) );
 		add_filter( 'pre_option_woocommerce_enable_shipping_calc', array( __CLASS__, 'no_calculator' ) );
@@ -56,6 +59,27 @@ class AIMP_Shipping {
 
 	public static function enabled() {
 		return (bool) self::options()['enabled'];
+	}
+
+	/**
+	 * PostNL for WooCommerce shows its pickup points and delivery options, adds its fees and makes labels only
+	 * for the shipping methods ticked in its setting "Shipping Methods". While the Atelier Irisee shipping
+	 * costs are on, every order uses our rate, so it is added to that list.
+	 *
+	 * @param mixed $settings PostNL's saved settings.
+	 * @return mixed
+	 */
+	public static function postnl_settings( $settings ) {
+		if ( ! self::enabled() ) {
+			return $settings;
+		}
+		$settings = is_array( $settings ) ? $settings : array();
+		$methods  = isset( $settings['supported_shipping_methods'] ) ? (array) $settings['supported_shipping_methods'] : array();
+		if ( ! in_array( self::RATE_ID, $methods, true ) ) {
+			$methods[] = self::RATE_ID;
+		}
+		$settings['supported_shipping_methods'] = array_values( array_filter( $methods ) );
+		return $settings;
 	}
 
 	/**
@@ -312,6 +336,9 @@ class AIMP_Shipping {
 			) . '</p></div>';
 		}
 		echo '<p>' . esc_html__( 'One shipping cost for every order, depending on the delivery country, and free from an order amount. The amounts are what the customer pays (VAT included when your prices include VAT). "Free from" counts the products in the cart after discounts; leave it empty for never free. Local pickup set up in WooCommerce stays available; other WooCommerce shipping methods are not used while this is on.', 'atelier-irisee-master-plugin' ) . '</p>';
+		if ( defined( 'POSTNL_SETTINGS_ID' ) ) {
+			echo '<p>' . esc_html__( 'PostNL: while these shipping costs are on, they are linked to PostNL by themselves. Customers see PostNL\'s pickup points (and its fees) at checkout, and you make PostNL labels for these orders as usual.', 'atelier-irisee-master-plugin' ) . '</p>';
+		}
 	}
 
 	public static function render_enabled() {

@@ -993,3 +993,84 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
+
+/* ------------------------------------------------------------------
+ * PostNL for WooCommerce: its delivery / pickup choice under the shipping cost, in the Atelier Irisee look.
+ * The weight of an ID (#aimp-specificity) is needed to win over the general text colours of these pages.
+ * ------------------------------------------------------------------ */
+.aimp-configurator.aimp-checkout table.shop_table tr.postnl-co-tr-container > td {
+	padding: 0.25rem 0 0.75rem;
+	border-bottom: 0;
+	text-align: left;
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_container {
+	margin: 0;
+	border: 1px solid var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius, 16px);
+	font-size: var(--aimp-body-size);
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_tab_list {
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	padding: 0.5rem;
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_tab_list > li {
+	flex: 1 1 8rem;
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_tab_list > li .postnl_checkout_tab {
+	border: 1px solid var(--aimp-gold);
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-gold-text, #8a6a33);
+	font-size: var(--aimp-body-size);
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_tab_list > li.active .postnl_checkout_tab,
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_tab_list > li.active .postnl_checkout_tab * {
+	background-color: var(--aimp-gold);
+	color: #fff;
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_tab_list > li.active .postnl_checkout_tab * {
+	background-color: transparent;
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) :is(.postnl_content_desc, .postnl_content .postnl_list .list_title) {
+	border-color: var(--aimp-gold-tint);
+	background-color: var(--aimp-gold-tint);
+	color: var(--aimp-body-text);
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_content .postnl_list .list_title span {
+	color: var(--aimp-gold-text, #8a6a33);
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_content .postnl_list .postnl_sub_list > li {
+	border-bottom: 1px solid var(--aimp-gold-tint);
+	color: var(--aimp-body-text);
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_content .postnl_list .postnl_sub_list > li.active {
+	background-color: var(--aimp-gold-tint);
+	box-shadow: inset 4px 0 0 var(--aimp-gold);
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_content .postnl_list .postnl_sub_list .postnl_sub_radio_label,
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_content .postnl_list .postnl_sub_list .postnl_sub_radio_label * {
+	color: var(--aimp-body-text);
+	font-size: var(--aimp-body-size);
+	text-align: left;
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_content .postnl_list .postnl_sub_list .postnl_sub_radio_label i {
+	color: var(--aimp-gold-text, #8a6a33);
+	font-weight: 700;
+}
+
+.aimp-configurator.aimp-checkout .postnl-spinner-overlay {
+	background-color: rgba(255, 255, 255, 0.55);
+}

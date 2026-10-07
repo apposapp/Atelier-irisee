@@ -37,7 +37,8 @@
 	 * ------------------------------------------------------------- */
 
 	/**
-	 * The related fields of an address input: { postcode, city, state, country } (elements or null).
+	 * The related fields of an address input: { postcode, city, state, country, houseNumber, extra } (elements
+	 * or null). houseNumber and extra (address line 2) are used for Dutch addresses with PostNL.
 	 */
 	function related(input) {
 		var map = input.getAttribute('data-aimp-map');
@@ -57,7 +58,14 @@
 		var byId = function (name) {
 			return document.getElementById(group + sep + name);
 		};
-		return { postcode: byId('postcode'), city: byId('city'), state: byId('state'), country: byId('country') };
+		return {
+			postcode: byId('postcode'),
+			city: byId('city'),
+			state: byId('state'),
+			country: byId('country'),
+			houseNumber: blocks ? null : byId('house_number'),
+			extra: blocks ? null : byId('address_2')
+		};
 	}
 
 	function isAddressInput(el) {
@@ -118,7 +126,17 @@
 		// Country first: WooCommerce rebuilds the state field and postcode rules when it changes.
 		setValue(fields.country, country.toUpperCase());
 		setTimeout(function () {
-			setValue(input, line.trim());
+			// PostNL, Dutch address: street, house number and extension each in their own field.
+			var split = country === 'nl' && fields.houseNumber ? String(number).match(/^(\d+)\s*[-\/]?\s*(.*)$/) : null;
+			if (split) {
+				setValue(input, street.trim());
+				setValue(fields.houseNumber, split[1]);
+				if (split[2] && fields.extra) {
+					setValue(fields.extra, split[2]);
+				}
+			} else {
+				setValue(input, line.trim());
+			}
 			setValue(fields.postcode, component(c, 'postal_code'));
 			setValue(fields.city, city);
 			if (fields.state) {

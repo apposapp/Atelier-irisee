@@ -1235,4 +1235,7 @@ return array(
 	'The same for all sizes.' => 'Voor alle maten dezelfde.',
 	'Tick the fabric categories that suit this pattern; they are the same for all sizes. Customers choose their fabric from these categories. Give them a position to choose which they see first: 1 is shown first, then 2, and so on. Categories without a position come after them.' => 'Vink de stofcategorieën aan die bij dit patroon passen; ze gelden voor alle maten. Klanten kiezen hun stof uit deze categorieën. Geef ze een positie om te bepalen welke ze eerst zien: 1 komt eerst, dan 2, enzovoort. Categorieën zonder positie komen daarna.',
 	'e.g. 5h' => 'bv. 5u',
+
+	// 3.2.1: PostNL
+	'PostNL: while these shipping costs are on, they are linked to PostNL by themselves. Customers see PostNL\'s pickup points (and its fees) at checkout, and you make PostNL labels for these orders as usual.' => 'PostNL: zolang deze verzendkosten aan staan, zijn ze vanzelf gekoppeld aan PostNL. Klanten zien bij het afrekenen de afhaalpunten van PostNL (en de kosten ervan), en je maakt voor deze bestellingen gewoon PostNL-labels.',
 );

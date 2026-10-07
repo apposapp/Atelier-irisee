@@ -62,7 +62,7 @@
 			var lines = [
 				[get('first_name'), get('last_name')].join(' ').trim(),
 				get('company'),
-				[get('address_1'), get('address_2')].join(' ').trim(),
+				[get('address_1'), get('house_number'), get('address_2')].join(' ').replace(/\s+/g, ' ').trim(),
 				[get('postcode'), get('city')].join(' ').trim(),
 				[get('state'), get('country')].filter(Boolean).join(', '),
 				fieldText(form, 'billing_phone'),
@@ -193,27 +193,113 @@
 	}
 
 	/*
+	 * PostNL for WooCommerce, Dutch addresses: separate fields for the street (address line 1), the house
+	 * number (*_house_number) and the house number extension (address line 2).
+	 */
+	function isPostnlDutch(form, group) {
+		var country = form.querySelector('#' + group + '_country');
+		return !!form.querySelector('#' + group + '_house_number') && !!country && country.value === 'NL';
+	}
+
+	function changed(field) {
+		var event = document.createEvent('HTMLEvents');
+		event.initEvent('change', true, false);
+		field.dispatchEvent(event);
+	}
+
+	/*
+	 * "Damrak 12A" in the street field of a Dutch address (from our registration field "Street and house
+	 * number" or an older saved address): the number and extension move to their own fields, as PostNL needs
+	 * them to check the address and find pickup points. A filled house number is never changed.
+	 */
+	function splitDutchAddress(form, group) {
+		var street = form.querySelector('#' + group + '_address_1');
+		var number = form.querySelector('#' + group + '_house_number');
+		var extra = form.querySelector('#' + group + '_address_2');
+		if (!street || !number || String(number.value || '').trim() || !isPostnlDutch(form, group)) {
+			return;
+		}
+		var match = String(street.value || '').trim().match(/^(.+?)\s+(\d+)\s*(?:[-\/]\s*([A-Za-z0-9]{1,4})|([A-Za-z]{1,3}))?$/);
+		if (!match) {
+			return;
+		}
+		street.value = match[1].trim();
+		number.value = match[2];
+		var suffix = match[3] || match[4] || '';
+		if (suffix && extra && !String(extra.value || '').trim()) {
+			extra.value = suffix;
+			changed(extra);
+		}
+		changed(street);
+		changed(number);
+	}
+
+	/*
 	 * Fewer fields at first sight: "Address line 2" and the order note sit behind a "+ Add …" link
 	 * (rows marked aimp-behind-link by the plugin). A row that already has a value stays open.
+	 * For a Dutch address with PostNL, address line 2 is the house number extension: always shown.
 	 */
 	function setupRevealLinks(form) {
 		form.querySelectorAll('.form-row.aimp-behind-link').forEach(function (row) {
 			var field = row.querySelector('input, textarea');
-			if (!field || String(field.value || '').trim()) {
+			if (!field) {
 				return;
 			}
-			var link = document.createElement('button');
-			link.type = 'button';
-			link.className = 'aimp-reveal-link';
-			link.textContent = field.id === 'order_comments' ? t.addNote : t.addAddress2;
-			row.parentNode.insertBefore(link, row);
-			row.hidden = true;
-			link.addEventListener('click', function () {
+			var group = field.id === 'order_comments' ? '' : field.id.replace(/_address_2$/, '');
+			var link = null;
+
+			function open() {
 				row.hidden = false;
-				link.remove();
-				field.focus();
-			});
+				if (link) {
+					link.remove();
+					link = null;
+				}
+			}
+
+			function update() {
+				if (group && isPostnlDutch(form, group)) {
+					open();
+					return;
+				}
+				if (!link && !String(field.value || '').trim()) {
+					link = document.createElement('button');
+					link.type = 'button';
+					link.className = 'aimp-reveal-link';
+					link.textContent = group ? t.addAddress2 : t.addNote;
+					link.addEventListener('click', function () {
+						open();
+						field.focus();
+					});
+					row.hidden = true;
+				}
+				// WooCommerce re-sorts the address rows when the country changes: keep the link right above its row.
+				if (link && row.parentNode) {
+					row.parentNode.insertBefore(link, row);
+				}
+			}
+
+			update();
+			if (group && $) {
+				$(document.body).on('country_to_state_changed', function () {
+					setTimeout(update, 0);
+				});
+			}
 		});
+	}
+
+	// Dutch addresses: split "street + number" now and whenever the country changes to the Netherlands.
+	function setupDutchAddresses(form) {
+		['billing', 'shipping'].forEach(function (group) {
+			splitDutchAddress(form, group);
+		});
+		if ($) {
+			$(document.body).on('country_to_state_changed', function () {
+				setTimeout(function () {
+					splitDutchAddress(form, 'billing');
+					splitDutchAddress(form, 'shipping');
+				}, 0);
+			});
+		}
 	}
 
 	/*
@@ -336,6 +422,7 @@
 			show('details', true);
 		});
 		setupRevealLinks(form);
+		setupDutchAddresses(form);
 		setupInlineValidation(form);
 
 		function scrollTop() {
