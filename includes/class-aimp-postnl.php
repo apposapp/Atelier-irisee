@@ -140,7 +140,8 @@ class AIMP_PostNL {
 		if ( $cost <= 0 || $free ) {
 			return $name;
 		}
-		return $name . ' (' . wp_strip_all_tags( wc_price( $cost ) ) . ')';
+		// Plain text: PostNL's template escapes the tab name, so no HTML entities (&euro;).
+		return $name . ' (' . html_entity_decode( wp_strip_all_tags( wc_price( $cost ) ), ENT_QUOTES, 'UTF-8' ) . ')';
 	}
 
 	/**

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.3.5
+Stable tag: 3.3.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.3.6 =
+* PostNL checkout: the price on the "Home delivery" tab shows as €5,00 (it showed &euro;5,00).
 
 = 3.3.5 =
 * PostNL checkout: a "Home delivery" choice (with its price, the delivery time and the expected date) next to "Choose a pickup point". PostNL offers no delivery days to Belgian shops, so before this every order became a pickup order. Choosing home delivery clears the pickup point and the pickup fee. PostNL's line "Make a selection from the Delivery Days" is no longer shown when there are no delivery days.
