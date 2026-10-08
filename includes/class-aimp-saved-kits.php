@@ -119,7 +119,8 @@ class AIMP_Saved_Kits {
 		if ( ! $req ) {
 			self::fail( __( 'This kit is no longer available.', 'atelier-irisee-master-plugin' ), 404 );
 		}
-		$sizes   = AIMP_Catalog::get_sizes( $req['pattern']->get_id() );
+		// The sizes of this kit's design (a pattern with designs shows one design at a time).
+		$sizes   = AIMP_Catalog::get_sizes( $req['variation']->get_id() );
 		$missing = false;
 
 		$fabric = null;
@@ -205,9 +206,10 @@ class AIMP_Saved_Kits {
 			if ( ! $req || ! $base ) {
 				continue;
 			}
-			$image  = $req['pattern']->get_image_id() ? wp_get_attachment_image_url( $req['pattern']->get_image_id(), 'woocommerce_thumbnail' ) : wc_placeholder_img_src( 'woocommerce_thumbnail' );
+			$image_id = AIMP_Catalog::kit_image_id( $req );
+			$image    = $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : wc_placeholder_img_src( 'woocommerce_thumbnail' );
 			$fabric = ( $req['fabric_units'] > 0 && $kit['fabric'] ) ? wc_get_product( $kit['fabric'] ) : null;
-			$label  = wp_strip_all_tags( $req['pattern']->get_name() ) . ' – ' . $req['size'];
+			$label  = AIMP_Catalog::kit_label( $req );
 			$cards .= sprintf(
 				'<li class="aimp-saved-kit" data-aimp-saved-kit="%1$s">' .
 				'<a class="aimp-card" href="%2$s">' .

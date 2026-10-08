@@ -218,7 +218,26 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 			if ( $aimp_pattern && '' !== trim( $data['sizes_text'] ) ) {
 				$aimp_pattern_tiles['tape_measure'] = array( __( 'Sizes', 'atelier-irisee-master-plugin' ), esc_html( $data['sizes_text'] ) );
 			}
-			if ( $aimp_pattern && '' !== trim( $data['project_time'] ) ) {
+			$aimp_designs = ! empty( $data['designs'] ) ? $data['designs'] : array();
+			if ( $aimp_designs ) {
+				// A pack with designs: their names, and the project time per design when it differs.
+				$aimp_pattern_tiles['designs'] = array( __( 'Designs', 'atelier-irisee-master-plugin' ), esc_html( implode( ' · ', wp_list_pluck( $aimp_designs, 'name' ) ) ) );
+				$aimp_times                    = array_filter( wp_list_pluck( $aimp_designs, 'project_time' ), 'strlen' );
+				if ( $aimp_times ) {
+					if ( 1 === count( array_unique( $aimp_times ) ) && count( $aimp_times ) === count( $aimp_designs ) ) {
+						$aimp_time_text = esc_html( reset( $aimp_times ) );
+					} else {
+						$aimp_time_parts = array();
+						foreach ( $aimp_designs as $aimp_design ) {
+							if ( '' !== $aimp_design['project_time'] ) {
+								$aimp_time_parts[] = esc_html( $aimp_design['name'] . ' ' . $aimp_design['project_time'] );
+							}
+						}
+						$aimp_time_text = implode( '<br>', $aimp_time_parts );
+					}
+					$aimp_pattern_tiles['clock'] = array( __( 'Project time', 'atelier-irisee-master-plugin' ), $aimp_time_text );
+				}
+			} elseif ( $aimp_pattern && '' !== trim( $data['project_time'] ) ) {
 				$aimp_pattern_tiles['clock'] = array( __( 'Project time', 'atelier-irisee-master-plugin' ), esc_html( $data['project_time'] ) );
 			}
 			?>
@@ -301,7 +320,21 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 					<?php if ( $data['configurator_url'] ) : ?>
 						<div class="aimp-recommend-kit">
 							<p><?php esc_html_e( 'Start making my own sewing project kit', 'atelier-irisee-master-plugin' ); ?></p>
-							<a class="aimp-button" href="<?php echo esc_url( $data['configurator_url'] ); ?>"><?php esc_html_e( 'To the configurator', 'atelier-irisee-master-plugin' ); ?></a>
+							<?php if ( count( $aimp_designs ) > 1 ) : ?>
+								<?php // One button per design of the pack. ?>
+								<?php foreach ( $aimp_designs as $aimp_design ) : ?>
+									<?php if ( '' !== $aimp_design['url'] ) : ?>
+										<a class="aimp-button" href="<?php echo esc_url( $aimp_design['url'] ); ?>">
+											<?php
+											/* translators: %s: design name, e.g. "Dress" */
+											echo esc_html( sprintf( __( 'Make the %s', 'atelier-irisee-master-plugin' ), $aimp_design['name'] ) );
+											?>
+										</a>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							<?php else : ?>
+								<a class="aimp-button" href="<?php echo esc_url( $data['configurator_url'] ); ?>"><?php esc_html_e( 'To the configurator', 'atelier-irisee-master-plugin' ); ?></a>
+							<?php endif; ?>
 						</div>
 					<?php endif; ?>
 				</div>

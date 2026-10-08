@@ -1102,7 +1102,6 @@ return array(
 	'(no subject)' => '(geen onderwerp)',
 	'Attach this file' => 'Dit bestand toevoegen',
 	'Attachment (optional)' => 'Bijlage (optioneel)',
-	'Attributes: the sizes. Variations: per size the fabric, buttons, zip, ribbon and bias tape it needs, and the measurements.' => 'Eigenschappen: de maten. Variaties: per maat de stof, knopen, rits, lint en biaisband die nodig zijn, en de maten van het lichaam.',
 	'Both' => 'Allebei',
 	'Button (optional)' => 'Knop (optioneel)',
 	'Button link' => 'Link van de knop',
@@ -1266,4 +1265,14 @@ return array(
 	'Delivered to your address in %s.' => 'Geleverd op je adres in %s.',
 	'Delivered to your address.' => 'Geleverd op je adres.',
 	'Home delivery' => 'Thuisbezorging',
+
+	// 3.4.0: patterns with designs
+	'Add the pictures to the product gallery first.' => 'Voeg de foto\'s eerst toe aan de productgalerij.',
+	'Attributes: the sizes, and for a pack with two designs a Design attribute. Variations: per size (and design) the fabric, buttons, zip, ribbon and bias tape it needs, and the measurements.' => 'Eigenschappen: de maten, en voor een pakket met twee ontwerpen een eigenschap Design. Variaties: per maat (en ontwerp) de stof, knopen, rits, lint en biaisband die nodig zijn, en de maten van het lichaam.',
+	'Card picture' => 'Kaartfoto',
+	'Each design is its own choice in the configurator, with its own sizes (the rows of the Variations tab). Tick the pictures of each design (the first ticked picture is its card picture), and fill its fitting fabrics, height and project time. Add the pictures to the product gallery first.' => 'Elk ontwerp is een eigen keuze in de configurator, met eigen maten (de rijen van het tabblad Variaties). Vink de foto\'s van elk ontwerp aan (de eerste aangevinkte foto is de kaartfoto) en vul de passende stoffen, lichaamslengte en projecttijd in. Voeg de foto\'s eerst toe aan de productgalerij.',
+	'Make the %s' => 'Maak de %s',
+	'Pictures of this design' => 'Foto\'s van dit ontwerp',
+	'The fitting fabrics are ticked per design (Pattern details). Here you choose which fabric categories customers see first: 1 is shown first, then 2, and so on.' => 'De passende stoffen worden per ontwerp aangevinkt (Patroondetails). Hier kies je welke stofcategorieën klanten eerst zien: 1 komt eerst, dan 2, enzovoort.',
+	'This pattern has designs: the project time, the height and the fitting fabrics are set per design below.' => 'Dit patroon heeft ontwerpen: de projecttijd, de lichaamslengte en de passende stoffen stel je hieronder per ontwerp in.',
 );

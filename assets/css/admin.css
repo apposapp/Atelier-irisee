@@ -781,3 +781,95 @@
 .aimp-settings .aimp-postnl-check h3 {
 	margin: 0.6em 0 0.3em;
 }
+
+/* Pattern with designs: one card per design. */
+.aimp-designs {
+	padding: 0 12px 12px;
+}
+
+.aimp-designs .aimp-design {
+	margin: 12px 0 0;
+	padding: 10px 14px 12px;
+	border: 1px solid #b38f4f;
+	border-radius: 8px;
+}
+
+.aimp-designs .aimp-design legend {
+	padding: 0 6px;
+	font-weight: 700;
+}
+
+.aimp-designs .aimp-design-label {
+	margin: 10px 0 4px;
+	font-weight: 600;
+}
+
+.aimp-design-pictures {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0;
+}
+
+.aimp-design-pictures li {
+	position: relative;
+	margin: 0;
+}
+
+.aimp-design-pictures label {
+	display: block;
+	position: relative;
+	cursor: pointer;
+}
+
+.aimp-design-pictures input {
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	margin: 0;
+}
+
+.aimp-design-pictures img {
+	display: block;
+	width: 72px;
+	height: 72px;
+	border: 2px solid transparent;
+	border-radius: 6px;
+	object-fit: cover;
+}
+
+.aimp-design-pictures input:checked + img {
+	border-color: #b38f4f;
+}
+
+.aimp-design-pictures .aimp-design-card {
+	position: absolute;
+	right: 2px;
+	bottom: 2px;
+	left: 2px;
+	padding: 1px 2px;
+	border-radius: 3px;
+	background: #b38f4f;
+	color: #fff;
+	font-size: 10px;
+	text-align: center;
+}
+
+.aimp-design-fabrics {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 16px;
+}
+
+.woocommerce_options_panel .aimp-design-fabrics label,
+.woocommerce_options_panel .aimp-design-fields label {
+	float: none;
+	width: auto;
+	margin: 0;
+}
+
+.aimp-design-fields {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 20px;
+}

@@ -707,7 +707,7 @@
 		var size = s.size;
 
 		var html = '<div class="aimp-details">';
-		html += this.galleryHtml(pattern.gallery, s.patternImage, pattern.id);
+		html += this.galleryHtml(pattern.gallery, s.patternImage, pattern.product_id || pattern.id);
 		html += detailsTitle(pattern.name);
 		if (pattern.short_description) {
 			html += '<div class="aimp-description">' + pattern.short_description + '</div>';

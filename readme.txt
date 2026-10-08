@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.3.6
+Stable tag: 3.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.4.0 =
+* Patterns with two designs in one pack: add a "Design" attribute (e.g. Jurk | Blouse) next to the sizes and generate the variations. The pattern page stays one product (one price, one stock) with a Designs tile, the project time per design and a configurator button per design. In the configurator every design is its own card with only its sizes, its pictures and its fitting fabrics.
+* Atelier Irisee tab: a Designs block with per design the pictures (ticked from the product gallery; the first is the card picture), the fitting fabrics, the height and the project time.
+* Cart, saved kits and orders name the design: "Sewing project kit: Lison – Jurk – M".
 
 = 3.3.6 =
 * PostNL checkout: the price on the "Home delivery" tab shows as €5,00 (it showed &euro;5,00).

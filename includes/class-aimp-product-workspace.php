@@ -180,7 +180,7 @@ class AIMP_Product_Workspace {
 			self::card( 2, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'One price and one stock for all sizes.', 'atelier-irisee-master-plugin' ) );
 			self::card( 3, __( 'Pattern details', 'atelier-irisee-master-plugin' ), 'details', __( 'The same for all sizes.', 'atelier-irisee-master-plugin' ) );
 			self::card( 4, __( 'Fitting fabrics', 'atelier-irisee-master-plugin' ), 'priority' );
-			self::card( 5, __( 'Sizes and material needs', 'atelier-irisee-master-plugin' ), 'sizes', __( 'Attributes: the sizes. Variations: per size the fabric, buttons, zip, ribbon and bias tape it needs, and the measurements.', 'atelier-irisee-master-plugin' ) );
+			self::card( 5, __( 'Sizes and material needs', 'atelier-irisee-master-plugin' ), 'sizes', __( 'Attributes: the sizes, and for a pack with two designs a Design attribute. Variations: per size (and design) the fabric, buttons, zip, ribbon and bias tape it needs, and the measurements.', 'atelier-irisee-master-plugin' ) );
 			self::card( 6, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
 		}
 		printf(

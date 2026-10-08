@@ -33,6 +33,7 @@ class AIMP_Catalog {
 	const META_SKILL           = '_aimp_skill';
 	const META_SIZES_TEXT      = '_aimp_sizes_text';
 	const META_PROJECT_TIME    = '_aimp_project_time';
+	const META_DESIGNS         = '_aimp_designs';
 	const META_RECOMMENDED     = '_aimp_recommended_pattern';
 
 	/** Number of inspiration cards on a fabric. */
@@ -218,6 +219,20 @@ class AIMP_Catalog {
 	 * @return int[] Term IDs.
 	 */
 	public static function pattern_fabric_cats( $pattern_id, $size_id = 0 ) {
+		// Patterns with two designs: the fabrics of the size's design, or of all designs together.
+		$designs = self::design_data( $pattern_id );
+		if ( $designs ) {
+			$slug = $size_id ? self::variation_design( $size_id ) : '';
+			$cats = array();
+			foreach ( $designs as $key => $design ) {
+				if ( '' === $slug || $slug === $key ) {
+					$cats = array_merge( $cats, $design['fabric_cats'] );
+				}
+			}
+			if ( $cats || '' !== $slug ) {
+				return array_values( array_unique( array_filter( array_map( 'absint', $cats ) ) ) );
+			}
+		}
 		if ( metadata_exists( 'post', $pattern_id, self::META_FABRIC_CATS ) ) {
 			$cats = get_post_meta( $pattern_id, self::META_FABRIC_CATS, true );
 			return is_array( $cats ) ? array_values( array_filter( array_map( 'absint', $cats ) ) ) : array();
@@ -247,6 +262,11 @@ class AIMP_Catalog {
 	 * @return string
 	 */
 	public static function pattern_height( $pattern_id, $size_id = 0 ) {
+		$designs = $size_id ? self::design_data( $pattern_id ) : array();
+		$slug    = $designs ? self::variation_design( $size_id ) : '';
+		if ( '' !== $slug && isset( $designs[ $slug ] ) && '' !== $designs[ $slug ]['height'] ) {
+			return $designs[ $slug ]['height'];
+		}
 		$height = (string) get_post_meta( $pattern_id, self::META_HEIGHT, true );
 		if ( '' !== $height ) {
 			return $height;
@@ -267,6 +287,140 @@ class AIMP_Catalog {
 			}
 		}
 		return '';
+	}
+
+	/* ------------------------------------------------------------------
+	 * Patterns with two (or more) designs in one pack
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * The variation attribute that holds the designs (its name or label contains "design", "ontwerp",
+	 * "model" or "modèle"), or ''. The key as in WC_Product::get_attributes(), e.g. "pa_design" or "design".
+	 *
+	 * @param WC_Product|int $pattern Pattern.
+	 * @return string
+	 */
+	public static function design_attribute( $pattern ) {
+		static $cache = array();
+		$id = $pattern instanceof WC_Product ? $pattern->get_id() : absint( $pattern );
+		if ( isset( $cache[ $id ] ) ) {
+			return $cache[ $id ];
+		}
+		$pattern = $pattern instanceof WC_Product ? $pattern : wc_get_product( $pattern );
+		$found   = '';
+		if ( $pattern && $pattern->is_type( 'variable' ) ) {
+			foreach ( $pattern->get_attributes() as $key => $attribute ) {
+				if ( ! $attribute instanceof WC_Product_Attribute || ! $attribute->get_variation() ) {
+					continue;
+				}
+				$label = wc_attribute_label( $attribute->get_name(), $pattern );
+				if ( preg_match( '/design|ontwerp|mod[eè]le?/iu', $attribute->get_name() . ' ' . $label ) ) {
+					$found = (string) $key;
+					break;
+				}
+			}
+		}
+		$cache[ $id ] = (string) apply_filters( 'aimp_pattern_design_attribute', $found, $pattern );
+		return $cache[ $id ];
+	}
+
+	/**
+	 * The designs of a pattern: slug => name, in the attribute's order. Empty without a design attribute.
+	 *
+	 * @param WC_Product|int $pattern Pattern.
+	 * @return array
+	 */
+	public static function designs( $pattern ) {
+		$pattern = $pattern instanceof WC_Product ? $pattern : wc_get_product( $pattern );
+		$key     = $pattern ? self::design_attribute( $pattern ) : '';
+		$all     = $pattern ? $pattern->get_attributes() : array();
+		if ( '' === $key || empty( $all[ $key ] ) ) {
+			return array();
+		}
+		$attribute = $all[ $key ];
+		$designs   = array();
+		if ( $attribute->is_taxonomy() ) {
+			foreach ( (array) $attribute->get_terms() as $term ) {
+				$designs[ $term->slug ] = $term->name;
+			}
+		} else {
+			foreach ( $attribute->get_options() as $option ) {
+				$designs[ sanitize_title( $option ) ] = (string) $option;
+			}
+		}
+		return $designs;
+	}
+
+	/**
+	 * The design (slug) of a size, or ''.
+	 *
+	 * @param WC_Product_Variation|int $variation Size.
+	 * @return string
+	 */
+	public static function variation_design( $variation ) {
+		$variation = $variation instanceof WC_Product ? $variation : wc_get_product( $variation );
+		if ( ! $variation || ! $variation->is_type( 'variation' ) ) {
+			return '';
+		}
+		$key = self::design_attribute( $variation->get_parent_id() );
+		if ( '' === $key ) {
+			return '';
+		}
+		$attributes = $variation->get_variation_attributes();
+		$value      = isset( $attributes[ 'attribute_' . $key ] ) ? (string) $attributes[ 'attribute_' . $key ] : '';
+		return sanitize_title( $value );
+	}
+
+	/**
+	 * Per-design settings of a pattern (Atelier Irisee tab): slug => [ image_ids, fabric_cats, height,
+	 * project_time ], only for designs the pattern still has.
+	 *
+	 * @param int $pattern_id Pattern.
+	 * @return array
+	 */
+	public static function design_data( $pattern_id ) {
+		$designs = self::designs( $pattern_id );
+		if ( ! $designs ) {
+			return array();
+		}
+		$saved = get_post_meta( $pattern_id, self::META_DESIGNS, true );
+		$saved = is_array( $saved ) ? $saved : array();
+		$data  = array();
+		foreach ( array_keys( $designs ) as $slug ) {
+			$row           = isset( $saved[ $slug ] ) && is_array( $saved[ $slug ] ) ? $saved[ $slug ] : array();
+			$data[ $slug ] = array(
+				'image_ids'    => isset( $row['image_ids'] ) ? array_values( array_filter( array_map( 'absint', (array) $row['image_ids'] ) ) ) : array(),
+				'fabric_cats'  => isset( $row['fabric_cats'] ) ? array_values( array_filter( array_map( 'absint', (array) $row['fabric_cats'] ) ) ) : array(),
+				'height'       => isset( $row['height'] ) ? (string) $row['height'] : '',
+				'project_time' => isset( $row['project_time'] ) ? (string) $row['project_time'] : '',
+			);
+		}
+		return $data;
+	}
+
+	/**
+	 * The first published size of each design: slug => variation ID.
+	 *
+	 * @param WC_Product $pattern Pattern.
+	 * @return int[]
+	 */
+	public static function design_first_sizes( $pattern ) {
+		$designs = self::designs( $pattern );
+		$first   = array();
+		if ( ! $designs ) {
+			return $first;
+		}
+		foreach ( $pattern->get_children() as $child_id ) {
+			if ( 'publish' !== get_post_status( $child_id ) ) {
+				continue;
+			}
+			$slug = self::variation_design( $child_id );
+			if ( isset( $designs[ $slug ] ) && ! isset( $first[ $slug ] ) ) {
+				$first[ $slug ] = (int) $child_id;
+			}
+		}
+		// In the order of the designs.
+		return array_intersect_key( array_replace( array_fill_keys( array_keys( $designs ), 0 ), $first ), $first );
 	}
 
 	/* ------------------------------------------------------------------
@@ -528,14 +682,41 @@ class AIMP_Catalog {
 	}
 
 	/**
+	 * Configurator card of one design of a pack: "Lison – Jurk", with the design's card picture.
+	 *
+	 * @param WC_Product $pattern      Pattern.
+	 * @param string     $slug         Design.
+	 * @param int        $variation_id The design's first size (the card's id).
+	 * @return array
+	 */
+	public static function design_card( $pattern, $slug, $variation_id ) {
+		$card    = self::card( $pattern );
+		$designs = self::designs( $pattern );
+		$data    = self::design_data( $pattern->get_id() );
+		$image   = ! empty( $data[ $slug ]['image_ids'] ) ? (int) $data[ $slug ]['image_ids'][0] : 0;
+
+		$card['id']         = (int) $variation_id;
+		$card['product_id'] = $pattern->get_id();
+		$card['design']     = $slug;
+		$card['name']       = wp_strip_all_tags( $pattern->get_name() ) . ( isset( $designs[ $slug ] ) ? ' – ' . $designs[ $slug ] : '' );
+		if ( $image && wp_get_attachment_image_url( $image, 'woocommerce_thumbnail' ) ) {
+			$card['image']     = wp_get_attachment_image_url( $image, 'woocommerce_thumbnail' );
+			$card['image_alt'] = (string) get_post_meta( $image, '_wp_attachment_image_alt', true );
+		}
+		return $card;
+	}
+
+	/**
 	 * All pictures of a product: main image, gallery images, then any extra images.
 	 *
 	 * @param WC_Product $product   Product.
 	 * @param int[]      $extra_ids Extra attachment IDs (e.g. variation images).
+	 * @param int[]      $only_ids  Instead of the product's pictures: only these (a design's pictures).
 	 * @return array[] List of [ id, thumb, large, alt ].
 	 */
-	public static function images( $product, $extra_ids = array() ) {
-		$ids    = array_merge( array( $product->get_image_id() ), $product->get_gallery_image_ids(), $extra_ids );
+	public static function images( $product, $extra_ids = array(), $only_ids = array() ) {
+		$own    = $only_ids ? (array) $only_ids : array_merge( array( $product->get_image_id() ), $product->get_gallery_image_ids() );
+		$ids    = array_merge( $own, $extra_ids );
 		$ids    = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
 		$name   = wp_strip_all_tags( $product->get_name() );
 		$images = array();
@@ -583,8 +764,17 @@ class AIMP_Catalog {
 		$items  = array();
 		foreach ( $result['ids'] as $id ) {
 			$product = wc_get_product( $id );
-			if ( $product && $product->is_visible() ) {
+			if ( ! $product || ! $product->is_visible() ) {
+				continue;
+			}
+			// A pack with designs: one card per design (its id is the design's first size).
+			$first = self::design_first_sizes( $product );
+			if ( ! $first ) {
 				$items[] = self::card( $product );
+				continue;
+			}
+			foreach ( $first as $slug => $variation_id ) {
+				$items[] = self::design_card( $product, $slug, $variation_id );
 			}
 		}
 		return array(
@@ -638,6 +828,7 @@ class AIMP_Catalog {
 			'variation'    => $variation,
 			'pattern'      => $pattern,
 			'size'         => self::size_label( $variation ),
+			'design'       => self::design_label( $variation ),
 			'fabric_units' => absint( $variation->get_meta( self::META_FABRIC_UNITS ) ),
 			'fabric_cats'  => $fabric_cats,
 			'button_count' => absint( $variation->get_meta( self::META_BUTTON_COUNT ) ),
@@ -656,12 +847,65 @@ class AIMP_Catalog {
 	}
 
 	/**
+	 * The design name of a size ("Jurk"), or '' for a pattern without designs.
+	 *
+	 * @param WC_Product_Variation $variation Size.
+	 * @return string
+	 */
+	public static function design_label( $variation ) {
+		$slug    = self::variation_design( $variation );
+		$designs = '' !== $slug ? self::designs( $variation->get_parent_id() ) : array();
+		return isset( $designs[ $slug ] ) ? (string) $designs[ $slug ] : '';
+	}
+
+	/**
+	 * "Lison – Jurk – M" (or "Lison – M"): the pattern, its design and the size, for carts and kits.
+	 *
+	 * @param array $req From get_requirements().
+	 * @return string
+	 */
+	public static function kit_label( $req ) {
+		return implode( ' – ', array_filter( array( wp_strip_all_tags( $req['pattern']->get_name() ), $req['design'], $req['size'] ) ) );
+	}
+
+	/**
+	 * Picture for a kit: the card picture of its design, or the pattern picture.
+	 *
+	 * @param array $req From get_requirements().
+	 * @return int Attachment ID (0 = none).
+	 */
+	public static function kit_image_id( $req ) {
+		$slug    = self::variation_design( $req['variation'] );
+		$designs = '' !== $slug ? self::design_data( $req['pattern']->get_id() ) : array();
+		if ( ! empty( $designs[ $slug ]['image_ids'] ) ) {
+			return (int) $designs[ $slug ]['image_ids'][0];
+		}
+		return (int) $req['pattern']->get_image_id();
+	}
+
+	/**
 	 * Human size label from the variation attributes, e.g. "M".
 	 *
 	 * @param WC_Product_Variation $variation Variation.
 	 * @return string
 	 */
 	public static function size_label( $variation ) {
+		// A pattern with designs: the size only; the design is named apart (see design_label()).
+		$skip = self::design_attribute( $variation->get_parent_id() );
+		if ( '' !== $skip ) {
+			$parts = array();
+			foreach ( $variation->get_variation_attributes() as $name => $value ) {
+				$key = substr( (string) $name, 10 ); // Without "attribute_".
+				if ( $key === $skip || '' === (string) $value ) {
+					continue;
+				}
+				$term    = taxonomy_exists( $key ) ? get_term_by( 'slug', $value, $key ) : null;
+				$parts[] = $term ? $term->name : (string) $value;
+			}
+			if ( $parts ) {
+				return wp_strip_all_tags( implode( ', ', $parts ) );
+			}
+		}
 		$label = wc_get_formatted_variation( $variation, true, false, false );
 		return '' !== $label ? wp_strip_all_tags( $label ) : '#' . $variation->get_id();
 	}
@@ -685,18 +929,34 @@ class AIMP_Catalog {
 	/**
 	 * Pattern details (with all its pictures) and its sizes with measurements and requirements.
 	 *
-	 * @param int $pattern_id Pattern product ID.
+	 * A pack with designs shows one design at a time: pass a size (variation) of that design, e.g. the id of
+	 * its configurator card. Only that design's sizes and pictures are returned.
+	 *
+	 * @param int $id Pattern product ID, or a size of it.
 	 * @return array|null
 	 */
-	public static function get_sizes( $pattern_id ) {
-		$pattern = self::get_pattern( $pattern_id );
+	public static function get_sizes( $id ) {
+		$object     = wc_get_product( absint( $id ) );
+		$is_size    = $object && $object->is_type( 'variation' );
+		$pattern    = self::get_pattern( $is_size ? $object->get_parent_id() : absint( $id ) );
 		if ( ! $pattern ) {
 			return null;
+		}
+		$first  = self::design_first_sizes( $pattern );
+		$design = '';
+		if ( $first ) {
+			$design = $is_size ? self::variation_design( $object ) : '';
+			if ( ! isset( $first[ $design ] ) ) {
+				$design = (string) key( $first );
+			}
 		}
 
 		$sizes            = array();
 		$variation_images = array();
 		foreach ( $pattern->get_children() as $child_id ) {
+			if ( '' !== $design && self::variation_design( $child_id ) !== $design ) {
+				continue;
+			}
 			$req = self::get_requirements( $child_id );
 			if ( ! $req ) {
 				continue;
@@ -727,7 +987,8 @@ class AIMP_Catalog {
 			);
 		}
 
-		$gallery = self::images( $pattern, $variation_images );
+		$data    = '' !== $design ? self::design_data( $pattern->get_id() ) : array();
+		$gallery = self::images( $pattern, $variation_images, ! empty( $data[ $design ]['image_ids'] ) ? $data[ $design ]['image_ids'] : array() );
 
 		// Which picture to show when a size is chosen (its own variation image, if it has one).
 		$index_of = array();
@@ -740,7 +1001,8 @@ class AIMP_Catalog {
 		}
 		unset( $size );
 
-		$card                      = self::card( $pattern );
+		$card                      = '' !== $design ? self::design_card( $pattern, $design, $first[ $design ] ) : self::card( $pattern );
+		$card['product_id']        = $pattern->get_id();
 		$card['short_description'] = wp_kses_post( wpautop( $pattern->get_short_description() ) );
 		$card['gallery']           = $gallery;
 

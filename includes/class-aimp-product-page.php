@@ -175,6 +175,28 @@ class AIMP_Product_Page {
 	 * @param WC_Product $pattern Pattern product.
 	 * @return WC_Product_Variation|null
 	 */
+	/**
+	 * The designs of a pack: [ name, project_time, url ] per design (url: the configurator with that design).
+	 *
+	 * @param WC_Product $pattern      Pattern.
+	 * @param string     $configurator Configurator page URL ('' = none).
+	 * @return array
+	 */
+	public static function design_list( $pattern, $configurator ) {
+		$names = AIMP_Catalog::designs( $pattern );
+		$first = AIMP_Catalog::design_first_sizes( $pattern );
+		$data  = AIMP_Catalog::design_data( $pattern->get_id() );
+		$list  = array();
+		foreach ( $first as $slug => $variation_id ) {
+			$list[] = array(
+				'name'         => isset( $names[ $slug ] ) ? $names[ $slug ] : $slug,
+				'project_time' => '' !== $data[ $slug ]['project_time'] ? $data[ $slug ]['project_time'] : (string) $pattern->get_meta( AIMP_Catalog::META_PROJECT_TIME ),
+				'url'          => '' !== $configurator ? add_query_arg( 'aimp_pattern', $variation_id, $configurator ) : '',
+			);
+		}
+		return $list;
+	}
+
 	public static function pattern_variation( $pattern ) {
 		foreach ( $pattern->get_children() as $child_id ) {
 			$variation = wc_get_product( $child_id );
@@ -690,6 +712,8 @@ class AIMP_Product_Page {
 			'configurator_url' => ( $configurator && 'publish' === get_post_status( $configurator ) )
 				? ( $pattern ? add_query_arg( 'aimp_pattern', $product->get_id(), get_permalink( $configurator ) ) : get_permalink( $configurator ) )
 				: '',
+			// A pack with designs: per design its name, project time and configurator link.
+			'designs'          => $pattern ? self::design_list( $product, ( $configurator && 'publish' === get_post_status( $configurator ) ) ? get_permalink( $configurator ) : '' ) : array(),
 			'fitting'          => $fabric ? self::fitting_patterns( $product ) : array(),
 			'related'          => array_filter( array_map( 'wc_get_product', wc_get_related_products( $product->get_id(), self::RELATED ) ) ),
 		);
@@ -823,6 +847,8 @@ class AIMP_Product_Page {
 			'sewing_machine' => '<rect x="3" y="17" width="18" height="3" rx="1"/><path d="M6 17V7.5A2.5 2.5 0 0 1 8.5 5H18a2 2 0 0 1 2 2v3.5h-8.5V17"/><path d="M17 10.5v3.5M15.5 14h3"/><circle cx="16.5" cy="7.6" r="0.9"/>',
 			'tape_measure' => '<circle cx="9" cy="12" r="6"/><circle cx="9" cy="12" r="2"/><path d="M9 18h12v-4h-6.5"/><path d="M13 18v-1.6M16 18v-1.6M19 18v-1.6"/>',
 			'clock'        => '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/><path d="M12 4.2v.01M19.8 12h.01M12 19.8v.01M4.2 12h.01"/>',
+			// Two pattern pieces, one over the other: designs in one pack.
+			'designs'      => '<path d="M4 8.5 8 5h3l1 2 1-2h3l4 3.5-2 2.5-2-1.5V19H8V9.5L6 11z"/><path d="M8 14h8"/>',
 			'buttons'     => '<circle cx="12" cy="12" r="8.5"/><circle cx="10" cy="10" r="1"/><circle cx="14" cy="10" r="1"/><circle cx="10" cy="14" r="1"/><circle cx="14" cy="14" r="1"/>',
 			'zips'        => '<path d="M12 3v12"/><path d="M9.5 5H12M12 7.5h2.5M9.5 10H12M12 12.5h2.5"/><rect x="9" y="15" width="6" height="6" rx="1.5"/>',
 			'ribbons'     => '<path d="M12 10c-2-3.5-6.5-4-7-1.5S8 13 12 10zm0 0c2-3.5 6.5-4 7-1.5S16 13 12 10z"/><path d="M11 11l-3 9M13 11l3 9"/>',

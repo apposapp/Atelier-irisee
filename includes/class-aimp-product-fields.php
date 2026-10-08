@@ -246,6 +246,9 @@ class AIMP_Product_Fields {
 		$checked    = $pattern_id ? AIMP_Catalog::pattern_fabric_cats( $pattern_id ) : array();
 		$height     = $pattern_id ? AIMP_Catalog::pattern_height( $pattern_id ) : '';
 		$terms      = AIMP_Catalog::get_fabric_categories();
+		// A pack with designs (a "Design" attribute next to the sizes): fabrics, height, time and pictures per design.
+		$designs    = $is_product ? AIMP_Catalog::designs( $product_object ) : array();
+		$design_set = $pattern_id ? AIMP_Catalog::design_data( $pattern_id ) : array();
 		?>
 		<div id="aimp_pattern_data" class="panel woocommerce_options_panel hidden">
 			<?php if ( $is_product && $product_object->get_id() && $product_object->is_type( 'variable' ) ) : ?>
@@ -321,6 +324,9 @@ class AIMP_Product_Fields {
 						'desc_tip'    => true,
 					)
 				);
+				if ( $designs ) {
+					echo '<p class="description aimp-designs-note">' . esc_html__( 'This pattern has designs: the project time, the height and the fitting fabrics are set per design below.', 'atelier-irisee-master-plugin' ) . '</p>';
+				} else {
 				woocommerce_wp_text_input(
 					array(
 						'id'          => AIMP_Catalog::META_PROJECT_TIME,
@@ -345,11 +351,19 @@ class AIMP_Product_Fields {
 						'desc_tip'          => true,
 					)
 				);
+				}
 				?>
 			</div>
+			<?php if ( $designs ) : ?>
+				<?php self::render_designs( $product_object, $designs, $design_set, $terms ); ?>
+			<?php endif; ?>
 			<div class="options_group aimp-priority">
 				<h4><?php esc_html_e( 'Fitting fabrics', 'atelier-irisee-master-plugin' ); ?></h4>
+				<?php if ( $designs ) : ?>
+					<p class="description"><?php esc_html_e( 'The fitting fabrics are ticked per design (Pattern details). Here you choose which fabric categories customers see first: 1 is shown first, then 2, and so on.', 'atelier-irisee-master-plugin' ); ?></p>
+				<?php else : ?>
 				<p class="description"><?php esc_html_e( 'Tick the fabric categories that suit this pattern; they are the same for all sizes. Customers choose their fabric from these categories. Give them a position to choose which they see first: 1 is shown first, then 2, and so on. Categories without a position come after them.', 'atelier-irisee-master-plugin' ); ?></p>
+				<?php endif; ?>
 				<?php if ( ! $terms ) : ?>
 					<p class="description"><?php esc_html_e( 'No fabric subcategories found. Set the Fabrics category under WooCommerce > Atelier Irisee and give it subcategories.', 'atelier-irisee-master-plugin' ); ?></p>
 				<?php else : ?>
@@ -357,7 +371,9 @@ class AIMP_Product_Fields {
 						<thead>
 							<tr>
 								<th><?php esc_html_e( 'Fabric category', 'atelier-irisee-master-plugin' ); ?></th>
-								<th><?php esc_html_e( 'Allowed', 'atelier-irisee-master-plugin' ); ?></th>
+									<?php if ( ! $designs ) : ?>
+									<th><?php esc_html_e( 'Allowed', 'atelier-irisee-master-plugin' ); ?></th>
+									<?php endif; ?>
 								<th><?php esc_html_e( 'Position', 'atelier-irisee-master-plugin' ); ?></th>
 							</tr>
 						</thead>
@@ -365,14 +381,16 @@ class AIMP_Product_Fields {
 							<?php foreach ( $terms as $term ) : ?>
 								<?php
 								$term_id = (int) $term->term_id;
-								$allowed = in_array( $term_id, $checked, true );
+									$allowed = $designs ? true : in_array( $term_id, $checked, true );
 								?>
 								<tr data-term="<?php echo esc_attr( $term_id ); ?>"<?php echo $allowed ? '' : ' class="is-off"'; ?>>
 									<td><label for="<?php echo esc_attr( 'aimp_fitting_' . $term_id ); ?>"><?php echo esc_html( $term->name ); ?></label></td>
-									<td>
-										<input type="checkbox" class="aimp-fitting-checkbox" id="<?php echo esc_attr( 'aimp_fitting_' . $term_id ); ?>"
-											name="aimp_fitting_fabrics[]" value="<?php echo esc_attr( $term_id ); ?>"<?php checked( $allowed ); ?>>
-									</td>
+										<?php if ( ! $designs ) : ?>
+										<td>
+											<input type="checkbox" class="aimp-fitting-checkbox" id="<?php echo esc_attr( 'aimp_fitting_' . $term_id ); ?>"
+												name="aimp_fitting_fabrics[]" value="<?php echo esc_attr( $term_id ); ?>"<?php checked( $allowed ); ?>>
+										</td>
+										<?php endif; ?>
 									<td>
 										<input type="number" min="1" step="1" class="small-text" id="<?php echo esc_attr( 'aimp_priority_' . $term_id ); ?>"
 											name="aimp_fabric_priority[<?php echo esc_attr( $term_id ); ?>]"
@@ -388,6 +406,86 @@ class AIMP_Product_Fields {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * "Designs": one card per design with its pictures (ticked from the product pictures), fitting fabrics,
+	 * height and project time. assets/js/admin.js keeps the picture grids in step with the product gallery.
+	 *
+	 * @param WC_Product $product Pattern.
+	 * @param array      $designs Slug => name.
+	 * @param array      $saved   AIMP_Catalog::design_data().
+	 * @param WP_Term[]  $terms   Fabric categories.
+	 */
+	private static function render_designs( $product, $designs, $saved, $terms ) {
+		$pictures = array_values( array_unique( array_filter( array_map( 'absint', array_merge( array( $product->get_image_id() ), $product->get_gallery_image_ids() ) ) ) ) );
+		?>
+		<div class="options_group aimp-designs" data-aimp-designs>
+			<h4><?php esc_html_e( 'Designs', 'atelier-irisee-master-plugin' ); ?></h4>
+			<p class="description"><?php esc_html_e( 'Each design is its own choice in the configurator, with its own sizes (the rows of the Variations tab). Tick the pictures of each design (the first ticked picture is its card picture), and fill its fitting fabrics, height and project time. Add the pictures to the product gallery first.', 'atelier-irisee-master-plugin' ); ?></p>
+			<?php foreach ( $designs as $slug => $name ) : ?>
+				<?php
+				$row  = isset( $saved[ $slug ] ) ? $saved[ $slug ] : array( 'image_ids' => array(), 'fabric_cats' => array(), 'height' => '', 'project_time' => '' );
+				$base = 'aimp_designs[' . $slug . ']';
+				?>
+				<fieldset class="aimp-design" data-design="<?php echo esc_attr( $slug ); ?>">
+					<legend><?php echo esc_html( $name ); ?></legend>
+					<p class="aimp-design-label"><?php esc_html_e( 'Pictures of this design', 'atelier-irisee-master-plugin' ); ?></p>
+					<ul class="aimp-design-pictures" data-name="<?php echo esc_attr( $base . '[image_ids][]' ); ?>" data-card-label="<?php esc_attr_e( 'Card picture', 'atelier-irisee-master-plugin' ); ?>">
+						<?php foreach ( $pictures as $picture ) : ?>
+							<?php $url = wp_get_attachment_image_url( $picture, 'thumbnail' ); ?>
+							<?php if ( $url ) : ?>
+								<li data-id="<?php echo esc_attr( $picture ); ?>">
+									<label>
+										<input type="checkbox" name="<?php echo esc_attr( $base . '[image_ids][]' ); ?>" value="<?php echo esc_attr( $picture ); ?>"<?php checked( in_array( $picture, $row['image_ids'], true ) ); ?>>
+										<img src="<?php echo esc_url( $url ); ?>" alt="">
+									</label>
+								</li>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					</ul>
+					<p class="description aimp-design-empty"<?php echo $pictures ? ' hidden' : ''; ?>><?php esc_html_e( 'Add the pictures to the product gallery first.', 'atelier-irisee-master-plugin' ); ?></p>
+					<p class="aimp-design-label"><?php esc_html_e( 'Fitting fabrics', 'atelier-irisee-master-plugin' ); ?></p>
+					<div class="aimp-design-fabrics">
+						<?php foreach ( $terms as $term ) : ?>
+							<label><input type="checkbox" name="<?php echo esc_attr( $base . '[fabric_cats][]' ); ?>" value="<?php echo esc_attr( $term->term_id ); ?>"<?php checked( in_array( (int) $term->term_id, $row['fabric_cats'], true ) ); ?>> <?php echo esc_html( $term->name ); ?></label>
+						<?php endforeach; ?>
+					</div>
+					<p class="aimp-design-fields">
+						<label><?php esc_html_e( 'Height (cm)', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" step="0.1" class="short" name="<?php echo esc_attr( $base . '[height]' ); ?>" value="<?php echo esc_attr( $row['height'] ); ?>"></label>
+						<label><?php esc_html_e( 'Average project time', 'atelier-irisee-master-plugin' ); ?> <input type="text" class="short" placeholder="<?php esc_attr_e( 'e.g. 5h', 'atelier-irisee-master-plugin' ); ?>" name="<?php echo esc_attr( $base . '[project_time]' ); ?>" value="<?php echo esc_attr( $row['project_time'] ); ?>"></label>
+					</p>
+				</fieldset>
+			<?php endforeach; ?>
+			<input type="hidden" name="aimp_designs_present" value="1">
+		</div>
+		<?php
+	}
+
+	/**
+	 * Saves the "Designs" block (per design: pictures in the order they were ticked, fabrics, height, time).
+	 *
+	 * @param WC_Product $product Pattern.
+	 */
+	private static function save_designs( $product ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
+		if ( empty( $_POST['aimp_designs_present'] ) ) {
+			return;
+		}
+		$input = isset( $_POST['aimp_designs'] ) && is_array( $_POST['aimp_designs'] ) ? wp_unslash( $_POST['aimp_designs'] ) : array();
+		// phpcs:enable
+		$clean = array();
+		foreach ( AIMP_Catalog::designs( $product ) as $slug => $name ) {
+			$row            = isset( $input[ $slug ] ) && is_array( $input[ $slug ] ) ? $input[ $slug ] : array();
+			$height         = isset( $row['height'] ) ? wc_clean( $row['height'] ) : '';
+			$clean[ $slug ] = array(
+				'image_ids'    => array_values( array_unique( array_filter( array_map( 'absint', isset( $row['image_ids'] ) ? (array) $row['image_ids'] : array() ) ) ) ),
+				'fabric_cats'  => array_values( array_unique( array_filter( array_map( 'absint', isset( $row['fabric_cats'] ) ? (array) $row['fabric_cats'] : array() ) ) ) ),
+				'height'       => '' === $height ? '' : wc_format_decimal( max( 0, (float) $height ), 2, true ),
+				'project_time' => isset( $row['project_time'] ) ? sanitize_text_field( $row['project_time'] ) : '',
+			);
+		}
+		$product->update_meta_data( AIMP_Catalog::META_DESIGNS, $clean );
 	}
 
 	/**
@@ -421,6 +519,9 @@ class AIMP_Product_Fields {
 			} else {
 				$product->update_meta_data( AIMP_Catalog::META_SIZES_TEXT, $sizes );
 			}
+		}
+		if ( current_user_can( 'edit_products' ) ) {
+			self::save_designs( $product );
 		}
 		if ( isset( $_POST[ AIMP_Catalog::META_PROJECT_TIME ] ) && current_user_can( 'edit_products' ) ) {
 			$time = sanitize_text_field( wp_unslash( $_POST[ AIMP_Catalog::META_PROJECT_TIME ] ) );

@@ -93,7 +93,7 @@
 		var panel = q('#aimp_pattern_data');
 		move('check', [panel ? q('.aimp-availability', panel) : null]);
 		move('price', [closestGroup('#' + ws.getAttribute('data-price'))].concat(stockRows));
-		move('details', [closestGroup('#' + ws.getAttribute('data-skill'))]);
+		move('details', [closestGroup('#' + ws.getAttribute('data-skill')), panel ? q('.aimp-designs', panel) : null]);
 		move('priority', [panel ? q('.aimp-priority', panel) : null]);
 		// Sizes: WooCommerce's product data box, showing only Attributes and Variations.
 		var data = q('#woocommerce-product-data');

@@ -1102,7 +1102,6 @@ return array(
 	'(no subject)' => '(sans objet)',
 	'Attach this file' => 'Joindre ce fichier',
 	'Attachment (optional)' => 'Pièce jointe (facultative)',
-	'Attributes: the sizes. Variations: per size the fabric, buttons, zip, ribbon and bias tape it needs, and the measurements.' => 'Attributs : les tailles. Variations : par taille le tissu, les boutons, la fermeture éclair, le ruban et le biais nécessaires, et les mensurations.',
 	'Both' => 'Les deux',
 	'Button (optional)' => 'Bouton (facultatif)',
 	'Button link' => 'Lien du bouton',
@@ -1266,4 +1265,14 @@ return array(
 	'Delivered to your address in %s.' => 'Livré à votre adresse en %s.',
 	'Delivered to your address.' => 'Livré à votre adresse.',
 	'Home delivery' => 'Livraison à domicile',
+
+	// 3.4.0: patterns with designs
+	'Add the pictures to the product gallery first.' => 'Ajoutez d\'abord les photos à la galerie du produit.',
+	'Attributes: the sizes, and for a pack with two designs a Design attribute. Variations: per size (and design) the fabric, buttons, zip, ribbon and bias tape it needs, and the measurements.' => 'Attributs : les tailles et, pour un pack de deux modèles, un attribut Design. Variations : par taille (et modèle) le tissu, les boutons, la fermeture éclair, le ruban et le biais nécessaires, et les mensurations.',
+	'Card picture' => 'Photo de la carte',
+	'Each design is its own choice in the configurator, with its own sizes (the rows of the Variations tab). Tick the pictures of each design (the first ticked picture is its card picture), and fill its fitting fabrics, height and project time. Add the pictures to the product gallery first.' => 'Chaque modèle est un choix à part dans le configurateur, avec ses propres tailles (les lignes de l\'onglet Variations). Cochez les photos de chaque modèle (la première photo cochée est celle de sa carte), et remplissez ses tissus adaptés, sa hauteur et sa durée de projet. Ajoutez d\'abord les photos à la galerie du produit.',
+	'Make the %s' => 'Réaliser le modèle %s',
+	'Pictures of this design' => 'Photos de ce modèle',
+	'The fitting fabrics are ticked per design (Pattern details). Here you choose which fabric categories customers see first: 1 is shown first, then 2, and so on.' => 'Les tissus adaptés se cochent par modèle (Détails du patron). Ici, vous choisissez les catégories de tissus que les clients voient en premier : 1 d\'abord, puis 2, etc.',
+	'This pattern has designs: the project time, the height and the fitting fabrics are set per design below.' => 'Ce patron a des modèles : la durée du projet, la hauteur et les tissus adaptés se règlent par modèle ci-dessous.',
 );

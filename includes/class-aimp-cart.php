@@ -68,7 +68,7 @@ class AIMP_Cart {
 			return $errors;
 		}
 
-		$label   = sprintf( '%s – %s', wp_strip_all_tags( $req['pattern']->get_name() ), $req['size'] );
+		$label   = AIMP_Catalog::kit_label( $req );
 		$lines   = array();
 		$pending = array();
 
