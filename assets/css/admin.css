@@ -873,3 +873,77 @@
 	flex-wrap: wrap;
 	gap: 8px 20px;
 }
+
+/* Pattern screens: a size (variation) shows only "Needed materials & sizes"; WooCommerce's own fields
+ * (picture, SKU, price, stock, weight, …) are hidden. Their values are still saved. */
+.aimp-ws-sizes .woocommerce_variable_attributes .data > :not(.aimp-variation-fields) {
+	display: none !important;
+}
+
+.aimp-variation-fields h4 {
+	margin: 4px 0 10px;
+	color: #8a6a33;
+	font-size: 14px;
+}
+
+.aimp-material-groups {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+	gap: 10px;
+}
+
+.woocommerce_variation .aimp-material-group {
+	margin: 0;
+	padding: 8px 12px 10px;
+	border: 1px solid #e3d5bb;
+	border-radius: 8px;
+	background: #fcfaf6;
+}
+
+.woocommerce_variation .aimp-material-group legend {
+	padding: 0 4px;
+	color: #8a6a33;
+	font-weight: 700;
+}
+
+.woocommerce_variation .aimp-material-field {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin: 4px 0 0;
+}
+
+.woocommerce_variation .aimp-material-field > span:first-child:empty {
+	display: none;
+}
+
+.woocommerce_variation .aimp-material-input {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.woocommerce_variation .aimp-material-input input {
+	width: 80px;
+}
+
+.woocommerce_variation .aimp-material-input em {
+	min-width: 22px;
+	color: #777;
+	font-style: normal;
+}
+
+.aimp-measurement-group {
+	grid-column: 1 / -1;
+}
+
+/* Designs block: the design name as a clear header of its card. */
+.aimp-designs .aimp-design legend {
+	display: block;
+	float: none;
+	width: auto;
+	margin: 0;
+	color: #8a6a33;
+	font-size: 14px;
+}

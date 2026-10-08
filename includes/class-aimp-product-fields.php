@@ -43,36 +43,65 @@ class AIMP_Product_Fields {
 	}
 
 	/**
-	 * Number fields on a variation: key => [ label, step ].
+	 * A pack with designs: the sizes are ordered per design (all sizes of the first design, then the next),
+	 * each design in the order of the sizes. The Variations tab and the configurator follow this order.
+	 *
+	 * @param WC_Product $product Pattern.
+	 */
+	private static function sort_by_design( $product ) {
+		$design_key = AIMP_Catalog::design_attribute( $product );
+		$designs    = array_keys( AIMP_Catalog::designs( $product ) );
+		if ( '' === $design_key || ! $designs ) {
+			return;
+		}
+		$size_key   = '';
+		$size_order = array();
+		foreach ( $product->get_attributes() as $key => $attribute ) {
+			if ( $key === $design_key || ! $attribute instanceof WC_Product_Attribute || ! $attribute->get_variation() ) {
+				continue;
+			}
+			$size_key   = (string) $key;
+			$size_order = $attribute->is_taxonomy()
+				? wc_get_product_terms( $product->get_id(), $key, array( 'fields' => 'slugs' ) )
+				: array_map( 'sanitize_title', $attribute->get_options() );
+			break;
+		}
+		$rows = array();
+		foreach ( $product->get_children() as $index => $child_id ) {
+			$variation = wc_get_product( $child_id );
+			if ( ! $variation ) {
+				continue;
+			}
+			$values = $variation->get_variation_attributes();
+			$design = array_search( sanitize_title( isset( $values[ 'attribute_' . $design_key ] ) ? $values[ 'attribute_' . $design_key ] : '' ), $designs, true );
+			$size   = '' !== $size_key ? array_search( sanitize_title( isset( $values[ 'attribute_' . $size_key ] ) ? $values[ 'attribute_' . $size_key ] : '' ), $size_order, true ) : false;
+			$rows[] = array( false === $design ? 99 : $design, false === $size ? 999 : $size, $index, $variation );
+		}
+		usort(
+			$rows,
+			function ( $a, $b ) {
+				return array( $a[0], $a[1], $a[2] ) <=> array( $b[0], $b[1], $b[2] );
+			}
+		);
+		foreach ( $rows as $position => $row ) {
+			if ( (int) $row[3]->get_menu_order() !== $position ) {
+				$row[3]->set_menu_order( $position );
+				$row[3]->save();
+			}
+		}
+	}
+
+	/**
+	 * Body measurements of a size: meta => label.
 	 *
 	 * @return array
 	 */
-	private static function number_fields() {
+	private static function measurement_fields() {
 		return array(
-			AIMP_Catalog::META_FABRIC_UNITS => array( __( 'Fabric needed (units of 10 cm)', 'atelier-irisee-master-plugin' ), '1' ),
-			AIMP_Catalog::META_BUTTON_COUNT => array( __( 'Button count', 'atelier-irisee-master-plugin' ), '1' ),
-			AIMP_Catalog::META_ZIP_COUNT    => array( __( 'Zip count', 'atelier-irisee-master-plugin' ), '1' ),
-			AIMP_Catalog::META_ZIP_LENGTH   => array( __( 'Zip length (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
-			AIMP_Catalog::META_RIBBON_LENGTH => array( __( 'Ribbon length (cm)', 'atelier-irisee-master-plugin' ), '1' ),
-			AIMP_Catalog::META_BIAS_LENGTH  => array( __( 'Bias tape length (cm)', 'atelier-irisee-master-plugin' ), '1' ),
-			AIMP_Catalog::META_BUST         => array( __( 'Bust (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
-			AIMP_Catalog::META_WAIST        => array( __( 'Waist (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
-			AIMP_Catalog::META_HIP          => array( __( 'Hip (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
-			AIMP_Catalog::META_INSIDE_LEG   => array( __( 'Inside leg (cm)', 'atelier-irisee-master-plugin' ), '0.1' ),
-		);
-	}
-
-	private static function is_integer_field( $key ) {
-		return in_array(
-			$key,
-			array(
-				AIMP_Catalog::META_FABRIC_UNITS,
-				AIMP_Catalog::META_BUTTON_COUNT,
-				AIMP_Catalog::META_ZIP_COUNT,
-				AIMP_Catalog::META_RIBBON_LENGTH,
-				AIMP_Catalog::META_BIAS_LENGTH,
-			),
-			true
+			AIMP_Catalog::META_BUST       => __( 'Bust', 'atelier-irisee-master-plugin' ),
+			AIMP_Catalog::META_WAIST      => __( 'Waist', 'atelier-irisee-master-plugin' ),
+			AIMP_Catalog::META_HIP        => __( 'Hip', 'atelier-irisee-master-plugin' ),
+			AIMP_Catalog::META_INSIDE_LEG => __( 'Inside leg', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -147,6 +176,7 @@ class AIMP_Product_Fields {
 				$variation->save();
 			}
 		}
+		self::sort_by_design( $product );
 		WC_Product_Variable::sync( $product->get_id() );
 		$product    = wc_get_product( $product->get_id() );
 		$data_store = $product ? $product->get_data_store() : null;
@@ -169,23 +199,56 @@ class AIMP_Product_Fields {
 		if ( ! $variation ) {
 			return;
 		}
+		// The materials grouped as in AIMP_Catalog::material_fields(): Fabric, Zips, Buttons, Elastic, …
+		$groups = array();
+		foreach ( AIMP_Catalog::material_fields() as $key => $field ) {
+			$groups[ $field['group'] ][ $key ] = $field;
+		}
+		$value = function ( $key, $field ) use ( $variation ) {
+			$saved = (string) $variation->get_meta( $field['meta'] );
+			// Fabric in cm; patterns saved before 3.5 had units of 10 cm.
+			if ( 'fabric' === $key && '' === $saved && (int) $variation->get_meta( AIMP_Catalog::META_FABRIC_UNITS ) > 0 ) {
+				$saved = (string) ( (int) $variation->get_meta( AIMP_Catalog::META_FABRIC_UNITS ) * AIMP_Catalog::FABRIC_UNIT_CM );
+			}
+			return '0' === $saved ? '' : $saved;
+		};
+		$input = function ( $name, $label, $unit, $current ) use ( $loop ) {
+			$id = 'aimp_' . $name . '_' . $loop;
+			printf(
+				'<label class="aimp-material-field" for="%1$s"><span>%2$s</span><span class="aimp-material-input"><input type="number" min="0" step="%3$s" id="%1$s" name="%4$s" value="%5$s" placeholder="0"><em>%6$s</em></span></label>',
+				esc_attr( $id ),
+				esc_html( $label ),
+				'cm' === $unit ? '0.5' : '1',
+				esc_attr( 'aimp_material[' . $name . '][' . $loop . ']' ),
+				esc_attr( $current ),
+				esc_html( 'cm' === $unit ? __( 'cm', 'atelier-irisee-master-plugin' ) : __( 'pcs', 'atelier-irisee-master-plugin' ) )
+			);
+		};
 		?>
 		<div class="aimp-variation-fields">
-			<p class="aimp-variation-note"><?php esc_html_e( 'The price and stock of a pattern are the same for all sizes: set the price on the Atelier Irisee tab and the stock on the Inventory tab. They are copied to the sizes when you save.', 'atelier-irisee-master-plugin' ); ?></p>
-			<h4><?php esc_html_e( 'Atelier Irisee – material requirements & size measurements', 'atelier-irisee-master-plugin' ); ?></h4>
-			<div class="aimp-variation-grid">
-				<?php foreach ( self::number_fields() as $key => $field ) : ?>
-					<?php $id = 'aimp' . $key . '_' . $loop; ?>
-					<p class="form-field">
-						<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $field[0] ); ?></label>
-						<input type="number" min="0" step="<?php echo esc_attr( $field[1] ); ?>"
-							id="<?php echo esc_attr( $id ); ?>"
-							name="<?php echo esc_attr( 'aimp' . $key . '[' . $loop . ']' ); ?>"
-							value="<?php echo esc_attr( $variation->get_meta( $key ) ); ?>">
-					</p>
+			<h4><?php esc_html_e( 'Needed materials & sizes', 'atelier-irisee-master-plugin' ); ?></h4>
+			<div class="aimp-material-groups">
+				<?php foreach ( $groups as $group => $fields ) : ?>
+					<fieldset class="aimp-material-group<?php echo count( $fields ) > 1 ? ' has-types' : ''; ?>">
+						<legend><?php echo esc_html( $group ); ?></legend>
+						<?php
+						foreach ( $fields as $key => $field ) {
+							// A single field shows the group name only; types show their own name.
+							$input( $key, count( $fields ) > 1 ? $field['label'] : '', $field['unit'], $value( $key, $field ) );
+						}
+						?>
+					</fieldset>
 				<?php endforeach; ?>
+				<fieldset class="aimp-material-group aimp-measurement-group has-types">
+					<legend><?php esc_html_e( 'Body measurements', 'atelier-irisee-master-plugin' ); ?></legend>
+					<?php
+					foreach ( self::measurement_fields() as $meta => $label ) {
+						$input( ltrim( $meta, '_' ), $label, 'cm', (string) $variation->get_meta( $meta ) );
+					}
+					?>
+				</fieldset>
 			</div>
-			<p class="aimp-variation-note"><?php esc_html_e( 'The height and the fitting fabrics are the same for all sizes: set them on the Atelier Irisee tab.', 'atelier-irisee-master-plugin' ); ?></p>
+			<p class="aimp-variation-note"><?php esc_html_e( 'Price, stock, height and fitting fabrics are the same for all sizes: set them on the Atelier Irisee tab and the Inventory tab. Empty = not needed.', 'atelier-irisee-master-plugin' ); ?></p>
 			<input type="hidden" name="<?php echo esc_attr( 'aimp_fields_present[' . $loop . ']' ); ?>" value="1">
 		</div>
 		<?php
@@ -202,19 +265,28 @@ class AIMP_Product_Fields {
 		if ( ! current_user_can( 'edit_products' ) || empty( $_POST['aimp_fields_present'][ $i ] ) ) {
 			return;
 		}
-
-		foreach ( array_keys( self::number_fields() ) as $key ) {
-			$name  = 'aimp' . $key;
-			$value = isset( $_POST[ $name ][ $i ] ) ? wc_clean( wp_unslash( $_POST[ $name ][ $i ] ) ) : '';
-			if ( '' === $value ) {
-				$variation->delete_meta_data( $key );
+		$posted = isset( $_POST['aimp_material'] ) && is_array( $_POST['aimp_material'] ) ? wp_unslash( $_POST['aimp_material'] ) : array();
+		// phpcs:enable
+		$get = function ( $name ) use ( $posted, $i ) {
+			return isset( $posted[ $name ][ $i ] ) ? trim( wc_clean( $posted[ $name ][ $i ] ) ) : '';
+		};
+		$fields = array();
+		foreach ( AIMP_Catalog::material_fields() as $key => $field ) {
+			$fields[ $key ] = array( $field['meta'], $field['unit'] );
+		}
+		foreach ( self::measurement_fields() as $meta => $label ) {
+			$fields[ ltrim( $meta, '_' ) ] = array( $meta, 'cm' );
+		}
+		foreach ( $fields as $name => $field ) {
+			$value = $get( $name );
+			if ( '' === $value || (float) $value <= 0 ) {
+				$variation->delete_meta_data( $field[0] );
 				continue;
 			}
-			$value = self::is_integer_field( $key ) ? absint( $value ) : wc_format_decimal( max( 0, (float) $value ), 2, true );
-			$variation->update_meta_data( $key, $value );
+			$variation->update_meta_data( $field[0], 'cm' === $field[1] ? wc_format_decimal( (float) $value, 1, true ) : (string) absint( $value ) );
 		}
-
-		// phpcs:enable
+		// Fabric is kept in cm from now on.
+		$variation->delete_meta_data( AIMP_Catalog::META_FABRIC_UNITS );
 	}
 
 	/**
@@ -430,7 +502,7 @@ class AIMP_Product_Fields {
 				?>
 				<fieldset class="aimp-design" data-design="<?php echo esc_attr( $slug ); ?>">
 					<legend><?php echo esc_html( $name ); ?></legend>
-					<p class="aimp-design-label"><?php esc_html_e( 'Pictures of this design', 'atelier-irisee-master-plugin' ); ?></p>
+					<p class="aimp-design-label"><?php echo esc_html( sprintf( /* translators: %s: design name */ __( 'Pictures of this design: %s', 'atelier-irisee-master-plugin' ), $name ) ); ?></p>
 					<ul class="aimp-design-pictures" data-name="<?php echo esc_attr( $base . '[image_ids][]' ); ?>" data-card-label="<?php esc_attr_e( 'Card picture', 'atelier-irisee-master-plugin' ); ?>">
 						<?php foreach ( $pictures as $picture ) : ?>
 							<?php $url = wp_get_attachment_image_url( $picture, 'thumbnail' ); ?>
@@ -445,7 +517,7 @@ class AIMP_Product_Fields {
 						<?php endforeach; ?>
 					</ul>
 					<p class="description aimp-design-empty"<?php echo $pictures ? ' hidden' : ''; ?>><?php esc_html_e( 'Add the pictures to the product gallery first.', 'atelier-irisee-master-plugin' ); ?></p>
-					<p class="aimp-design-label"><?php esc_html_e( 'Fitting fabrics', 'atelier-irisee-master-plugin' ); ?></p>
+					<p class="aimp-design-label"><?php echo esc_html( sprintf( /* translators: %s: design name */ __( 'Fitting fabrics: %s', 'atelier-irisee-master-plugin' ), $name ) ); ?></p>
 					<div class="aimp-design-fabrics">
 						<?php foreach ( $terms as $term ) : ?>
 							<label><input type="checkbox" name="<?php echo esc_attr( $base . '[fabric_cats][]' ); ?>" value="<?php echo esc_attr( $term->term_id ); ?>"<?php checked( in_array( (int) $term->term_id, $row['fabric_cats'], true ) ); ?>> <?php echo esc_html( $term->name ); ?></label>

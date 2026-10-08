@@ -176,6 +176,99 @@ class AIMP_Product_Page {
 	 * @return WC_Product_Variation|null
 	 */
 	/**
+	 * Pattern page "Accessories" and size table: one group per design (or one group), each
+	 * [ name, accessories: [ [ label, text ] ], columns: [ label ], rows: [ [ size, cells… ] ] ].
+	 * Only filled-in materials and measurements are listed.
+	 *
+	 * @param WC_Product $pattern Pattern.
+	 * @return array
+	 */
+	public static function size_table( $pattern ) {
+		$names    = AIMP_Catalog::designs( $pattern );
+		$fields   = AIMP_Catalog::material_fields();
+		$measures = array(
+			'bust'       => __( 'Bust', 'atelier-irisee-master-plugin' ),
+			'waist'      => __( 'Waist', 'atelier-irisee-master-plugin' ),
+			'hip'        => __( 'Hip', 'atelier-irisee-master-plugin' ),
+			'inside_leg' => __( 'Inside leg', 'atelier-irisee-master-plugin' ),
+			'height'     => __( 'Height', 'atelier-irisee-master-plugin' ),
+		);
+		$sizes = array();
+		foreach ( $pattern->get_children() as $child_id ) {
+			$req = AIMP_Catalog::get_requirements( $child_id );
+			if ( $req ) {
+				$sizes[ $names ? AIMP_Catalog::variation_design( $req['variation'] ) : '' ][] = $req;
+			}
+		}
+		$groups = array();
+		foreach ( $sizes as $slug => $reqs ) {
+			// Accessories: every material any size needs, one value or a range.
+			$accessories = array();
+			foreach ( $fields as $key => $field ) {
+				if ( 'fabric' === $key ) {
+					continue;
+				}
+				$amounts = array_filter(
+					array_map(
+						function ( $req ) use ( $key ) {
+							return (float) $req['materials'][ $key ];
+						},
+						$reqs
+					)
+				);
+				if ( ! $amounts ) {
+					continue;
+				}
+				$min           = min( $amounts );
+				$max           = max( $amounts );
+				$text          = $min === $max ? AIMP_Catalog::material_text( $key, $min ) : ( 'cm' === $field['unit']
+					/* translators: 1: smallest length, 2: largest length (in cm) */
+					? sprintf( __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $min, floor( $min ) == $min ? 0 : 1 ), AIMP_I18n::number( $max, floor( $max ) == $max ? 0 : 1 ) )
+					: sprintf( '%d–%d', $min, $max ) );
+				$accessories[] = array( $field['label'], $text );
+			}
+			// Table: the measurements filled in for at least one size, then the fabric.
+			$used = array();
+			foreach ( $measures as $key => $label ) {
+				foreach ( $reqs as $req ) {
+					if ( '' !== (string) $req[ $key ] && (float) $req[ $key ] > 0 ) {
+						$used[ $key ] = $label;
+						break;
+					}
+				}
+			}
+			$rows = array();
+			foreach ( $reqs as $req ) {
+				$row = array( $req['size'] );
+				foreach ( array_keys( $used ) as $key ) {
+					/* translators: %s: length in cm */
+					$row[] = '' !== (string) $req[ $key ] && (float) $req[ $key ] > 0 ? sprintf( __( '%s cm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( (float) $req[ $key ], floor( (float) $req[ $key ] ) == (float) $req[ $key ] ? 0 : 1 ) ) : '–';
+				}
+				/* translators: %s: length in metres */
+				$row[]  = $req['fabric_cm'] > 0 ? sprintf( __( '%s m', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $req['fabric_cm'] / 100, 2 ) ) : '–';
+				$rows[] = $row;
+			}
+			$groups[] = array(
+				'name'        => isset( $names[ $slug ] ) ? $names[ $slug ] : '',
+				'accessories' => $accessories,
+				'columns'     => array_merge( array( __( 'Size', 'atelier-irisee-master-plugin' ) ), array_values( $used ), array( __( 'Fabric', 'atelier-irisee-master-plugin' ) ) ),
+				'rows'        => $rows,
+			);
+		}
+		// Designs in their own order.
+		if ( $names ) {
+			$order = array_flip( array_values( $names ) );
+			usort(
+				$groups,
+				function ( $a, $b ) use ( $order ) {
+					return ( isset( $order[ $a['name'] ] ) ? $order[ $a['name'] ] : 99 ) <=> ( isset( $order[ $b['name'] ] ) ? $order[ $b['name'] ] : 99 );
+				}
+			);
+		}
+		return $groups;
+	}
+
+	/**
 	 * The designs of a pack: [ name, project_time, url ] per design (url: the configurator with that design).
 	 *
 	 * @param WC_Product $pattern      Pattern.
@@ -596,6 +689,9 @@ class AIMP_Product_Page {
 						'thousand' => wc_get_price_thousand_separator(),
 					),
 					'i18n'     => self::strings(),
+					// "How to measure" picture of the size table.
+					'measureImage' => AIMP_PLUGIN_URL . 'assets/images/lichaamsmaten.png',
+					'howToMeasure' => __( 'How to measure your body measurements', 'atelier-irisee-master-plugin' ),
 				)
 			);
 		}
@@ -712,6 +808,8 @@ class AIMP_Product_Page {
 			'configurator_url' => ( $configurator && 'publish' === get_post_status( $configurator ) )
 				? ( $pattern ? add_query_arg( 'aimp_pattern', $product->get_id(), get_permalink( $configurator ) ) : get_permalink( $configurator ) )
 				: '',
+			// Accessories and the size table (per design for a pack with designs).
+			'size_table'       => $pattern ? self::size_table( $product ) : array(),
 			// A pack with designs: per design its name, project time and configurator link.
 			'designs'          => $pattern ? self::design_list( $product, ( $configurator && 'publish' === get_post_status( $configurator ) ) ? get_permalink( $configurator ) : '' ) : array(),
 			'fitting'          => $fabric ? self::fitting_patterns( $product ) : array(),

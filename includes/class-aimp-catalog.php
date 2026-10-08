@@ -34,6 +34,7 @@ class AIMP_Catalog {
 	const META_SIZES_TEXT      = '_aimp_sizes_text';
 	const META_PROJECT_TIME    = '_aimp_project_time';
 	const META_DESIGNS         = '_aimp_designs';
+	const META_FABRIC_CM       = '_aimp_fabric_cm';
 	const META_RECOMMENDED     = '_aimp_recommended_pattern';
 
 	/** Number of inspiration cards on a fabric. */
@@ -52,28 +53,113 @@ class AIMP_Catalog {
 	 * @return array
 	 */
 	public static function notion_types() {
-		return array(
-			'buttons' => array(
-				'role'    => 'button',
-				'setting' => 'button_cat',
-				'unit'    => 'piece',
-			),
-			'zips'    => array(
-				'role'    => 'zip',
-				'setting' => 'zip_cat',
-				'unit'    => 'piece',
-			),
-			'ribbons' => array(
-				'role'    => 'ribbon',
-				'setting' => 'ribbon_cat',
-				'unit'    => '10cm',
-			),
-			'bias'    => array(
-				'role'    => 'bias',
-				'setting' => 'bias_cat',
-				'unit'    => '10cm',
-			),
+		$types = array();
+		// Zips: one zip of the filled-in length; a type without its own category uses the Zips category.
+		foreach ( array( 'zip_divisible', 'zip_invisible', 'zip_non_divisible', 'zip_double_divisible' ) as $key ) {
+			$types[ $key ] = array(
+				'role'     => $key,
+				'setting'  => $key . '_cat',
+				'fallback' => 'zip_cat',
+				'unit'     => 'piece',
+				'kind'     => 'zip',
+				'material' => $key,
+			);
+		}
+		// Buttons: the filled-in amount; a type without a category is shown as information only.
+		$types['buttons']       = array(
+			'role'     => 'button',
+			'setting'  => 'button_cat',
+			'fallback' => '',
+			'unit'     => 'piece',
+			'kind'     => 'count',
+			'material' => 'buttons',
 		);
+		$types['snaps']         = array(
+			'role'     => 'snap',
+			'setting'  => 'snap_cat',
+			'fallback' => '',
+			'unit'     => 'piece',
+			'kind'     => 'count',
+			'material' => 'snaps',
+		);
+		$types['jeans_buttons'] = array(
+			'role'     => 'jeans_button',
+			'setting'  => 'jeans_button_cat',
+			'fallback' => '',
+			'unit'     => 'piece',
+			'kind'     => 'count',
+			'material' => 'jeans_buttons',
+		);
+		$types['bias']          = array(
+			'role'     => 'bias',
+			'setting'  => 'bias_cat',
+			'fallback' => '',
+			'unit'     => '10cm',
+			'kind'     => 'length',
+			'material' => 'bias',
+		);
+		$types['ribbons']       = array(
+			'role'     => 'ribbon',
+			'setting'  => 'ribbon_cat',
+			'fallback' => '',
+			'unit'     => '10cm',
+			'kind'     => 'length',
+			'material' => 'ribbon',
+		);
+		return $types;
+	}
+
+	/**
+	 * The materials a pattern size can need, in the order of the editor and the pattern page:
+	 * key => [ meta, label, unit (cm|piece), group label ].
+	 *
+	 * @return array
+	 */
+	public static function material_fields() {
+		$zips    = __( 'Zips', 'atelier-irisee-master-plugin' );
+		$buttons = __( 'Buttons', 'atelier-irisee-master-plugin' );
+		$list    = array(
+			'fabric'               => array( self::META_FABRIC_CM, __( 'Fabric', 'atelier-irisee-master-plugin' ), 'cm', __( 'Fabric', 'atelier-irisee-master-plugin' ) ),
+			'zip_divisible'        => array( '_aimp_zip_divisible', __( 'Divisible zipper', 'atelier-irisee-master-plugin' ), 'cm', $zips ),
+			'zip_invisible'        => array( '_aimp_zip_invisible', __( 'Invisible zipper', 'atelier-irisee-master-plugin' ), 'cm', $zips ),
+			'zip_non_divisible'    => array( '_aimp_zip_non_divisible', __( 'Non divisible zipper', 'atelier-irisee-master-plugin' ), 'cm', $zips ),
+			'zip_double_divisible' => array( '_aimp_zip_double_divisible', __( 'Double divisible zipper', 'atelier-irisee-master-plugin' ), 'cm', $zips ),
+			'buttons'              => array( self::META_BUTTON_COUNT, __( 'Buttons', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
+			'snaps'                => array( '_aimp_snap_count', __( 'Snap fasteners', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
+			'jeans_buttons'        => array( '_aimp_jeans_button_count', __( 'Jeans buttons', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
+			'elastic'              => array( '_aimp_elastic_cm', __( 'Elastic', 'atelier-irisee-master-plugin' ), 'cm', __( 'Elastic', 'atelier-irisee-master-plugin' ) ),
+			'bias'                 => array( self::META_BIAS_LENGTH, __( 'Bias tape', 'atelier-irisee-master-plugin' ), 'cm', __( 'Bias tape', 'atelier-irisee-master-plugin' ) ),
+			'ribbon'               => array( self::META_RIBBON_LENGTH, __( 'Ribbon', 'atelier-irisee-master-plugin' ), 'cm', __( 'Ribbon', 'atelier-irisee-master-plugin' ) ),
+			'cord'                 => array( '_aimp_cord_cm', __( 'Cord', 'atelier-irisee-master-plugin' ), 'cm', __( 'Cord', 'atelier-irisee-master-plugin' ) ),
+			'embroidery'           => array( '_aimp_embroidery_count', __( 'Embroidery', 'atelier-irisee-master-plugin' ), 'piece', __( 'Embroidery', 'atelier-irisee-master-plugin' ) ),
+			'bag_strap'            => array( '_aimp_bag_strap_cm', __( 'Bag strap', 'atelier-irisee-master-plugin' ), 'cm', __( 'Bag strap', 'atelier-irisee-master-plugin' ) ),
+			'interfacing'          => array( '_aimp_interfacing_cm', __( 'Fusible interfacing', 'atelier-irisee-master-plugin' ), 'cm', __( 'Fusible interfacing', 'atelier-irisee-master-plugin' ) ),
+			'cord_lock'            => array( '_aimp_cord_lock_count', __( 'Cord lock', 'atelier-irisee-master-plugin' ), 'piece', __( 'Cord lock', 'atelier-irisee-master-plugin' ) ),
+		);
+		$fields = array();
+		foreach ( $list as $key => $row ) {
+			$fields[ $key ] = array(
+				'meta'  => $row[0],
+				'label' => $row[1],
+				'unit'  => $row[2],
+				'group' => $row[3],
+			);
+		}
+		return $fields;
+	}
+
+	/**
+	 * "40 cm" or "2".
+	 *
+	 * @param string $key    A key of material_fields().
+	 * @param float  $amount Amount.
+	 * @return string
+	 */
+	public static function material_text( $key, $amount ) {
+		$fields = self::material_fields();
+		$unit   = isset( $fields[ $key ] ) ? $fields[ $key ]['unit'] : 'piece';
+		/* translators: %s: length in cm */
+		return 'cm' === $unit ? sprintf( __( '%s cm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $amount, floor( $amount ) == $amount ? 0 : 1 ) ) : (string) (int) $amount;
 	}
 
 	/**
@@ -824,16 +910,26 @@ class AIMP_Catalog {
 		// Only subcategories that still belong to the Fabrics tree count.
 		$fabric_cats = array_values( array_intersect( $fabric_cats, self::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) ) );
 
+		// Every material of the size (amounts; 0 = not needed). Fabric in cm, with the old 10 cm units as fallback.
+		$materials = array();
+		foreach ( self::material_fields() as $key => $field ) {
+			$materials[ $key ] = max( 0, (float) $variation->get_meta( $field['meta'] ) );
+		}
+		if ( $materials['fabric'] <= 0 ) {
+			$materials['fabric'] = absint( $variation->get_meta( self::META_FABRIC_UNITS ) ) * self::FABRIC_UNIT_CM;
+		}
+		$fabric_units = $materials['fabric'] > 0 ? (int) ceil( $materials['fabric'] / self::FABRIC_UNIT_CM ) : 0;
+
 		return array(
 			'variation'    => $variation,
 			'pattern'      => $pattern,
 			'size'         => self::size_label( $variation ),
 			'design'       => self::design_label( $variation ),
-			'fabric_units' => absint( $variation->get_meta( self::META_FABRIC_UNITS ) ),
+			'materials'    => $materials,
+			'fabric_units' => $fabric_units,
+			'fabric_cm'    => (float) $materials['fabric'],
 			'fabric_cats'  => $fabric_cats,
 			'button_count' => absint( $variation->get_meta( self::META_BUTTON_COUNT ) ),
-			'zip_count'    => absint( $variation->get_meta( self::META_ZIP_COUNT ) ),
-			'zip_length'   => (string) $variation->get_meta( self::META_ZIP_LENGTH ),
 			'ribbon_length' => absint( $variation->get_meta( self::META_RIBBON_LENGTH ) ),
 			'bias_length'  => absint( $variation->get_meta( self::META_BIAS_LENGTH ) ),
 			'ribbon_qty'   => self::units_for_cm( $variation->get_meta( self::META_RIBBON_LENGTH ) ),
@@ -976,10 +1072,9 @@ class AIMP_Catalog {
 				'hip'          => $req['hip'],
 				'inside_leg'   => $req['inside_leg'],
 				'fabric_units' => $req['fabric_units'],
-				'fabric_text'  => self::fabric_text( $req['fabric_units'] ),
-				'button_count' => $req['button_count'],
-				'zip_count'    => $req['zip_count'],
-				'zip_length'   => $req['zip_length'],
+				'fabric_text'  => self::fabric_need_text( $req ),
+				'notions'      => (object) self::size_notions( $req ),
+				'extras'       => self::size_extras( $req ),
 				'ribbon_qty'   => $req['ribbon_qty'],
 				'ribbon_text'  => self::length_text( $req['ribbon_length'] ),
 				'bias_qty'     => $req['bias_qty'],
@@ -1055,10 +1150,129 @@ class AIMP_Catalog {
 			return null;
 		}
 		$product = self::get_material( $product_id, self::category_tree( self::notion_category( $type ) ) );
-		if ( $product && 'zips' === $type && ! self::zip_length_matches( $product, $req['zip_length'] ) ) {
+		if ( $product && '' !== self::zip_length( $type, $req ) && ! self::zip_length_matches( $product, self::zip_length( $type, $req ) ) ) {
 			return null;
 		}
 		return $product;
+	}
+
+	/**
+	 * The length a zip type needs ("22"), or '' for other types.
+	 *
+	 * @param string $type A key of notion_types().
+	 * @param array  $req  Requirements.
+	 * @return string
+	 */
+	public static function zip_length( $type, $req ) {
+		$types = self::notion_types();
+		if ( ! isset( $types[ $type ] ) || 'zip' !== $types[ $type ]['kind'] ) {
+			return '';
+		}
+		$length = isset( $req['materials'][ $types[ $type ]['material'] ] ) ? (float) $req['materials'][ $types[ $type ]['material'] ] : 0;
+		return $length > 0 ? wc_format_decimal( $length, 2, true ) : '';
+	}
+
+	/**
+	 * What a size needs of a haberdashery type, whether or not it can be bought in the kit.
+	 *
+	 * @param string $type A key of notion_types().
+	 * @param array  $req  Requirements.
+	 * @return int Pieces, or 10 cm units.
+	 */
+	public static function notion_need( $type, $req ) {
+		$types = self::notion_types();
+		if ( ! isset( $types[ $type ] ) ) {
+			return 0;
+		}
+		$amount = isset( $req['materials'][ $types[ $type ]['material'] ] ) ? (float) $req['materials'][ $types[ $type ]['material'] ] : 0;
+		switch ( $types[ $type ]['kind'] ) {
+			case 'zip':
+				return $amount > 0 ? 1 : 0;
+			case 'length':
+				return self::units_for_cm( $amount );
+		}
+		return (int) $amount;
+	}
+
+	/**
+	 * The kit haberdashery of a size for the configurator: type => [ qty, need, willAdd ].
+	 *
+	 * @param array $req Requirements.
+	 * @return array
+	 */
+	public static function size_notions( $req ) {
+		$types   = self::notion_types();
+		$fields  = self::material_fields();
+		$notions = array();
+		foreach ( $types as $type => $info ) {
+			$qty = self::notion_count( $type, $req );
+			if ( $qty <= 0 ) {
+				continue;
+			}
+			$amount = (float) $req['materials'][ $info['material'] ];
+			if ( 'zip' === $info['kind'] ) {
+				/* translators: 1: number of zips, 2: length in cm */
+				$need = sprintf( __( '%1$d × zip of %2$s cm', 'atelier-irisee-master-plugin' ), 1, AIMP_I18n::number( $amount, floor( $amount ) == $amount ? 0 : 1 ) );
+				/* translators: 1: number of zips, 2: length in cm */
+				$will = sprintf( __( '%1$d zip(s) of %2$s cm will be added.', 'atelier-irisee-master-plugin' ), 1, AIMP_I18n::number( $amount, floor( $amount ) == $amount ? 0 : 1 ) );
+			} elseif ( 'length' === $info['kind'] ) {
+				$need = self::length_text( (int) $amount );
+				/* translators: %s: length */
+				$will = sprintf( __( '%s will be added.', 'atelier-irisee-master-plugin' ), $need );
+			} else {
+				$need = (string) $qty;
+				/* translators: 1: amount, 2: material, e.g. "Snap fasteners" */
+				$will = sprintf( __( '%1$d × %2$s will be added.', 'atelier-irisee-master-plugin' ), $qty, $fields[ $info['material'] ]['label'] );
+			}
+			$notions[ $type ] = array(
+				'qty'     => $qty,
+				'need'    => $need,
+				'willAdd' => $will,
+			);
+		}
+		return $notions;
+	}
+
+	/**
+	 * Materials a size needs that are not in the kit (elastic, cord, … and button types without a category):
+	 * [ [ label, text ] ], only the filled-in ones.
+	 *
+	 * @param array $req Requirements.
+	 * @return array
+	 */
+	public static function size_extras( $req ) {
+		$sold = array();
+		foreach ( self::notion_types() as $type => $info ) {
+			if ( self::notion_count( $type, $req ) > 0 ) {
+				$sold[ $info['material'] ] = true;
+			}
+		}
+		$extras = array();
+		foreach ( self::material_fields() as $key => $field ) {
+			if ( 'fabric' === $key || isset( $sold[ $key ] ) || empty( $req['materials'][ $key ] ) ) {
+				continue;
+			}
+			$extras[] = array(
+				'label' => $field['label'],
+				'text'  => self::material_text( $key, (float) $req['materials'][ $key ] ),
+			);
+		}
+		return $extras;
+	}
+
+	/**
+	 * "145 cm (15 × 10 cm)": what a size needs of fabric.
+	 *
+	 * @param array $req Requirements.
+	 * @return string
+	 */
+	public static function fabric_need_text( $req ) {
+		$cm = (float) $req['fabric_cm'];
+		if ( $cm <= 0 || ( $cm == $req['fabric_units'] * self::FABRIC_UNIT_CM ) ) {
+			return self::fabric_text( $req['fabric_units'] );
+		}
+		/* translators: 1: length in cm, 2: units of 10 cm */
+		return sprintf( __( '%1$s cm (%2$d × 10 cm)', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $cm, floor( $cm ) == $cm ? 0 : 1 ), $req['fabric_units'] );
 	}
 
 	/**
@@ -1069,22 +1283,26 @@ class AIMP_Catalog {
 	 * @return int
 	 */
 	public static function notion_count( $type, $req ) {
-		switch ( $type ) {
-			case 'buttons':
-				return $req['button_count'];
-			case 'zips':
-				return $req['zip_count'];
-			case 'ribbons':
-				return $req['ribbon_qty'];
-			case 'bias':
-				return $req['bias_qty'];
-		}
-		return 0;
+		// Only what can be bought: the type needs a product category.
+		return self::notion_category( $type ) ? self::notion_need( $type, $req ) : 0;
 	}
 
-	private static function notion_category( $type ) {
+	/**
+	 * The product category of a haberdashery type (its own, else its fallback), or 0.
+	 *
+	 * @param string $type A key of notion_types().
+	 * @return int
+	 */
+	public static function notion_category( $type ) {
 		$types = self::notion_types();
-		return isset( $types[ $type ] ) ? AIMP_Settings::get( $types[ $type ]['setting'] ) : 0;
+		if ( ! isset( $types[ $type ] ) ) {
+			return 0;
+		}
+		$cat = (int) AIMP_Settings::get( $types[ $type ]['setting'] );
+		if ( ! $cat && '' !== $types[ $type ]['fallback'] ) {
+			$cat = (int) AIMP_Settings::get( $types[ $type ]['fallback'] );
+		}
+		return $cat;
 	}
 
 	private static function zip_length_matches( $product, $required ) {
@@ -1362,13 +1580,14 @@ class AIMP_Catalog {
 		}
 
 		$meta_query = array();
-		if ( 'zips' === $type ) {
-			if ( '' === $req['zip_length'] ) {
+		$zip_length = self::zip_length( $type, $req );
+		if ( 'zip' === $types[ $type ]['kind'] ) {
+			if ( '' === $zip_length ) {
 				return self::empty_page();
 			}
 			$meta_query[] = array(
 				'key'     => self::META_ZIP_LENGTH,
-				'value'   => wc_format_decimal( $req['zip_length'], 2 ),
+				'value'   => wc_format_decimal( $zip_length, 2 ),
 				'compare' => '=',
 				'type'    => 'DECIMAL(10,2)',
 			);

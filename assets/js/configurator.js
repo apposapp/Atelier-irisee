@@ -70,32 +70,23 @@
 	 * Haberdashery types of step 3, in display order.
 	 * qty(size): locked cart quantity; need(size): what the size needs, as text; willAdd(size): hint above the grid.
 	 */
-	var NOTIONS = [
-		{
-			type: 'buttons', role: 'button', title: 'chooseButtons', label: 'buttons', unitLabel: 'pricePerPiece',
-			qty: function (size) { return size.button_count; },
-			need: function (size) { return String(size.button_count); },
-			willAdd: function (size) { return fmt(t.buttonsWillAdd, size.button_count); }
-		},
-		{
-			type: 'zips', role: 'zip', title: 'chooseZip', label: 'zips', unitLabel: 'pricePerPiece',
-			qty: function (size) { return size.zip_count; },
-			need: function (size) { return fmt(t.zipOf, size.zip_count, num(size.zip_length)); },
-			willAdd: function (size) { return fmt(t.zipsWillAdd, size.zip_count, num(size.zip_length)); }
-		},
-		{
-			type: 'ribbons', role: 'ribbon', title: 'chooseRibbon', label: 'ribbon', unitLabel: 'pricePerUnit',
-			qty: function (size) { return size.ribbon_qty; },
-			need: function (size) { return size.ribbon_text; },
-			willAdd: function (size) { return fmt(t.lengthWillAdd, size.ribbon_text); }
-		},
-		{
-			type: 'bias', role: 'bias', title: 'chooseBias', label: 'biasTape', unitLabel: 'pricePerUnit',
-			qty: function (size) { return size.bias_qty; },
-			need: function (size) { return size.bias_text; },
-			willAdd: function (size) { return fmt(t.lengthWillAdd, size.bias_text); }
-		}
-	];
+	// The steps come from the server (zip types, button types, bias tape, ribbon); each size tells per type
+	// what it needs: size.notions[type] = { qty, need, willAdd } (only types that can be bought).
+	var NOTIONS = (cfg.notions || []).map(function (def) {
+		var of = function (size) {
+			return (size && size.notions && size.notions[def.type]) || null;
+		};
+		return {
+			type: def.type,
+			role: def.role,
+			title: 'nt_' + def.type,
+			label: 'nl_' + def.type,
+			unitLabel: def.unitLabel,
+			qty: function (size) { var n = of(size); return n ? n.qty : 0; },
+			need: function (size) { var n = of(size); return n ? n.need : ''; },
+			willAdd: function (size) { var n = of(size); return n ? n.willAdd : ''; }
+		};
+	});
 
 	function notionInfo(type) {
 		return NOTIONS.filter(function (n) {
@@ -678,6 +669,10 @@
 			if (n.qty(size) > 0) {
 				rows.push(card(n.type, t[n.label], n.need(size)));
 			}
+		});
+		// Also needed, not in the kit (elastic, cord, …): only the filled-in ones.
+		(size.extras || []).forEach(function (extra) {
+			rows.push(card('extra', extra.label + ' (' + t.notInKit + ')', extra.text));
 		});
 		if (!rows.length) {
 			rows.push(card('', t.none, ''));

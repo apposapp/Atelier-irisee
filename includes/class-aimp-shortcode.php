@@ -47,11 +47,10 @@ class AIMP_Shortcode {
 			'measureImage'    => AIMP_PLUGIN_URL . 'assets/images/lichaamsmaten.png',
 			'kitDiscount'     => AIMP_Cart::kit_discount(),
 			'loggedIn'        => is_user_logged_in(),
-			// Gold line icons of the size needs (fabric, buttons, zip, ribbon, bias tape).
-			'icons'           => array_combine(
-				array( 'fabric', 'buttons', 'zips', 'ribbons', 'bias' ),
-				array_map( array( 'AIMP_Product_Page', 'fabric_icon' ), array( 'fabric', 'buttons', 'zips', 'ribbons', 'bias' ) )
-			),
+			// Gold line icons of the size needs (fabric, every haberdashery type, the not-sold materials).
+			'icons'           => self::need_icons(),
+			// The haberdashery steps (zip types, button types, bias tape, ribbon), in order.
+			'notions'         => self::notion_steps(),
 			'defaultLanguage' => AIMP_I18n::default_language(),
 			'languages'       => self::languages_data(),
 			'i18n'            => self::all_strings(),
@@ -96,7 +95,7 @@ class AIMP_Shortcode {
 	 * @return array
 	 */
 	public static function strings() {
-		return array(
+		$strings = array(
 			'language'        => __( 'Language', 'atelier-irisee-master-plugin' ),
 			'stepPattern'     => __( 'Pattern & size', 'atelier-irisee-master-plugin' ),
 			'stepFabric'      => __( 'Fabric', 'atelier-irisee-master-plugin' ),
@@ -188,6 +187,67 @@ class AIMP_Shortcode {
 			'howToMeasure'      => __( 'How to measure your body measurements', 'atelier-irisee-master-plugin' ),
 			'close'             => __( 'Close', 'atelier-irisee-master-plugin' ),
 		);
+		return $strings + self::notion_strings();
+	}
+
+	/**
+	 * Step title ("nt_{type}") and need label ("nl_{type}") of every haberdashery type.
+	 *
+	 * @return array
+	 */
+	private static function notion_strings() {
+		$fields  = AIMP_Catalog::material_fields();
+		$titles  = array(
+			'zip_divisible'        => __( 'Choose your divisible zipper (optional)', 'atelier-irisee-master-plugin' ),
+			'zip_invisible'        => __( 'Choose your invisible zipper (optional)', 'atelier-irisee-master-plugin' ),
+			'zip_non_divisible'    => __( 'Choose your non divisible zipper (optional)', 'atelier-irisee-master-plugin' ),
+			'zip_double_divisible' => __( 'Choose your double divisible zipper (optional)', 'atelier-irisee-master-plugin' ),
+			'buttons'              => __( 'Choose your buttons (optional)', 'atelier-irisee-master-plugin' ),
+			'snaps'                => __( 'Choose your snap fasteners (optional)', 'atelier-irisee-master-plugin' ),
+			'jeans_buttons'        => __( 'Choose your jeans buttons (optional)', 'atelier-irisee-master-plugin' ),
+			'bias'                 => __( 'Choose your bias tape (optional)', 'atelier-irisee-master-plugin' ),
+			'ribbons'              => __( 'Choose your ribbon (optional)', 'atelier-irisee-master-plugin' ),
+		);
+		$strings = array( 'notInKit' => __( 'not in the kit', 'atelier-irisee-master-plugin' ) );
+		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
+			$strings[ 'nt_' . $type ] = isset( $titles[ $type ] ) ? $titles[ $type ] : $fields[ $info['material'] ]['label'];
+			$strings[ 'nl_' . $type ] = $fields[ $info['material'] ]['label'];
+		}
+		return $strings;
+	}
+
+	/**
+	 * The haberdashery steps for configurator.js, in order: [ type, role, unitLabel ].
+	 *
+	 * @return array
+	 */
+	private static function notion_steps() {
+		$steps = array();
+		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
+			$steps[] = array(
+				'type'      => $type,
+				'role'      => $info['role'],
+				'unitLabel' => '10cm' === $info['unit'] ? 'pricePerUnit' : 'pricePerPiece',
+			);
+		}
+		return $steps;
+	}
+
+	/**
+	 * Gold icons of the size needs: fabric, every haberdashery type, and "extra" for the not-sold materials.
+	 *
+	 * @return array
+	 */
+	private static function need_icons() {
+		$icons = array(
+			'fabric' => AIMP_Product_Page::fabric_icon( 'fabric' ),
+			'extra'  => AIMP_Product_Page::fabric_icon( 'tips' ),
+		);
+		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
+			$icon           = 'zip' === $info['kind'] ? 'zips' : ( 'count' === $info['kind'] ? 'buttons' : ( 'bias' === $type ? 'bias' : 'ribbons' ) );
+			$icons[ $type ] = AIMP_Product_Page::fabric_icon( $icon );
+		}
+		return $icons;
 	}
 
 	public static function render() {

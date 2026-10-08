@@ -96,7 +96,6 @@ class AIMP_Cart {
 		// Haberdashery (buttons, zips, ribbons, bias tape): optional, but if chosen it must be allowed.
 		$not_allowed = array(
 			'buttons' => __( 'These buttons cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ),
-			'zips'    => __( 'This zip cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ),
 			'ribbons' => __( 'This ribbon cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ),
 			'bias'    => __( 'This bias tape cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ),
 		);
@@ -108,7 +107,7 @@ class AIMP_Cart {
 			}
 			$product = AIMP_Catalog::get_allowed_notion( $id, $type, $req );
 			if ( ! $product ) {
-				$errors->add( 'aimp_' . $role, $not_allowed[ $type ] );
+				$errors->add( 'aimp_' . $role, isset( $not_allowed[ $type ] ) ? $not_allowed[ $type ] : ( 'zip' === $info['kind'] ? __( 'This zip cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ) : __( 'This item cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ) ) );
 				continue;
 			}
 			$lines[] = array(

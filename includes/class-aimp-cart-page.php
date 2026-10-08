@@ -19,7 +19,7 @@ class AIMP_Cart_Page {
 	const TAG = 'atelier_irisee_cart';
 
 	/** Order of the items inside a set. */
-	const ROLE_ORDER = array( 'pattern', 'fabric', 'button', 'zip', 'ribbon', 'bias' );
+	const ROLE_ORDER = array( 'pattern', 'fabric', 'zip_divisible', 'zip_invisible', 'zip_non_divisible', 'zip_double_divisible', 'zip', 'button', 'snap', 'jeans_button', 'bias', 'ribbon' );
 
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );

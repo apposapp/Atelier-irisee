@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.4.0
+Stable tag: 3.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.5.0 =
+* Pattern sizes: a new "Needed materials & sizes" box in your order: fabric (cm), zips (divisible, invisible, non divisible, double divisible, in cm), buttons (buttons, snap fasteners, jeans buttons), elastic, bias tape, ribbon, cord, embroidery, bag strap, fusible interfacing, cord lock, then the body measurements. Existing fabric (as cm), buttons, ribbon, bias tape and measurements are kept; old zip count and length are no longer used.
+* Variations tab on patterns: only that box per size; the variations are ordered per design, then per size.
+* Configurator: every zip and button type is its own step with its own product category (new under Settings → Categories; a zip type without one uses the Zips category). Elastic, cord and the other new materials show as information ("not in the kit"), only when filled in.
+* Pattern page: "Accessories" next to the size chart with measurements and fabric, with the measuring guide, per design.
+* Designs block: "Pictures of this design: Jurk" and "Fitting fabrics: Jurk".
 
 = 3.4.0 =
 * Patterns with two designs in one pack: add a "Design" attribute (e.g. Jurk | Blouse) next to the sizes and generate the variations. The pattern page stays one product (one price, one stock) with a Designs tile, the project time per design and a configurator button per design. In the configurator every design is its own card with only its sizes, its pictures and its fitting fabrics.

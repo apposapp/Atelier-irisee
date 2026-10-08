@@ -1010,3 +1010,63 @@ html:has(.aimp-product-reviews) {
 .aimp-configurator :is(#shipping_method, .woocommerce-shipping-methods) li .aimp-free-shipping-hint {
 	flex-basis: 100%;
 }
+
+/* Patterns: "Accessories" (about 30%) next to the size table with fabric (about 70%), per design. */
+.aimp-configurator .aimp-pattern-needs-design {
+	margin: 0 0 0.75rem;
+}
+
+.aimp-pattern-needs-row {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
+	gap: calc(var(--aimp-gap) * 1.5);
+	align-items: start;
+}
+
+.aimp-pattern-needs-row + .aimp-pattern-needs-design {
+	margin-top: calc(var(--aimp-gap) * 1.5);
+}
+
+.aimp-configurator .aimp-pattern-accessories h4,
+.aimp-configurator .aimp-pattern-sizes h4 {
+	margin: 0 0 0.6rem;
+}
+
+.aimp-configurator .aimp-pattern-accessories ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-configurator .aimp-pattern-accessories li {
+	display: flex;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin: 0;
+	padding: 0.45rem 0;
+	border-bottom: 1px solid var(--aimp-gold-tint);
+}
+
+.aimp-configurator .aimp-pattern-accessories li strong {
+	color: var(--aimp-gold-text, #8a6a33);
+	white-space: nowrap;
+}
+
+.aimp-pattern-sizes-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.6rem 1rem;
+	margin-bottom: 0.6rem;
+}
+
+.aimp-configurator .aimp-pattern-sizes-head h4 {
+	margin: 0;
+}
+
+@container aimp (max-width: 760px) {
+	.aimp-pattern-needs-row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

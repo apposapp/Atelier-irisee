@@ -410,6 +410,61 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : '';
 		</section>
 	<?php endif; ?>
 
+	<?php if ( ! empty( $data['size_table'] ) ) : ?>
+		<?php // Patterns: the accessories (left) and the sizes with measurements and fabric (right), per design. ?>
+		<section class="aimp-product-section aimp-pattern-needs">
+			<?php foreach ( $data['size_table'] as $aimp_group ) : ?>
+				<?php if ( '' !== $aimp_group['name'] ) : ?>
+					<h3 class="aimp-pattern-needs-design"><?php echo esc_html( $aimp_group['name'] ); ?></h3>
+				<?php endif; ?>
+				<div class="aimp-pattern-needs-row">
+					<div class="aimp-pattern-accessories">
+						<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Accessories', 'atelier-irisee-master-plugin' ); ?></h4>
+						<?php if ( $aimp_group['accessories'] ) : ?>
+							<ul>
+								<?php foreach ( $aimp_group['accessories'] as $aimp_item ) : ?>
+									<li><span><?php echo esc_html( $aimp_item[0] ); ?></span><strong><?php echo esc_html( $aimp_item[1] ); ?></strong></li>
+								<?php endforeach; ?>
+							</ul>
+						<?php else : ?>
+							<p><?php esc_html_e( 'No accessories needed.', 'atelier-irisee-master-plugin' ); ?></p>
+						<?php endif; ?>
+					</div>
+					<div class="aimp-pattern-sizes">
+						<div class="aimp-pattern-sizes-head">
+							<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Size chart', 'atelier-irisee-master-plugin' ); ?></h4>
+							<button type="button" class="aimp-button aimp-measure-button" data-aimp-measure><?php esc_html_e( 'How to measure your body measurements', 'atelier-irisee-master-plugin' ); ?></button>
+						</div>
+						<div class="aimp-table-scroll">
+							<table class="aimp-size-chart">
+								<thead>
+									<tr>
+										<?php foreach ( $aimp_group['columns'] as $aimp_column ) : ?>
+											<th scope="col"><?php echo esc_html( $aimp_column ); ?></th>
+										<?php endforeach; ?>
+									</tr>
+								</thead>
+								<tbody>
+									<?php foreach ( $aimp_group['rows'] as $aimp_row ) : ?>
+										<tr>
+											<?php foreach ( $aimp_row as $aimp_index => $aimp_cell ) : ?>
+												<?php if ( 0 === $aimp_index ) : ?>
+													<th scope="row"><?php echo esc_html( $aimp_cell ); ?></th>
+												<?php else : ?>
+													<td><?php echo esc_html( $aimp_cell ); ?></td>
+												<?php endif; ?>
+											<?php endforeach; ?>
+										</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			<?php endforeach; ?>
+		</section>
+	<?php endif; ?>
+
 	<?php if ( $data['fabrics'] ) : ?>
 		<section class="aimp-product-section">
 			<h3><?php esc_html_e( 'Recommended fabrics', 'atelier-irisee-master-plugin' ); ?></h3>

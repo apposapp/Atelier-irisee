@@ -221,6 +221,21 @@
 		});
 	}
 
+	// Patterns: "How to measure your body measurements" above the size table opens the measuring picture.
+	function setupMeasureGuide(root) {
+		if (!cfg.measureImage) {
+			return;
+		}
+		root.querySelectorAll('[data-aimp-measure]').forEach(function (button) {
+			button.addEventListener('click', function () {
+				var dialog = UI.openLightbox(root, [{ src: cfg.measureImage, alt: cfg.howToMeasure }], 0, t);
+				if (dialog && dialog.setAttribute) {
+					dialog.setAttribute('aria-label', cfg.howToMeasure);
+				}
+			});
+		});
+	}
+
 	function boot() {
 		document.querySelectorAll('[data-aimp-product]').forEach(function (root) {
 			if (root.aimpProductReady) {
@@ -229,6 +244,7 @@
 			root.aimpProductReady = true;
 			setupGallery(root);
 			setupBuyBar(root);
+			setupMeasureGuide(root);
 			setupGiftcardDesign(root);
 			setupLanguages(root);
 		});
