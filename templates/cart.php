@@ -124,7 +124,7 @@ defined( 'ABSPATH' ) || exit;
 										<span class="aimp-cart-single-name"><?php echo esc_html( $aimp_line['name'] ); ?></span>
 									<?php endif; ?>
 									<?php echo wc_get_formatted_cart_item_data( $aimp_line['item'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WooCommerce HTML. ?>
-									<span class="aimp-cart-single-price"><?php echo wp_kses_post( $aimp_line['price'] ); ?><?php echo AIMP_Catalog::sold_per_10cm( $aimp_line['product'] ) ? ' <small>' . esc_html__( 'per 10 cm', 'atelier-irisee-master-plugin' ) . '</small>' : ''; ?></span>
+									<span class="aimp-cart-single-price"><?php echo wp_kses_post( $aimp_line['price'] ); ?><?php echo '' !== AIMP_Catalog::price_suffix( $aimp_line['product'] ) ? ' <small>' . esc_html( AIMP_Catalog::price_suffix( $aimp_line['product'] ) ) . '</small>' : ''; ?></span>
 								</div>
 								<div class="aimp-cart-single-qty"><?php echo AIMP_Cart_Page::stepper_html( $aimp_line ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in stepper_html(). ?></div>
 								<span class="aimp-cart-single-subtotal"><?php echo wp_kses_post( $aimp_line['subtotal'] ); ?></span>

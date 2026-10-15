@@ -22,6 +22,7 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-catalog.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-product-fields.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-fabric-fields.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-button-fields.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-cart.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-ajax.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-shortcode.php';
@@ -54,6 +55,7 @@ class AIMP_Plugin {
 		AIMP_Settings::init();
 		AIMP_Product_Fields::init();
 		AIMP_Fabric_Fields::init();
+		AIMP_Button_Fields::init();
 		AIMP_Cart::init();
 		AIMP_Ajax::init();
 		AIMP_Shortcode::init();

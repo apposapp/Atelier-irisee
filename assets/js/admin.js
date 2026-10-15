@@ -149,3 +149,69 @@ jQuery(function ($) {
 	}
 	markCards();
 });
+
+/**
+ * "Button details" box: only for products in the Buttons category (or one of its subcategories), following the
+ * category checkboxes live. The set size is only filled in for "Per set of".
+ */
+jQuery(function ($) {
+	'use strict';
+
+	var $details = $('.aimp-button-details');
+	var $box = $('#aimp-button-details');
+	if (!$details.length || !$box.length) {
+		return;
+	}
+	var terms = ($details.data('button-terms') || []).map(function (id) {
+		return parseInt(id, 10);
+	});
+
+	function refresh() {
+		var isButton = $('#product_catchecklist input[type="checkbox"]:checked').filter(function () {
+			return terms.indexOf(parseInt(this.value, 10)) !== -1;
+		}).length > 0;
+		$box.toggle(isButton);
+	}
+
+	$(document).on('change', '#product_catchecklist input[type="checkbox"]', refresh);
+	refresh();
+
+	// Typing a set size chooses "Per set of".
+	$details.on('input', 'input[name="aimp_button[set_size]"]', function () {
+		if (this.value !== '') {
+			$details.find('input[name="aimp_button[sold]"][value="set"]').prop('checked', true);
+		}
+	});
+});
+
+/**
+ * Pattern → Buttons: a switched-off type has no amount field on the sizes (Variations tab), also before saving.
+ */
+jQuery(function ($) {
+	'use strict';
+
+	var $rules = $('[data-aimp-button-rules]');
+	if (!$rules.length) {
+		return;
+	}
+
+	function apply() {
+		$rules.find('.aimp-button-rule').each(function () {
+			var $rule = $(this);
+			var on = $rule.find('.aimp-button-rule-toggle').prop('checked');
+			$rule.toggleClass('is-on', on);
+			$('.aimp-variation-fields .aimp-material-field[data-material="' + $rule.attr('data-material') + '"]').prop('hidden', !on);
+		});
+		$('.aimp-variation-fields .aimp-material-group').each(function () {
+			var $group = $(this);
+			var $fields = $group.children('.aimp-material-field');
+			if ($fields.filter('[data-material]').length) {
+				$group.prop('hidden', $fields.filter(':not([hidden])').length === 0);
+			}
+		});
+	}
+
+	$rules.on('change', '.aimp-button-rule-toggle', apply);
+	$('#woocommerce-product-data').on('woocommerce_variations_loaded woocommerce_variations_added', apply);
+	apply();
+});

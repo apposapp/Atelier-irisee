@@ -498,6 +498,8 @@ class AIMP_Shop {
 			'categories' => self::category_facet( $type, $roots ),
 			'attributes' => self::attribute_facet( $ids ),
 			'skills'     => self::skill_facet( $ids ),
+			// Buttons: type, diameter, colour and material (only when the page has buttons).
+			'buttons'    => self::button_facets( $ids ),
 			'price'      => self::price_range( $ids ),
 		);
 		set_transient( $key, $facets, 12 * HOUR_IN_SECONDS );
@@ -648,6 +650,103 @@ class AIMP_Shop {
 	}
 
 	/**
+	 * Button filters: key => meta key (the request and address use the key: aimp_btype=button,press_stud).
+	 *
+	 * @return array
+	 */
+	public static function button_filters() {
+		return array(
+			'btype' => AIMP_Catalog::META_BTN_TYPE,
+			'bdia'  => AIMP_Catalog::META_BTN_DIAMETER,
+			'bcol'  => AIMP_Catalog::META_BTN_COLOUR,
+			'bmat'  => AIMP_Catalog::META_BTN_MATERIAL,
+		);
+	}
+
+	/**
+	 * The button filters with the values the buttons among these products have.
+	 *
+	 * @param int[] $ids Product IDs.
+	 * @return array[] [ key, label, options: [ key, label ] ]
+	 */
+	private static function button_facets( $ids ) {
+		global $wpdb;
+		$root = AIMP_Settings::get( 'button_cat' );
+		if ( ! $ids || ! $root ) {
+			return array();
+		}
+		$buttons = get_objects_in_term( AIMP_Catalog::category_tree( $root ), 'product_cat' );
+		$buttons = is_wp_error( $buttons ) ? array() : array_values( array_intersect( array_map( 'absint', $ids ), array_map( 'absint', $buttons ) ) );
+		if ( ! $buttons ) {
+			return array();
+		}
+		$in     = implode( ',', $buttons );
+		$values = function ( $meta_key ) use ( $wpdb, $in ) {
+			return array_filter(
+				array_map(
+					'strval',
+					(array) $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- cached in a transient by facets().
+						$wpdb->prepare( "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value <> '' AND post_id IN ( {$in} )", $meta_key ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- integers only.
+					)
+				),
+				'strlen'
+			);
+		};
+		$labels = array(
+			'btype' => __( 'Button type', 'atelier-irisee-master-plugin' ),
+			'bdia'  => __( 'Diameter', 'atelier-irisee-master-plugin' ),
+			'bcol'  => __( 'Colour', 'atelier-irisee-master-plugin' ),
+			'bmat'  => __( 'Material', 'atelier-irisee-master-plugin' ),
+		);
+		$facets = array();
+		foreach ( self::button_filters() as $key => $meta_key ) {
+			$found   = $values( $meta_key );
+			$options = array();
+			if ( 'btype' === $key ) {
+				// Buttons saved without a type are plain buttons.
+				$typed = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( DISTINCT post_id ) FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value <> '' AND post_id IN ( {$in} )", $meta_key ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- cached; integers only.
+				if ( $typed < count( $buttons ) ) {
+					$found[] = 'button';
+				}
+				foreach ( AIMP_Catalog::button_types() as $type => $info ) {
+					if ( in_array( $type, $found, true ) ) {
+						$options[] = array(
+							'key'   => $type,
+							'label' => $info[0],
+						);
+					}
+				}
+			} elseif ( 'bdia' === $key ) {
+				$numbers = array_values( array_unique( array_map( 'floatval', $found ) ) );
+				sort( $numbers, SORT_NUMERIC );
+				foreach ( $numbers as $mm ) {
+					$options[] = array(
+						'key'   => wc_format_decimal( $mm, 1, true ),
+						'label' => AIMP_Catalog::mm_text( $mm ),
+					);
+				}
+			} else {
+				$found = array_values( array_unique( $found ) );
+				natcasesort( $found );
+				foreach ( $found as $value ) {
+					$options[] = array(
+						'key'   => $value,
+						'label' => $value,
+					);
+				}
+			}
+			if ( $options ) {
+				$facets[] = array(
+					'key'     => $key,
+					'label'   => $labels[ $key ],
+					'options' => array_values( $options ),
+				);
+			}
+		}
+		return $facets;
+	}
+
+	/**
 	 * Lowest and highest price of these products, rounded outwards to whole numbers.
 	 *
 	 * @param int[] $ids Product IDs.
@@ -685,7 +784,8 @@ class AIMP_Shop {
 	public static function item( $product ) {
 		$per_10cm                  = AIMP_Catalog::sold_per_10cm( $product );
 		$item                      = AIMP_Catalog::card( $product );
-		$item['price_suffix']      = $per_10cm ? __( 'per 10 cm', 'atelier-irisee-master-plugin' ) : '';
+		$item['price_suffix']      = AIMP_Catalog::price_suffix( $product );
+		$item['subtitle']          = AIMP_Catalog::is_button( $product ) ? AIMP_Catalog::button_diameter_text( $product ) : '';
 		$item['badge']             = $product->is_in_stock() ? '' : __( 'Out of stock', 'atelier-irisee-master-plugin' );
 		$item['short_description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
 		$item['gallery']           = AIMP_Catalog::images( $product );
@@ -735,7 +835,26 @@ class AIMP_Shop {
 			'page'     => max( 1, absint( $text( 'page', 10 ) ) ),
 			'attrs'    => array(),
 			'skills'   => array_values( array_intersect( array_map( 'sanitize_key', explode( ',', $text( 'skill', 100 ) ) ), array_keys( AIMP_Catalog::skill_levels() ) ) ),
+			'buttons'  => array(),
 		);
+
+		// Button filters arrive as m_bdia=15,18 (several values: any of them).
+		foreach ( array_keys( self::button_filters() ) as $key ) {
+			$list = array_slice( array_values( array_filter( array_map( 'trim', explode( ',', $text( 'm_' . $key, 500 ) ) ), 'strlen' ) ), 0, 30 );
+			if ( 'btype' === $key ) {
+				$list = array_values( array_intersect( $list, array_keys( AIMP_Catalog::button_types() ) ) );
+			} elseif ( 'bdia' === $key ) {
+				$list = array_map(
+					function ( $value ) {
+						return (float) wc_format_decimal( $value );
+					},
+					$list
+				);
+			}
+			if ( $list ) {
+				$args['buttons'][ $key ] = $list;
+			}
+		}
 
 		// Attribute filters arrive as attr_pa_colour=red,blue.
 		foreach ( array_keys( $_POST ) as $key ) {
@@ -809,6 +928,15 @@ class AIMP_Shop {
 		}
 
 		$tax_query = self::scope_tax_query( $cats );
+		// A button filter only shows buttons.
+		if ( $args['buttons'] && AIMP_Settings::get( 'button_cat' ) ) {
+			$tax_query[] = array(
+				'taxonomy'         => 'product_cat',
+				'field'            => 'term_id',
+				'terms'            => array( (int) AIMP_Settings::get( 'button_cat' ) ),
+				'include_children' => true,
+			);
+		}
 		foreach ( $args['attrs'] as $taxonomy => $slugs ) {
 			$tax_query[] = array(
 				'taxonomy' => $taxonomy,
@@ -825,6 +953,37 @@ class AIMP_Shop {
 				'value'   => $args['skills'],
 				'compare' => 'IN',
 			);
+		}
+		$filters = self::button_filters();
+		foreach ( $args['buttons'] as $key => $list ) {
+			if ( 'btype' === $key && in_array( 'button', $list, true ) ) {
+				// Plain buttons include buttons saved without a type.
+				$meta_query[] = array(
+					'relation' => 'OR',
+					array(
+						'key'     => $filters[ $key ],
+						'value'   => $list,
+						'compare' => 'IN',
+					),
+					array(
+						'key'     => $filters[ $key ],
+						'compare' => 'NOT EXISTS',
+					),
+				);
+			} elseif ( 'bdia' === $key ) {
+				$meta_query[] = array(
+					'key'     => $filters[ $key ],
+					'value'   => $list,
+					'compare' => 'IN',
+					'type'    => 'DECIMAL(10,1)',
+				);
+			} else {
+				$meta_query[] = array(
+					'key'     => $filters[ $key ],
+					'value'   => $list,
+					'compare' => 'IN',
+				);
+			}
 		}
 		if ( $args['in_stock'] ) {
 			$meta_query[] = array(

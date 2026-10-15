@@ -37,6 +37,21 @@ class AIMP_Catalog {
 	const META_FABRIC_CM       = '_aimp_fabric_cm';
 	const META_RECOMMENDED     = '_aimp_recommended_pattern';
 
+	/** Buttons (products in the Buttons category). */
+	const META_BTN_TYPE      = '_aimp_btn_type';
+	const META_BTN_COLOUR    = '_aimp_btn_colour';
+	const META_BTN_DIAMETER  = '_aimp_btn_diameter';
+	const META_BTN_MATERIAL  = '_aimp_btn_material';
+	const META_BTN_FINISH    = '_aimp_btn_finish';
+	const META_BTN_MOUNTING  = '_aimp_btn_mounting';
+	const META_BTN_SET_SIZE  = '_aimp_btn_set_size';
+	const META_BTN_IDEAL_FOR = '_aimp_btn_ideal_for';
+	/** On a pattern: per button type [ on, min, max ] (diameter range in mm). */
+	const META_BUTTON_RULES = '_aimp_button_rules';
+
+	/** Number of "Ideal for" choices on a button. */
+	const IDEAL_FOR_MAX = 4;
+
 	/** Number of inspiration cards on a fabric. */
 	const INSPIRATION_CARDS = 3;
 
@@ -65,31 +80,19 @@ class AIMP_Catalog {
 				'material' => $key,
 			);
 		}
-		// Buttons: the filled-in amount; a type without a category is shown as information only.
-		$types['buttons']       = array(
-			'role'     => 'button',
-			'setting'  => 'button_cat',
-			'fallback' => '',
-			'unit'     => 'piece',
-			'kind'     => 'count',
-			'material' => 'buttons',
-		);
-		$types['snaps']         = array(
-			'role'     => 'snap',
-			'setting'  => 'snap_cat',
-			'fallback' => '',
-			'unit'     => 'piece',
-			'kind'     => 'count',
-			'material' => 'snaps',
-		);
-		$types['jeans_buttons'] = array(
-			'role'     => 'jeans_button',
-			'setting'  => 'jeans_button_cat',
-			'fallback' => '',
-			'unit'     => 'piece',
-			'kind'     => 'count',
-			'material' => 'jeans_buttons',
-		);
+		// Buttons, jeans buttons and press studs: all in the Buttons category, told apart by their "Type" field and
+		// matched on the diameter range the pattern allows. The amount is in pieces; a set counts as one.
+		foreach ( array( 'buttons' => 'button', 'jeans_buttons' => 'jeans_button', 'snaps' => 'press_stud' ) as $key => $button_type ) {
+			$types[ $key ] = array(
+				'role'        => 'snaps' === $key ? 'snap' : $button_type,
+				'setting'     => 'button_cat',
+				'fallback'    => '',
+				'unit'        => 'piece',
+				'kind'        => 'count',
+				'material'    => $key,
+				'button_type' => $button_type,
+			);
+		}
 		$types['bias']          = array(
 			'role'     => 'bias',
 			'setting'  => 'bias_cat',
@@ -125,8 +128,8 @@ class AIMP_Catalog {
 			'zip_non_divisible'    => array( '_aimp_zip_non_divisible', __( 'Non divisible zipper', 'atelier-irisee-master-plugin' ), 'cm', $zips ),
 			'zip_double_divisible' => array( '_aimp_zip_double_divisible', __( 'Double divisible zipper', 'atelier-irisee-master-plugin' ), 'cm', $zips ),
 			'buttons'              => array( self::META_BUTTON_COUNT, __( 'Buttons', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
-			'snaps'                => array( '_aimp_snap_count', __( 'Snap fasteners', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
 			'jeans_buttons'        => array( '_aimp_jeans_button_count', __( 'Jeans buttons', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
+			'snaps'                => array( '_aimp_snap_count', __( 'Press studs', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
 			'elastic'              => array( '_aimp_elastic_cm', __( 'Elastic', 'atelier-irisee-master-plugin' ), 'cm', __( 'Elastic', 'atelier-irisee-master-plugin' ) ),
 			'bias'                 => array( self::META_BIAS_LENGTH, __( 'Bias tape', 'atelier-irisee-master-plugin' ), 'cm', __( 'Bias tape', 'atelier-irisee-master-plugin' ) ),
 			'ribbon'               => array( self::META_RIBBON_LENGTH, __( 'Ribbon', 'atelier-irisee-master-plugin' ), 'cm', __( 'Ribbon', 'atelier-irisee-master-plugin' ) ),
@@ -185,6 +188,318 @@ class AIMP_Catalog {
 			absint( $cm ),
 			self::units_for_cm( $cm )
 		);
+	}
+
+	/* ------------------------------------------------------------------
+	 * Buttons
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * Button types: key => [ label, material key (material_fields()) ]. The type links a button to the patterns.
+	 *
+	 * @return array
+	 */
+	public static function button_types() {
+		return array(
+			'button'       => array( __( 'Button', 'atelier-irisee-master-plugin' ), 'buttons' ),
+			'jeans_button' => array( __( 'Jeans button', 'atelier-irisee-master-plugin' ), 'jeans_buttons' ),
+			'press_stud'   => array( __( 'Press stud', 'atelier-irisee-master-plugin' ), 'snaps' ),
+		);
+	}
+
+	/**
+	 * Clothes a button can be ideal for: key => label. product page icons: AIMP_Product_Page::clothing_icon().
+	 *
+	 * @return array
+	 */
+	public static function ideal_for_options() {
+		return array(
+			'shirt'     => __( 'Shirt', 'atelier-irisee-master-plugin' ),
+			'blouse'    => __( 'Blouse', 'atelier-irisee-master-plugin' ),
+			'dress'     => __( 'Dress', 'atelier-irisee-master-plugin' ),
+			'skirt'     => __( 'Skirt', 'atelier-irisee-master-plugin' ),
+			'trousers'  => __( 'Trousers', 'atelier-irisee-master-plugin' ),
+			'jeans'     => __( 'Jeans', 'atelier-irisee-master-plugin' ),
+			'jacket'    => __( 'Jacket', 'atelier-irisee-master-plugin' ),
+			'coat'      => __( 'Coat', 'atelier-irisee-master-plugin' ),
+			'cardigan'  => __( 'Cardigan', 'atelier-irisee-master-plugin' ),
+			'knitwear'  => __( 'Knitwear', 'atelier-irisee-master-plugin' ),
+			'kids'      => __( 'Children\'s clothing', 'atelier-irisee-master-plugin' ),
+			'pyjamas'   => __( 'Pyjamas', 'atelier-irisee-master-plugin' ),
+			'workwear'  => __( 'Workwear', 'atelier-irisee-master-plugin' ),
+			'bag'       => __( 'Bag', 'atelier-irisee-master-plugin' ),
+			'home'      => __( 'Home textiles', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * Whether a product is a button: a simple product in the Buttons category (or a subcategory).
+	 *
+	 * @param WC_Product|int $product Product.
+	 * @return bool
+	 */
+	public static function is_button( $product ) {
+		$product = $product instanceof WC_Product ? $product : wc_get_product( $product );
+		$root    = AIMP_Settings::get( 'button_cat' );
+		return $product && $root && $product->is_type( 'simple' ) && self::in_categories( $product, self::category_tree( $root ) );
+	}
+
+	/**
+	 * The type of a button; a button saved without one counts as "button".
+	 *
+	 * @param WC_Product $product Button.
+	 * @return string
+	 */
+	public static function button_type( $product ) {
+		$type = (string) $product->get_meta( self::META_BTN_TYPE );
+		return array_key_exists( $type, self::button_types() ) ? $type : 'button';
+	}
+
+	/**
+	 * How many buttons one unit of the product is: the set size, or 1 when it is sold per piece.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return int
+	 */
+	public static function button_set_size( $product ) {
+		return $product instanceof WC_Product ? max( 1, absint( $product->get_meta( self::META_BTN_SET_SIZE ) ) ) : 1;
+	}
+
+	/**
+	 * The quantity to buy of a product for a need in pieces: whole sets for a set (7 buttons, sets of 6 = 2 sets).
+	 *
+	 * @param WC_Product $product Product.
+	 * @param int        $need    Pieces (or 10 cm units for products sold by length).
+	 * @return int
+	 */
+	public static function pack_qty( $product, $need ) {
+		$set = self::button_set_size( $product );
+		return $set > 1 ? (int) ceil( max( 0, (int) $need ) / $set ) : (int) $need;
+	}
+
+	/**
+	 * "Set of 6".
+	 *
+	 * @param int $size Set size.
+	 * @return string
+	 */
+	public static function set_text( $size ) {
+		/* translators: %d: number of buttons in a set */
+		return sprintf( __( 'Set of %d', 'atelier-irisee-master-plugin' ), (int) $size );
+	}
+
+	/**
+	 * "2 × set of 6".
+	 *
+	 * @param int $qty  Number of sets.
+	 * @param int $size Set size.
+	 * @return string
+	 */
+	public static function sets_text( $qty, $size ) {
+		/* translators: 1: number of sets, 2: number of buttons in a set */
+		return sprintf( __( '%1$d × set of %2$d', 'atelier-irisee-master-plugin' ), (int) $qty, (int) $size );
+	}
+
+	/**
+	 * What the price of a product is for, next to the price: "per 10 cm", "per set of 6" or ''.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	public static function price_suffix( $product ) {
+		if ( self::sold_per_10cm( $product ) ) {
+			return __( 'per 10 cm', 'atelier-irisee-master-plugin' );
+		}
+		$set = self::button_set_size( $product );
+		/* translators: %d: number of buttons in a set */
+		return $set > 1 ? sprintf( __( 'per set of %d', 'atelier-irisee-master-plugin' ), $set ) : '';
+	}
+
+	/**
+	 * "15 mm" or "12,5 mm".
+	 *
+	 * @param float $mm Millimetres.
+	 * @return string
+	 */
+	public static function mm_text( $mm ) {
+		$mm = (float) $mm;
+		/* translators: %s: diameter in millimetres */
+		return sprintf( __( '%s mm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $mm, floor( $mm ) == $mm ? 0 : 1 ) );
+	}
+
+	/**
+	 * The diameter of a button as text ("15 mm"), or ''.
+	 *
+	 * @param WC_Product $product Button.
+	 * @return string
+	 */
+	public static function button_diameter_text( $product ) {
+		$mm = (float) $product->get_meta( self::META_BTN_DIAMETER );
+		return $mm > 0 ? self::mm_text( $mm ) : '';
+	}
+
+	/**
+	 * The specifications of a button for the tiles on its page: subject => [ label, value ]. Only filled-in subjects.
+	 *
+	 * @param WC_Product $product Button.
+	 * @return array
+	 */
+	public static function button_specs( $product ) {
+		$types = self::button_types();
+		$specs = array(
+			'button_type' => array( __( 'Type', 'atelier-irisee-master-plugin' ), $types[ self::button_type( $product ) ][0] ),
+		);
+		$rows  = array(
+			'colour'          => array( self::META_BTN_COLOUR, __( 'Colour', 'atelier-irisee-master-plugin' ) ),
+			'diameter'        => array( self::META_BTN_DIAMETER, __( 'Diameter', 'atelier-irisee-master-plugin' ) ),
+			'button_material' => array( self::META_BTN_MATERIAL, __( 'Material', 'atelier-irisee-master-plugin' ) ),
+			'finish'          => array( self::META_BTN_FINISH, __( 'Surface finish', 'atelier-irisee-master-plugin' ) ),
+			'mounting'        => array( self::META_BTN_MOUNTING, __( 'Mounting method', 'atelier-irisee-master-plugin' ) ),
+		);
+		foreach ( $rows as $subject => $row ) {
+			$value = 'diameter' === $subject ? self::button_diameter_text( $product ) : trim( (string) $product->get_meta( $row[0] ) );
+			if ( '' !== $value ) {
+				$specs[ $subject ] = array( $row[1], $value );
+			}
+		}
+		$set            = self::button_set_size( $product );
+		$specs['set']   = array( __( 'Sold per', 'atelier-irisee-master-plugin' ), $set > 1 ? self::set_text( $set ) : __( 'Piece', 'atelier-irisee-master-plugin' ) );
+		return $specs;
+	}
+
+	/**
+	 * The "Ideal for" choices of a button: keys of ideal_for_options(), at most IDEAL_FOR_MAX.
+	 *
+	 * @param WC_Product $product Button.
+	 * @return string[]
+	 */
+	public static function ideal_for( $product ) {
+		$saved = $product->get_meta( self::META_BTN_IDEAL_FOR );
+		$keys  = array_values( array_unique( array_intersect( (array) ( is_array( $saved ) ? $saved : array() ), array_keys( self::ideal_for_options() ) ) ) );
+		return array_slice( $keys, 0, self::IDEAL_FOR_MAX );
+	}
+
+	/**
+	 * Which buttons a pattern uses: type => [ on, min, max ] (min/max in mm, '' = no limit). Patterns saved before
+	 * 3.6 have no rules: every type then counts as on, with any diameter, so their amounts keep working.
+	 *
+	 * @param int $pattern_id Pattern.
+	 * @return array
+	 */
+	public static function button_rules( $pattern_id ) {
+		$exists = metadata_exists( 'post', $pattern_id, self::META_BUTTON_RULES );
+		$saved  = $exists ? get_post_meta( $pattern_id, self::META_BUTTON_RULES, true ) : array();
+		$saved  = is_array( $saved ) ? $saved : array();
+		$rules  = array();
+		foreach ( array_keys( self::button_types() ) as $type ) {
+			$row            = isset( $saved[ $type ] ) && is_array( $saved[ $type ] ) ? $saved[ $type ] : array();
+			$rules[ $type ] = array(
+				'on'  => $exists ? ! empty( $row['on'] ) : true,
+				'min' => isset( $row['min'] ) && '' !== (string) $row['min'] ? (float) $row['min'] : '',
+				'max' => isset( $row['max'] ) && '' !== (string) $row['max'] ? (float) $row['max'] : '',
+			);
+		}
+		return $rules;
+	}
+
+	/**
+	 * "15–20 mm", "from 15 mm", "up to 20 mm" or '' (any diameter).
+	 *
+	 * @param array $rule [ on, min, max ].
+	 * @return string
+	 */
+	public static function button_rule_text( $rule ) {
+		$min = isset( $rule['min'] ) && '' !== $rule['min'] ? (float) $rule['min'] : 0;
+		$max = isset( $rule['max'] ) && '' !== $rule['max'] ? (float) $rule['max'] : 0;
+		$num = function ( $n ) {
+			return AIMP_I18n::number( $n, floor( $n ) == $n ? 0 : 1 );
+		};
+		if ( $min > 0 && $max > 0 ) {
+			/* translators: 1: smallest diameter, 2: largest diameter (in mm) */
+			return $min == $max ? self::mm_text( $min ) : sprintf( __( '%1$s–%2$s mm', 'atelier-irisee-master-plugin' ), $num( min( $min, $max ) ), $num( max( $min, $max ) ) );
+		}
+		if ( $min > 0 ) {
+			/* translators: %s: diameter in mm */
+			return sprintf( __( 'from %s mm', 'atelier-irisee-master-plugin' ), $num( $min ) );
+		}
+		if ( $max > 0 ) {
+			/* translators: %s: diameter in mm */
+			return sprintf( __( 'up to %s mm', 'atelier-irisee-master-plugin' ), $num( $max ) );
+		}
+		return '';
+	}
+
+	/**
+	 * Whether a button has the type and a diameter within the range of a pattern rule.
+	 *
+	 * @param WC_Product $product Button.
+	 * @param string     $type    Button type.
+	 * @param array      $rule    [ on, min, max ].
+	 * @return bool
+	 */
+	public static function button_fits( $product, $type, $rule ) {
+		if ( empty( $rule['on'] ) || self::button_type( $product ) !== $type ) {
+			return false;
+		}
+		$min = '' !== $rule['min'] ? (float) $rule['min'] : 0;
+		$max = '' !== $rule['max'] ? (float) $rule['max'] : 0;
+		if ( ! $min && ! $max ) {
+			return true;
+		}
+		$mm = (float) $product->get_meta( self::META_BTN_DIAMETER );
+		if ( $mm <= 0 ) {
+			return false;
+		}
+		$low  = $min && $max ? min( $min, $max ) : $min;
+		$high = $min && $max ? max( $min, $max ) : $max;
+		return ( ! $low || $mm >= $low - 0.001 ) && ( ! $high || $mm <= $high + 0.001 );
+	}
+
+	/**
+	 * Meta query for the buttons of a type within a rule's diameter range.
+	 *
+	 * @param string $type Button type.
+	 * @param array  $rule [ on, min, max ].
+	 * @return array
+	 */
+	public static function button_meta_query( $type, $rule ) {
+		$query = array( 'relation' => 'AND' );
+		if ( 'button' === $type ) {
+			// Buttons saved without a type are plain buttons.
+			$query[] = array(
+				'relation' => 'OR',
+				array(
+					'key'   => self::META_BTN_TYPE,
+					'value' => 'button',
+				),
+				array(
+					'key'     => self::META_BTN_TYPE,
+					'compare' => 'NOT EXISTS',
+				),
+			);
+		} else {
+			$query[] = array(
+				'key'   => self::META_BTN_TYPE,
+				'value' => $type,
+			);
+		}
+		$min = '' !== $rule['min'] ? (float) $rule['min'] : 0;
+		$max = '' !== $rule['max'] ? (float) $rule['max'] : 0;
+		if ( $min || $max ) {
+			$clause = array(
+				'key'  => self::META_BTN_DIAMETER,
+				'type' => 'DECIMAL(10,2)',
+			);
+			if ( $min && $max ) {
+				$clause['value']   = array( min( $min, $max ), max( $min, $max ) );
+				$clause['compare'] = 'BETWEEN';
+			} else {
+				$clause['value']   = $min ? $min : $max;
+				$clause['compare'] = $min ? '>=' : '<=';
+			}
+			$query[] = $clause;
+		}
+		return $query;
 	}
 
 	/* ------------------------------------------------------------------
@@ -918,6 +1233,13 @@ class AIMP_Catalog {
 		if ( $materials['fabric'] <= 0 ) {
 			$materials['fabric'] = absint( $variation->get_meta( self::META_FABRIC_UNITS ) ) * self::FABRIC_UNIT_CM;
 		}
+		// Button types the pattern does not use (switched off on its Atelier Irisee tab) are not needed.
+		$button_rules = self::button_rules( $pattern->get_id() );
+		foreach ( self::button_types() as $button_type => $info ) {
+			if ( empty( $button_rules[ $button_type ]['on'] ) ) {
+				$materials[ $info[1] ] = 0;
+			}
+		}
 		$fabric_units = $materials['fabric'] > 0 ? (int) ceil( $materials['fabric'] / self::FABRIC_UNIT_CM ) : 0;
 
 		return array(
@@ -929,7 +1251,8 @@ class AIMP_Catalog {
 			'fabric_units' => $fabric_units,
 			'fabric_cm'    => (float) $materials['fabric'],
 			'fabric_cats'  => $fabric_cats,
-			'button_count' => absint( $variation->get_meta( self::META_BUTTON_COUNT ) ),
+			'button_rules' => $button_rules,
+			'button_count' => (int) $materials['buttons'],
 			'ribbon_length' => absint( $variation->get_meta( self::META_RIBBON_LENGTH ) ),
 			'bias_length'  => absint( $variation->get_meta( self::META_BIAS_LENGTH ) ),
 			'ribbon_qty'   => self::units_for_cm( $variation->get_meta( self::META_RIBBON_LENGTH ) ),
@@ -1153,7 +1476,28 @@ class AIMP_Catalog {
 		if ( $product && '' !== self::zip_length( $type, $req ) && ! self::zip_length_matches( $product, self::zip_length( $type, $req ) ) ) {
 			return null;
 		}
+		$rule = self::notion_button_rule( $type, $req );
+		if ( $product && $rule && ! self::button_fits( $product, $rule[0], $rule[1] ) ) {
+			return null;
+		}
 		return $product;
+	}
+
+	/**
+	 * For a button type: [ button type, the pattern's rule ]; null for other haberdashery.
+	 *
+	 * @param string $type A key of notion_types().
+	 * @param array  $req  Requirements.
+	 * @return array|null
+	 */
+	public static function notion_button_rule( $type, $req ) {
+		$types = self::notion_types();
+		if ( empty( $types[ $type ]['button_type'] ) ) {
+			return null;
+		}
+		$button_type = $types[ $type ]['button_type'];
+		$rules       = isset( $req['button_rules'] ) ? $req['button_rules'] : self::button_rules( $req['pattern']->get_id() );
+		return array( $button_type, $rules[ $button_type ] );
 	}
 
 	/**
@@ -1221,8 +1565,17 @@ class AIMP_Catalog {
 				$will = sprintf( __( '%s will be added.', 'atelier-irisee-master-plugin' ), $need );
 			} else {
 				$need = (string) $qty;
-				/* translators: 1: amount, 2: material, e.g. "Snap fasteners" */
+				/* translators: 1: amount, 2: material, e.g. "Press studs" */
 				$will = sprintf( __( '%1$d × %2$s will be added.', 'atelier-irisee-master-plugin' ), $qty, $fields[ $info['material'] ]['label'] );
+				// Buttons: with the diameter range of the pattern; sets are rounded up to whole sets.
+				$rule  = self::notion_button_rule( $type, $req );
+				$range = $rule ? self::button_rule_text( $rule[1] ) : '';
+				if ( $rule ) {
+					$need = '' !== $range ? $qty . ' (' . $range . ')' : (string) $qty;
+					/* translators: 1: material, e.g. "Buttons", 2: amount */
+					$will = sprintf( __( '%1$s: %2$d needed', 'atelier-irisee-master-plugin' ), $fields[ $info['material'] ]['label'], $qty ) . ( '' !== $range ? ' (' . $range . ')' : '' ) . '. ' .
+						__( 'Buttons sold per set are added in whole sets.', 'atelier-irisee-master-plugin' );
+				}
 			}
 			$notions[ $type ] = array(
 				'qty'     => $qty,
@@ -1358,8 +1711,15 @@ class AIMP_Catalog {
 	 * @return array
 	 */
 	public static function material_card( $product, $qty ) {
+		// Buttons sold per set: whole sets (7 needed, sets of 6 = 2 sets).
+		$set                 = self::button_set_size( $product );
+		$qty                 = self::pack_qty( $product, $qty );
 		$card                = self::card( $product );
 		$card['qty']         = $qty;
+		$card['set_size']    = $set;
+		$card['qty_text']    = $set > 1 ? self::sets_text( $qty, $set ) : '';
+		$card['price_suffix'] = $set > 1 ? self::price_suffix( $product ) : '';
+		$card['subtitle']    = self::is_button( $product ) ? self::button_diameter_text( $product ) : '';
 		$card['available']   = self::is_available( $product, $qty );
 		$card['total_html']  = wc_price( $card['price'] * $qty );
 		$card['description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
@@ -1591,6 +1951,11 @@ class AIMP_Catalog {
 				'compare' => '=',
 				'type'    => 'DECIMAL(10,2)',
 			);
+		}
+		// Buttons: of the type, within the pattern's diameter range.
+		$rule = self::notion_button_rule( $type, $req );
+		if ( $rule ) {
+			$meta_query[] = self::button_meta_query( $rule[0], $rule[1] );
 		}
 
 		$result = self::query_products( array( self::notion_category( $type ) ), 'simple', $page, AIMP_Settings::get( 'per_page' ), $meta_query );

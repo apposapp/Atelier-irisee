@@ -504,7 +504,7 @@
 		(item.attributes || []).forEach(function (attr) {
 			html += '<div><dt>' + esc(attr.label) + '</dt><dd>' + esc(attr.value) + '</dd></div>';
 		});
-		html += '<div><dt>' + esc(unitLabel) + '</dt><dd>' + item.price_html + '</dd></div>';
+		html += '<div><dt>' + esc(unitLabel) + '</dt><dd>' + item.price_html + (item.price_suffix ? ' <small>' + esc(item.price_suffix) + '</small>' : '') + '</dd></div>';
 		html += '<div><dt>' + esc(t.youNeed) + '</dt><dd>' + esc(needText) + '</dd></div>';
 		html += '<div><dt>' + esc(t.totalForSize) + '</dt><dd>' + item.total_html + '</dd></div>';
 		html += '</dl></div>';
@@ -1247,7 +1247,9 @@
 				return;
 			}
 			var info = notionInfo(type);
-			panel.innerHTML = this.materialDetailsHtml(bucket.selected, bucket.image, t[info.unitLabel], info.need(s.size));
+			// Buttons sold per set: also how many sets are added ("2 × set of 6").
+			var needText = info.need(s.size) + (bucket.selected.qty_text ? ' · ' + bucket.selected.qty_text : '');
+			panel.innerHTML = this.materialDetailsHtml(bucket.selected, bucket.image, t[info.unitLabel], needText);
 			this.bindGallery(panel, bucket.selected.gallery, function (i) {
 				bucket.image = i;
 			});
@@ -1269,8 +1271,9 @@
 			if (n.qty(s.size) > 0 && selected) {
 				lines.push({
 					name: selected.name,
-					detail: n.unitLabel === 'pricePerUnit' ? n.need(s.size) : '',
-					qty: n.qty(s.size),
+					detail: selected.qty_text || (n.unitLabel === 'pricePerUnit' ? n.need(s.size) : ''),
+					// Sets: the card's own quantity (whole sets).
+					qty: selected.qty || n.qty(s.size),
 					price: selected.price
 				});
 			}

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.5.0
+Stable tag: 3.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,15 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.6.0 =
+* Buttons as their own kind of product: Products → "All buttons" and "Add a button" (opens with the Buttons category ticked and the button workspace: price and stock, description, specifications, "Ideal for", recommendation).
+* Button details: type (button, jeans button, press stud), colour, diameter (mm), material, surface finish, mounting method, sold per piece or per set of a number of buttons, and up to four kinds of clothes for "Ideal for".
+* Button page (the same shortcode and design as fabrics): the buy bar shows "€x per set of 6" for sets, "Ideal for" cards with an icon in the place of the inspiration cards, the specifications as tiles with icons next to the description, and "Fits these patterns".
+* Patterns: on the Atelier Irisee tab a "Buttons" block with per type a switch and the diameter range that fits. Only switched-on types have an amount field on the sizes. The separate "Snap fasteners" and "Jeans buttons" categories are gone: all buttons sit in the Buttons category and the type links them.
+* Configurator: the button steps only offer buttons of the type with a diameter in the pattern's range. Buttons sold per set are added in whole sets ("2 × set of 6"); one set lowers the stock by one.
+* Shop pages: filters for button type, diameter, colour and material; cards show the diameter and "per set of 6". The cart, checkout and orders show "Sold per: Set of 6".
+* Products → All buttons: Button type and Diameter columns.
 
 = 3.5.0 =
 * Pattern sizes: a new "Needed materials & sizes" box in your order: fabric (cm), zips (divisible, invisible, non divisible, double divisible, in cm), buttons (buttons, snap fasteners, jeans buttons), elastic, bias tape, ribbon, cord, embroidery, bag strap, fusible interfacing, cord lock, then the body measurements. Existing fabric (as cm), buttons, ribbon, bias tape and measurements are kept; old zip count and length are no longer used.

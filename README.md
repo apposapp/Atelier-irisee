@@ -57,6 +57,7 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
 3. **Fabrics, buttons, zips, ribbons and bias tape** are *simple* products.
    - Fabric, ribbon and bias tape prices and stock are **per 10 cm**. A size that needs 85 cm of bias tape adds 9 × 10 cm to the cart, because lengths are rounded up.
    - Zips have a **Zip length (cm)** field in the General tab. The configurator only offers zips whose length matches what the size needs.
+   - Buttons (products in the Buttons category) get a **Button details** box, see [Buttons](#buttons).
 4. Put the shortcode `[atelier_irisee_configurator]` on a page.
 
 ## Favorites
@@ -158,6 +159,23 @@ Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_
 - **Patterns:** they post `aimp_add_pattern`. The first available size is added with the cart item flag `aimp_all_sizes`, and the cart and order show "Sizes: All sizes" instead of the size.
 
 **Styling:** the product and shop pages share one style block at the end of `configurator.css`, so WooCommerce and theme styles can't change them.
+
+## Buttons
+
+**Products → All buttons / Add a button** (shown once the Buttons category is set). "Add a button" ticks the Buttons category, makes a simple product and opens the button workspace: price and stock with "Sold per", the description, the specifications, "Ideal for" and the recommendation.
+
+**Button details** (`AIMP_Button_Fields`, meta keys in `AIMP_Catalog::META_BTN_*`):
+- `_aimp_btn_type`: `button`, `jeans_button` or `press_stud` (`AIMP_Catalog::button_types()`). A button without a type counts as `button`.
+- `_aimp_btn_colour`, `_aimp_btn_material`, `_aimp_btn_finish`, `_aimp_btn_mounting`: free texts (material, finish and mounting have suggestions).
+- `_aimp_btn_diameter`: mm.
+- `_aimp_btn_set_size`: empty = per piece; 2 or more = sold per set. A set is one unit: its price and stock are per set. `AIMP_Catalog::pack_qty()` turns a need in pieces into whole sets.
+- `_aimp_btn_ideal_for`: up to four keys of `AIMP_Catalog::ideal_for_options()`, shown with the icons of `AIMP_Product_Page::clothing_icon()`.
+
+**Patterns:** `_aimp_button_rules` on the pattern = `[ type => [ on, min, max ] ]` (Atelier Irisee tab → Buttons). Types that are off get no amount field on the sizes, and `get_requirements()` sets their amount to 0. Patterns saved before 3.6 have no rules: every type then counts as on, with any diameter.
+
+**Configurator:** the steps `buttons`, `jeans_buttons` and `snaps` (press studs) all use the Buttons category, with a meta query on the type and the diameter range (`AIMP_Catalog::button_meta_query()`; the cart checks `button_fits()`). Card quantities, the cart lines and saved kit prices use whole sets.
+
+**Shop filters:** `aimp_btype`, `aimp_bdia`, `aimp_bcol`, `aimp_bmat` in the address (`m_*` in the request), see `AIMP_Shop::button_filters()`.
 
 ## Header, site look and editor
 

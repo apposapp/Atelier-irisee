@@ -100,6 +100,10 @@ class AIMP_Cart_Page {
 				AIMP_I18n::number( $qty * AIMP_Catalog::FABRIC_UNIT_CM )
 			);
 		}
+		$set = AIMP_Catalog::button_set_size( $item['data'] );
+		if ( $set > 1 ) {
+			return AIMP_Catalog::sets_text( $qty, $set );
+		}
 		/* translators: %d: number of pieces */
 		return sprintf( _n( '%d piece', '%d pieces', $qty, 'atelier-irisee-master-plugin' ), $qty );
 	}

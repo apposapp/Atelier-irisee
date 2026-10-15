@@ -203,7 +203,7 @@ class AIMP_Shortcode {
 			'zip_non_divisible'    => __( 'Choose your non divisible zipper (optional)', 'atelier-irisee-master-plugin' ),
 			'zip_double_divisible' => __( 'Choose your double divisible zipper (optional)', 'atelier-irisee-master-plugin' ),
 			'buttons'              => __( 'Choose your buttons (optional)', 'atelier-irisee-master-plugin' ),
-			'snaps'                => __( 'Choose your snap fasteners (optional)', 'atelier-irisee-master-plugin' ),
+			'snaps'                => __( 'Choose your press studs (optional)', 'atelier-irisee-master-plugin' ),
 			'jeans_buttons'        => __( 'Choose your jeans buttons (optional)', 'atelier-irisee-master-plugin' ),
 			'bias'                 => __( 'Choose your bias tape (optional)', 'atelier-irisee-master-plugin' ),
 			'ribbons'              => __( 'Choose your ribbon (optional)', 'atelier-irisee-master-plugin' ),

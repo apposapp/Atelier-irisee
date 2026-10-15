@@ -254,7 +254,7 @@ class AIMP_Mosaic {
 
 		$html = '';
 		foreach ( $products as $index => $product ) {
-			$per_10cm = AIMP_Catalog::sold_per_10cm( $product );
+			$suffix   = AIMP_Catalog::price_suffix( $product );
 			$image_id = $product->get_image_id();
 			$size     = $index < 4 ? 'woocommerce_single' : 'woocommerce_thumbnail'; // The four biggest tiles get a larger picture.
 			$image    = $image_id ? wp_get_attachment_image_url( $image_id, $size ) : wc_placeholder_img_src( $size );
@@ -266,7 +266,7 @@ class AIMP_Mosaic {
 				esc_attr( wp_strip_all_tags( $product->get_name() ) ),
 				esc_html( wp_strip_all_tags( $product->get_name() ) ),
 				wp_kses_post( $product->get_price_html() ),
-				$per_10cm ? ' <small>' . esc_html__( 'per 10 cm', 'atelier-irisee-master-plugin' ) . '</small>' : '',
+				'' !== $suffix ? ' <small>' . esc_html( $suffix ) . '</small>' : '',
 				AIMP_Favorites::button_html( $product->get_id(), 'aimp-fav--overlay' )
 			);
 		}

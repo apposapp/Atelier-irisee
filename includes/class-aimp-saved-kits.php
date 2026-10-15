@@ -184,7 +184,7 @@ class AIMP_Saved_Kits {
 		foreach ( array_keys( AIMP_Catalog::notion_types() ) as $type ) {
 			$count   = AIMP_Catalog::notion_count( $type, $req );
 			$product = ( $count > 0 && ! empty( $kit['notions'][ $type ] ) ) ? wc_get_product( $kit['notions'][ $type ] ) : null;
-			$total  += $product ? (float) wc_get_price_to_display( $product ) * $count : 0;
+			$total  += $product ? (float) wc_get_price_to_display( $product ) * AIMP_Catalog::pack_qty( $product, $count ) : 0;
 		}
 		return $total * ( 100 - AIMP_Cart::kit_discount() ) / 100;
 	}

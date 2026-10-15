@@ -1070,3 +1070,28 @@ html:has(.aimp-product-reviews) {
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
+
+/* ------------------------------------------------------------------
+ * Ideal for (buttons): up to four kinds of clothes with an icon, in the place of the fabric inspiration cards
+ * ------------------------------------------------------------------ */
+.aimp-ideal-grid {
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.aimp-configurator .aimp-ideal-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.6rem;
+	text-align: center;
+}
+
+.aimp-ideal-icon {
+	width: 3.25rem;
+	height: 3.25rem;
+	color: var(--aimp-gold-text, #8a6a33);
+}
+
+.aimp-configurator .aimp-ideal-card .aimp-product-subtitle {
+	margin: 0;
+}

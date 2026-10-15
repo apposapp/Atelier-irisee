@@ -193,6 +193,11 @@ class AIMP_Product_Page {
 			'inside_leg' => __( 'Inside leg', 'atelier-irisee-master-plugin' ),
 			'height'     => __( 'Height', 'atelier-irisee-master-plugin' ),
 		);
+		$rules         = AIMP_Catalog::button_rules( $pattern->get_id() );
+		$button_ranges = array();
+		foreach ( AIMP_Catalog::button_types() as $type => $info ) {
+			$button_ranges[ $info[1] ] = AIMP_Catalog::button_rule_text( $rules[ $type ] );
+		}
 		$sizes = array();
 		foreach ( $pattern->get_children() as $child_id ) {
 			$req = AIMP_Catalog::get_requirements( $child_id );
@@ -225,7 +230,9 @@ class AIMP_Product_Page {
 					/* translators: 1: smallest length, 2: largest length (in cm) */
 					? sprintf( __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $min, floor( $min ) == $min ? 0 : 1 ), AIMP_I18n::number( $max, floor( $max ) == $max ? 0 : 1 ) )
 					: sprintf( '%d–%d', $min, $max ) );
-				$accessories[] = array( $field['label'], $text );
+				// Buttons: with the diameter that fits ("6 · 15–20 mm").
+				$range         = isset( $button_ranges[ $key ] ) ? $button_ranges[ $key ] : '';
+				$accessories[] = array( $field['label'], '' !== $range ? $text . ' · ' . $range : $text );
 			}
 			// Table: the measurements filled in for at least one size, then the fabric.
 			$used = array();
@@ -538,6 +545,8 @@ class AIMP_Product_Page {
 			'step'       => $factor,
 			'value'      => $min * $factor,
 			'low'        => $left > 0 && $left <= $threshold ? $left * $factor : 0,
+			// Buttons sold per set: the amount is in sets (1 set = 1 in stock).
+			'set_size'   => $product->is_type( 'simple' ) ? AIMP_Catalog::button_set_size( $product ) : 1,
 		);
 	}
 
@@ -663,6 +672,8 @@ class AIMP_Product_Page {
 			'per10cm'     => __( 'per 10 cm', 'atelier-irisee-master-plugin' ),
 			/* translators: %s: price of one piece */
 			'perPiece'    => __( '%s per piece', 'atelier-irisee-master-plugin' ),
+			/* translators: 1: price of one set, 2: number of buttons in a set */
+			'perSet'      => __( '%1$s per set of %2$d', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -780,6 +791,7 @@ class AIMP_Product_Page {
 		$per_10cm = AIMP_Catalog::sold_per_10cm( $product );
 		$pattern  = AIMP_Catalog::get_pattern( $product->get_id() );
 		$fabric   = AIMP_Catalog::in_categories( $product, AIMP_Catalog::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
+		$button   = ! $fabric && AIMP_Catalog::is_button( $product );
 
 		// Patterns show no size pictures (sizes are chosen in the configurator); other variable products do.
 		$extra = array();
@@ -802,6 +814,8 @@ class AIMP_Product_Page {
 			'fabrics'          => $pattern ? self::recommended_fabrics( $pattern ) : array(),
 			'buy'              => self::buy_data( $product, $per_10cm ),
 			'fabric'           => $fabric ? AIMP_Catalog::fabric_texts( $product ) : null,
+			// Buttons: specifications (tiles) and "Ideal for" (clothes with an icon).
+			'button'           => $button ? self::button_data( $product ) : null,
 			'gallery'          => $gallery,
 			'attributes'       => AIMP_Catalog::attributes( $product, (bool) $pattern ),
 			// The configurator; from a pattern it opens with that pattern already chosen.
@@ -812,9 +826,121 @@ class AIMP_Product_Page {
 			'size_table'       => $pattern ? self::size_table( $product ) : array(),
 			// A pack with designs: per design its name, project time and configurator link.
 			'designs'          => $pattern ? self::design_list( $product, ( $configurator && 'publish' === get_post_status( $configurator ) ) ? get_permalink( $configurator ) : '' ) : array(),
-			'fitting'          => $fabric ? self::fitting_patterns( $product ) : array(),
+			'fitting'          => $fabric ? self::fitting_patterns( $product ) : ( $button ? self::fitting_button_patterns( $product ) : array() ),
 			'related'          => array_filter( array_map( 'wc_get_product', wc_get_related_products( $product->get_id(), self::RELATED ) ) ),
 		);
+	}
+
+	/**
+	 * A button's page data: [ specs: subject => [ label, value ], ideal_for: [ [ key, label ] ], set_size ].
+	 *
+	 * @param WC_Product $product Button.
+	 * @return array
+	 */
+	public static function button_data( $product ) {
+		$options = AIMP_Catalog::ideal_for_options();
+		$ideal   = array();
+		foreach ( AIMP_Catalog::ideal_for( $product ) as $key ) {
+			$ideal[] = array( $key, $options[ $key ] );
+		}
+		return array(
+			'specs'     => AIMP_Catalog::button_specs( $product ),
+			'ideal_for' => $ideal,
+			'set_size'  => AIMP_Catalog::button_set_size( $product ),
+		);
+	}
+
+	/**
+	 * Patterns that use this kind of button (switched on) with a diameter range that includes this button.
+	 *
+	 * @param WC_Product $button Button.
+	 * @return WC_Product[]
+	 */
+	public static function fitting_button_patterns( $button ) {
+		$key = 'aimp_shop_btnfits_' . $button->get_id() . '_' . AIMP_Shop::cache_version();
+		$ids = get_transient( $key );
+
+		if ( ! is_array( $ids ) ) {
+			$ids  = array();
+			$root = AIMP_Settings::get( 'pattern_cat' );
+			$type = AIMP_Catalog::button_type( $button );
+			if ( $root ) {
+				$args                   = AIMP_Catalog::base_query_args( array( $root ), 'variable' );
+				$args['posts_per_page'] = -1;
+				$args['no_found_rows']  = true;
+				$types                  = AIMP_Catalog::button_types();
+				$fields                 = AIMP_Catalog::material_fields();
+				foreach ( ( new WP_Query( $args ) )->posts as $pattern_id ) {
+					$rules = AIMP_Catalog::button_rules( (int) $pattern_id );
+					if ( ! AIMP_Catalog::button_fits( $button, $type, $rules[ $type ] ) ) {
+						continue;
+					}
+					// The pattern must also need this kind of button in at least one size.
+					foreach ( wc_get_product( $pattern_id ) ? wc_get_product( $pattern_id )->get_children() : array() as $child_id ) {
+						if ( (float) get_post_meta( $child_id, $fields[ $types[ $type ][1] ]['meta'], true ) > 0 ) {
+							$ids[] = (int) $pattern_id;
+							break;
+						}
+					}
+					if ( count( $ids ) >= self::FITTING ) {
+						break;
+					}
+				}
+			}
+			set_transient( $key, $ids, 12 * HOUR_IN_SECONDS );
+		}
+
+		return array_values(
+			array_filter(
+				array_map( 'wc_get_product', $ids ),
+				function ( $product ) {
+					return $product && $product->is_visible();
+				}
+			)
+		);
+	}
+
+	/**
+	 * Gold line icon for an "Ideal for" kind of clothes.
+	 *
+	 * @param string $key A key of AIMP_Catalog::ideal_for_options().
+	 * @return string SVG.
+	 */
+	public static function clothing_icon( $key ) {
+		$paths = array(
+			// A shirt with a collar and a button placket.
+			'shirt'    => '<path d="M9 3.5 5 5.5 2.5 10l3 1.5 1-2V20.5h11V9.5l1 2 3-1.5L19 5.5l-4-2"/><path d="M9 3.5 12 7l3-3.5"/><path d="M12 7v13.5"/><path d="M12 10.5h.01M12 14h.01M12 17.5h.01"/>',
+			// A blouse with a round neck and puffed sleeves.
+			'blouse'   => '<path d="M9 4c.5 1.6 1.6 2.5 3 2.5S14.5 5.6 15 4l4 2 2 4.5-3 1-1-1.5V20H7v-10l-1 1.5-3-1L5 6z"/><path d="M7 14c1.6.8 3.3 1.2 5 1.2s3.4-.4 5-1.2"/>',
+			// A dress with a fitted top and a flared skirt.
+			'dress'    => '<path d="M9 3l1 4-2 3 1 1-4 9.5h14L15 11l1-1-2-3 1-4"/><path d="M9 11h6"/><path d="M10 3h4"/>',
+			// A flared skirt with a waistband.
+			'skirt'    => '<path d="M7.5 5h9"/><path d="M7.5 5v2.5h9V5"/><path d="M7.5 7.5 4 20h16L16.5 7.5"/><path d="M10 7.5 9 20M14 7.5l1 12.5"/>',
+			// Trousers.
+			'trousers' => '<path d="M6.5 3.5h11l1.5 17h-5L12 9l-2 11.5H5z"/><path d="M6.5 6h11"/>',
+			// Jeans with pockets and rivets.
+			'jeans'    => '<path d="M6.5 3.5h11l1.5 17h-5L12 9l-2 11.5H5z"/><path d="M6.5 6h11"/><path d="M8 6c0 1.6.8 2.5 2 2.8M16 6c0 1.6-.8 2.5-2 2.8"/><circle cx="12" cy="4.8" r=".4"/>',
+			// A jacket, open, with lapels.
+			'jacket'   => '<path d="M8.5 3.5 4.5 5.5 3 12l2 .5V20.5h5.5L12 9l1.5 11.5H19V12.5l2-.5-1.5-6.5-4-2"/><path d="M8.5 3.5 12 9l3.5-5.5"/><path d="M6.5 15h2M15.5 15h2"/>',
+			// A long coat with two rows of buttons.
+			'coat'     => '<path d="M8.5 3 4.5 5 3 13l2 .3V21h14v-7.7l2-.3-1.5-8-4-2"/><path d="M8.5 3 12 7.5 15.5 3"/><path d="M12 7.5V21"/><path d="M10 11h.01M10 14.5h.01M10 18h.01M14 11h.01M14 14.5h.01M14 18h.01"/>',
+			// A cardigan with a V-neck and buttons.
+			'cardigan' => '<path d="M9 3.5 5 5.5 3.5 19l2.5.5 1-8V20.5h10v-9l1 8 2.5-.5L19 5.5l-4-2"/><path d="M9 3.5l3 7 3-7"/><path d="M12 10.5v10"/><path d="M12 13.5h.01M12 16.5h.01M7 19h10"/>',
+			// A knitted jumper with ribbing.
+			'knitwear' => '<path d="M9 3.5c.7 1.2 1.7 1.8 3 1.8s2.3-.6 3-1.8l4 2L20.5 19l-2.5.5-1-8V20.5H7v-9l-1 8-2.5-.5L5 5.5z"/><path d="M7 18.5h10M8.5 18.5v2M10.5 18.5v2M12.5 18.5v2M14.5 18.5v2"/>',
+			// A small romper for children.
+			'kids'     => '<path d="M9 4 6 5.5 4.5 9l2.5 1 1-1.5v5.5L7 20h4l1-4 1 4h4l-1-5.5V8.5l1 1.5 2.5-1L18 5.5 15 4c-.6 1.4-1.6 2-3 2S9.6 5.4 9 4z"/><path d="M10.5 10.5h.01M13.5 10.5h.01"/>',
+			// A pyjama top with a moon.
+			'pyjamas'  => '<path d="M9 4 5 5.5 3 11l2.5 1 1-2V20h11V10l1 2 2.5-1L19 5.5 15 4l-3 3z"/><path d="M14.5 13.5a2.5 2.5 0 1 1-2.6-2.9 2 2 0 0 0 2.6 2.9z"/>',
+			// Dungarees for work.
+			'workwear' => '<path d="M8 3v5.5M16 3v5.5"/><path d="M6.5 8.5h11l1.5 12h-5L12 13l-2 7.5H5z"/><path d="M9.5 8.5v3h5v-3"/>',
+			// A bag with a handle.
+			'bag'      => '<path d="M4.5 8.5h15l-1.2 11a1 1 0 0 1-1 .9H6.7a1 1 0 0 1-1-.9z"/><path d="M8.5 8.5V7a3.5 3.5 0 0 1 7 0v1.5"/><path d="M10 13h4"/>',
+			// A cushion.
+			'home'     => '<path d="M5 5c2.3.8 4.7 1.2 7 1.2S16.7 5.8 19 5c-.8 2.3-1.2 4.7-1.2 7s.4 4.7 1.2 7c-2.3-.8-4.7-1.2-7-1.2S7.3 18.2 5 19c.8-2.3 1.2-4.7 1.2-7S5.8 7.3 5 5z"/><circle cx="12" cy="12" r="1"/>',
+		);
+		$path  = isset( $paths[ $key ] ) ? $paths[ $key ] : $paths['shirt'];
+		return '<svg class="aimp-ideal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';
 	}
 
 	/**
@@ -905,13 +1031,14 @@ class AIMP_Product_Page {
 	 */
 	public static function card_html( $product ) {
 		$card   = AIMP_Catalog::card( $product );
-		$suffix = AIMP_Catalog::sold_per_10cm( $product ) ? ' <small>' . esc_html__( 'per 10 cm', 'atelier-irisee-master-plugin' ) . '</small>' : '';
+		$suffix = ( '' !== AIMP_Catalog::price_suffix( $product ) ? ' <small>' . esc_html( AIMP_Catalog::price_suffix( $product ) ) . '</small>' : '' );
 		return sprintf(
 			'<li class="aimp-product-card aimp-fav-wrap"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="%3$s" loading="lazy"></span><span class="aimp-card-name">%4$s</span><span class="aimp-card-price">%5$s%6$s</span></a>%7$s</li>',
 			esc_url( $card['permalink'] ),
 			esc_url( $card['image'] ),
 			esc_attr( '' !== $card['image_alt'] ? $card['image_alt'] : $card['name'] ),
-			esc_html( $card['name'] ),
+			// Buttons: the diameter under the name.
+			esc_html( $card['name'] ) . ( AIMP_Catalog::is_button( $product ) && '' !== AIMP_Catalog::button_diameter_text( $product ) ? '<small class="aimp-card-sub">' . esc_html( AIMP_Catalog::button_diameter_text( $product ) ) . '</small>' : '' ),
 			wp_kses_post( $card['price_html'] ),
 			$suffix, // Escaped above.
 			AIMP_Favorites::button_html( $product->get_id(), 'aimp-fav--overlay' )
@@ -951,6 +1078,14 @@ class AIMP_Product_Page {
 			'zips'        => '<path d="M12 3v12"/><path d="M9.5 5H12M12 7.5h2.5M9.5 10H12M12 12.5h2.5"/><rect x="9" y="15" width="6" height="6" rx="1.5"/>',
 			'ribbons'     => '<path d="M12 10c-2-3.5-6.5-4-7-1.5S8 13 12 10zm0 0c2-3.5 6.5-4 7-1.5S16 13 12 10z"/><path d="M11 11l-3 9M13 11l3 9"/>',
 			'bias'        => '<path d="M3 16c3-6 6-6 9 0s6 6 9 0"/><path d="M3 11c3-6 6-6 9 0s6 6 9 0"/>',
+			// Button page: type (a button with four holes), diameter (a button between two measuring lines),
+			// material, surface finish (a sparkle), mounting method (a needle and thread), sold per (a stack).
+			'button_type'     => '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="6"/><circle cx="10.3" cy="10.3" r=".9"/><circle cx="13.7" cy="10.3" r=".9"/><circle cx="10.3" cy="13.7" r=".9"/><circle cx="13.7" cy="13.7" r=".9"/>',
+			'diameter'        => '<circle cx="12" cy="12" r="6"/><path d="M3 3.5v17M21 3.5v17"/><path d="M3 12h3M18 12h3"/>',
+			'button_material' => '<path d="M12 3.5 20 8v8l-8 4.5L4 16V8z"/><path d="M4 8l8 4.5L20 8M12 12.5v8"/>',
+			'finish'          => '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>',
+			'mounting'        => '<path d="M19.5 4.5 7 17"/><path d="M17.5 3.5l3 3"/><ellipse cx="18.6" cy="5.4" rx=".5" ry="1.2" transform="rotate(45 18.6 5.4)"/><path d="M7 17c-2 1-3.5.5-4 2s1.5 2 3 1 1.5-2.5 4-2.5"/>',
+			'set'             => '<circle cx="8" cy="9" r="4"/><circle cx="16" cy="9" r="4"/><circle cx="12" cy="16" r="4"/>',
 		);
 		$path  = isset( $paths[ $subject ] ) ? $paths[ $subject ] : $paths['tips'];
 		return '<svg class="aimp-washing-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';

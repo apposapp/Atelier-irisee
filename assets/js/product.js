@@ -120,6 +120,7 @@
 			return;
 		}
 		var per10cm = bar.getAttribute('data-per-10cm') === '1';
+		var setSize = parseInt(bar.getAttribute('data-set-size'), 10) || 1;
 		var unitPrice = parseFloat(bar.getAttribute('data-unit-price')) || 0;
 		var step = parseInt(field.getAttribute('step'), 10) || 1;
 		var min = parseInt(field.getAttribute('min'), 10) || step;
@@ -159,6 +160,10 @@
 			if (unitLine) {
 				if (per10cm) {
 					unitLine.textContent = UI.money(unitPrice, cfg.currency) + ' ' + t.per10cm;
+				} else if (setSize > 1) {
+					// Buttons sold per set: always "€x per set of 6".
+					unitLine.textContent = UI.fmt(t.perSet, UI.money(unitPrice, cfg.currency), setSize);
+					unitLine.hidden = false;
 				} else {
 					unitLine.textContent = UI.fmt(t.perPiece, UI.money(unitPrice, cfg.currency));
 					unitLine.hidden = units < 2;

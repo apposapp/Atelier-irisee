@@ -249,7 +249,7 @@
 				' data-id="' + esc(item.id) + '" aria-pressed="' + (selected ? 'true' : 'false') + '"' +
 				(unavailable ? ' disabled' : '') + '>' +
 				'<span class="aimp-card-image"><img src="' + esc(item.image) + '" alt="' + esc(item.image_alt || item.name) + '" loading="lazy"></span>' +
-				'<span class="aimp-card-name">' + esc(item.name) + '</span>' +
+				'<span class="aimp-card-name">' + esc(item.name) + (item.subtitle ? '<small class="aimp-card-sub">' + esc(item.subtitle) + '</small>' : '') + '</span>' +
 				'<span class="aimp-card-price">' + (item.price_html || '') +
 				(suffix && item.price_html ? ' <small>' + esc(suffix) + '</small>' : '') + '</span>' +
 				(unavailable ? '<span class="aimp-badge">' + esc(opts.unavailableText || '') + '</span>' : '') +

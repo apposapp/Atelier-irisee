@@ -74,6 +74,23 @@
 				textsBox.classList.add('aimp-ws-emptied');
 			}
 		}
+	} else if (type === 'button') {
+		// Price and stock, and "Sold per" from the Button details box.
+		var details = q('.aimp-button-details');
+		move('price', [q('#general_product_data .pricing')].concat(stockRows, [details ? q('.aimp-button-sold', details) : null]));
+		// The long description is the button's description.
+		var richText = q('#postdivrich');
+		if (richText) {
+			move('description', [richText]);
+		}
+		if (details) {
+			move('specs', [q('.aimp-button-specs', details)]);
+			move('ideal', [q('.aimp-button-ideal', details)]);
+			var detailsBox = q('#aimp-button-details');
+			if (detailsBox) {
+				detailsBox.classList.add('aimp-ws-emptied');
+			}
+		}
 	} else if (type === 'pattern') {
 		// The short description is the pattern's description; the long one goes under "other fields".
 		var excerpt = q('#postexcerpt');
@@ -93,7 +110,7 @@
 		var panel = q('#aimp_pattern_data');
 		move('check', [panel ? q('.aimp-availability', panel) : null]);
 		move('price', [closestGroup('#' + ws.getAttribute('data-price'))].concat(stockRows));
-		move('details', [closestGroup('#' + ws.getAttribute('data-skill')), panel ? q('.aimp-designs', panel) : null]);
+		move('details', [closestGroup('#' + ws.getAttribute('data-skill')), panel ? q('.aimp-designs', panel) : null, panel ? q('.aimp-button-rules', panel) : null]);
 		move('priority', [panel ? q('.aimp-priority', panel) : null]);
 		// Sizes: WooCommerce's product data box, showing only Attributes and Variations.
 		var data = q('#woocommerce-product-data');
@@ -128,7 +145,7 @@
 	pendingOther.forEach(function (box) {
 		tuck(box);
 	});
-	if (type === 'fabric') {
+	if (type === 'fabric' || type === 'button') {
 		tuck(q('#woocommerce-product-data'));
 	}
 	tuck(q('#postexcerpt'));

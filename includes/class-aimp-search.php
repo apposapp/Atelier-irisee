@@ -121,7 +121,7 @@ class AIMP_Search {
 				'name'       => $card['name'],
 				'image'      => $card['image'],
 				'url'        => $card['permalink'],
-				'price_html' => $card['price_html'] . ( AIMP_Catalog::sold_per_10cm( $product ) ? ' <small>' . esc_html__( 'per 10 cm', 'atelier-irisee-master-plugin' ) . '</small>' : '' ),
+				'price_html' => $card['price_html'] . ( '' !== AIMP_Catalog::price_suffix( $product ) ? ' <small>' . esc_html( AIMP_Catalog::price_suffix( $product ) ) . '</small>' : '' ),
 			);
 		}
 		$categories = self::categories( $q );

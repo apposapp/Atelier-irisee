@@ -22,8 +22,11 @@
 	var t = cfg.i18n[lang];
 	UI.persistLang(lang);
 
+	// Button filters (type, diameter, colour, material), as in AIMP_Shop::button_filters().
+	var BUTTON_KEYS = ['btype', 'bdia', 'bcol', 'bmat'];
+
 	function defaultFilters() {
-		return { category: [], search: '', min: '', max: '', inStock: false, sort: 'recommended', attrs: {}, skills: [] };
+		return { category: [], search: '', min: '', max: '', inStock: false, sort: 'recommended', attrs: {}, skills: [], buttons: {} };
 	}
 
 	function isDrawer() {
@@ -97,6 +100,13 @@
 				f.attrs[key.slice(5)] = value.split(',').filter(Boolean);
 			}
 		});
+		// Button filters: aimp_btype, aimp_bdia, aimp_bcol, aimp_bmat.
+		BUTTON_KEYS.forEach(function (key) {
+			var value = params.get('aimp_' + key);
+			if (value) {
+				f.buttons[key] = value.split(',').filter(Boolean);
+			}
+		});
 	};
 
 	Shop.prototype.writeUrl = function () {
@@ -128,6 +138,11 @@
 		if (f.skills.length) {
 			params.set('aimp_skill', f.skills.join(','));
 		}
+		Object.keys(f.buttons).forEach(function (key) {
+			if (f.buttons[key].length) {
+				params.set('aimp_' + key, f.buttons[key].join(','));
+			}
+		});
 		if (f.sort !== 'recommended') {
 			params.set('aimp_sort', f.sort);
 		}
@@ -251,6 +266,9 @@
 		Object.keys(f.attrs).forEach(function (taxonomy) {
 			count += f.attrs[taxonomy].length;
 		});
+		Object.keys(f.buttons).forEach(function (key) {
+			count += f.buttons[key].length;
+		});
 		return count;
 	};
 
@@ -332,6 +350,21 @@
 			});
 			html += '</ul></details>';
 		}
+
+		// Buttons: type, diameter, colour, material
+		(facets.buttons || []).forEach(function (group) {
+			var chosen = f.buttons[group.key] || [];
+			html +=
+				'<details class="aimp-filter-group" open><summary>' + esc(group.label) +
+				(chosen.length ? ' <span class="aimp-shop-count">' + chosen.length + '</span>' : '') + '</summary><ul class="aimp-filter-options">';
+			group.options.forEach(function (option) {
+				html +=
+					'<li><label class="aimp-filter-option">' +
+					'<input type="checkbox" data-role="button-filter" data-key="' + esc(group.key) + '" value="' + esc(option.key) + '"' +
+					(chosen.indexOf(String(option.key)) !== -1 ? ' checked' : '') + '> <span>' + esc(option.label) + '</span></label></li>';
+			});
+			html += '</ul></details>';
+		});
 
 		// Price
 		var range = facets.price || { min: 0, max: 0 };
@@ -462,6 +495,24 @@
 			});
 		});
 
+		el.querySelectorAll('[data-role="button-filter"]').forEach(function (input) {
+			input.addEventListener('change', function () {
+				var key = input.getAttribute('data-key');
+				var list = (f.buttons[key] || []).filter(function (value) {
+					return value !== input.value;
+				});
+				if (input.checked) {
+					list.push(input.value);
+				}
+				if (list.length) {
+					f.buttons[key] = list;
+				} else {
+					delete f.buttons[key];
+				}
+				changed();
+			});
+		});
+
 		el.querySelectorAll('[data-role="skill"]').forEach(function (input) {
 			input.addEventListener('change', function () {
 				f.skills = f.skills.filter(function (key) {
@@ -540,6 +591,14 @@
 			})[0];
 			chip(level ? level.label : key, 'skill', key);
 		});
+		(facets.buttons || []).forEach(function (group) {
+			(f.buttons[group.key] || []).forEach(function (value) {
+				var option = group.options.filter(function (o) {
+					return String(o.key) === value;
+				})[0];
+				chip(option ? option.label : value, 'button', value, group.key);
+			});
+		});
 		(facets.attributes || []).forEach(function (attr) {
 			(f.attrs[attr.taxonomy] || []).forEach(function (slug) {
 				var term = attr.terms.filter(function (tm) {
@@ -572,6 +631,14 @@
 			f.skills = f.skills.filter(function (key) {
 				return key !== value;
 			});
+		} else if (kind === 'button' && f.buttons[taxonomy]) {
+			// For button filters the chip's "taxonomy" is the filter key.
+			f.buttons[taxonomy] = f.buttons[taxonomy].filter(function (v) {
+				return v !== value;
+			});
+			if (!f.buttons[taxonomy].length) {
+				delete f.buttons[taxonomy];
+			}
 		} else if (kind === 'attr' && f.attrs[taxonomy]) {
 			f.attrs[taxonomy] = f.attrs[taxonomy].filter(function (slug) {
 				return slug !== value;
@@ -619,6 +686,9 @@
 		};
 		Object.keys(f.attrs).forEach(function (taxonomy) {
 			params['attr_' + taxonomy] = f.attrs[taxonomy].join(',');
+		});
+		Object.keys(f.buttons).forEach(function (key) {
+			params['m_' + key] = f.buttons[key].join(',');
 		});
 		if (withFacets) {
 			params.facets = 1;

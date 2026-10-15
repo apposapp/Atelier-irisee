@@ -112,7 +112,7 @@ class AIMP_Cart {
 			}
 			$lines[] = array(
 				'product' => $product,
-				'qty'     => AIMP_Catalog::notion_count( $type, $req ),
+				'qty'     => AIMP_Catalog::pack_qty( $product, AIMP_Catalog::notion_count( $type, $req ) ),
 				'role'    => $role,
 			);
 		}

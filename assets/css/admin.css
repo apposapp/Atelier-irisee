@@ -947,3 +947,110 @@
 	color: #8a6a33;
 	font-size: 14px;
 }
+
+/* Buttons: the "Button details" box (in the workspace: its fieldsets in the cards). */
+.aimp-button-details fieldset {
+	margin: 0 0 1rem;
+	padding: 0.75rem 1rem;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+
+.aimp-button-details legend {
+	padding: 0 0.4rem;
+	font-weight: 600;
+}
+
+.aimp-button-specs p {
+	display: grid;
+	grid-template-columns: 11rem minmax(0, 1fr);
+	align-items: center;
+	gap: 0.75rem;
+	margin: 0.5rem 0;
+}
+
+.aimp-button-specs input,
+.aimp-button-specs select {
+	width: 100%;
+	max-width: 24rem;
+}
+
+.aimp-button-sold-choice {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 1.5rem;
+}
+
+.aimp-button-sold-choice label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.aimp-button-ideal-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 0.75rem;
+	margin-top: 0.5rem;
+}
+
+.aimp-button-ideal-list select {
+	width: 100%;
+}
+
+/* Pattern → Buttons: a switch and a diameter range per type. */
+.aimp-button-rules {
+	padding: 0 12px 12px;
+}
+
+.aimp-button-rules .aimp-button-rule {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 18px;
+	margin: 8px 0 0;
+	padding: 8px 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+}
+
+.aimp-button-rules .aimp-button-rule.is-on {
+	border-color: #b38f4f;
+}
+
+.woocommerce_options_panel .aimp-button-rules label {
+	float: none;
+	width: auto;
+	margin: 0;
+}
+
+.aimp-button-rule-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 16rem;
+	font-weight: 600;
+}
+
+.aimp-button-rule-range {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 12px;
+}
+
+.aimp-button-rule:not(.is-on) .aimp-button-rule-range {
+	opacity: 0.45;
+}
+
+.woocommerce_options_panel .aimp-button-rule-range input.small-text {
+	float: none;
+	width: 5em;
+}
+
+/* Amount fields of button types the pattern does not use. */
+.woocommerce_variation .aimp-material-field[hidden],
+.aimp-material-group[hidden] {
+	display: none;
+}

@@ -273,7 +273,7 @@ class AIMP_Favorites {
 		// The card of the category pages, as a link to the product page (the amount, length or size is
 		// chosen there), with a "View product" button at the bottom.
 		$card   = AIMP_Catalog::card( $product );
-		$suffix = AIMP_Catalog::sold_per_10cm( $product ) ? ' <small>' . esc_html__( 'per 10 cm', 'atelier-irisee-master-plugin' ) . '</small>' : '';
+		$suffix = ( '' !== AIMP_Catalog::price_suffix( $product ) ? ' <small>' . esc_html( AIMP_Catalog::price_suffix( $product ) ) . '</small>' : '' );
 		$badge  = $product->is_in_stock() ? '' : '<span class="aimp-badge">' . esc_html__( 'Out of stock', 'atelier-irisee-master-plugin' ) . '</span>';
 
 		return sprintf(

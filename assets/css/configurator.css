@@ -1421,3 +1421,12 @@
 		transform: translateY(-50%);
 	}
 }
+
+/* Buttons: the diameter under the name on a card. */
+.aimp-configurator .aimp-card-name .aimp-card-sub {
+	display: block;
+	margin-top: 0.1em;
+	font-size: 0.85em;
+	font-weight: 400;
+	color: var(--aimp-gold-text, #8a6a33);
+}

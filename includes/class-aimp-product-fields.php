@@ -212,16 +212,26 @@ class AIMP_Product_Fields {
 			}
 			return '0' === $saved ? '' : $saved;
 		};
-		$input = function ( $name, $label, $unit, $current ) use ( $loop ) {
+		// Button types the pattern does not use (Atelier Irisee tab → Buttons) get no field; admin.js follows the switches.
+		$off   = array();
+		$types = AIMP_Catalog::button_types();
+		foreach ( self::shown_button_rules( wc_get_product( $variation_post->post_parent ) ) as $type => $rule ) {
+			if ( ! $rule['on'] ) {
+				$off[ $types[ $type ][1] ] = true;
+			}
+		}
+		$input = function ( $name, $label, $unit, $current ) use ( $loop, $off ) {
 			$id = 'aimp_' . $name . '_' . $loop;
 			printf(
-				'<label class="aimp-material-field" for="%1$s"><span>%2$s</span><span class="aimp-material-input"><input type="number" min="0" step="%3$s" id="%1$s" name="%4$s" value="%5$s" placeholder="0"><em>%6$s</em></span></label>',
+				'<label class="aimp-material-field" for="%1$s" data-material="%7$s"%8$s><span>%2$s</span><span class="aimp-material-input"><input type="number" min="0" step="%3$s" id="%1$s" name="%4$s" value="%5$s" placeholder="0"><em>%6$s</em></span></label>',
 				esc_attr( $id ),
 				esc_html( $label ),
 				'cm' === $unit ? '0.5' : '1',
 				esc_attr( 'aimp_material[' . $name . '][' . $loop . ']' ),
 				esc_attr( $current ),
-				esc_html( 'cm' === $unit ? __( 'cm', 'atelier-irisee-master-plugin' ) : __( 'pcs', 'atelier-irisee-master-plugin' ) )
+				esc_html( 'cm' === $unit ? __( 'cm', 'atelier-irisee-master-plugin' ) : __( 'pcs', 'atelier-irisee-master-plugin' ) ),
+				esc_attr( $name ),
+				isset( $off[ $name ] ) ? ' hidden' : ''
 			);
 		};
 		?>
@@ -229,7 +239,7 @@ class AIMP_Product_Fields {
 			<h4><?php esc_html_e( 'Needed materials & sizes', 'atelier-irisee-master-plugin' ); ?></h4>
 			<div class="aimp-material-groups">
 				<?php foreach ( $groups as $group => $fields ) : ?>
-					<fieldset class="aimp-material-group<?php echo count( $fields ) > 1 ? ' has-types' : ''; ?>">
+					<fieldset class="aimp-material-group<?php echo count( $fields ) > 1 ? ' has-types' : ''; ?>"<?php echo array_diff_key( $fields, $off ) ? '' : ' hidden'; ?>>
 						<legend><?php echo esc_html( $group ); ?></legend>
 						<?php
 						foreach ( $fields as $key => $field ) {
@@ -429,6 +439,9 @@ class AIMP_Product_Fields {
 			<?php if ( $designs ) : ?>
 				<?php self::render_designs( $product_object, $designs, $design_set, $terms ); ?>
 			<?php endif; ?>
+			<?php if ( $is_product ) : ?>
+				<?php self::render_button_rules( $product_object ); ?>
+			<?php endif; ?>
 			<div class="options_group aimp-priority">
 				<h4><?php esc_html_e( 'Fitting fabrics', 'atelier-irisee-master-plugin' ); ?></h4>
 				<?php if ( $designs ) : ?>
@@ -535,6 +548,112 @@ class AIMP_Product_Fields {
 	}
 
 	/**
+	 * Which button types the pattern uses, as shown on the tab. A pattern saved before 3.6 has no rules yet:
+	 * a type then counts as used when a size has an amount for it.
+	 *
+	 * @param WC_Product $product Pattern.
+	 * @return array type => [ on, min, max ]
+	 */
+	private static function shown_button_rules( $product ) {
+		$rules = AIMP_Catalog::button_rules( $product->get_id() );
+		if ( ! $product->get_id() || metadata_exists( 'post', $product->get_id(), AIMP_Catalog::META_BUTTON_RULES ) ) {
+			return $product->get_id() ? $rules : array_map(
+				function ( $rule ) {
+					$rule['on'] = false;
+					return $rule;
+				},
+				$rules
+			);
+		}
+		$fields = AIMP_Catalog::material_fields();
+		foreach ( AIMP_Catalog::button_types() as $type => $info ) {
+			$used = false;
+			foreach ( $product->get_children() as $child_id ) {
+				if ( (float) get_post_meta( $child_id, $fields[ $info[1] ]['meta'], true ) > 0 ) {
+					$used = true;
+					break;
+				}
+			}
+			$rules[ $type ]['on'] = $used;
+		}
+		return $rules;
+	}
+
+	/**
+	 * "Buttons": per type (button, jeans button, press stud) a switch and the diameter range that fits. Only
+	 * switched-on types get an amount field on the sizes, and the configurator only offers buttons of that type
+	 * whose diameter is within the range.
+	 *
+	 * @param WC_Product $product Pattern.
+	 */
+	private static function render_button_rules( $product ) {
+		$rules  = self::shown_button_rules( $product );
+		$labels = array(
+			'button'       => __( 'This pattern uses buttons', 'atelier-irisee-master-plugin' ),
+			'jeans_button' => __( 'This pattern uses jeans buttons', 'atelier-irisee-master-plugin' ),
+			'press_stud'   => __( 'This pattern uses press studs', 'atelier-irisee-master-plugin' ),
+		);
+		?>
+		<div class="options_group aimp-button-rules" data-aimp-button-rules>
+			<h4><?php esc_html_e( 'Buttons', 'atelier-irisee-master-plugin' ); ?></h4>
+			<p class="description"><?php esc_html_e( 'Switch on the kinds of buttons this pattern needs and the diameter that fits (empty = any diameter). Each size then gets an amount field for it on the Variations tab, and the configurator only offers buttons of that type and diameter.', 'atelier-irisee-master-plugin' ); ?></p>
+			<?php foreach ( AIMP_Catalog::button_types() as $type => $info ) : ?>
+				<?php
+				$rule = $rules[ $type ];
+				$base = 'aimp_button_rules[' . $type . ']';
+				?>
+				<div class="aimp-button-rule<?php echo $rule['on'] ? ' is-on' : ''; ?>" data-material="<?php echo esc_attr( $info[1] ); ?>">
+					<label class="aimp-button-rule-switch">
+						<input type="checkbox" class="aimp-button-rule-toggle" name="<?php echo esc_attr( $base . '[on]' ); ?>" value="1"<?php checked( $rule['on'] ); ?>>
+						<?php echo esc_html( $labels[ $type ] ); ?>
+					</label>
+					<span class="aimp-button-rule-range">
+						<label>
+							<?php esc_html_e( 'Diameter from', 'atelier-irisee-master-plugin' ); ?>
+							<input type="number" class="small-text" min="0" step="0.5" name="<?php echo esc_attr( $base . '[min]' ); ?>" value="<?php echo esc_attr( (string) $rule['min'] ); ?>">
+						</label>
+						<label>
+							<?php esc_html_e( 'to', 'atelier-irisee-master-plugin' ); ?>
+							<input type="number" class="small-text" min="0" step="0.5" name="<?php echo esc_attr( $base . '[max]' ); ?>" value="<?php echo esc_attr( (string) $rule['max'] ); ?>">
+							<?php esc_html_e( 'mm', 'atelier-irisee-master-plugin' ); ?>
+						</label>
+					</span>
+				</div>
+			<?php endforeach; ?>
+			<input type="hidden" name="aimp_button_rules_present" value="1">
+		</div>
+		<?php
+	}
+
+	/**
+	 * Saves the "Buttons" block.
+	 *
+	 * @param WC_Product $product Pattern.
+	 */
+	private static function save_button_rules( $product ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
+		if ( empty( $_POST['aimp_button_rules_present'] ) || ! $product->is_type( 'variable' ) ) {
+			return;
+		}
+		$input = isset( $_POST['aimp_button_rules'] ) && is_array( $_POST['aimp_button_rules'] ) ? wp_unslash( $_POST['aimp_button_rules'] ) : array();
+		// phpcs:enable
+		$number = function ( $value ) {
+			$value = wc_clean( (string) $value );
+			return '' === $value || (float) $value <= 0 ? '' : wc_format_decimal( (float) $value, 1, true );
+		};
+		$clean = array();
+		foreach ( array_keys( AIMP_Catalog::button_types() ) as $type ) {
+			$row            = isset( $input[ $type ] ) && is_array( $input[ $type ] ) ? $input[ $type ] : array();
+			$clean[ $type ] = array(
+				'on'  => ! empty( $row['on'] ),
+				'min' => isset( $row['min'] ) ? $number( $row['min'] ) : '',
+				'max' => isset( $row['max'] ) ? $number( $row['max'] ) : '',
+			);
+		}
+		$product->update_meta_data( AIMP_Catalog::META_BUTTON_RULES, $clean );
+	}
+
+	/**
 	 * Saves the "Designs" block (per design: pictures in the order they were ticked, fabrics, height, time).
 	 *
 	 * @param WC_Product $product Pattern.
@@ -594,6 +713,7 @@ class AIMP_Product_Fields {
 		}
 		if ( current_user_can( 'edit_products' ) ) {
 			self::save_designs( $product );
+			self::save_button_rules( $product );
 		}
 		if ( isset( $_POST[ AIMP_Catalog::META_PROJECT_TIME ] ) && current_user_can( 'edit_products' ) ) {
 			$time = sanitize_text_field( wp_unslash( $_POST[ AIMP_Catalog::META_PROJECT_TIME ] ) );
