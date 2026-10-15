@@ -121,6 +121,7 @@
 		}
 		var per10cm = bar.getAttribute('data-per-10cm') === '1';
 		var setSize = parseInt(bar.getAttribute('data-set-size'), 10) || 1;
+		var isButton = bar.hasAttribute('data-button');
 		var unitPrice = parseFloat(bar.getAttribute('data-unit-price')) || 0;
 		var step = parseInt(field.getAttribute('step'), 10) || 1;
 		var min = parseInt(field.getAttribute('min'), 10) || step;
@@ -166,7 +167,8 @@
 					unitLine.hidden = false;
 				} else {
 					unitLine.textContent = UI.fmt(t.perPiece, UI.money(unitPrice, cfg.currency));
-					unitLine.hidden = units < 2;
+					// Buttons always say "per piece"; other products only from 2 pieces.
+					unitLine.hidden = !isButton && units < 2;
 				}
 			}
 		};

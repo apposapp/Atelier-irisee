@@ -1391,4 +1391,12 @@ return array(
 	// 3.6.0: sets
 	'%1$d × set of %2$d' => '%1$d × lot de %2$d',
 	'%1$s: %2$d needed' => '%1$s : %2$d nécessaires',
+
+	// 3.6.1
+	'Added: %1$d × set of %2$d = %3$d buttons, %4$d more than needed.' => 'Ajouté : %1$d × lot de %2$d = %3$d boutons, %4$d de plus que nécessaire.',
+	'Added: %1$d × set of %2$d = %3$d buttons.' => 'Ajouté : %1$d × lot de %2$d = %3$d boutons.',
+	'Allowed: %s' => 'Autorisé : %s',
+	'Switch on a button type on the Atelier Irisee tab (Buttons) to fill in buttons.' => 'Activez un type de bouton dans l\'onglet Atelier Irisee (Boutons) pour saisir des boutons.',
+	'These buttons are only sold per set of %d, and the amount can\'t be changed.' => 'Ces boutons sont vendus uniquement par lot de %d, et la quantité ne peut pas être modifiée.',
+	'per piece' => 'la pièce',
 );

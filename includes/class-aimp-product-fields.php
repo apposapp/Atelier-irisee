@@ -223,7 +223,7 @@ class AIMP_Product_Fields {
 		$input = function ( $name, $label, $unit, $current ) use ( $loop, $off ) {
 			$id = 'aimp_' . $name . '_' . $loop;
 			printf(
-				'<label class="aimp-material-field" for="%1$s" data-material="%7$s"%8$s><span>%2$s</span><span class="aimp-material-input"><input type="number" min="0" step="%3$s" id="%1$s" name="%4$s" value="%5$s" placeholder="0"><em>%6$s</em></span></label>',
+				'<label class="aimp-material-field" for="%1$s" data-material="%7$s"%8$s><span>%2$s</span><span class="aimp-material-input"><input type="number" min="0" step="%3$s" id="%1$s" name="%4$s" value="%5$s" placeholder="0"%9$s><em>%6$s</em></span></label>',
 				esc_attr( $id ),
 				esc_html( $label ),
 				'cm' === $unit ? '0.5' : '1',
@@ -231,23 +231,40 @@ class AIMP_Product_Fields {
 				esc_attr( $current ),
 				esc_html( 'cm' === $unit ? __( 'cm', 'atelier-irisee-master-plugin' ) : __( 'pcs', 'atelier-irisee-master-plugin' ) ),
 				esc_attr( $name ),
-				isset( $off[ $name ] ) ? ' hidden' : ''
+				isset( $off[ $name ] ) ? ' hidden' : '',
+				isset( $off[ $name ] ) ? ' disabled' : ''
 			);
 		};
+		$allowed = self::allowed_buttons_text( wc_get_product( $variation_post->post_parent ) );
 		?>
 		<div class="aimp-variation-fields">
 			<h4><?php esc_html_e( 'Needed materials & sizes', 'atelier-irisee-master-plugin' ); ?></h4>
 			<div class="aimp-material-groups">
 				<?php foreach ( $groups as $group => $fields ) : ?>
-					<fieldset class="aimp-material-group<?php echo count( $fields ) > 1 ? ' has-types' : ''; ?>"<?php echo array_diff_key( $fields, $off ) ? '' : ' hidden'; ?>>
-						<legend><?php echo esc_html( $group ); ?></legend>
-						<?php
-						foreach ( $fields as $key => $field ) {
-							// A single field shows the group name only; types show their own name.
-							$input( $key, count( $fields ) > 1 ? $field['label'] : '', $field['unit'], $value( $key, $field ) );
-						}
-						?>
-					</fieldset>
+					<?php if ( count( $fields ) > 1 ) : ?>
+						<?php $is_buttons = (bool) array_intersect_key( $fields, array_flip( wp_list_pluck( $types, 1 ) ) ); ?>
+						<fieldset class="aimp-material-group has-types<?php echo $is_buttons ? ' aimp-button-group' : ''; ?>">
+							<legend><?php echo esc_html( $group ); ?></legend>
+							<?php
+							foreach ( $fields as $key => $field ) {
+								$input( $key, $field['label'], $field['unit'], $value( $key, $field ) );
+							}
+							?>
+							<?php if ( $is_buttons ) : ?>
+								<?php // What may be filled in: the types switched on (Atelier Irisee tab → Buttons); admin.js keeps it up to date. ?>
+								<p class="aimp-button-allowed" data-aimp-button-allowed><?php echo esc_html( $allowed ); ?></p>
+								<input type="hidden" class="aimp-button-on" name="<?php echo esc_attr( 'aimp_button_on[' . $loop . ']' ); ?>" value="<?php echo esc_attr( implode( ',', array_diff( wp_list_pluck( $types, 1 ), array_keys( $off ) ) ) ); ?>">
+							<?php endif; ?>
+						</fieldset>
+					<?php else : ?>
+						<div class="aimp-material-group">
+							<?php
+							foreach ( $fields as $key => $field ) {
+								$input( $key, $field['label'], $field['unit'], $value( $key, $field ) );
+							}
+							?>
+						</div>
+					<?php endif; ?>
 				<?php endforeach; ?>
 				<fieldset class="aimp-material-group aimp-measurement-group has-types">
 					<legend><?php esc_html_e( 'Body measurements', 'atelier-irisee-master-plugin' ); ?></legend>
@@ -287,8 +304,18 @@ class AIMP_Product_Fields {
 		foreach ( self::measurement_fields() as $meta => $label ) {
 			$fields[ ltrim( $meta, '_' ) ] = array( $meta, 'cm' );
 		}
+		// Button types switched off on the Atelier Irisee tab (as on the screen, also before the pattern is saved).
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
+		$on_list = isset( $_POST['aimp_button_on'][ $i ] ) ? array_filter( explode( ',', sanitize_text_field( wp_unslash( $_POST['aimp_button_on'][ $i ] ) ) ) ) : null;
+		$off     = array();
+		foreach ( self::shown_button_rules( wc_get_product( $variation->get_parent_id() ) ) as $type => $rule ) {
+			$material = AIMP_Catalog::button_types()[ $type ][1];
+			if ( null === $on_list ? ! $rule['on'] : ! in_array( $material, $on_list, true ) ) {
+				$off[ $material ] = true;
+			}
+		}
 		foreach ( $fields as $name => $field ) {
-			$value = $get( $name );
+			$value = isset( $off[ $name ] ) ? '' : $get( $name );
 			if ( '' === $value || (float) $value <= 0 ) {
 				$variation->delete_meta_data( $field[0] );
 				continue;
@@ -588,13 +615,19 @@ class AIMP_Product_Fields {
 	 */
 	private static function render_button_rules( $product ) {
 		$rules  = self::shown_button_rules( $product );
+		$fields = AIMP_Catalog::material_fields();
 		$labels = array(
 			'button'       => __( 'This pattern uses buttons', 'atelier-irisee-master-plugin' ),
 			'jeans_button' => __( 'This pattern uses jeans buttons', 'atelier-irisee-master-plugin' ),
 			'press_stud'   => __( 'This pattern uses press studs', 'atelier-irisee-master-plugin' ),
 		);
 		?>
-		<div class="options_group aimp-button-rules" data-aimp-button-rules>
+		<div class="options_group aimp-button-rules" data-aimp-button-rules
+			data-allowed="<?php /* translators: %s: the allowed button types, e.g. "Buttons 14–18 mm" */ echo esc_attr( __( 'Allowed: %s', 'atelier-irisee-master-plugin' ) ); ?>"
+			data-none="<?php esc_attr_e( 'Switch on a button type on the Atelier Irisee tab (Buttons) to fill in buttons.', 'atelier-irisee-master-plugin' ); ?>"
+			data-range="<?php /* translators: 1: smallest diameter, 2: largest diameter (in mm) */ echo esc_attr( __( '%1$s–%2$s mm', 'atelier-irisee-master-plugin' ) ); ?>"
+			data-from="<?php /* translators: %s: diameter in mm */ echo esc_attr( __( 'from %s mm', 'atelier-irisee-master-plugin' ) ); ?>"
+			data-upto="<?php /* translators: %s: diameter in mm */ echo esc_attr( __( 'up to %s mm', 'atelier-irisee-master-plugin' ) ); ?>">
 			<h4><?php esc_html_e( 'Buttons', 'atelier-irisee-master-plugin' ); ?></h4>
 			<p class="description"><?php esc_html_e( 'Switch on the kinds of buttons this pattern needs and the diameter that fits (empty = any diameter). Each size then gets an amount field for it on the Variations tab, and the configurator only offers buttons of that type and diameter.', 'atelier-irisee-master-plugin' ); ?></p>
 			<?php foreach ( AIMP_Catalog::button_types() as $type => $info ) : ?>
@@ -602,7 +635,7 @@ class AIMP_Product_Fields {
 				$rule = $rules[ $type ];
 				$base = 'aimp_button_rules[' . $type . ']';
 				?>
-				<div class="aimp-button-rule<?php echo $rule['on'] ? ' is-on' : ''; ?>" data-material="<?php echo esc_attr( $info[1] ); ?>">
+				<div class="aimp-button-rule<?php echo $rule['on'] ? ' is-on' : ''; ?>" data-material="<?php echo esc_attr( $info[1] ); ?>" data-label="<?php echo esc_attr( $fields[ $info[1] ]['label'] ); ?>">
 					<label class="aimp-button-rule-switch">
 						<input type="checkbox" class="aimp-button-rule-toggle" name="<?php echo esc_attr( $base . '[on]' ); ?>" value="1"<?php checked( $rule['on'] ); ?>>
 						<?php echo esc_html( $labels[ $type ] ); ?>
@@ -651,6 +684,36 @@ class AIMP_Product_Fields {
 			);
 		}
 		$product->update_meta_data( AIMP_Catalog::META_BUTTON_RULES, $clean );
+		$fields = AIMP_Catalog::material_fields();
+		foreach ( AIMP_Catalog::button_types() as $type => $info ) {
+			if ( $clean[ $type ]['on'] ) {
+				continue;
+			}
+			foreach ( $product->get_children() as $child_id ) {
+				delete_post_meta( $child_id, $fields[ $info[1] ]['meta'] );
+			}
+		}
+	}
+
+	/**
+	 * "Allowed: Buttons 14–18 mm · Press studs" under the Buttons of a size, or how to switch one on.
+	 *
+	 * @param WC_Product|null $product Pattern.
+	 * @return string
+	 */
+	private static function allowed_buttons_text( $product ) {
+		$parts  = array();
+		$fields = AIMP_Catalog::material_fields();
+		if ( $product ) {
+			foreach ( self::shown_button_rules( $product ) as $type => $rule ) {
+				if ( $rule['on'] ) {
+					$range   = AIMP_Catalog::button_rule_text( $rule );
+					$parts[] = $fields[ AIMP_Catalog::button_types()[ $type ][1] ]['label'] . ( '' !== $range ? ' ' . $range : '' );
+				}
+			}
+		}
+		/* translators: %s: the allowed button types, e.g. "Buttons 14–18 mm" */
+		return $parts ? sprintf( __( 'Allowed: %s', 'atelier-irisee-master-plugin' ), implode( ' · ', $parts ) ) : __( 'Switch on a button type on the Atelier Irisee tab (Buttons) to fill in buttons.', 'atelier-irisee-master-plugin' );
 	}
 
 	/**

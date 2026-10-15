@@ -847,6 +847,7 @@ class AIMP_Product_Page {
 			'specs'     => AIMP_Catalog::button_specs( $product ),
 			'ideal_for' => $ideal,
 			'set_size'  => AIMP_Catalog::button_set_size( $product ),
+			'order_info' => (string) $product->get_meta( AIMP_Catalog::META_ORDER_INFO ),
 		);
 	}
 

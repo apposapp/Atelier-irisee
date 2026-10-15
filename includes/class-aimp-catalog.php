@@ -289,6 +289,26 @@ class AIMP_Catalog {
 	}
 
 	/**
+	 * The notice for buttons sold per set: they can only be bought in whole sets, so there can be more than needed.
+	 *
+	 * @param int $need Buttons needed.
+	 * @param int $qty  Sets added.
+	 * @param int $size Set size.
+	 * @return string
+	 */
+	public static function set_note( $need, $qty, $size ) {
+		$total = (int) $qty * (int) $size;
+		/* translators: %d: number of buttons in a set */
+		$note = sprintf( __( 'These buttons are only sold per set of %d, and the amount can\'t be changed.', 'atelier-irisee-master-plugin' ), $size ) . ' ';
+		if ( $total > $need ) {
+			/* translators: 1: number of sets, 2: buttons in a set, 3: buttons in total, 4: buttons more than needed */
+			return $note . sprintf( __( 'Added: %1$d × set of %2$d = %3$d buttons, %4$d more than needed.', 'atelier-irisee-master-plugin' ), $qty, $size, $total, $total - $need );
+		}
+		/* translators: 1: number of sets, 2: buttons in a set, 3: buttons in total */
+		return $note . sprintf( __( 'Added: %1$d × set of %2$d = %3$d buttons.', 'atelier-irisee-master-plugin' ), $qty, $size, $total );
+	}
+
+	/**
 	 * "2 × set of 6".
 	 *
 	 * @param int $qty  Number of sets.
@@ -301,7 +321,7 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * What the price of a product is for, next to the price: "per 10 cm", "per set of 6" or ''.
+	 * What the price of a product is for, next to the price: "per 10 cm", "per set of 6", "per piece" (buttons) or ''.
 	 *
 	 * @param WC_Product $product Product.
 	 * @return string
@@ -311,8 +331,11 @@ class AIMP_Catalog {
 			return __( 'per 10 cm', 'atelier-irisee-master-plugin' );
 		}
 		$set = self::button_set_size( $product );
-		/* translators: %d: number of buttons in a set */
-		return $set > 1 ? sprintf( __( 'per set of %d', 'atelier-irisee-master-plugin' ), $set ) : '';
+		if ( $set > 1 ) {
+			/* translators: %d: number of buttons in a set */
+			return sprintf( __( 'per set of %d', 'atelier-irisee-master-plugin' ), $set );
+		}
+		return self::is_button( $product ) ? __( 'per piece', 'atelier-irisee-master-plugin' ) : '';
 	}
 
 	/**
@@ -1713,12 +1736,14 @@ class AIMP_Catalog {
 	public static function material_card( $product, $qty ) {
 		// Buttons sold per set: whole sets (7 needed, sets of 6 = 2 sets).
 		$set                 = self::button_set_size( $product );
+		$need                = (int) $qty;
 		$qty                 = self::pack_qty( $product, $qty );
 		$card                = self::card( $product );
 		$card['qty']         = $qty;
 		$card['set_size']    = $set;
 		$card['qty_text']    = $set > 1 ? self::sets_text( $qty, $set ) : '';
 		$card['price_suffix'] = $set > 1 ? self::price_suffix( $product ) : '';
+		$card['set_note']    = $set > 1 ? self::set_note( $need, $qty, $set ) : '';
 		$card['subtitle']    = self::is_button( $product ) ? self::button_diameter_text( $product ) : '';
 		$card['available']   = self::is_available( $product, $qty );
 		$card['total_html']  = wc_price( $card['price'] * $qty );

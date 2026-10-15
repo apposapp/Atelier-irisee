@@ -188,10 +188,11 @@ class AIMP_Product_Workspace {
 			self::card( 5, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
 		} elseif ( 'button' === $type ) {
 			self::card( 1, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'The price and the stock are per piece, or per set when the button is sold per set.', 'atelier-irisee-master-plugin' ) );
-			self::card( 2, __( 'Description', 'atelier-irisee-master-plugin' ), 'description', __( 'Shown on the button page under "Description". The pictures are set on the right: Product image and Product gallery.', 'atelier-irisee-master-plugin' ) );
-			self::card( 3, __( 'Specifications', 'atelier-irisee-master-plugin' ), 'specs', __( 'The type and the diameter decide in which patterns the button is offered.', 'atelier-irisee-master-plugin' ) );
-			self::card( 4, __( 'Ideal for', 'atelier-irisee-master-plugin' ), 'ideal' );
-			self::card( 5, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
+			self::card( 2, __( 'Order information', 'atelier-irisee-master-plugin' ), 'order' );
+			self::card( 3, __( 'Description', 'atelier-irisee-master-plugin' ), 'description', __( 'Shown on the button page under "Description". The pictures are set on the right: Product image and Product gallery.', 'atelier-irisee-master-plugin' ) );
+			self::card( 4, __( 'Specifications', 'atelier-irisee-master-plugin' ), 'specs', __( 'The type and the diameter decide in which patterns the button is offered.', 'atelier-irisee-master-plugin' ) );
+			self::card( 5, __( 'Ideal for', 'atelier-irisee-master-plugin' ), 'ideal' );
+			self::card( 6, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
 		} else {
 			self::card( 1, __( 'Description', 'atelier-irisee-master-plugin' ), 'description', __( 'Shown on the pattern page under "Description".', 'atelier-irisee-master-plugin' ) );
 			self::card( 2, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'One price and one stock for all sizes.', 'atelier-irisee-master-plugin' ) );

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.6.0
+Stable tag: 3.6.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.6.1 =
+* Pattern sizes: every field in "Needed materials & sizes" shows its name again (Cord, Elastic, Fabric, …), and the group titles Zips, Buttons and Body measurements are visible.
+* Pattern sizes: only the button types switched on in the pattern's Buttons block can be filled in; the others are disabled, and switching a type off removes its amounts from all sizes. Under the buttons a note says what is allowed, e.g. "Allowed: Buttons 14–18 mm".
+* Button page: the buy bar always shows "€0,60 per piece" or "€0,60 per set of 6"; buttons get an "Order information" text under the buy bar, as on fabrics.
+* Configurator: choosing a button sold per set shows that it is only sold per set and that the amount can't be changed, e.g. "Added: 2 × set of 6 = 12 buttons, 3 more than needed."
 
 = 3.6.0 =
 * Buttons as their own kind of product: Products → "All buttons" and "Add a button" (opens with the Buttons category ticked and the button workspace: price and stock, description, specifications, "Ideal for", recommendation).

@@ -84,6 +84,7 @@
 			move('description', [richText]);
 		}
 		if (details) {
+			move('order', [q('.aimp-button-order-info', details)]);
 			move('specs', [q('.aimp-button-specs', details)]);
 			move('ideal', [q('.aimp-button-ideal', details)]);
 			var detailsBox = q('#aimp-button-details');

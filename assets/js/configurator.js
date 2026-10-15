@@ -1249,7 +1249,9 @@
 			var info = notionInfo(type);
 			// Buttons sold per set: also how many sets are added ("2 × set of 6").
 			var needText = info.need(s.size) + (bucket.selected.qty_text ? ' · ' + bucket.selected.qty_text : '');
-			panel.innerHTML = this.materialDetailsHtml(bucket.selected, bucket.image, t[info.unitLabel], needText);
+			// Sets: they can only be bought in whole sets, which can be more than needed.
+			panel.innerHTML = (bucket.selected.set_note ? '<div class="aimp-notice aimp-set-note" role="status">' + esc(bucket.selected.set_note) + '</div>' : '') +
+				this.materialDetailsHtml(bucket.selected, bucket.image, t[info.unitLabel], needText);
 			this.bindGallery(panel, bucket.selected.gallery, function (i) {
 				bucket.image = i;
 			});
@@ -1271,7 +1273,7 @@
 			if (n.qty(s.size) > 0 && selected) {
 				lines.push({
 					name: selected.name,
-					detail: selected.qty_text || (n.unitLabel === 'pricePerUnit' ? n.need(s.size) : ''),
+					detail: selected.qty_text ? selected.qty_text + (selected.set_note ? ' · ' + selected.set_note : '') : (n.unitLabel === 'pricePerUnit' ? n.need(s.size) : ''),
 					// Sets: the card's own quantity (whole sets).
 					qty: selected.qty || n.qty(s.size),
 					price: selected.price

@@ -128,14 +128,15 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 			<?php if ( $aimp_buy ) : ?>
 				<?php // Buy bar: price on the left, quantity and button on the right. ?>
-				<div class="aimp-buy-bar" data-aimp-buy data-unit-price="<?php echo esc_attr( wc_format_decimal( $aimp_buy['unit_price'], wc_get_price_decimals() ) ); ?>" data-per-10cm="<?php echo $aimp_buy['per_10cm'] ? '1' : '0'; ?>" data-set-size="<?php echo esc_attr( isset( $aimp_buy['set_size'] ) ? (int) $aimp_buy['set_size'] : 1 ); ?>"<?php echo $aimp_giftcard ? ' data-giftcard' : ''; ?>>
+				<div class="aimp-buy-bar" data-aimp-buy data-unit-price="<?php echo esc_attr( wc_format_decimal( $aimp_buy['unit_price'], wc_get_price_decimals() ) ); ?>" data-per-10cm="<?php echo $aimp_buy['per_10cm'] ? '1' : '0'; ?>" data-set-size="<?php echo esc_attr( isset( $aimp_buy['set_size'] ) ? (int) $aimp_buy['set_size'] : 1 ); ?>"<?php echo $aimp_button ? ' data-button' : ''; ?><?php echo $aimp_giftcard ? ' data-giftcard' : ''; ?>>
 					<div class="aimp-buy-price">
 						<?php if ( '' !== $the_product->get_price_html() ) : ?>
 							<p class="aimp-details-price price" data-aimp-price><?php echo wp_kses_post( $the_product->get_price_html() ); ?></p>
 						<?php endif; ?>
 						<?php if ( $aimp_buy['per_10cm'] ) : ?>
 							<p class="aimp-price-unit" data-aimp-unit-line><?php esc_html_e( 'per 10 cm', 'atelier-irisee-master-plugin' ); ?></p>
-						<?php elseif ( ! empty( $aimp_buy['set_size'] ) && $aimp_buy['set_size'] > 1 ) : ?>
+						<?php elseif ( $aimp_button ) : ?>
+							<?php // Buttons: always "€0,60 per piece" or "€0,60 per set of 6" (product.js adds the price). ?>
 							<p class="aimp-price-unit" data-aimp-unit-line><?php echo esc_html( AIMP_Catalog::price_suffix( $the_product ) ); ?></p>
 						<?php else : ?>
 							<p class="aimp-price-unit" data-aimp-unit-line hidden></p>
@@ -261,8 +262,9 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 				</ul>
 			<?php endif; ?>
 
-			<?php if ( $aimp_fabric && $aimp_has_text( $aimp_fabric['order_info'] ) ) : ?>
-				<div class="aimp-description aimp-product-order-info"><?php echo wp_kses_post( wpautop( $aimp_fabric['order_info'] ) ); ?></div>
+			<?php $aimp_order_info = $aimp_fabric ? $aimp_fabric['order_info'] : ( $aimp_button ? $aimp_button['order_info'] : '' ); ?>
+			<?php if ( $aimp_has_text( $aimp_order_info ) ) : ?>
+				<div class="aimp-description aimp-product-order-info"><?php echo wp_kses_post( wpautop( $aimp_order_info ) ); ?></div>
 			<?php endif; ?>
 
 			<?php if ( $aimp_show_short ) : ?>

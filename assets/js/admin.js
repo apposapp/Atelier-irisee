@@ -195,23 +195,44 @@ jQuery(function ($) {
 		return;
 	}
 
+	function fmt(str, a, b) {
+		return String(str).replace('%1$s', a).replace('%2$s', b).replace('%s', a);
+	}
+
 	function apply() {
+		var onList = [];
+		var parts = [];
 		$rules.find('.aimp-button-rule').each(function () {
 			var $rule = $(this);
 			var on = $rule.find('.aimp-button-rule-toggle').prop('checked');
+			var material = $rule.attr('data-material');
 			$rule.toggleClass('is-on', on);
-			$('.aimp-variation-fields .aimp-material-field[data-material="' + $rule.attr('data-material') + '"]').prop('hidden', !on);
-		});
-		$('.aimp-variation-fields .aimp-material-group').each(function () {
-			var $group = $(this);
-			var $fields = $group.children('.aimp-material-field');
-			if ($fields.filter('[data-material]').length) {
-				$group.prop('hidden', $fields.filter(':not([hidden])').length === 0);
+			// A type that is off can't be filled in on the sizes (hidden and disabled, so it is not sent).
+			var $fields = $('.aimp-variation-fields .aimp-material-field[data-material="' + material + '"]');
+			$fields.prop('hidden', !on);
+			$fields.find('input').prop('disabled', !on);
+			if (on) {
+				onList.push(material);
+				var min = parseFloat($rule.find('input[name$="[min]"]').val()) || 0;
+				var max = parseFloat($rule.find('input[name$="[max]"]').val()) || 0;
+				var range = '';
+				if (min && max) {
+					range = min === max ? fmt($rules.attr('data-from'), min).replace(/^\D+/, '') : fmt($rules.attr('data-range'), Math.min(min, max), Math.max(min, max));
+				} else if (min) {
+					range = fmt($rules.attr('data-from'), min);
+				} else if (max) {
+					range = fmt($rules.attr('data-upto'), max);
+				}
+				parts.push($rule.attr('data-label') + (range ? ' ' + range : ''));
 			}
 		});
+		var note = parts.length ? fmt($rules.attr('data-allowed'), parts.join(' · ')) : $rules.attr('data-none');
+		$('.aimp-variation-fields [data-aimp-button-allowed]').text(note);
+		$('.aimp-variation-fields .aimp-button-on').val(onList.join(','));
 	}
 
 	$rules.on('change', '.aimp-button-rule-toggle', apply);
+	$rules.on('input', 'input[type="number"]', apply);
 	$('#woocommerce-product-data').on('woocommerce_variations_loaded woocommerce_variations_added', apply);
 	apply();
 });

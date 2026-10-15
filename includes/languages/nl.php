@@ -1391,4 +1391,12 @@ return array(
 	// 3.6.0: sets
 	'%1$d × set of %2$d' => '%1$d × set van %2$d',
 	'%1$s: %2$d needed' => '%1$s: %2$d nodig',
+
+	// 3.6.1
+	'Added: %1$d × set of %2$d = %3$d buttons, %4$d more than needed.' => 'Toegevoegd: %1$d × set van %2$d = %3$d knopen, %4$d meer dan nodig.',
+	'Added: %1$d × set of %2$d = %3$d buttons.' => 'Toegevoegd: %1$d × set van %2$d = %3$d knopen.',
+	'Allowed: %s' => 'Toegestaan: %s',
+	'Switch on a button type on the Atelier Irisee tab (Buttons) to fill in buttons.' => 'Zet een soort knoop aan op het tabblad Atelier Irisee (Knopen) om knopen in te vullen.',
+	'These buttons are only sold per set of %d, and the amount can\'t be changed.' => 'Deze knopen worden alleen per set van %d verkocht, en het aantal kan niet aangepast worden.',
+	'per piece' => 'per stuk',
 );

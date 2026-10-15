@@ -914,10 +914,6 @@
 	margin: 4px 0 0;
 }
 
-.woocommerce_variation .aimp-material-field > span:first-child:empty {
-	display: none;
-}
-
 .woocommerce_variation .aimp-material-input {
 	display: inline-flex;
 	align-items: center;
@@ -1053,4 +1049,36 @@
 .woocommerce_variation .aimp-material-field[hidden],
 .aimp-material-group[hidden] {
 	display: none;
+}
+
+/* Needed materials & sizes: WooCommerce floats legends in the product data panels out of view; show them. */
+#woocommerce-product-data .woocommerce_variation .aimp-variation-fields fieldset.aimp-material-group legend {
+	position: static;
+	float: none;
+	width: auto;
+	margin: 0 0 4px;
+	padding: 0 4px;
+}
+
+.woocommerce_variation .aimp-material-field > span:first-child {
+	min-width: 0;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.woocommerce_variation .aimp-material-input {
+	flex: none;
+}
+
+.woocommerce_variation .aimp-button-allowed {
+	margin: 6px 0 0;
+	padding: 0;
+	color: #8a6a33;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+/* Button details: order information editor. */
+.aimp-button-order-info {
+	margin: 0 0 1rem;
 }

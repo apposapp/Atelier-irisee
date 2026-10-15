@@ -101,6 +101,23 @@ class AIMP_Button_Fields {
 			<input type="hidden" name="aimp_button_details" value="1">
 			<p class="description"><?php esc_html_e( 'Only used for buttons (the Buttons category). The type and the diameter decide in which patterns the button is offered in the configurator.', 'atelier-irisee-master-plugin' ); ?></p>
 
+			<div class="aimp-button-order-info">
+				<h4><label for="aimp_button_order_info"><?php esc_html_e( 'Order information', 'atelier-irisee-master-plugin' ); ?></label></h4>
+				<p class="description"><?php esc_html_e( 'Shown under the price bar, next to the picture.', 'atelier-irisee-master-plugin' ); ?></p>
+				<?php
+				wp_editor(
+					$get( AIMP_Catalog::META_ORDER_INFO ),
+					'aimp_button_order_info',
+					array(
+						'textarea_name' => 'aimp_button[order_info]',
+						'textarea_rows' => 5,
+						'media_buttons' => false,
+						'teeny'         => true,
+					)
+				);
+				?>
+			</div>
+
 			<fieldset class="aimp-button-specs">
 				<legend><?php esc_html_e( 'Specifications', 'atelier-irisee-master-plugin' ); ?></legend>
 				<p>
@@ -203,6 +220,10 @@ class AIMP_Button_Fields {
 
 		$size = isset( $input['set_size'] ) ? absint( $input['set_size'] ) : 0;
 		$set( AIMP_Catalog::META_BTN_SET_SIZE, isset( $input['sold'] ) && 'set' === $input['sold'] && $size > 1 ? (string) $size : '' );
+
+		// The same field as the order information of fabrics, shown in the same place.
+		$info = isset( $input['order_info'] ) ? wp_kses_post( $input['order_info'] ) : '';
+		$set( AIMP_Catalog::META_ORDER_INFO, '' === trim( wp_strip_all_tags( $info ) ) ? '' : $info );
 
 		$ideal = isset( $input['ideal_for'] ) ? array_map( 'sanitize_key', (array) $input['ideal_for'] ) : array();
 		$ideal = array_slice( array_values( array_unique( array_intersect( $ideal, array_keys( AIMP_Catalog::ideal_for_options() ) ) ) ), 0, AIMP_Catalog::IDEAL_FOR_MAX );
