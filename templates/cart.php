@@ -59,6 +59,7 @@ defined( 'ABSPATH' ) || exit;
 				<?php foreach ( $data['contents']['sets'] as $aimp_set ) : ?>
 					<?php // A configurator set: one product, amounts locked. ?>
 					<section class="aimp-cart-set">
+						<a class="aimp-cart-remove aimp-cart-remove--x aimp-cart-set-x" href="<?php echo esc_url( $aimp_set['remove_url'] ); ?>" aria-label="<?php esc_attr_e( 'Remove this set', 'atelier-irisee-master-plugin' ); ?>">×</a>
 						<div class="aimp-cart-set-head">
 							<h3 class="aimp-cart-set-title">
 								<?php

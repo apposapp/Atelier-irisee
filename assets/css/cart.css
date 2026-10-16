@@ -46,6 +46,7 @@
 
 /* A configurator set */
 .aimp-cart-set {
+	position: relative;
 	margin: 0 0 1.25rem;
 	padding: 1rem 1.25rem;
 	border: 1px solid var(--aimp-gold);
@@ -228,6 +229,17 @@
 
 .aimp-configurator .aimp-cart-remove--x:hover {
 	background: var(--aimp-gold-tint);
+}
+
+/* The × in the top right corner of a set (the "Remove set" link stays too). */
+.aimp-configurator .aimp-cart-set-x {
+	position: absolute;
+	top: 0.4rem;
+	right: 0.5rem;
+}
+
+.aimp-cart-set-head {
+	padding-right: 2rem;
 }
 
 /* Discount code and update */

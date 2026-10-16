@@ -19,6 +19,7 @@ class AIMP_Kit_Steps {
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ) );
+		add_action( 'admin_init', array( __CLASS__, 'register_settings' ), 20 );
 	}
 
 	public static function register_assets() {
@@ -32,12 +33,45 @@ class AIMP_Kit_Steps {
 	 * @return array
 	 */
 	private static function steps() {
+		$defaults = self::default_texts();
+		$steps    = array();
+		foreach ( array( 'pattern', 'fabric', 'notions', 'kit' ) as $i => $key ) {
+			$n       = $i + 1;
+			$steps[] = array( $key, self::text( 'ks_s' . $n . '_title', $defaults[ 'ks_s' . $n . '_title' ] ), self::text( 'ks_s' . $n . '_text', $defaults[ 'ks_s' . $n . '_text' ] ) );
+		}
+		return $steps;
+	}
+
+	/**
+	 * The texts of the bar that can be changed under Atelier Irisee → Kit steps bar: key => translated default.
+	 *
+	 * @return array
+	 */
+	public static function default_texts() {
 		return array(
-			array( 'pattern', __( 'Choose a pattern', 'atelier-irisee-master-plugin' ), __( 'Pick your pattern and your size.', 'atelier-irisee-master-plugin' ) ),
-			array( 'fabric', __( 'Pick your fabric', 'atelier-irisee-master-plugin' ), __( 'Only fabrics that suit the pattern.', 'atelier-irisee-master-plugin' ) ),
-			array( 'notions', __( 'Add haberdashery', 'atelier-irisee-master-plugin' ), __( 'Buttons, zips and more that fit.', 'atelier-irisee-master-plugin' ) ),
-			array( 'kit', __( 'Your sewing kit', 'atelier-irisee-master-plugin' ), __( 'Everything together, ready to sew.', 'atelier-irisee-master-plugin' ) ),
+			'ks_title'    => __( 'Your own sewing project kit in 4 steps', 'atelier-irisee-master-plugin' ),
+			'ks_s1_title' => __( 'Choose a pattern', 'atelier-irisee-master-plugin' ),
+			'ks_s1_text'  => __( 'Pick your pattern and your size.', 'atelier-irisee-master-plugin' ),
+			'ks_s2_title' => __( 'Pick your fabric', 'atelier-irisee-master-plugin' ),
+			'ks_s2_text'  => __( 'Only fabrics that suit the pattern.', 'atelier-irisee-master-plugin' ),
+			'ks_s3_title' => __( 'Add haberdashery', 'atelier-irisee-master-plugin' ),
+			'ks_s3_text'  => __( 'Buttons, zips and more that fit.', 'atelier-irisee-master-plugin' ),
+			'ks_s4_title' => __( 'Your sewing kit', 'atelier-irisee-master-plugin' ),
+			'ks_s4_text'  => __( 'Everything together, ready to sew.', 'atelier-irisee-master-plugin' ),
+			'ks_button'   => __( 'Start making your project sewing kit', 'atelier-irisee-master-plugin' ),
 		);
+	}
+
+	/**
+	 * A text from the settings in the visitor's language, or the translated default.
+	 *
+	 * @param string $key     Text key.
+	 * @param string $default Default.
+	 * @return string
+	 */
+	private static function text( $key, $default ) {
+		$text = trim( AIMP_Settings::get_text( $key . '_' . AIMP_I18n::current() ) );
+		return '' !== $text ? $text : $default;
 	}
 
 	/**
@@ -49,10 +83,14 @@ class AIMP_Kit_Steps {
 	private static function drawing( $key ) {
 		$clip  = wp_unique_id( 'aimp-ks-unroll-' );
 		$parts = array(
-			// A pattern sheet with a folded corner; a dress outline that draws itself as a cutting line, and scissors.
+			// A pattern sheet with a folded corner; a dress outline that draws itself as a cutting line, and tailor's
+			// shears at the hem corner (a round and a bent oval handle).
 			'pattern' => '<path class="ks-paper" d="M28 10h48l16 16v58H28z"/><path class="ks-paper" d="M76 10v16h16"/>' .
 				'<path class="ks-cut" d="M52 26l-6 6 4 10-10 34h40L70 42l4-10-6-6c-2 4-5 6-8 6s-6-2-8-6z"/>' .
-				'<g class="ks-scissors"><circle cx="98" cy="72" r="4"/><circle cx="98" cy="84" r="4"/><path d="M101 74l14-10M101 82l14 10"/></g>',
+				'<g transform="translate(92 80) rotate(-150)"><g class="ks-scissors">' .
+				'<path class="ks-blade" d="M0 -1.5Q12 -9 24 -11Q14 -4 1 2z"/><path class="ks-blade" d="M0 1.5Q12 9 24 11Q14 4 1 -2z"/>' .
+				'<circle class="ks-pivot" cx="0.5" cy="0" r="1.3"/><path d="M-1 -2L-6 -6.5M-1 2L-7 6"/>' .
+				'<circle class="ks-blade" cx="-10" cy="-9" r="4.2"/><ellipse class="ks-blade" cx="-12" cy="9.5" rx="6.8" ry="4" transform="rotate(-18 -12 9.5)"/></g></g>',
 			// A roll of floral fabric that unrolls to the right, and a sewing tape measure underneath.
 			'fabric'  => '<defs><clipPath id="' . esc_attr( $clip ) . '"><rect class="ks-unroll-clip" x="28" y="10" width="84" height="56"/></clipPath></defs>' .
 				'<g class="ks-unroll" clip-path="url(#' . esc_attr( $clip ) . ')"><path class="ks-sheet" d="M28 18H98c4 7-3 13 1 20s-3 13 1 20H28"/>' .
@@ -153,8 +191,9 @@ class AIMP_Kit_Steps {
 		wp_enqueue_style( 'aimp-kit-steps' );
 		wp_enqueue_script( 'aimp-kit-steps' );
 
-		$title  = '' !== $atts['title'] ? $atts['title'] : __( 'Your own sewing project kit in 4 steps', 'atelier-irisee-master-plugin' );
-		$button = '' !== $atts['button'] ? $atts['button'] : __( 'Start making your project sewing kit', 'atelier-irisee-master-plugin' );
+		$defaults = self::default_texts();
+		$title    = '' !== $atts['title'] ? $atts['title'] : self::text( 'ks_title', $defaults['ks_title'] );
+		$button   = '' !== $atts['button'] ? $atts['button'] : self::text( 'ks_button', $defaults['ks_button'] );
 
 		ob_start();
 		?>
@@ -186,5 +225,82 @@ class AIMP_Kit_Steps {
 		</section>
 		<?php
 		return ob_get_clean();
+	}
+	/* ------------------------------------------------------------------ settings: the "Kit steps bar" tab */
+
+	public static function register_settings() {
+		add_settings_section(
+			'aimp_kit_steps',
+			__( 'Kit steps bar', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'settings_intro' ),
+			AIMP_Settings::PAGE
+		);
+		add_settings_field( 'aimp_kit_steps_texts', __( 'Texts', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'render_text_fields' ), AIMP_Settings::PAGE, 'aimp_kit_steps' );
+	}
+
+	public static function settings_intro() {
+		echo '<p>' . wp_kses_post(
+			sprintf(
+				/* translators: %s: shortcode */
+				__( 'The texts of the bar %s (on the home page and in the customizer). Leave a field empty for the standard text, shown in grey.', 'atelier-irisee-master-plugin' ),
+				'<code>[atelier_irisee_kit_steps]</code>'
+			)
+		) . '</p>';
+	}
+
+	public static function render_text_fields() {
+		$labels    = array(
+			'ks_title'    => __( 'Title', 'atelier-irisee-master-plugin' ),
+			'ks_s1_title' => __( 'Step 1: title', 'atelier-irisee-master-plugin' ),
+			'ks_s1_text'  => __( 'Step 1: text', 'atelier-irisee-master-plugin' ),
+			'ks_s2_title' => __( 'Step 2: title', 'atelier-irisee-master-plugin' ),
+			'ks_s2_text'  => __( 'Step 2: text', 'atelier-irisee-master-plugin' ),
+			'ks_s3_title' => __( 'Step 3: title', 'atelier-irisee-master-plugin' ),
+			'ks_s3_text'  => __( 'Step 3: text', 'atelier-irisee-master-plugin' ),
+			'ks_s4_title' => __( 'Step 4: title', 'atelier-irisee-master-plugin' ),
+			'ks_s4_text'  => __( 'Step 4: text', 'atelier-irisee-master-plugin' ),
+			'ks_button'   => __( 'Button', 'atelier-irisee-master-plugin' ),
+		);
+		$languages = AIMP_I18n::languages();
+		// The standard texts in each language, shown as placeholders.
+		$defaults = array();
+		foreach ( array_keys( $languages ) as $code ) {
+			$defaults[ $code ] = AIMP_I18n::with_language( $code, array( __CLASS__, 'default_texts' ) );
+		}
+		echo '<table class="widefat striped" style="max-width:1100px"><thead><tr><th></th>';
+		foreach ( $languages as $language ) {
+			echo '<th>' . esc_html( $language['name'] ) . '</th>';
+		}
+		echo '</tr></thead><tbody>';
+		foreach ( $labels as $key => $label ) {
+			echo '<tr><th scope="row">' . esc_html( $label ) . '</th>';
+			foreach ( array_keys( $languages ) as $code ) {
+				printf(
+					'<td><input type="text" class="widefat" name="%1$s[%2$s]" value="%3$s" placeholder="%4$s"></td>',
+					esc_attr( AIMP_Settings::OPTION ),
+					esc_attr( $key . '_' . $code ),
+					esc_attr( AIMP_Settings::get_text( $key . '_' . $code ) ),
+					esc_attr( $defaults[ $code ][ $key ] )
+				);
+			}
+			echo '</tr>';
+		}
+		echo '</tbody></table>';
+	}
+
+	/**
+	 * The Kit steps bar settings from the submitted form (called from AIMP_Settings::sanitize()).
+	 *
+	 * @param array $input Submitted values.
+	 * @return array
+	 */
+	public static function sanitize( $input ) {
+		$clean = array();
+		foreach ( array_keys( self::default_texts() ) as $key ) {
+			foreach ( array_keys( AIMP_I18n::languages() ) as $code ) {
+				$clean[ $key . '_' . $code ] = isset( $input[ $key . '_' . $code ] ) ? sanitize_text_field( wp_unslash( $input[ $key . '_' . $code ] ) ) : '';
+			}
+		}
+		return $clean;
 	}
 }

@@ -226,6 +226,14 @@
 	animation: ks-snip 1.2s ease-in-out infinite;
 }
 
+.ks-blade {
+	fill: #fff;
+}
+
+.ks-pivot {
+	fill: currentColor;
+}
+
 .ks-button {
 	transform-box: fill-box;
 	transform-origin: center;
@@ -271,7 +279,7 @@
 }
 
 @keyframes ks-cut { to { stroke-dashoffset: -64; } }
-@keyframes ks-snip { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-12deg); } }
+@keyframes ks-snip { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-8deg); } }
 @keyframes ks-drop { 0% { opacity: 0; transform: translateY(-24px) rotate(-90deg); } 18%, 85% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 0; transform: translateY(0) rotate(0); } }
 @keyframes ks-zip { 0%, 100% { transform: translateY(-24px); } 50% { transform: translateY(24px); } }
 @keyframes ks-lid { 0%, 15% { transform: rotate(-35deg) translateY(-6px); } 45%, 100% { transform: rotate(0) translateY(0); } }

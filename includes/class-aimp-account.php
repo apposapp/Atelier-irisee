@@ -128,7 +128,7 @@ class AIMP_Account {
 		$user = wp_get_current_user();
 		ob_start();
 		?>
-		<div class="aimp-account">
+		<div class="aimp-account" data-close-label="<?php esc_attr_e( 'Close', 'atelier-irisee-master-plugin' ); ?>">
 			<p class="aimp-account-hello">
 				<?php
 				/* translators: %s: customer name */

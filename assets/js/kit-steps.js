@@ -6,7 +6,7 @@
 (function () {
 	'use strict';
 
-	var DURATION = 8000; // One pass, in ms.
+	var DURATION = 6000; // One pass, in ms.
 	var PAUSE = 2300; // The spark, then the next pass.
 	var SCALE = 0.8; // Needle size.
 	var uid = 0;
@@ -269,6 +269,9 @@
 			}
 		});
 	}
+
+	// For bars added later (the customizer's "How it works" pop-up).
+	window.aimpKitSteps = boot;
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', boot);

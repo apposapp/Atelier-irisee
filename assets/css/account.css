@@ -630,3 +630,171 @@
 	margin: 0;
 	font-style: normal;
 }
+
+/* ------------------------------------------------------------------
+ * My orders on phones: every order a small card (number and status, date and total, a Details button); the
+ * details open in a sheet from the bottom (account.js).
+ * ------------------------------------------------------------------ */
+.aimp-account-layout > *,
+.aimp-account-panel {
+	min-width: 0;
+}
+
+.aimp-account-panel table {
+	max-width: 100%;
+}
+
+@media (max-width: 700px) {
+	.aimp-account .woocommerce-orders-table thead {
+		display: none;
+	}
+
+	.aimp-account .woocommerce-orders-table,
+	.aimp-account .woocommerce-orders-table tbody {
+		display: block;
+		width: 100%;
+		border: 0;
+	}
+
+	.aimp-account .woocommerce-orders-table tbody tr {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.2rem 0.75rem;
+		margin: 0 0 0.75rem;
+		padding: 0.75rem 0.9rem;
+		border: 1px solid var(--aimp-acc-gold, #b38f4f);
+		border-radius: 16px;
+	}
+
+	.aimp-account .woocommerce-orders-table tbody :is(th, td) {
+		display: block;
+		padding: 0;
+		border: 0;
+		background: none;
+		text-align: left;
+	}
+
+	/* WooCommerce's own small-screen labels are not needed on the card. */
+	.aimp-account .woocommerce-orders-table tbody :is(th, td)::before {
+		content: none !important;
+	}
+
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-number {
+		font-weight: 700;
+	}
+
+	.aimp-account .woocommerce-orders-table :is(.woocommerce-orders-table__cell-order-status, .woocommerce-orders-table__cell-order-total) {
+		text-align: right;
+	}
+
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-date {
+		font-size: 0.9em;
+	}
+
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		grid-column: 1 / -1;
+		margin-top: 0.4rem;
+	}
+
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-actions .button {
+		flex: 1 1 auto;
+		margin: 0;
+		text-align: center;
+	}
+}
+
+/* The order's details in a sheet from the bottom. */
+.aimp-account-sheet {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+}
+
+.aimp-account-sheet[hidden] {
+	display: none;
+}
+
+.aimp-account-sheet-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(40, 25, 5, 0.35);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.aimp-account-sheet-panel {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	max-height: 88vh;
+	overflow-y: auto;
+	padding: 0 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+	border-radius: 24px 24px 0 0;
+	background: #fff;
+	transform: translateY(100%);
+	transition: transform 0.3s ease;
+}
+
+.aimp-account-sheet.is-open .aimp-account-sheet-backdrop {
+	opacity: 1;
+}
+
+.aimp-account-sheet.is-open .aimp-account-sheet-panel {
+	transform: none;
+}
+
+.aimp-account-sheet-head {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 3.5rem;
+	margin: 0 -1rem 0.5rem;
+	background: #fff;
+}
+
+.aimp-account-sheet-head::before {
+	width: 44px;
+	height: 5px;
+	border-radius: 3px;
+	background: var(--aimp-acc-gold, #b38f4f);
+	opacity: 0.5;
+	content: "";
+}
+
+.aimp-account-sheet-close {
+	position: absolute;
+	top: 0.35rem;
+	right: 0.5rem;
+	display: grid;
+	place-items: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	border: 4px double var(--aimp-acc-gold, #b38f4f);
+	border-radius: 50%;
+	background: #fff;
+	color: var(--aimp-acc-text, #8a6a33);
+	font-size: 30px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.aimp-account-sheet-body table {
+	width: 100%;
+	table-layout: fixed;
+	word-wrap: break-word;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-account-sheet-panel,
+	.aimp-account-sheet-backdrop {
+		transition: none;
+	}
+}

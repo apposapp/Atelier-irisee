@@ -1480,4 +1480,21 @@ return array(
 	'The part of the picture that always stays in view, on every screen size.' => 'Het deel van de foto dat altijd zichtbaar blijft, op elk schermformaat.',
 	'Top' => 'Boven',
 	'Where is the subject?' => 'Waar staat het onderwerp?',
+
+	// 3.11.0
+	'Choose this' => 'Kies deze',
+	'How it works' => 'Hoe werkt het',
+	'Kit steps bar' => 'Stappenbalk naaipakket',
+	'Remove from my kit' => 'Uit mijn pakket halen',
+	'Start' => 'Begin',
+	'Step 1: text' => 'Stap 1: tekst',
+	'Step 1: title' => 'Stap 1: titel',
+	'Step 2: text' => 'Stap 2: tekst',
+	'Step 2: title' => 'Stap 2: titel',
+	'Step 3: text' => 'Stap 3: tekst',
+	'Step 3: title' => 'Stap 3: titel',
+	'Step 4: text' => 'Stap 4: tekst',
+	'Step 4: title' => 'Stap 4: titel',
+	'The texts of the bar %s (on the home page and in the customizer). Leave a field empty for the standard text, shown in grey.' => 'De teksten van de balk %s (op de startpagina en in de customizer). Laat een veld leeg voor de standaardtekst, die in het grijs staat.',
+	'Title' => 'Titel',
 );

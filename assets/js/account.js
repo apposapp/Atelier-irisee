@@ -133,3 +133,100 @@
 		}
 	});
 })();
+
+/**
+ * My orders on phones: "View" opens the order's details in a sheet from the bottom instead of a new page
+ * (the details are read from that page). Without JavaScript the link simply opens the page.
+ */
+(function () {
+	'use strict';
+
+	var account = document.querySelector('.aimp-account');
+	if (!account || !window.fetch || !window.DOMParser || !window.matchMedia) {
+		return;
+	}
+	var phone = window.matchMedia('(max-width: 700px)');
+	var sheet = null;
+
+	function close() {
+		if (!sheet) {
+			return;
+		}
+		sheet.classList.remove('is-open');
+		document.documentElement.classList.remove('aimp-sheet-open');
+		window.setTimeout(function () {
+			sheet.hidden = true;
+		}, 300);
+	}
+
+	function open(html) {
+		if (!sheet) {
+			sheet = document.createElement('div');
+			sheet.className = 'aimp-account-sheet';
+			sheet.hidden = true;
+			sheet.innerHTML =
+				'<div class="aimp-account-sheet-backdrop" data-close></div>' +
+				'<div class="aimp-account-sheet-panel aimp-account" role="dialog" aria-modal="true">' +
+				'<div class="aimp-account-sheet-head"><button type="button" class="aimp-account-sheet-close" data-close aria-label="' +
+				(account.getAttribute('data-close-label') || 'Close').replace(/"/g, '&quot;') + '">×</button></div>' +
+				'<div class="aimp-account-sheet-body"></div></div>';
+			document.body.appendChild(sheet);
+			sheet.addEventListener('click', function (e) {
+				if (e.target.closest('[data-close]')) {
+					close();
+				}
+			});
+			document.addEventListener('keydown', function (e) {
+				if ('Escape' === e.key && sheet && !sheet.hidden) {
+					close();
+				}
+			});
+		}
+		var body = sheet.querySelector('.aimp-account-sheet-body');
+		body.innerHTML = '';
+		body.appendChild(html);
+		sheet.querySelector('.aimp-account-sheet-panel').scrollTop = 0;
+		sheet.hidden = false;
+		document.documentElement.classList.add('aimp-sheet-open');
+		window.requestAnimationFrame(function () {
+			sheet.classList.add('is-open');
+		});
+	}
+
+	account.addEventListener('click', function (e) {
+		var link = e.target.closest('.woocommerce-orders-table a.view');
+		if (!link || !phone.matches || e.ctrlKey || e.metaKey || e.shiftKey) {
+			return;
+		}
+		e.preventDefault();
+		link.classList.add('is-loading');
+		fetch(link.href, { credentials: 'same-origin' })
+			.then(function (response) {
+				return response.text();
+			})
+			.then(function (text) {
+				var page = new DOMParser().parseFromString(text, 'text/html');
+				var panel = page.querySelector('.aimp-account-panel');
+				if (!panel) {
+					throw new Error('no details');
+				}
+				// Without the "← All orders" link: the sheet closes instead.
+				var back = panel.querySelector('.aimp-account-back');
+				if (back && back.parentNode) {
+					back.parentNode.parentNode.removeChild(back.parentNode);
+				}
+				var box = document.createElement('div');
+				while (panel.firstChild) {
+					box.appendChild(document.importNode(panel.firstChild, true));
+					panel.removeChild(panel.firstChild);
+				}
+				open(box);
+			})
+			.catch(function () {
+				window.location.href = link.href;
+			})
+			.then(function () {
+				link.classList.remove('is-loading');
+			});
+	});
+})();

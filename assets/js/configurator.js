@@ -152,6 +152,7 @@
 		this.render();
 		this.watchLayout();
 		this.openFromLink();
+		this.setupHowto();
 	}
 
 	// "Complete it in the configurator" on a product page links here with ?aimp_pattern=ID: start with that pattern selected.
@@ -406,6 +407,101 @@
 			}
 		}
 		return -1;
+	};
+
+	/* ---------------------------------------------------------------
+	 * "How it works": the 4-step bar in a pop-up (a sheet on phones), on the first visit and via the ? button.
+	 * ------------------------------------------------------------- */
+	var HOWTO_SEEN = 'aimp_howto_seen';
+
+	Configurator.prototype.setupHowto = function () {
+		var self = this;
+		var tpl = document.querySelector('template[data-aimp-howto]');
+		if (!tpl || !tpl.content || !tpl.content.firstElementChild) {
+			return;
+		}
+		this.howtoTpl = tpl;
+		var open = document.createElement('button');
+		open.type = 'button';
+		open.className = 'aimp-howto-open';
+		open.innerHTML = '<span class="aimp-howto-q" aria-hidden="true">?</span> ' + esc(t.howItWorks);
+		open.addEventListener('click', function () {
+			self.openHowto();
+		});
+		this.root.querySelector('.aimp-topbar').insertBefore(open, this.languagesEl);
+		var seen = false;
+		try {
+			seen = !!window.localStorage.getItem(HOWTO_SEEN);
+		} catch (e) {}
+		// Not when coming from a product page or a saved kit: then the visitor already knows what to do.
+		if (!seen && !/[?&]aimp_(pattern|kit)=/.test(window.location.search)) {
+			this.openHowto();
+		}
+	};
+
+	Configurator.prototype.openHowto = function () {
+		var self = this;
+		var box = document.createElement('div');
+		box.className = 'aimp-howto';
+		box.appendChild(this.howtoTpl.content.firstElementChild.cloneNode(true));
+		var close = function () {
+			try {
+				window.localStorage.setItem(HOWTO_SEEN, '1');
+			} catch (e) {}
+			if (self.howtoDialog) {
+				self.howtoDialog.parentNode.removeChild(self.howtoDialog);
+				self.howtoDialog = null;
+				document.documentElement.classList.remove('aimp-sheet-open');
+			} else {
+				self.closeSheet();
+			}
+		};
+		// The bar's button ("Start") closes the pop-up: the customizer is right behind it.
+		box.addEventListener('click', function (e) {
+			if (e.target.closest('.aimp-kit-steps-button')) {
+				e.preventDefault();
+				close();
+			}
+		});
+		if (window.matchMedia && window.matchMedia('(max-width: 700px)').matches) {
+			this.openSheet(box);
+			// The sheet's × and backdrop close it too; remember it then as well.
+			this.sheet.addEventListener('click', function remember(e) {
+				if (e.target.closest('[data-sheet-close]')) {
+					try {
+						window.localStorage.setItem(HOWTO_SEEN, '1');
+					} catch (err) {}
+					self.sheet.removeEventListener('click', remember);
+				}
+			});
+		} else {
+			var dialog = document.createElement('div');
+			dialog.className = 'aimp-howto-dialog';
+			dialog.innerHTML = '<div class="aimp-howto-backdrop"></div>' +
+				'<div class="aimp-howto-card aimp-configurator" role="dialog" aria-modal="true" aria-label="' + esc(t.howItWorks) + '">' +
+				'<button type="button" class="aimp-sheet-close" aria-label="' + esc(t.close || 'Close') + '">×</button></div>';
+			dialog.querySelector('.aimp-howto-card').appendChild(box);
+			dialog.addEventListener('click', function (e) {
+				if (e.target.closest('.aimp-sheet-close') || e.target.classList.contains('aimp-howto-backdrop')) {
+					close();
+				}
+			});
+			document.addEventListener('keydown', function onKey(e) {
+				if (e.key === 'Escape' && self.howtoDialog) {
+					close();
+					document.removeEventListener('keydown', onKey);
+				}
+			});
+			document.body.appendChild(dialog);
+			document.documentElement.classList.add('aimp-sheet-open');
+			this.howtoDialog = dialog;
+		}
+		// The needle measures the cards: start it once the pop-up is laid out.
+		window.setTimeout(function () {
+			if (window.aimpKitSteps) {
+				window.aimpKitSteps();
+			}
+		}, 350);
 	};
 
 	/* ---------------------------------------------------------------
@@ -865,10 +961,13 @@
 			html += '<section class="aimp-size-chart-box" data-role="size-chart-in" hidden></section>';
 		}
 
-		html +=
-			'<div class="aimp-actions">' +
-			'<button type="button" class="aimp-button aimp-button--block" data-action="confirm"' + (size ? '' : ' disabled') + '>' + esc(t.confirmPattern) + '</button>' +
-			'</div>';
+		// In the sheet the button bar only appears once a size is chosen.
+		if (size || !this.isSheetMode()) {
+			html +=
+				'<div class="aimp-actions">' +
+				'<button type="button" class="aimp-button aimp-button--block" data-action="confirm"' + (size ? '' : ' disabled') + '>' + esc(t.confirmPattern) + '</button>' +
+				'</div>';
+		}
 		html += '</div>';
 		panel.innerHTML = html;
 		this.renderSizeChart();
@@ -899,12 +998,15 @@
 				}
 			});
 		});
-		panel.querySelector('[data-action="confirm"]').addEventListener('click', function () {
-			if (s.size) {
-				self.closeSheet(true);
-				self.next();
-			}
-		});
+		var confirm = panel.querySelector('[data-action="confirm"]');
+		if (confirm) {
+			confirm.addEventListener('click', function () {
+				if (s.size) {
+					self.closeSheet(true);
+					self.next();
+				}
+			});
+		}
 	};
 
 	// Used by the size buttons in the details panel and the rows of the size chart.
@@ -1415,8 +1517,15 @@
 			unavailableText: t.notEnoughStock,
 			compact: true,
 			onSelect: function (item) {
-				bucket.selected = bucket.selected && bucket.selected.id === item.id ? null : item;
 				bucket.image = 0;
+				// Phones and tablets: the card only shows the product in the sheet; "Choose this" there selects it.
+				if (self.isSheetMode()) {
+					bucket.preview = item;
+					self.renderNotionGrid(type);
+					self.showPanel(self.findPanel('notion-panel-' + type));
+					return;
+				}
+				bucket.selected = bucket.selected && bucket.selected.id === item.id ? null : item;
 				self.renderNotionGrid(type);
 				if (bucket.selected) {
 					self.showPanel(panel);
@@ -1430,20 +1539,36 @@
 			}
 		});
 		if (panel) {
-			if (!bucket.selected) {
+			// In the sheet: the product that was tapped (bucket.preview); beside the grid: the chosen one.
+			var sheet = this.isSheetMode();
+			var shown = (sheet && bucket.preview) || bucket.selected;
+			if (!shown) {
 				panel.innerHTML = '<div class="aimp-side-placeholder">' + esc(t.selectItemHint) + '</div>';
 				return;
 			}
+			var chosen = !!(bucket.selected && bucket.selected.id === shown.id);
 			var info = notionInfo(type);
 			// Buttons sold per set: also how many sets are added ("2 × set of 6").
-			var needText = info.need(s.size) + (bucket.selected.qty_text ? ' · ' + bucket.selected.qty_text : '');
+			var needText = info.need(s.size) + (shown.qty_text ? ' · ' + shown.qty_text : '');
 			// Sets: they can only be bought in whole sets, which can be more than needed.
-			panel.innerHTML = (bucket.selected.set_note ? '<div class="aimp-notice aimp-set-note" role="status">' + esc(bucket.selected.set_note) + '</div>' : '') +
+			panel.innerHTML = (shown.set_note ? '<div class="aimp-notice aimp-set-note" role="status">' + esc(shown.set_note) + '</div>' : '') +
 				// The card says what its price is for ("per roll of 3 m", "per 10 cm", …), next to the price.
-				this.materialDetailsHtml(bucket.selected, bucket.image, bucket.selected.price_suffix ? t.price : t[info.unitLabel], needText);
-			this.bindGallery(panel, bucket.selected.gallery, function (i) {
+				this.materialDetailsHtml(shown, bucket.image, shown.price_suffix ? t.price : t[info.unitLabel], needText) +
+				(sheet ?
+					'<div class="aimp-actions"><button type="button" class="aimp-button aimp-button--block' + (chosen ? ' aimp-button--ghost' : '') + '" data-action="choose-notion">' +
+					esc(chosen ? t.removeFromKit : t.chooseThis) + '</button></div>' : '');
+			this.bindGallery(panel, shown.gallery, function (i) {
 				bucket.image = i;
 			});
+			var choose = panel.querySelector('[data-action="choose-notion"]');
+			if (choose) {
+				choose.addEventListener('click', function () {
+					bucket.selected = chosen ? null : shown;
+					bucket.preview = null;
+					self.closeSheet();
+					self.renderNotionGrid(type);
+				});
+			}
 		}
 	};
 

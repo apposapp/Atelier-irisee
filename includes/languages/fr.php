@@ -1480,4 +1480,21 @@ return array(
 	'The part of the picture that always stays in view, on every screen size.' => 'La partie de la photo qui reste toujours visible, sur chaque taille d\'écran.',
 	'Top' => 'En haut',
 	'Where is the subject?' => 'Où se trouve le sujet ?',
+
+	// 3.11.0
+	'Choose this' => 'Choisir',
+	'How it works' => 'Comment ça marche',
+	'Kit steps bar' => 'Barre des étapes du kit',
+	'Remove from my kit' => 'Retirer de mon kit',
+	'Start' => 'Commencer',
+	'Step 1: text' => 'Étape 1 : texte',
+	'Step 1: title' => 'Étape 1 : titre',
+	'Step 2: text' => 'Étape 2 : texte',
+	'Step 2: title' => 'Étape 2 : titre',
+	'Step 3: text' => 'Étape 3 : texte',
+	'Step 3: title' => 'Étape 3 : titre',
+	'Step 4: text' => 'Étape 4 : texte',
+	'Step 4: title' => 'Étape 4 : titre',
+	'The texts of the bar %s (on the home page and in the customizer). Leave a field empty for the standard text, shown in grey.' => 'Les textes de la barre %s (sur la page d\'accueil et dans le customizer). Laissez un champ vide pour le texte standard, affiché en gris.',
+	'Title' => 'Titre',
 );

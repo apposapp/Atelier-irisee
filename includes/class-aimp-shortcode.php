@@ -135,6 +135,9 @@ class AIMP_Shortcode {
 			'youNeed'         => __( 'You need', 'atelier-irisee-master-plugin' ),
 			'totalForSize'    => __( 'Total for this size', 'atelier-irisee-master-plugin' ),
 			'confirmFabric'   => __( 'Confirm fabric', 'atelier-irisee-master-plugin' ),
+			'chooseThis'      => __( 'Choose this', 'atelier-irisee-master-plugin' ),
+			'removeFromKit'   => __( 'Remove from my kit', 'atelier-irisee-master-plugin' ),
+			'howItWorks'      => __( 'How it works', 'atelier-irisee-master-plugin' ),
 			'readMore'        => __( 'Read more', 'atelier-irisee-master-plugin' ),
 			'readLess'        => __( 'Read less', 'atelier-irisee-master-plugin' ),
 			'chooseButtons'   => __( 'Choose your buttons (optional)', 'atelier-irisee-master-plugin' ),
@@ -273,6 +276,8 @@ class AIMP_Shortcode {
 		<div class="aimp-configurator" data-aimp-configurator>
 			<noscript><?php esc_html_e( 'Please enable JavaScript to use the pattern configurator.', 'atelier-irisee-master-plugin' ); ?></noscript>
 		</div>
+		<?php // "How it works": the 4-step bar, shown in a pop-up on the first visit and via the ? button (configurator.js). ?>
+		<template data-aimp-howto><?php echo AIMP_Kit_Steps::shortcode( array( 'url' => '#aimp-start', 'button' => __( 'Start', 'atelier-irisee-master-plugin' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in the shortcode. ?></template>
 		<?php
 		return ob_get_clean();
 	}

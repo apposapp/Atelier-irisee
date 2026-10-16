@@ -957,10 +957,10 @@ html:has(.aimp-product-reviews) {
 	}
 
 	/* The page in this order: picture and buy bar; description with specifications and washing; the recommended
-	   pattern (moved here by product.js); the inspiration cards; the rest. */
-	.aimp-configurator.aimp-product {
-		display: flex;
-		flex-direction: column;
+	   pattern (moved here by product.js); the inspiration cards; the rest. (The flex layout itself is set in a media
+	   query below: .aimp-product is this container, and a container's own query never applies to itself.) */
+	.aimp-configurator.aimp-product > .woocommerce-notices-wrapper {
+		order: 0;
 	}
 
 	.aimp-configurator.aimp-product > * {
@@ -1272,5 +1272,14 @@ html:has(.aimp-product-reviews) {
 @container aimp (max-width: 560px) {
 	.aimp-configurator .aimp-inspiration-grid.aimp-ideal-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Phones: the product page is a column whose sections are put in order (the order rules are in the container
+   query above). */
+@media (max-width: 700px) {
+	.aimp-configurator.aimp-product {
+		display: flex;
+		flex-direction: column;
 	}
 }

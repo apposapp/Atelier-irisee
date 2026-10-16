@@ -1434,21 +1434,25 @@
 
 /* Phones: Back / Continue stay at the bottom of the screen (above the tab bar) while a step is scrolled. */
 @media (max-width: 700px) {
+	/* The whole width of the screen, solid white. */
 	.aimp-configurator .aimp-step > .aimp-actions {
 		position: sticky;
 		bottom: var(--aimp-tabbar-h, env(safe-area-inset-bottom, 0px));
 		z-index: 20;
-		margin-right: calc(var(--aimp-gap) * -1);
-		margin-left: calc(var(--aimp-gap) * -1);
-		padding: 0.6rem var(--aimp-gap);
+		max-width: 100vw;
+		margin-right: calc(50% - 50vw);
+		margin-left: calc(50% - 50vw);
+		padding: 0.6rem 1rem;
 		border-top: 1px solid var(--aimp-gold);
-		background: rgba(255, 255, 255, 0.96);
+		background: #fff;
 		box-shadow: 0 -6px 16px rgba(97, 57, 7, 0.08);
 	}
 
 	.aimp-configurator .aimp-step > .aimp-actions .aimp-button {
 		flex: 1 1 0;
 		min-height: 44px;
+		border-width: 1.5px;
+		border-style: solid;
 	}
 
 	/* Form fields at 16px, so phones don't zoom in when they are tapped. */
@@ -1642,4 +1646,116 @@
 	.aimp-configurator table.aimp-size-chart tbody tr.is-selected :is(th, td)[data-label]:not(:first-child)::before {
 		color: rgba(255, 255, 255, 0.85);
 	}
+}
+
+/* Phones: the overview's bar ("Save this kit", "Add to cart") with smaller buttons side by side. */
+@media (max-width: 700px) {
+	:is(.aimp-configurator, #aimp-specificity#aimp-specificity) .aimp-step--summary > .aimp-actions .aimp-button {
+		min-height: 40px;
+		padding: 0.5rem 0.75rem;
+		font-size: 0.85em;
+		line-height: 1.2;
+	}
+}
+
+/* The old fixed phone bar sat under the tab bar; the step's own bar does its work. */
+@media (max-width: 900px) {
+	.aimp-config-bar {
+		display: none !important;
+	}
+
+	body.aimp-has-config-bar {
+		padding-bottom: 0;
+	}
+}
+
+/* Sheets: the main button (Confirm, Choose this) stays at the bottom of the sheet, full width on white. */
+.aimp-config-sheet .aimp-actions {
+	position: sticky;
+	bottom: calc(-1rem - env(safe-area-inset-bottom, 0px));
+	z-index: 5;
+	margin: 1rem -1rem 0;
+	padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+	border-top: 1px solid var(--aimp-gold);
+	background: #fff;
+}
+
+.aimp-config-sheet .aimp-actions .aimp-button {
+	flex: 1 1 0;
+	min-height: 44px;
+	border-width: 1.5px;
+	border-style: solid;
+}
+
+/* In a sheet the button bar is always the last part (phones put the description after the sizes). */
+.aimp-config-sheet .aimp-details > .aimp-actions {
+	order: 9;
+}
+
+/* ------------------------------------------------------------------
+ * "How it works": the 4-step bar in a pop-up (configurator.js); a sheet on phones.
+ * ------------------------------------------------------------------ */
+.aimp-configurator .aimp-howto-open {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	margin: 0 auto 0 0;
+	padding: 0.3rem 0.9rem 0.3rem 0.35rem;
+	border: 1px solid var(--aimp-gold);
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-gold-text, #8a6a33);
+	font: inherit;
+	font-size: 0.9em;
+	cursor: pointer;
+}
+
+.aimp-configurator .aimp-howto-open:hover {
+	background: var(--aimp-gold-tint);
+}
+
+.aimp-howto-q {
+	display: inline-grid;
+	place-items: center;
+	width: 1.6rem;
+	height: 1.6rem;
+	border-radius: 50%;
+	background: var(--aimp-gold, #b38f4f);
+	color: #fff;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.aimp-howto-dialog {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: grid;
+	place-items: center;
+	padding: 1rem;
+}
+
+.aimp-howto-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(40, 25, 5, 0.45);
+}
+
+.aimp-howto-card.aimp-configurator {
+	position: relative;
+	width: min(1180px, 100%);
+	max-height: calc(100vh - 2rem);
+	overflow: auto;
+	padding: 0.5rem 1rem 1rem;
+	border-radius: 24px;
+	background: #fff;
+	box-shadow: 0 20px 60px rgba(40, 25, 5, 0.3);
+}
+
+.aimp-howto-card .aimp-sheet-close {
+	z-index: 5;
+}
+
+.aimp-howto .aimp-kit-steps {
+	padding-top: 1.25rem;
 }

@@ -814,7 +814,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	min-height: 2.75rem;
+	min-height: 3.5rem;
 	margin: 0 -1rem 0.5rem;
 	background: #fff;
 }
@@ -826,16 +826,21 @@
 	background: rgba(179, 143, 79, 0.45);
 }
 
+/* The × of a sheet: a round button with a double gold line. */
 .aimp-configurator .aimp-sheet-close {
 	position: absolute;
-	top: 0;
-	right: 0.25rem;
-	width: 44px;
-	height: 44px;
-	border: 0;
-	background: none;
+	top: 0.35rem;
+	right: 0.5rem;
+	display: grid;
+	place-items: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	border: 4px double var(--aimp-gold, #b38f4f);
+	border-radius: 50%;
+	background: #fff;
 	color: var(--aimp-gold-text, #8a6a33);
-	font-size: 28px;
+	font-size: 30px;
 	line-height: 1;
 	cursor: pointer;
 }

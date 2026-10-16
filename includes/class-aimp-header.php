@@ -239,7 +239,7 @@ class AIMP_Header {
 			'shop'   => '<path d="M4 9.5h16l-1.2 10.5H5.2z"/><path d="M3.5 9.5l2.2-5h12.6l2.2 5"/><path d="M9.5 13.5a2.5 2.5 0 0 0 5 0"/>',
 			'home'   => '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>',
 			// The customizer: a needle with thread.
-			'kit'    => '<path d="M5 19L18.5 5.5"/><ellipse cx="17.6" cy="6.4" rx=".8" ry="2" transform="rotate(45 17.6 6.4)"/><path d="M5 19c-1.5 1.5-3 .5-2.5-1 .6-1.8 3.5-1.3 5-3.5S9 9 12 9.5"/>',
+			'kit'    => '<path d="M12 2.8v2"/><path d="M8.3 4.8h7.4c.4 3.3-1 5.6-1.9 6.8 1.7 1 3 2.8 3 5H7.2c0-2.2 1.3-4 3-5-.9-1.2-2.3-3.5-1.9-6.8z"/><path d="M12 16.6v3M12 19.6l-3.5 2M12 19.6l3.5 2M12 19.6v2"/>', // A dress form on a tripod.
 		);
 		return '<svg class="aimp-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . ( isset( $paths[ $name ] ) ? $paths[ $name ] : '' ) . '</svg>';
 	}
