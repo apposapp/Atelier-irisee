@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.12.0
+Stable tag: 3.12.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.12.1 =
+* Customizer on phones: "Back" in the step bar shows its text with an arrow; the heart in the product sheets sits top left (away from the ×) and slides under the sheet's top bar; after adding a kit to the cart, the bar offers "Go to shopping cart" and "Make another".
+* Kit steps bar on phones: bigger loops and a slightly slower needle.
+* My orders on phones: the status as a small pill and only the price (bold); the order details slide in more smoothly and show a picture of every product.
+* Product pages on phones: opening Specifications or Washing instructions no longer scrolls the page up.
 
 = 3.12.0 =
 * Haberdashery per design: a pattern with designs gets a Haberdashery block per design (until saved, a design uses the pattern's settings).
