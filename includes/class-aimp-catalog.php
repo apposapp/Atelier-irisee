@@ -60,6 +60,8 @@ class AIMP_Catalog {
 			'button'               => array( 'buttons', 'button' ),
 			'jeans_button'         => array( 'jeans_buttons', 'jeans_button' ),
 			'press_stud'           => array( 'snaps', 'snap' ),
+			'button_2'             => array( 'buttons_2', 'button_2' ),
+			'button_3'             => array( 'buttons_3', 'button_3' ),
 			'zip_divisible'        => array( 'zip_divisible', 'zip_divisible' ),
 			'zip_invisible'        => array( 'zip_invisible', 'zip_invisible' ),
 			'zip_non_divisible'    => array( 'zip_non_divisible', 'zip_non_divisible' ),
@@ -105,6 +107,8 @@ class AIMP_Catalog {
 			'buttons'              => array( self::META_BUTTON_COUNT, __( 'Buttons', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
 			'jeans_buttons'        => array( '_aimp_jeans_button_count', __( 'Jeans buttons', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
 			'snaps'                => array( '_aimp_snap_count', __( 'Press studs', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
+			'buttons_2'            => array( '_aimp_button2_count', __( 'Buttons (group 2)', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
+			'buttons_3'            => array( '_aimp_button3_count', __( 'Buttons (group 3)', 'atelier-irisee-master-plugin' ), 'piece', $buttons ),
 			'elastic'              => array( '_aimp_elastic_cm', __( 'Elastic', 'atelier-irisee-master-plugin' ), 'cm', __( 'Elastic', 'atelier-irisee-master-plugin' ) ),
 			'bias'                 => array( self::META_BIAS_LENGTH, __( 'Bias tape', 'atelier-irisee-master-plugin' ), 'cm', __( 'Bias tape', 'atelier-irisee-master-plugin' ) ),
 			'ribbon'               => array( self::META_RIBBON_LENGTH, __( 'Ribbon', 'atelier-irisee-master-plugin' ), 'cm', __( 'Ribbon', 'atelier-irisee-master-plugin' ) ),
@@ -496,6 +500,8 @@ class AIMP_Catalog {
 				'project_time' => isset( $row['project_time'] ) ? (string) $row['project_time'] : '',
 				// Fabric category => position (1 = first) for this design's fitting fabrics.
 				'fabric_priority' => isset( $row['fabric_priority'] ) && is_array( $row['fabric_priority'] ) ? array_filter( array_map( 'absint', $row['fabric_priority'] ) ) : array(),
+				// The design's own haberdashery rules (AIMP_Notions::pattern_rules()); empty = the pattern's.
+				'notion_rules'    => isset( $row['notion_rules'] ) && is_array( $row['notion_rules'] ) ? $row['notion_rules'] : array(),
 			);
 		}
 		return $data;
@@ -934,11 +940,14 @@ class AIMP_Catalog {
 		if ( $materials['fabric'] <= 0 ) {
 			$materials['fabric'] = absint( $variation->get_meta( self::META_FABRIC_UNITS ) ) * self::FABRIC_UNIT_CM;
 		}
-		// Haberdashery the pattern does not use (switched off on its Atelier Irisee tab) is not needed.
-		$notion_rules = AIMP_Notions::pattern_rules( $pattern->get_id() );
+		// Haberdashery the pattern (or this size's design) does not use is not needed. The number or length set
+		// on the pattern counts for every size without its own.
+		$notion_rules = AIMP_Notions::pattern_rules( $pattern->get_id(), self::designs( $pattern ) ? self::variation_design( $variation ) : '' );
 		foreach ( AIMP_Notions::rules() as $rule => $info ) {
 			if ( empty( $notion_rules[ $rule ]['on'] ) ) {
 				$materials[ $info[2] ] = 0;
+			} elseif ( $materials[ $info[2] ] <= 0 && '' !== $notion_rules[ $rule ]['amount'] ) {
+				$materials[ $info[2] ] = (float) $notion_rules[ $rule ]['amount'];
 			}
 		}
 		$fabric_units = $materials['fabric'] > 0 ? (int) ceil( $materials['fabric'] / self::FABRIC_UNIT_CM ) : 0;
@@ -1266,19 +1275,19 @@ class AIMP_Catalog {
 				$range = $rule ? AIMP_Notions::range_text( $rule[1], AIMP_Notions::rule_unit( $rule[0] ) ) : '';
 				$need  = AIMP_Notions::length_text( $amount ) . ( '' !== $range ? ' (' . $range . ')' : '' );
 				/* translators: 1: material, e.g. "Elastic", 2: length, e.g. "85 cm (10–20 mm)" */
-				$will = sprintf( __( '%1$s: %2$s needed.', 'atelier-irisee-master-plugin' ), $fields[ $info['material'] ]['label'], $need ) . ' ' .
+				$will = sprintf( __( '%1$s: %2$s needed.', 'atelier-irisee-master-plugin' ), self::material_label( $info['material'], $req ), $need ) . ' ' .
 					__( 'Enough is added: in pieces of 10 cm, or whole rolls.', 'atelier-irisee-master-plugin' );
 			} else {
 				$need = (string) $qty;
 				/* translators: 1: amount, 2: material, e.g. "Press studs" */
-				$will = sprintf( __( '%1$d × %2$s will be added.', 'atelier-irisee-master-plugin' ), $qty, $fields[ $info['material'] ]['label'] );
+				$will = sprintf( __( '%1$d × %2$s will be added.', 'atelier-irisee-master-plugin' ), $qty, self::material_label( $info['material'], $req ) );
 				// Buttons: with the diameter range of the pattern; sets are rounded up to whole sets.
 				$rule  = self::notion_rule( $type, $req );
 				$range = $rule ? AIMP_Notions::range_text( $rule[1], AIMP_Notions::rule_unit( $rule[0] ) ) : '';
 				if ( $rule ) {
 					$need = '' !== $range ? $qty . ' (' . $range . ')' : (string) $qty;
 					/* translators: 1: material, e.g. "Buttons", 2: amount */
-					$will = sprintf( __( '%1$s: %2$d needed', 'atelier-irisee-master-plugin' ), $fields[ $info['material'] ]['label'], $qty ) . ( '' !== $range ? ' (' . $range . ')' : '' ) . '. ' .
+					$will = sprintf( __( '%1$s: %2$d needed', 'atelier-irisee-master-plugin' ), self::material_label( $info['material'], $req ), $qty ) . ( '' !== $range ? ' (' . $range . ')' : '' ) . '. ' .
 						__( 'Products sold per set are added in whole sets.', 'atelier-irisee-master-plugin' );
 				}
 			}
@@ -1286,9 +1295,60 @@ class AIMP_Catalog {
 				'qty'     => $qty,
 				'need'    => $need,
 				'willAdd' => $will,
+				// A button group's own name, for the step title (empty = the standard title).
+				'label'   => self::group_label( $info['rule'], $req ),
+				// What it is called on the size's needs ("Buttons – Cuffs").
+				'name'    => self::material_label( $info['material'], $req ),
 			);
 		}
 		return $notions;
+	}
+
+	/**
+	 * The name a pattern gave a haberdashery rule ("Cuffs"), or ''.
+	 *
+	 * @param string $rule Rule key.
+	 * @param array  $req  Requirements.
+	 * @return string
+	 */
+	public static function group_label( $rule, $req ) {
+		return isset( $req['notion_rules'][ $rule ]['label'] ) ? trim( (string) $req['notion_rules'][ $rule ]['label'] ) : '';
+	}
+
+	/**
+	 * The label of a material for a size: "Buttons – Cuffs" when the pattern named that group, else the standard
+	 * label ("Buttons (group 2)" without a name).
+	 *
+	 * @param string $key A key of material_fields().
+	 * @param array  $req Requirements.
+	 * @return string
+	 */
+	public static function material_label( $key, $req ) {
+		$fields = self::material_fields();
+		$label  = isset( $fields[ $key ] ) ? $fields[ $key ]['label'] : $key;
+		$rule   = AIMP_Notions::rule_for_material( $key );
+		$name   = '' !== $rule ? self::group_label( $rule, $req ) : '';
+		if ( '' === $name ) {
+			return $label;
+		}
+		// The extra groups are buttons of the type chosen for them.
+		$base = AIMP_Notions::is_extra( $rule ) ? self::type_label( AIMP_Notions::rule_type( $rule, $req['notion_rules'][ $rule ] ) ) : $label;
+		return $base . ' – ' . $name;
+	}
+
+	/**
+	 * "Buttons", "Jeans buttons" or "Press studs" for a button type.
+	 *
+	 * @param string $type Button type.
+	 * @return string
+	 */
+	private static function type_label( $type ) {
+		$labels = array(
+			'button'       => __( 'Buttons', 'atelier-irisee-master-plugin' ),
+			'jeans_button' => __( 'Jeans buttons', 'atelier-irisee-master-plugin' ),
+			'press_stud'   => __( 'Press studs', 'atelier-irisee-master-plugin' ),
+		);
+		return isset( $labels[ $type ] ) ? $labels[ $type ] : $labels['button'];
 	}
 
 	/**
@@ -1311,7 +1371,7 @@ class AIMP_Catalog {
 				continue;
 			}
 			$extras[] = array(
-				'label' => $field['label'],
+				'label' => self::material_label( $key, $req ),
 				'text'  => self::material_text( $key, (float) $req['materials'][ $key ] ),
 			);
 		}

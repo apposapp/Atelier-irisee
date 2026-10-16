@@ -27,7 +27,8 @@ class AIMP_Notions {
 	const META_SET_SIZE  = '_aimp_hab_set_size';
 	const META_IDEAL_FOR = '_aimp_hab_ideal_for';
 
-	/** On a pattern: rule key => [ on, min, max ] (see rules()). 3.6 kept the button rules in META_BUTTON_RULES. */
+	/** On a pattern: rule key => [ on, min, max, label, type, amount ] (see rules(); designs keep their own in the design
+	 * data). 3.6 kept the button rules in META_BUTTON_RULES. */
 	const META_RULES        = '_aimp_notion_rules';
 	const META_BUTTON_RULES = '_aimp_button_rules';
 
@@ -138,8 +139,9 @@ class AIMP_Notions {
 				'specs'        => array( 'type', 'length', 'width', 'colour' ),
 				'measure'      => 'length',
 				'main'         => 'width',
-				'range'        => 'width',
-				'range_unit'   => 'mm',
+				// No width filter: every ribbon or cord fits.
+				'range'        => '',
+				'range_unit'   => '',
 			),
 			'bias'        => array(
 				'setting'      => 'bias_cat',
@@ -218,6 +220,9 @@ class AIMP_Notions {
 			'button'               => array( 'button', 'button', 'buttons' ),
 			'jeans_button'         => array( 'button', 'jeans_button', 'jeans_buttons' ),
 			'press_stud'           => array( 'button', 'press_stud', 'snaps' ),
+			// Extra button groups: their button type, label and diameter are set per pattern (or design).
+			'button_2'             => array( 'button', 'button', 'buttons_2' ),
+			'button_3'             => array( 'button', 'button', 'buttons_3' ),
 			'zip_divisible'        => array( 'zip', 'zip_divisible', 'zip_divisible' ),
 			'zip_invisible'        => array( 'zip', 'zip_invisible', 'zip_invisible' ),
 			'zip_non_divisible'    => array( 'zip', 'zip_non_divisible', 'zip_non_divisible' ),
@@ -606,16 +611,28 @@ class AIMP_Notions {
 	 * ------------------------------------------------------------------ */
 
 	/**
-	 * The rules of a pattern: rule => [ on, min, max, saved ]. A rule that was never saved (patterns from before
-	 * 3.6, or kinds added in 3.7) counts as on with any width, so existing amounts keep working; "saved" tells
-	 * the editor to show it as on only when a size has an amount for it.
+	 * The rules of a pattern (or of one of its designs): rule => [ on, min, max, label, type, amount, saved ].
+	 * A rule that was never saved (patterns from before 3.6, or kinds added in 3.7) counts as on with any width, so
+	 * existing amounts keep working; "saved" tells the editor to show it as on only when a size has an amount for
+	 * it. The extra button groups are off until switched on. "label" names a button group ("Cuffs"), "type" is the
+	 * button type of an extra group, and "amount" is the number or length (cm) for every size that has none of its own.
 	 *
-	 * @param int $pattern_id Pattern.
+	 * @param int    $pattern_id Pattern.
+	 * @param string $design     Design slug: its own rules when it has them, else the pattern's.
 	 * @return array
 	 */
-	public static function pattern_rules( $pattern_id ) {
-		$saved = $pattern_id ? get_post_meta( $pattern_id, self::META_RULES, true ) : array();
-		$saved = is_array( $saved ) ? $saved : array();
+	public static function pattern_rules( $pattern_id, $design = '' ) {
+		$saved = array();
+		if ( $pattern_id && '' !== $design ) {
+			$designs = AIMP_Catalog::design_data( $pattern_id );
+			if ( ! empty( $designs[ $design ]['notion_rules'] ) ) {
+				$saved = $designs[ $design ]['notion_rules'];
+			}
+		}
+		if ( ! $saved && $pattern_id ) {
+			$saved = get_post_meta( $pattern_id, self::META_RULES, true );
+			$saved = is_array( $saved ) ? $saved : array();
+		}
 		if ( ! $saved && $pattern_id ) {
 			// 3.6: only the buttons, keyed by button type (the same keys as the rules).
 			$old   = get_post_meta( $pattern_id, self::META_BUTTON_RULES, true );
@@ -625,13 +642,47 @@ class AIMP_Notions {
 		foreach ( array_keys( self::rules() ) as $key ) {
 			$row           = isset( $saved[ $key ] ) && is_array( $saved[ $key ] ) ? $saved[ $key ] : null;
 			$rules[ $key ] = array(
-				'on'    => null === $row ? true : ! empty( $row['on'] ),
-				'min'   => $row && isset( $row['min'] ) && '' !== (string) $row['min'] ? (float) $row['min'] : '',
-				'max'   => $row && isset( $row['max'] ) && '' !== (string) $row['max'] ? (float) $row['max'] : '',
-				'saved' => null !== $row,
+				'on'     => null === $row ? ! self::is_extra( $key ) : ! empty( $row['on'] ),
+				'min'    => $row && isset( $row['min'] ) && '' !== (string) $row['min'] ? (float) $row['min'] : '',
+				'max'    => $row && isset( $row['max'] ) && '' !== (string) $row['max'] ? (float) $row['max'] : '',
+				'label'  => $row && isset( $row['label'] ) ? (string) $row['label'] : '',
+				'type'   => $row && isset( $row['type'] ) ? (string) $row['type'] : '',
+				'amount' => $row && isset( $row['amount'] ) && '' !== (string) $row['amount'] && (float) $row['amount'] > 0 ? (float) $row['amount'] : '',
+				'saved'  => null !== $row,
 			);
 		}
 		return $rules;
+	}
+
+	/**
+	 * An extra button group (button_2, button_3): its button type and label are set per pattern.
+	 *
+	 * @param string $key Rule key.
+	 * @return bool
+	 */
+	public static function is_extra( $key ) {
+		return in_array( $key, array( 'button_2', 'button_3' ), true );
+	}
+
+	/**
+	 * The product type a rule asks for: the extra button groups use the type set on the pattern.
+	 *
+	 * @param string $key  Rule key.
+	 * @param array  $rule [ on, min, max, label, type, … ].
+	 * @return string
+	 */
+	public static function rule_type( $key, $rule ) {
+		$rules = self::rules();
+		if ( ! isset( $rules[ $key ] ) ) {
+			return '';
+		}
+		if ( self::is_extra( $key ) && ! empty( $rule['type'] ) ) {
+			$kind = self::kind( $rules[ $key ][0] );
+			if ( isset( $kind['types'][ $rule['type'] ] ) ) {
+				return $rule['type'];
+			}
+		}
+		return $rules[ $key ][1];
 	}
 
 	/**
@@ -691,7 +742,8 @@ class AIMP_Notions {
 		if ( empty( $rule['on'] ) || ! isset( $rules[ $key ] ) ) {
 			return false;
 		}
-		list( $kind, $type ) = $rules[ $key ];
+		$kind = $rules[ $key ][0];
+		$type = self::rule_type( $key, $rule );
 		if ( self::kind_of( $product ) !== $kind ) {
 			return false;
 		}
@@ -728,8 +780,9 @@ class AIMP_Notions {
 		if ( ! isset( $rules[ $key ] ) ) {
 			return $query;
 		}
-		list( $kind, $type ) = $rules[ $key ];
-		$info                = self::kind( $kind );
+		$kind = $rules[ $key ][0];
+		$type = self::rule_type( $key, $rule );
+		$info = self::kind( $kind );
 		if ( '' !== $type ) {
 			if ( $info['default_type'] === $type || '' === $info['default_type'] ) {
 				$query[] = array(

@@ -1420,7 +1420,6 @@ return array(
 	'Shown on the product page under "Description". The pictures are set on the right: Product image and Product gallery.' => 'Getoond op de productpagina onder "Beschrijving". De foto\'s stel je rechts in: Productafbeelding en Productgalerij.',
 	'Specifications: %s' => 'Specificaties: %s',
 	'Switch it on on the Atelier Irisee tab (Haberdashery) to fill this in.' => 'Zet het aan op het tabblad Atelier Irisee (Fournituren) om dit in te vullen.',
-	'Switch on what this pattern needs, with the diameter or width that fits (empty = any size). Each size then gets an amount field for it on the Variations tab, and the configurator only offers products of that type and size. Zips are matched on the length a size needs.' => 'Zet aan wat dit patroon nodig heeft, met de diameter of breedte die past (leeg = elke maat). Elke maat krijgt er dan een veld voor op het tabblad Variaties, en de configurator biedt alleen producten van dat soort en die maat aan. Ritsen worden gekozen op de lengte die een maat nodig heeft.',
 	'The picture of the design\'s card in the configurator, shown first.' => 'De foto van de kaart van het ontwerp in de configurator, als eerste getoond.',
 	'The price and the stock follow "Sold per": per piece, per set, per 10 cm or per roll.' => 'De prijs en de voorraad volgen "Verkocht per": per stuk, per set, per 10 cm of per rol.',
 	'The type and the size decide in which patterns the product is offered.' => 'Het soort en de maat bepalen bij welke patronen het product aangeboden wordt.',
@@ -1497,4 +1496,14 @@ return array(
 	'Step 4: title' => 'Stap 4: titel',
 	'The texts of the bar %s (on the home page and in the customizer). Leave a field empty for the standard text, shown in grey.' => 'De teksten van de balk %s (op de startpagina en in de customizer). Laat een veld leeg voor de standaardtekst, die in het grijs staat.',
 	'Title' => 'Titel',
+
+	// 3.12.0
+	'Buttons (group 2)' => 'Knopen (groep 2)',
+	'Buttons (group 3)' => 'Knopen (groep 3)',
+	'Haberdashery: %s' => 'Fournituren: %s',
+	'Length (all sizes)' => 'Lengte (alle maten)',
+	'Name' => 'Naam',
+	'Number (all sizes)' => 'Aantal (alle maten)',
+	'Switch on what this pattern needs, with the diameter or width that fits (empty = any size), and the number or length for all sizes. A size can still have its own number or length on the Variations tab. Zips: only zips of exactly that length are offered. Ribbons and cords: all of them are offered.' => 'Zet aan wat dit patroon nodig heeft, met de diameter of breedte die past (leeg = elke maat), en het aantal of de lengte voor alle maten. Een maat kan nog een eigen aantal of lengte krijgen op het tabblad Variaties. Ritsen: enkel ritsen van precies die lengte worden aangeboden. Linten en koorden: ze worden allemaal aangeboden.',
+	'e.g. Cuffs' => 'bv. Manchetten',
 );

@@ -193,12 +193,6 @@ class AIMP_Product_Page {
 			'inside_leg' => __( 'Inside leg', 'atelier-irisee-master-plugin' ),
 			'height'     => __( 'Height', 'atelier-irisee-master-plugin' ),
 		);
-		// Haberdashery with the diameter or width that fits ("6 · 15–20 mm").
-		$rules         = AIMP_Notions::pattern_rules( $pattern->get_id() );
-		$button_ranges = array();
-		foreach ( AIMP_Notions::rules() as $rule => $info ) {
-			$button_ranges[ $info[2] ] = AIMP_Notions::range_text( $rules[ $rule ], AIMP_Notions::rule_unit( $rule ) );
-		}
 		$sizes = array();
 		foreach ( $pattern->get_children() as $child_id ) {
 			$req = AIMP_Catalog::get_requirements( $child_id );
@@ -208,6 +202,11 @@ class AIMP_Product_Page {
 		}
 		$groups = array();
 		foreach ( $sizes as $slug => $reqs ) {
+			// Haberdashery with the diameter or width that fits ("6 · 15–20 mm"), from this design's rules.
+			$button_ranges = array();
+			foreach ( AIMP_Notions::rules() as $rule => $info ) {
+				$button_ranges[ $info[2] ] = AIMP_Notions::range_text( $reqs[0]['notion_rules'][ $rule ], AIMP_Notions::rule_unit( $rule ) );
+			}
 			// Accessories: every material any size needs, one value or a range.
 			$accessories = array();
 			foreach ( $fields as $key => $field ) {
@@ -233,7 +232,7 @@ class AIMP_Product_Page {
 					: sprintf( '%d–%d', $min, $max ) );
 
 				$range         = isset( $button_ranges[ $key ] ) ? $button_ranges[ $key ] : '';
-				$accessories[] = array( $field['label'], '' !== $range ? $text . ' · ' . $range : $text );
+				$accessories[] = array( AIMP_Catalog::material_label( $key, $reqs[0] ), '' !== $range ? $text . ' · ' . $range : $text );
 			}
 			// Table: the measurements filled in for at least one size, then the fabric.
 			$used = array();
@@ -877,14 +876,21 @@ class AIMP_Product_Page {
 				$args['no_found_rows']  = true;
 				foreach ( ( new WP_Query( $args ) )->posts as $pattern_id ) {
 					$pattern = wc_get_product( $pattern_id );
-					$rules   = AIMP_Notions::pattern_rules( (int) $pattern_id );
 					$fits    = false;
 					foreach ( AIMP_Notions::rules() as $rule => $info ) {
-						if ( $info[0] !== $kind || ! AIMP_Notions::fits( $product, $rule, $rules[ $rule ] ) ) {
+						if ( $info[0] !== $kind ) {
 							continue;
 						}
 						foreach ( $pattern ? $pattern->get_children() : array() as $child_id ) {
+							// Each size with the rules of its design.
+							$rules = AIMP_Notions::pattern_rules( (int) $pattern_id, AIMP_Catalog::designs( $pattern ) ? AIMP_Catalog::variation_design( $child_id ) : '' );
+							if ( ! AIMP_Notions::fits( $product, $rule, $rules[ $rule ] ) ) {
+								continue;
+							}
 							$amount = (float) get_post_meta( $child_id, $fields[ $info[2] ]['meta'], true );
+							if ( $amount <= 0 && '' !== $rules[ $rule ]['amount'] ) {
+								$amount = (float) $rules[ $rule ]['amount'];
+							}
 							if ( $amount > 0 && ( 'zip' !== $kind || abs( $amount - $length ) < 0.01 ) ) {
 								$fits = true;
 								break 2;

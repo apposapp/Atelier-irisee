@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.11.0
+Stable tag: 3.12.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.12.0 =
+* Haberdashery per design: a pattern with designs gets a Haberdashery block per design (until saved, a design uses the pattern's settings).
+* Button groups: up to two extra button groups per pattern or design, each with its own name (e.g. "Cuffs"), button type and diameter; each is its own choice in the customizer.
+* Number or length for all sizes in the Haberdashery block (zips: the zip length, only zips of exactly that length are offered; elastic and bias tape: the length that is bought, the width stays the filter). A size can still have its own value.
+* Ribbons and cords: no width filter any more; the customizer offers all of them.
 
 = 3.11.0 =
 * Product pages on phones: the new order now really applies (description and specifications, recommended pattern, inspiration, the rest).

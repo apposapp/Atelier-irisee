@@ -213,9 +213,10 @@ class AIMP_Product_Fields {
 		// Haberdashery the pattern does not use (Atelier Irisee tab → Haberdashery) can't be filled in; admin.js
 		// follows the switches.
 		$pattern = wc_get_product( $variation_post->post_parent );
+		$design  = self::size_design( $pattern, $variation_post->ID );
 		$off     = array();
 		$ruled   = array();
-		foreach ( self::shown_rules( $pattern ) as $rule => $state ) {
+		foreach ( self::shown_rules( $pattern, $design ) as $rule => $state ) {
 			$material           = AIMP_Notions::rules()[ $rule ][2];
 			$ruled[ $material ] = true;
 			if ( ! $state['on'] ) {
@@ -237,7 +238,7 @@ class AIMP_Product_Fields {
 				isset( $off[ $name ] ) ? ' disabled' : ''
 			);
 		};
-		$note = function ( $fields ) use ( $pattern, $ruled ) {
+		$note = function ( $fields ) use ( $pattern, $ruled, $design ) {
 			$materials = array_keys( array_intersect_key( $fields, $ruled ) );
 			if ( ! $materials ) {
 				return;
@@ -246,11 +247,11 @@ class AIMP_Product_Fields {
 			printf(
 				'<p class="aimp-notion-allowed" data-aimp-allowed="%1$s">%2$s</p>',
 				esc_attr( implode( ',', $materials ) ),
-				esc_html( self::allowed_text( $pattern, $materials ) )
+				esc_html( self::allowed_text( $pattern, $materials, $design ) )
 			);
 		};
 		?>
-		<div class="aimp-variation-fields">
+		<div class="aimp-variation-fields" data-design="<?php echo esc_attr( $design ); ?>">
 			<h4><?php esc_html_e( 'Needed materials & sizes', 'atelier-irisee-master-plugin' ); ?></h4>
 			<div class="aimp-material-groups">
 				<?php foreach ( $groups as $group => $fields ) : ?>
@@ -318,7 +319,8 @@ class AIMP_Product_Fields {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
 		$on_list = isset( $_POST['aimp_notion_on'][ $i ] ) ? array_filter( explode( ',', sanitize_text_field( wp_unslash( $_POST['aimp_notion_on'][ $i ] ) ) ) ) : null;
 		$off     = array();
-		foreach ( self::shown_rules( wc_get_product( $variation->get_parent_id() ) ) as $rule => $state ) {
+		$parent = wc_get_product( $variation->get_parent_id() );
+		foreach ( self::shown_rules( $parent, self::size_design( $parent, $variation->get_id() ) ) as $rule => $state ) {
 			$material = AIMP_Notions::rules()[ $rule ][2];
 			if ( null === $on_list ? ! $state['on'] : ! in_array( $material, $on_list, true ) ) {
 				$off[ $material ] = true;
@@ -633,19 +635,29 @@ class AIMP_Product_Fields {
 	}
 
 	/**
-	 * Which haberdashery the pattern uses, as shown on the tab: rule => [ on, min, max, saved ]. A rule that was
-	 * never saved (patterns from before 3.6, or kinds new in 3.7) shows as on when a size has an amount for it.
+	 * Which haberdashery the pattern (or one design) uses, as shown on the tab: rule => [ on, min, max, label, type,
+	 * amount, saved ]. A rule that was never saved (patterns from before 3.6, or kinds new in 3.7) shows as on when a
+	 * size has an amount for it.
 	 *
 	 * @param WC_Product|null $product Pattern.
+	 * @param string          $design  Design slug ('' = the whole pattern).
 	 * @return array
 	 */
-	private static function shown_rules( $product ) {
+	private static function shown_rules( $product, $design = '' ) {
 		$id     = $product ? $product->get_id() : 0;
-		$rules  = AIMP_Notions::pattern_rules( $id );
+		$rules  = AIMP_Notions::pattern_rules( $id, $design );
 		$fields = AIMP_Catalog::material_fields();
 		$sizes  = $product ? $product->get_children() : array();
+		if ( '' !== $design ) {
+			$sizes = array_filter(
+				$sizes,
+				function ( $child_id ) use ( $design ) {
+					return AIMP_Catalog::variation_design( $child_id ) === $design;
+				}
+			);
+		}
 		foreach ( AIMP_Notions::rules() as $rule => $info ) {
-			if ( $rules[ $rule ]['saved'] ) {
+			if ( $rules[ $rule ]['saved'] || AIMP_Notions::is_extra( $rule ) ) {
 				continue;
 			}
 			$used = false;
@@ -661,15 +673,49 @@ class AIMP_Product_Fields {
 	}
 
 	/**
+	 * The design of a size, or '' when the pattern has no designs.
+	 *
+	 * @param WC_Product|null $pattern      Pattern.
+	 * @param int             $variation_id Size.
+	 * @return string
+	 */
+	private static function size_design( $pattern, $variation_id ) {
+		return $pattern && AIMP_Catalog::designs( $pattern ) ? AIMP_Catalog::variation_design( $variation_id ) : '';
+	}
+
+	/**
 	 * "Haberdashery": per kind (buttons, zips, elastic, bias tape, ribbons & cords, interfacing) and type a switch,
-	 * and the diameter or width that fits. Only switched-on kinds get an amount field on the sizes, and the
-	 * configurator only offers products of that type and size.
+	 * the diameter or width that fits, and the number or length for every size. Buttons can have up to two extra
+	 * groups (another diameter or type, e.g. "Cuffs"). A pattern with designs gets one block per design.
 	 *
 	 * @param WC_Product $product Pattern.
 	 */
 	private static function render_rules( $product ) {
-		$rules  = self::shown_rules( $product );
+		$designs = AIMP_Catalog::designs( $product );
+		if ( ! $designs ) {
+			echo '<div class="options_group aimp-notion-rules">';
+			self::render_rule_block( $product, '', '' );
+			echo '<input type="hidden" name="aimp_notion_rules_present" value="1"></div>';
+			return;
+		}
+		echo '<div class="options_group aimp-notion-rules aimp-notion-rules--designs">';
+		foreach ( $designs as $slug => $name ) {
+			self::render_rule_block( $product, $slug, $name );
+		}
+		echo '<input type="hidden" name="aimp_design_rules_present" value="1"></div>';
+	}
+
+	/**
+	 * One haberdashery block: for the pattern, or for one design.
+	 *
+	 * @param WC_Product $product Pattern.
+	 * @param string     $design  Design slug, or ''.
+	 * @param string     $name    Design name.
+	 */
+	private static function render_rule_block( $product, $design, $name ) {
+		$rules  = self::shown_rules( $product, $design );
 		$fields = AIMP_Catalog::material_fields();
+		$prefix = '' === $design ? 'aimp_notion_rules' : 'aimp_design_rules[' . $design . ']';
 		$attrs  = function ( $unit ) {
 			$cm = 'cm' === $unit;
 			return sprintf(
@@ -683,12 +729,18 @@ class AIMP_Product_Fields {
 				esc_attr( $unit )
 			);
 		};
+		$button_types = AIMP_Notions::kind( 'button' )['types'];
 		?>
-		<div class="options_group aimp-notion-rules" data-aimp-notion-rules
+		<div class="aimp-notion-rule-block" data-aimp-notion-rules data-design="<?php echo esc_attr( $design ); ?>"
 			data-allowed="<?php /* translators: %s: what may be filled in, e.g. "Buttons 14–18 mm" */ echo esc_attr( __( 'Allowed: %s', 'atelier-irisee-master-plugin' ) ); ?>"
 			data-none="<?php esc_attr_e( 'Switch it on on the Atelier Irisee tab (Haberdashery) to fill this in.', 'atelier-irisee-master-plugin' ); ?>">
-			<h4><?php esc_html_e( 'Haberdashery', 'atelier-irisee-master-plugin' ); ?></h4>
-			<p class="description"><?php esc_html_e( 'Switch on what this pattern needs, with the diameter or width that fits (empty = any size). Each size then gets an amount field for it on the Variations tab, and the configurator only offers products of that type and size. Zips are matched on the length a size needs.', 'atelier-irisee-master-plugin' ); ?></p>
+			<h4>
+				<?php
+				/* translators: %s: design name */
+				echo esc_html( '' === $design ? __( 'Haberdashery', 'atelier-irisee-master-plugin' ) : sprintf( __( 'Haberdashery: %s', 'atelier-irisee-master-plugin' ), $name ) );
+				?>
+			</h4>
+			<p class="description"><?php esc_html_e( 'Switch on what this pattern needs, with the diameter or width that fits (empty = any size), and the number or length for all sizes. A size can still have its own number or length on the Variations tab. Zips: only zips of exactly that length are offered. Ribbons and cords: all of them are offered.', 'atelier-irisee-master-plugin' ); ?></p>
 			<?php foreach ( AIMP_Notions::kinds() as $kind => $kind_info ) : ?>
 				<fieldset class="aimp-notion-rule-group" data-kind="<?php echo esc_attr( $kind ); ?>">
 					<legend><?php echo esc_html( $kind_info['name'] ); ?></legend>
@@ -697,17 +749,37 @@ class AIMP_Product_Fields {
 						if ( $info[0] !== $kind ) {
 							continue;
 						}
-						$rule  = $rules[ $rule_key ];
-						$base  = 'aimp_notion_rules[' . $rule_key . ']';
-						$label = $fields[ $info[2] ]['label'];
-						$unit  = AIMP_Notions::rule_unit( $rule_key );
-						$range = '' !== $kind_info['range'] ? AIMP_Notions::fields()[ $kind_info['range'] ][1] : '';
+						$rule   = $rules[ $rule_key ];
+						$base   = $prefix . '[' . $rule_key . ']';
+						$field  = $fields[ $info[2] ];
+						$label  = $field['label'];
+						$unit   = AIMP_Notions::rule_unit( $rule_key );
+						$range  = '' !== $kind_info['range'] ? AIMP_Notions::fields()[ $kind_info['range'] ][1] : '';
+						$is_cm  = 'cm' === $field['unit'];
+						$extra  = AIMP_Notions::is_extra( $rule_key );
+						$shown  = $label . ( '' !== $rule['label'] ? ' – ' . $rule['label'] : '' );
 						?>
-						<div class="aimp-notion-rule<?php echo $rule['on'] ? ' is-on' : ''; ?>" data-material="<?php echo esc_attr( $info[2] ); ?>" data-label="<?php echo esc_attr( $label ); ?>"<?php echo '' !== $unit ? $attrs( $unit ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $attrs. ?>>
+						<div class="aimp-notion-rule<?php echo $rule['on'] ? ' is-on' : ''; ?>" data-material="<?php echo esc_attr( $info[2] ); ?>" data-label="<?php echo esc_attr( $shown ); ?>"<?php echo '' !== $unit ? $attrs( $unit ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $attrs. ?>>
 							<label class="aimp-notion-rule-switch">
 								<input type="checkbox" class="aimp-notion-rule-toggle" name="<?php echo esc_attr( $base . '[on]' ); ?>" value="1"<?php checked( $rule['on'] ); ?>>
 								<?php echo esc_html( $label ); ?>
 							</label>
+							<?php if ( 'button' === $kind ) : ?>
+								<label class="aimp-notion-rule-name">
+									<?php esc_html_e( 'Name', 'atelier-irisee-master-plugin' ); ?>
+									<input type="text" class="short" name="<?php echo esc_attr( $base . '[label]' ); ?>" value="<?php echo esc_attr( $rule['label'] ); ?>" placeholder="<?php esc_attr_e( 'e.g. Cuffs', 'atelier-irisee-master-plugin' ); ?>">
+								</label>
+							<?php endif; ?>
+							<?php if ( $extra ) : ?>
+								<label class="aimp-notion-rule-type">
+									<?php esc_html_e( 'Type', 'atelier-irisee-master-plugin' ); ?>
+									<select name="<?php echo esc_attr( $base . '[type]' ); ?>">
+										<?php foreach ( $button_types as $type_key => $type_name ) : ?>
+											<option value="<?php echo esc_attr( $type_key ); ?>"<?php selected( '' !== $rule['type'] ? $rule['type'] : 'button', $type_key ); ?>><?php echo esc_html( $type_name ); ?></option>
+										<?php endforeach; ?>
+									</select>
+								</label>
+							<?php endif; ?>
 							<?php if ( '' !== $unit ) : ?>
 								<span class="aimp-notion-rule-range">
 									<label>
@@ -721,17 +793,73 @@ class AIMP_Product_Fields {
 									</label>
 								</span>
 							<?php endif; ?>
+							<label class="aimp-notion-rule-amount">
+								<?php echo esc_html( 'zip' === $kind ? __( 'Length (all sizes)', 'atelier-irisee-master-plugin' ) : ( $is_cm ? __( 'Length (all sizes)', 'atelier-irisee-master-plugin' ) : __( 'Number (all sizes)', 'atelier-irisee-master-plugin' ) ) ); ?>
+								<input type="number" class="small-text" min="0" step="<?php echo $is_cm ? '0.5' : '1'; ?>" name="<?php echo esc_attr( $base . '[amount]' ); ?>" value="<?php echo esc_attr( (string) $rule['amount'] ); ?>">
+								<?php echo esc_html( $is_cm ? __( 'cm', 'atelier-irisee-master-plugin' ) : __( 'pcs', 'atelier-irisee-master-plugin' ) ); ?>
+							</label>
 						</div>
 					<?php endforeach; ?>
 				</fieldset>
 			<?php endforeach; ?>
-			<input type="hidden" name="aimp_notion_rules_present" value="1">
 		</div>
 		<?php
 	}
 
 	/**
-	 * Saves the "Haberdashery" block. A kind switched off loses its amounts on every size.
+	 * Cleans the posted rows of one haberdashery block.
+	 *
+	 * @param array $input Posted rows: rule => [ on, min, max, label, type, amount ].
+	 * @return array
+	 */
+	private static function clean_rules( $input ) {
+		$number = function ( $value ) {
+			$value = wc_clean( (string) $value );
+			return '' === $value || (float) $value <= 0 ? '' : wc_format_decimal( (float) $value, 1, true );
+		};
+		$fields       = AIMP_Catalog::material_fields();
+		$button_types = AIMP_Notions::kind( 'button' )['types'];
+		$clean        = array();
+		foreach ( AIMP_Notions::rules() as $rule => $info ) {
+			$row            = isset( $input[ $rule ] ) && is_array( $input[ $rule ] ) ? $input[ $rule ] : array();
+			$type           = isset( $row['type'] ) ? sanitize_key( $row['type'] ) : '';
+			$amount         = isset( $row['amount'] ) ? $number( $row['amount'] ) : '';
+			$clean[ $rule ] = array(
+				'on'     => ! empty( $row['on'] ),
+				'min'    => isset( $row['min'] ) ? $number( $row['min'] ) : '',
+				'max'    => isset( $row['max'] ) ? $number( $row['max'] ) : '',
+				'label'  => isset( $row['label'] ) ? sanitize_text_field( $row['label'] ) : '',
+				'type'   => AIMP_Notions::is_extra( $rule ) && isset( $button_types[ $type ] ) ? $type : '',
+				// Pieces are whole numbers; lengths in cm.
+				'amount' => '' !== $amount && 'cm' !== $fields[ $info[2] ]['unit'] ? (string) max( 1, (int) round( (float) $amount ) ) : $amount,
+			);
+		}
+		return $clean;
+	}
+
+	/**
+	 * A kind switched off loses its amounts on the sizes (of one design, or all).
+	 *
+	 * @param WC_Product $product Pattern.
+	 * @param array      $clean   Cleaned rules.
+	 * @param string     $design  Design slug, or ''.
+	 */
+	private static function clear_off_amounts( $product, $clean, $design ) {
+		$fields = AIMP_Catalog::material_fields();
+		foreach ( AIMP_Notions::rules() as $rule => $info ) {
+			if ( $clean[ $rule ]['on'] ) {
+				continue;
+			}
+			foreach ( $product->get_children() as $child_id ) {
+				if ( '' === $design || AIMP_Catalog::variation_design( $child_id ) === $design ) {
+					delete_post_meta( $child_id, $fields[ $info[2] ]['meta'] );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Saves the "Haberdashery" block of a pattern without designs (the designs save theirs with the Designs block).
 	 *
 	 * @param WC_Product $product Pattern.
 	 */
@@ -742,27 +870,29 @@ class AIMP_Product_Fields {
 		}
 		$input = isset( $_POST['aimp_notion_rules'] ) && is_array( $_POST['aimp_notion_rules'] ) ? wp_unslash( $_POST['aimp_notion_rules'] ) : array();
 		// phpcs:enable
-		$number = function ( $value ) {
-			$value = wc_clean( (string) $value );
-			return '' === $value || (float) $value <= 0 ? '' : wc_format_decimal( (float) $value, 1, true );
-		};
-		$clean  = array();
-		$fields = AIMP_Catalog::material_fields();
-		foreach ( AIMP_Notions::rules() as $rule => $info ) {
-			$row            = isset( $input[ $rule ] ) && is_array( $input[ $rule ] ) ? $input[ $rule ] : array();
-			$clean[ $rule ] = array(
-				'on'  => ! empty( $row['on'] ),
-				'min' => isset( $row['min'] ) ? $number( $row['min'] ) : '',
-				'max' => isset( $row['max'] ) ? $number( $row['max'] ) : '',
-			);
-			if ( ! $clean[ $rule ]['on'] ) {
-				foreach ( $product->get_children() as $child_id ) {
-					delete_post_meta( $child_id, $fields[ $info[2] ]['meta'] );
-				}
-			}
-		}
+		$clean = self::clean_rules( $input );
+		self::clear_off_amounts( $product, $clean, '' );
 		$product->update_meta_data( AIMP_Notions::META_RULES, $clean );
 		$product->delete_meta_data( AIMP_Notions::META_BUTTON_RULES );
+	}
+
+	/**
+	 * The haberdashery rules of one design from the form, or null when the form had no design blocks.
+	 *
+	 * @param WC_Product $product Pattern.
+	 * @param string     $slug    Design slug.
+	 * @return array|null
+	 */
+	private static function posted_design_rules( $product, $slug ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
+		if ( empty( $_POST['aimp_design_rules_present'] ) ) {
+			return null;
+		}
+		$input = isset( $_POST['aimp_design_rules'][ $slug ] ) && is_array( $_POST['aimp_design_rules'][ $slug ] ) ? wp_unslash( $_POST['aimp_design_rules'][ $slug ] ) : array();
+		// phpcs:enable
+		$clean = self::clean_rules( $input );
+		self::clear_off_amounts( $product, $clean, $slug );
+		return $clean;
 	}
 
 	/**
@@ -770,16 +900,17 @@ class AIMP_Product_Fields {
 	 *
 	 * @param WC_Product|null $product   Pattern.
 	 * @param string[]        $materials Material keys of the group.
+	 * @param string          $design    The size's design, or ''.
 	 * @return string
 	 */
-	private static function allowed_text( $product, $materials ) {
+	private static function allowed_text( $product, $materials, $design = '' ) {
 		$parts  = array();
 		$fields = AIMP_Catalog::material_fields();
-		foreach ( self::shown_rules( $product ) as $rule => $state ) {
+		foreach ( self::shown_rules( $product, $design ) as $rule => $state ) {
 			$material = AIMP_Notions::rules()[ $rule ][2];
 			if ( $state['on'] && in_array( $material, $materials, true ) ) {
 				$range   = AIMP_Notions::range_text( $state, AIMP_Notions::rule_unit( $rule ) );
-				$parts[] = $fields[ $material ]['label'] . ( '' !== $range ? ' ' . $range : '' );
+				$parts[] = $fields[ $material ]['label'] . ( '' !== $state['label'] ? ' – ' . $state['label'] : '' ) . ( '' !== $range ? ' ' . $range : '' );
 			}
 		}
 		/* translators: %s: what may be filled in, e.g. "Buttons 14–18 mm" */
@@ -798,8 +929,10 @@ class AIMP_Product_Fields {
 		}
 		$input = isset( $_POST['aimp_designs'] ) && is_array( $_POST['aimp_designs'] ) ? wp_unslash( $_POST['aimp_designs'] ) : array();
 		// phpcs:enable
-		$clean = array();
+		$clean    = array();
+		$previous = AIMP_Catalog::design_data( $product->get_id() );
 		foreach ( AIMP_Catalog::designs( $product ) as $slug => $name ) {
+			$rules          = self::posted_design_rules( $product, $slug );
 			$row            = isset( $input[ $slug ] ) && is_array( $input[ $slug ] ) ? $input[ $slug ] : array();
 			$height         = isset( $row['height'] ) ? wc_clean( $row['height'] ) : '';
 			$main           = isset( $row['main_image'] ) ? absint( $row['main_image'] ) : 0;
@@ -817,6 +950,7 @@ class AIMP_Product_Fields {
 				'fabric_priority' => $positions,
 				'height'       => '' === $height ? '' : wc_format_decimal( max( 0, (float) $height ), 2, true ),
 				'project_time' => isset( $row['project_time'] ) ? sanitize_text_field( $row['project_time'] ) : '',
+				'notion_rules' => null !== $rules ? $rules : ( isset( $previous[ $slug ]['notion_rules'] ) ? $previous[ $slug ]['notion_rules'] : array() ),
 			);
 		}
 		$product->update_meta_data( AIMP_Catalog::META_DESIGNS, $clean );

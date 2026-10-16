@@ -1420,7 +1420,6 @@ return array(
 	'Shown on the product page under "Description". The pictures are set on the right: Product image and Product gallery.' => 'Affiché sur la page du produit sous « Description ». Les photos se règlent à droite : Image produit et Galerie produit.',
 	'Specifications: %s' => 'Caractéristiques : %s',
 	'Switch it on on the Atelier Irisee tab (Haberdashery) to fill this in.' => 'Activez-le dans l\'onglet Atelier Irisee (Mercerie) pour le remplir.',
-	'Switch on what this pattern needs, with the diameter or width that fits (empty = any size). Each size then gets an amount field for it on the Variations tab, and the configurator only offers products of that type and size. Zips are matched on the length a size needs.' => 'Activez ce dont ce patron a besoin, avec le diamètre ou la largeur qui convient (vide = toute taille). Chaque taille reçoit alors un champ dans l\'onglet Variations, et le configurateur ne propose que des produits de ce type et de cette taille. Les fermetures sont choisies selon la longueur dont une taille a besoin.',
 	'The picture of the design\'s card in the configurator, shown first.' => 'La photo de la carte du modèle dans le configurateur, affichée en premier.',
 	'The price and the stock follow "Sold per": per piece, per set, per 10 cm or per roll.' => 'Le prix et le stock suivent « Vendu par » : à la pièce, par lot, par 10 cm ou par rouleau.',
 	'The type and the size decide in which patterns the product is offered.' => 'Le type et la taille déterminent avec quels patrons le produit est proposé.',
@@ -1497,4 +1496,14 @@ return array(
 	'Step 4: title' => 'Étape 4 : titre',
 	'The texts of the bar %s (on the home page and in the customizer). Leave a field empty for the standard text, shown in grey.' => 'Les textes de la barre %s (sur la page d\'accueil et dans le customizer). Laissez un champ vide pour le texte standard, affiché en gris.',
 	'Title' => 'Titre',
+
+	// 3.12.0
+	'Buttons (group 2)' => 'Boutons (groupe 2)',
+	'Buttons (group 3)' => 'Boutons (groupe 3)',
+	'Haberdashery: %s' => 'Mercerie : %s',
+	'Length (all sizes)' => 'Longueur (toutes les tailles)',
+	'Name' => 'Nom',
+	'Number (all sizes)' => 'Nombre (toutes les tailles)',
+	'Switch on what this pattern needs, with the diameter or width that fits (empty = any size), and the number or length for all sizes. A size can still have its own number or length on the Variations tab. Zips: only zips of exactly that length are offered. Ribbons and cords: all of them are offered.' => 'Activez ce dont ce patron a besoin, avec le diamètre ou la largeur qui convient (vide = toute taille), et le nombre ou la longueur pour toutes les tailles. Une taille peut encore avoir son propre nombre ou sa propre longueur dans l\'onglet Variations. Fermetures éclair : seules celles de cette longueur exacte sont proposées. Rubans et cordons : tous sont proposés.',
+	'e.g. Cuffs' => 'p. ex. Poignets',
 );

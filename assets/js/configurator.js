@@ -889,7 +889,9 @@
 		}
 		NOTIONS.forEach(function (n) {
 			if (n.qty(size) > 0) {
-				rows.push(card(n.type, t[n.label], n.need(size)));
+				// A named button group ("Buttons – Cuffs") by its own name.
+				var own = size.notions && size.notions[n.type] ? size.notions[n.type].name : '';
+				rows.push(card(n.type, own || t[n.label], n.need(size)));
 			}
 		});
 		// Also needed, not in the kit (elastic, cord, …): only the filled-in ones.
@@ -1441,9 +1443,11 @@
 
 		this.notionTypes().forEach(function (type) {
 			var info = notionInfo(type);
+			// A button group the pattern named ("Cuffs"): its name after the title.
+			var group = s.size.notions && s.size.notions[type] ? s.size.notions[type].label : '';
 			html +=
 				'<section class="aimp-notion-section">' +
-				'<h3>' + esc(t[info.title]) + '</h3>' +
+				'<h3>' + esc(t[info.title]) + (group ? ' <span class="aimp-notion-group">· ' + esc(group) + '</span>' : '') + '</h3>' +
 				'<p class="aimp-help">' + esc(info.willAdd(s.size)) + ' ' + esc(t.deselectHint) + '</p>' +
 				'<div class="aimp-split">' +
 				'<div class="aimp-split-main" data-role="notions-' + type + '"></div>' +

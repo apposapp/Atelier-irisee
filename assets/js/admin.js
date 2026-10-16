@@ -245,37 +245,49 @@ jQuery(function ($) {
 		return '';
 	}
 
-	function apply() {
+	// Each block (the pattern's, or one per design) rules the sizes of its design.
+	function applyBlock($block) {
+		var design = $block.attr('data-design') || '';
+		var $sizes = $('.aimp-variation-fields').filter(function () {
+			return !design || (this.getAttribute('data-design') || '') === design;
+		});
 		var onList = [];
 		var texts = {};
-		$rules.find('.aimp-notion-rule').each(function () {
+		$block.find('.aimp-notion-rule').each(function () {
 			var $rule = $(this);
 			var on = $rule.find('.aimp-notion-rule-toggle').prop('checked');
 			var material = $rule.attr('data-material');
 			$rule.toggleClass('is-on', on);
-			// Switched off: hidden and disabled on every size, so nothing is typed or sent.
-			var $fields = $('.aimp-variation-fields .aimp-material-field[data-material="' + material + '"]');
+			// Switched off: hidden and disabled on the sizes, so nothing is typed or sent.
+			var $fields = $sizes.find('.aimp-material-field[data-material="' + material + '"]');
 			$fields.prop('hidden', !on);
 			$fields.find('input').prop('disabled', !on);
 			if (on) {
 				onList.push(material);
+				var name = $.trim($rule.find('.aimp-notion-rule-name input').val() || '');
 				var range = rangeText($rule);
-				texts[material] = $rule.attr('data-label') + (range ? ' ' + range : '');
+				texts[material] = $rule.find('.aimp-notion-rule-switch').text().trim() + (name ? ' – ' + name : '') + (range ? ' ' + range : '');
 			}
 		});
-		$('.aimp-variation-fields [data-aimp-allowed]').each(function () {
+		$sizes.find('[data-aimp-allowed]').each(function () {
 			var parts = this.getAttribute('data-aimp-allowed').split(',').filter(function (material) {
 				return !!texts[material];
 			}).map(function (material) {
 				return texts[material];
 			});
-			this.textContent = parts.length ? fmt($rules.attr('data-allowed'), parts.join(' · ')) : $rules.attr('data-none');
+			this.textContent = parts.length ? fmt($block.attr('data-allowed'), parts.join(' · ')) : $block.attr('data-none');
 		});
-		$('.aimp-variation-fields .aimp-notion-on').val(onList.join(','));
+		$sizes.find('.aimp-notion-on').val(onList.join(','));
+	}
+
+	function apply() {
+		$rules.each(function () {
+			applyBlock($(this));
+		});
 	}
 
 	$rules.on('change', '.aimp-notion-rule-toggle', apply);
-	$rules.on('input', 'input[type="number"]', apply);
+	$rules.on('input', 'input', apply);
 	$('#woocommerce-product-data').on('woocommerce_variations_loaded woocommerce_variations_added', apply);
 	apply();
 });
