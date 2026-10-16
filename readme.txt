@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.8.0
+Stable tag: 3.8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.8.1 =
+* Customizer on phones and tablets: the chosen fabric's details and Continue are shown again (3.8.0 hid them), stacked under the fabrics.
+* Customizer on phones: "‹ Back" sits with the steps at the top instead of in the bar at the bottom.
+* Kit steps bar: a bit bigger and wider; a pointed silver needle sews a gold seam under the steps from left to right, in a loop (above the cards on phones), and the same needle stands next to the button.
 
 = 3.8.0 =
 * Phones: an app-like tab bar at the bottom (Home, Shop, Customizer, Cart with count, Menu). The header gets slimmer: logo, search, favourites, account and language.

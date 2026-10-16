@@ -72,6 +72,20 @@ class AIMP_Kit_Steps {
 	}
 
 	/**
+	 * A classic sewing needle pointing right (to +x), centred on 0,0: a silver tapered shaft with a sharp point
+	 * and an elongated eye at the back.
+	 *
+	 * @return string SVG group.
+	 */
+	private static function needle() {
+		return '<g class="ks-needle">' .
+			'<path class="ks-needle-shaft" d="M-34 -2.4 Q-37 0 -34 2.4 L24 1.1 L36 0 L24 -1.1 Z"/>' .
+			'<path class="ks-needle-shine" d="M-30 -0.9 L22 -0.5"/>' .
+			'<ellipse class="ks-needle-eye" cx="-28" cy="0" rx="4" ry="0.9"/>' .
+			'</g>';
+	}
+
+	/**
 	 * @param array|string $atts Attributes.
 	 * @return string
 	 */
@@ -102,9 +116,12 @@ class AIMP_Kit_Steps {
 		<section class="aimp-kit-steps" data-aimp-kit-steps aria-label="<?php echo esc_attr( $title ); ?>">
 			<h2 class="aimp-kit-steps-title"><?php echo esc_html( $title ); ?></h2>
 			<div class="aimp-kit-steps-row">
+				<?php // The seam behind the steps, and a needle above them that sews it from left to right (kit-steps.js). ?>
 				<svg class="aimp-kit-steps-thread" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-					<path d="M0 70 C 90 10, 160 10, 250 60 S 410 115, 500 60 S 660 5, 750 60 S 910 115, 1000 50" />
+					<path class="ks-seam-guide" d="M0 70 C 90 10, 160 10, 250 60 S 410 115, 500 60 S 660 5, 750 60 S 910 115, 1000 50" />
+					<path class="ks-seam-sewn" d="M0 70 C 90 10, 160 10, 250 60 S 410 115, 500 60 S 660 5, 750 60 S 910 115, 1000 50" />
 				</svg>
+				<svg class="aimp-kit-steps-sewing" aria-hidden="true" focusable="false"><?php echo self::needle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></svg>
 				<ol class="aimp-kit-steps-list">
 					<?php foreach ( self::steps() as $index => $step ) : ?>
 						<li class="aimp-kit-step aimp-kit-step--<?php echo esc_attr( $step[0] ); ?>">
@@ -117,7 +134,7 @@ class AIMP_Kit_Steps {
 				</ol>
 				<?php if ( '' !== $url ) : ?>
 					<div class="aimp-kit-steps-cta">
-						<svg class="aimp-kit-steps-needle" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 34L32 8"/><ellipse cx="30.5" cy="9.5" rx="1.2" ry="3" transform="rotate(45 30.5 9.5)"/><path d="M6 34c-2 2-4 1-4-1"/></svg>
+						<svg class="aimp-kit-steps-needle" viewBox="-40 -20 80 40" aria-hidden="true" focusable="false"><g transform="rotate(-30)"><?php echo self::needle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></g></svg>
 						<a class="aimp-kit-steps-button" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $button ); ?></a>
 					</div>
 				<?php endif; ?>

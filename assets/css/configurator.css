@@ -1455,3 +1455,47 @@
 		font-size: max(16px, 1em);
 	}
 }
+
+/* "‹ Back" in the step bar: phones only; there the step's own Back button is hidden (it covered content). */
+.aimp-configurator .aimp-steps li.aimp-steps-back {
+	display: none;
+}
+
+@media (max-width: 700px) {
+	.aimp-configurator .aimp-steps li.aimp-steps-back {
+		display: block;
+		order: -1;
+		flex-basis: 100%;
+	}
+
+	.aimp-configurator .aimp-steps li.aimp-steps-back button {
+		display: inline-flex;
+		align-items: center;
+		min-height: 36px;
+		padding: 0.2rem 0.9rem;
+		border: 1px solid var(--aimp-gold);
+		border-radius: 100px;
+		text-decoration: none;
+	}
+
+	.aimp-configurator .aimp-step > .aimp-actions [data-action="back"] {
+		display: none;
+	}
+
+	/* A bottom bar with nothing left in it (the fabric step: Continue is in the fabric panel) is not shown. */
+	.aimp-configurator .aimp-step > .aimp-actions:not(:has(> :not([data-action="back"]))) {
+		display: none;
+	}
+}
+
+/* The fabric step: the products and the chosen fabric's details stack on phones and tablets.
+ * (.aimp-shop-content is the size container itself, so its container query never applies to it.) */
+@media (max-width: 760px) {
+	.aimp-configurator:not(.aimp-shop) .aimp-shop-content.aimp-split {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-configurator:not(.aimp-shop) .aimp-shop-content.aimp-split > .aimp-split-side {
+		position: static;
+	}
+}

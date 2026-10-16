@@ -462,7 +462,15 @@
 				}
 				return '<li class="' + cls + '"' + (i === current ? ' aria-current="step"' : '') + '>' + inner + '</li>';
 			})
-			.join('');
+			.join('') +
+			// Phones: "‹ Back" sits with the steps (configurator.css), instead of in the bar at the bottom.
+			(current > 0 && !self.state.added ? '<li class="aimp-steps-back"><button type="button" data-action="steps-back">‹ ' + esc(t.back) + '</button></li>' : '');
+		var back = this.stepsEl.querySelector('[data-action="steps-back"]');
+		if (back) {
+			back.addEventListener('click', function () {
+				self.prev();
+			});
+		}
 		this.stepsEl.querySelectorAll('button[data-step]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				self.goTo(btn.getAttribute('data-step'));

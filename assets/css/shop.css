@@ -1013,11 +1013,11 @@ html.aimp-sheet-open body {
 /* Phones and tablets: the products use the full width; the details open as a sheet from the bottom (shop.js).
  * (.aimp-shop-content is the size container itself, so this can't be a container query.) */
 @media (max-width: 999px) {
-	.aimp-configurator .aimp-shop-content.aimp-split {
+	.aimp-configurator.aimp-shop .aimp-shop-content.aimp-split {
 		grid-template-columns: minmax(0, 1fr);
 	}
 
-	.aimp-configurator .aimp-shop-content > .aimp-split-side {
+	.aimp-configurator.aimp-shop .aimp-shop-content > .aimp-split-side {
 		display: none;
 	}
 
