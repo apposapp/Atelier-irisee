@@ -750,7 +750,11 @@
 				self.selectSize(id);
 				var again = panel.querySelector('[data-size="' + id + '"]');
 				if (again) {
-					again.focus();
+					try {
+						again.focus({ preventScroll: true });
+					} catch (e) {
+						again.focus();
+					}
 				}
 			});
 		});
@@ -773,9 +777,30 @@
 		if (chosen.image_index >= 0) {
 			s.patternImage = chosen.image_index;
 		}
+		// The page stays where it is (phones and tablets jumped up): keep the panel's height while it is rebuilt
+		// and its picture loads, and put the scroll position back.
+		var y = window.pageYOffset;
+		var panel = this.body.querySelector('[data-role="size-panel"]');
+		if (panel) {
+			panel.style.minHeight = panel.offsetHeight + 'px';
+		}
 		this.resetMaterials();
 		this.renderSizePanel();
 		this.renderSteps();
+		window.scrollTo(window.pageXOffset, y);
+		if (panel) {
+			var release = function () {
+				panel.style.minHeight = '';
+			};
+			var img = panel.querySelector('img');
+			if (img && !img.complete) {
+				img.addEventListener('load', release);
+				img.addEventListener('error', release);
+				window.setTimeout(release, 1500);
+			} else {
+				window.requestAnimationFrame(release);
+			}
+		}
 	};
 
 	// Size chart in its own box under the patterns and details, so it stays in place when a size is chosen.

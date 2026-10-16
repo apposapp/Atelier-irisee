@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.6.1
+Stable tag: 3.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,14 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.6.2 =
+* Header: no more flickering at the top of the page or when scrolling up (the header is now fixed, with a spacer of its full height, so getting slimmer no longer moves the page).
+* Logged in as admin: no gap under the WordPress admin bar while scrolling on phones; the header follows the bar.
+* Checkout: no list dot before the PostNL choices (Home delivery, pickup points).
+* Customizer: choosing a size on a phone or tablet no longer makes the page jump up.
+* Pattern sizes: embroidery is filled in in cm.
+* Dashboard: the plugin's screens follow your own profile language (Users → Profile → Language), so Dutch users see everything in Dutch.
 
 = 3.6.1 =
 * Pattern sizes: every field in "Needed materials & sizes" shows its name again (Cord, Elastic, Fabric, …), and the group titles Zips, Buttons and Body measurements are visible.

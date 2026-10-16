@@ -136,14 +136,61 @@
 	 * so sticky panels, pictures and totals stop below the header instead of sliding under it.
 	 */
 	function trackOffset(header) {
-		var update = function () {
-			var bar = document.getElementById('wpadminbar');
-			var barHeight = bar && window.getComputedStyle(bar).position === 'fixed' ? bar.offsetHeight : 0;
-			document.documentElement.style.setProperty('--aimp-header-offset', header.offsetHeight + barHeight + 'px');
+		// The header is fixed (header.css, .is-fixed); a spacer in the page keeps its full height, so the header
+		// getting slimmer on scroll never moves the page (that made it flicker near the top).
+		var spacer = document.createElement('div');
+		spacer.className = 'aimp-header-spacer';
+		spacer.setAttribute('aria-hidden', 'true');
+		header.parentNode.insertBefore(spacer, header);
+
+		// The full (not scrolled) height, also while scrolled: measured without transitions, in one go.
+		var fullHeight = function () {
+			if (!header.classList.contains('is-scrolled')) {
+				return header.offsetHeight;
+			}
+			header.classList.add('is-measuring');
+			header.classList.remove('is-scrolled');
+			var height = header.offsetHeight;
+			header.classList.add('is-scrolled');
+			// Reading the height again applies the scrolled look before transitions come back.
+			void header.offsetHeight;
+			header.classList.remove('is-measuring');
+			return height;
 		};
-		update();
-		window.addEventListener('resize', update);
-		window.addEventListener('load', update);
+
+		// The WordPress admin bar: fixed on wide screens; on phones it scrolls away, so the header follows it up.
+		var barTop = function () {
+			var bar = document.getElementById('wpadminbar');
+			if (!bar) {
+				return 0;
+			}
+			var height = bar.offsetHeight;
+			return window.getComputedStyle(bar).position === 'fixed' ? height : Math.max(0, height - window.scrollY);
+		};
+
+		var layout = function () {
+			spacer.style.height = fullHeight() + 'px';
+			header.classList.add('is-fixed');
+			update();
+		};
+		var update = function () {
+			var top = barTop();
+			document.documentElement.style.setProperty('--aimp-adminbar-top', top + 'px');
+			document.documentElement.style.setProperty('--aimp-header-offset', header.offsetHeight + top + 'px');
+		};
+		var width = window.innerWidth;
+		layout();
+		// Phones fire resize while scrolling (the address bar); only a new width changes the header.
+		window.addEventListener('resize', function () {
+			if (window.innerWidth !== width) {
+				width = window.innerWidth;
+				layout();
+			} else {
+				update();
+			}
+		});
+		window.addEventListener('load', layout);
+		window.addEventListener('scroll', update, { passive: true });
 		if (window.ResizeObserver) {
 			new window.ResizeObserver(update).observe(header);
 		}

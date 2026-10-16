@@ -87,6 +87,17 @@ class AIMP_I18n {
 	}
 
 	/**
+	 * Language code for a WordPress locale: nl_BE → nl, fr_FR → fr, anything else → en.
+	 *
+	 * @param string $locale Locale.
+	 * @return string
+	 */
+	public static function from_locale( $locale ) {
+		$code = strtolower( substr( (string) $locale, 0, 2 ) );
+		return self::is_valid( $code ) ? $code : 'en';
+	}
+
+	/**
 	 * The "Plugin language" setting.
 	 *
 	 * @return string
@@ -114,7 +125,11 @@ class AIMP_I18n {
 
 	private static function detect() {
 		if ( is_admin() ) {
-			return self::default_language();
+			// The dashboard follows the user's own language (Profile → Language): Dutch for Dutch users. The
+			// editor's background requests (e.g. loading the variations) count as dashboard too.
+			$referer      = wp_get_raw_referer();
+			$from_backend = ! wp_doing_ajax() || ( $referer && 0 === strpos( $referer, admin_url() ) );
+			return $from_backend ? self::from_locale( get_user_locale() ) : self::default_language();
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification -- only selects a display language.
 		$requested = isset( $_REQUEST['aimp_lang'] ) ? sanitize_key( wp_unslash( $_REQUEST['aimp_lang'] ) ) : '';

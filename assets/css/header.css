@@ -16,6 +16,25 @@
 	top: var(--wp-admin--admin-bar--height, 32px);
 }
 
+/* With JavaScript the header is fixed and a spacer keeps its full height (header.js), so getting slimmer on
+   scroll never moves the page. Under the admin bar it follows the bar, also when that scrolls away on phones. */
+.aimp-header.is-fixed {
+	position: fixed;
+	top: var(--aimp-adminbar-top, 0px);
+	right: 0;
+	left: 0;
+}
+
+.aimp-header-spacer {
+	display: block;
+	overflow-anchor: none;
+}
+
+.aimp-header.is-measuring,
+.aimp-header.is-measuring * {
+	transition: none !important;
+}
+
 .aimp-header *,
 .aimp-header *::before,
 .aimp-header *::after {

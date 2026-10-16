@@ -1074,3 +1074,18 @@
 .aimp-configurator.aimp-checkout .postnl-spinner-overlay {
 	background-color: rgba(255, 255, 255, 0.55);
 }
+
+/* PostNL lists (tabs, pickup points, the Home delivery tab): no bullet dots, also where the theme adds them. */
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_container :is(ul, ol) {
+	margin-left: 0;
+	padding-left: 0;
+	list-style: none;
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_container li {
+	list-style: none;
+}
+
+.aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_container li::marker {
+	content: none;
+}

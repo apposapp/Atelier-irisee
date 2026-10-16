@@ -134,7 +134,7 @@ class AIMP_Catalog {
 			'bias'                 => array( self::META_BIAS_LENGTH, __( 'Bias tape', 'atelier-irisee-master-plugin' ), 'cm', __( 'Bias tape', 'atelier-irisee-master-plugin' ) ),
 			'ribbon'               => array( self::META_RIBBON_LENGTH, __( 'Ribbon', 'atelier-irisee-master-plugin' ), 'cm', __( 'Ribbon', 'atelier-irisee-master-plugin' ) ),
 			'cord'                 => array( '_aimp_cord_cm', __( 'Cord', 'atelier-irisee-master-plugin' ), 'cm', __( 'Cord', 'atelier-irisee-master-plugin' ) ),
-			'embroidery'           => array( '_aimp_embroidery_count', __( 'Embroidery', 'atelier-irisee-master-plugin' ), 'piece', __( 'Embroidery', 'atelier-irisee-master-plugin' ) ),
+			'embroidery'           => array( '_aimp_embroidery_cm', __( 'Embroidery', 'atelier-irisee-master-plugin' ), 'cm', __( 'Embroidery', 'atelier-irisee-master-plugin' ) ),
 			'bag_strap'            => array( '_aimp_bag_strap_cm', __( 'Bag strap', 'atelier-irisee-master-plugin' ), 'cm', __( 'Bag strap', 'atelier-irisee-master-plugin' ) ),
 			'interfacing'          => array( '_aimp_interfacing_cm', __( 'Fusible interfacing', 'atelier-irisee-master-plugin' ), 'cm', __( 'Fusible interfacing', 'atelier-irisee-master-plugin' ) ),
 			'cord_lock'            => array( '_aimp_cord_lock_count', __( 'Cord lock', 'atelier-irisee-master-plugin' ), 'piece', __( 'Cord lock', 'atelier-irisee-master-plugin' ) ),
