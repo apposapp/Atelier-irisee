@@ -40,7 +40,7 @@ class AIMP_Product_Page {
 		// Buy bar: length in cm, and patterns bought as one item with all sizes.
 		add_action( 'wp_loaded', array( __CLASS__, 'length_to_quantity' ), 19 );
 		add_action( 'wp_loaded', array( __CLASS__, 'add_pattern_to_cart' ), 20 );
-		add_action( 'wc_ajax_aimp_add_to_cart', array( __CLASS__, 'ajax_add_to_cart' ) );
+		add_action( 'wc_ajax_aimp_shop_buy', array( __CLASS__, 'ajax_add_to_cart' ) ); // Its own address: aimp_add_to_cart is the configurator's (with a nonce).
 		add_filter( 'woocommerce_get_item_data', array( __CLASS__, 'all_sizes_item_data' ), 5, 2 );
 		add_filter( 'woocommerce_cart_item_name', array( __CLASS__, 'all_sizes_item_name' ), 10, 2 );
 		add_action( 'woocommerce_checkout_create_order_line_item', array( __CLASS__, 'all_sizes_order_item' ), 10, 3 );
@@ -349,7 +349,7 @@ class AIMP_Product_Page {
 	}
 
 	/**
-	 * ?wc-ajax=aimp_add_to_cart: the buy bar in the shop's details panel. A simple product (amount in units;
+	 * ?wc-ajax=aimp_shop_buy: the buy bar in the shop's details panel. A simple product (amount in units;
 	 * 10 cm for fabric) or a pattern with all sizes. No nonce, like WooCommerce's own add-to-cart endpoint
 	 * (cached shop pages).
 	 */

@@ -1445,4 +1445,7 @@ return array(
 	'Customizer' => 'Customizer',
 	'Home' => 'Home',
 	'Quick navigation' => 'Snelle navigatie',
+
+	// 3.8.2
+	'Basket' => 'Mandje',
 );

@@ -1089,3 +1089,10 @@
 .aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_container li::marker {
 	content: none;
 }
+
+/* Long field labels ("… (optioneel)") wrap on phones instead of running off the screen. */
+.aimp-configurator.aimp-checkout .form-row label,
+.aimp-configurator.aimp-checkout .form-row label .optional {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}

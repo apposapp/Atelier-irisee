@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.8.1
+Stable tag: 3.8.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.8.2 =
+* Shop pages: "Add to cart" in the product details (the panel or sheet) works again. It shared its address with the customizer and was refused as an expired session.
+* Phones: product pages no longer scroll sideways (a long breadcrumb now wraps); "Ideal for" shows two per row; the filter drawer's "Show results" button is no longer hidden behind the tab bar; the cart tab reads "Mandje".
+* Phones: in the cart and checkout every field is 16 px (no zooming in on iPhones) and long field labels wrap.
+* Customizer: when the page scrolls to the chosen fabric or size, it stops below the header instead of under it.
+* Kit steps bar: the seam runs through the cards again, with a playful loop in each gap; the needle is smaller and fine gold.
 
 = 3.8.1 =
 * Customizer on phones and tablets: the chosen fabric's details and Continue are shown again (3.8.0 hid them), stacked under the fabrics.

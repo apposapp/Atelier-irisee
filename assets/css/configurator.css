@@ -1499,3 +1499,16 @@
 		position: static;
 	}
 }
+
+/* Panels the page scrolls to (a chosen size, fabric or button) stop below the fixed header. */
+.aimp-configurator .aimp-split-side,
+.aimp-configurator .aimp-size-chart-box {
+	scroll-margin-top: calc(var(--aimp-header-offset, 0px) + 0.75rem);
+}
+
+/* Phones: every form field at least 16px, so iPhones don't zoom in (also in the cart and checkout). */
+@media (max-width: 700px) {
+	.aimp-configurator:is(.aimp-checkout, .aimp-cart, .aimp-product, .aimp-shop, #aimp-specificity) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), select, textarea) {
+		font-size: 16px !important;
+	}
+}

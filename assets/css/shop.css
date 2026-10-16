@@ -1040,3 +1040,11 @@ html.aimp-sheet-open body {
 		transform: translate(50%, 0);
 	}
 }
+
+/* Phones: the filter drawer ends above the tab bar, so "Show results" stays visible. */
+@media (max-width: 700px) {
+	.aimp-shop .aimp-shop-sidebar,
+	.aimp-shop.is-filters-closed .aimp-shop-sidebar {
+		bottom: var(--aimp-tabbar-h, 0px);
+	}
+}

@@ -965,7 +965,7 @@
 			add.disabled = true;
 			add.textContent = t.adding;
 			message.innerHTML = '';
-			UI.request(cfg.endpoint, 'add_to_cart', { product_id: item.id, quantity: qty }, lang, t.error)
+			UI.request(cfg.endpoint, 'shop_buy', { product_id: item.id, quantity: qty }, lang, t.error)
 				.then(function (data) {
 					message.innerHTML =
 						'<p class="aimp-shop-buy-ok">' + esc(data.message) +

@@ -1210,3 +1210,17 @@ html:has(.aimp-product-reviews) {
 		overflow-x: visible;
 	}
 }
+
+/* Phones: a long breadcrumb wraps instead of making the page scroll sideways. */
+.aimp-configurator .aimp-product-topbar .woocommerce-breadcrumb {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+/* "Ideal for": two per row on phones (stronger than the general one-column rule for inspiration cards). */
+@container aimp (max-width: 560px) {
+	.aimp-configurator .aimp-inspiration-grid.aimp-ideal-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}

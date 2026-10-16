@@ -113,7 +113,7 @@ defined( 'ABSPATH' ) || exit;
 			array( $data['home_url'], 'home', __( 'Home', 'atelier-irisee-master-plugin' ) ),
 			array( $data['shop_url'], 'shop', __( 'Shop', 'atelier-irisee-master-plugin' ) ),
 			array( isset( $data['kit_url'] ) ? $data['kit_url'] : '', 'kit', __( 'Customizer', 'atelier-irisee-master-plugin' ) ),
-			array( $data['cart_url'], 'bag', __( 'Cart', 'atelier-irisee-master-plugin' ) ),
+			array( $data['cart_url'], 'bag', __( 'Basket', 'atelier-irisee-master-plugin' ) ), // Short: it has to fit a tab.
 		);
 		foreach ( $aimp_tabs as $aimp_tab ) :
 			if ( '' === (string) $aimp_tab[0] ) {

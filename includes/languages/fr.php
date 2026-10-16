@@ -1445,4 +1445,7 @@ return array(
 	'Customizer' => 'Configurateur',
 	'Home' => 'Accueil',
 	'Quick navigation' => 'Navigation rapide',
+
+	// 3.8.2
+	'Basket' => 'Panier',
 );
