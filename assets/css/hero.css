@@ -19,7 +19,7 @@
 	margin-left: calc(50% - 50vw + var(--aimp-hero-sb, 0px) / 2);
 	min-height: calc(100vh - var(--aimp-header-offset, 0px) - var(--aimp-tabbar-h, 0px));
 	min-height: calc(100svh - var(--aimp-header-offset, 0px) - var(--aimp-tabbar-h, 0px));
-	padding: 4.5rem 0 5.5rem;
+	padding: clamp(4.5rem, 8vh, 7rem) 0 clamp(5.5rem, 10vh, 8rem);
 	overflow: hidden;
 	background-color: var(--hero-deep);
 	background-image: var(--aimp-hero-img, none);
@@ -32,6 +32,13 @@
 .aimp-hero *::before,
 .aimp-hero *::after {
 	box-sizing: border-box;
+}
+
+/* No white band between the header and the hero: the Divi section and row around it get no top padding
+   (hero.js does the same in browsers without :has). */
+.et_pb_section:has(.aimp-hero),
+.et_pb_row:has(.aimp-hero) {
+	padding-top: 0 !important;
 }
 
 /* The gold filter: deeper on the text side, lighter over the subject; the strength is set in the settings. */
@@ -51,20 +58,22 @@
 	padding: 0 clamp(1rem, 7vw, 9rem);
 }
 
-/* The arch: cream, with a gold line inside its edge. */
+/* The arch: cream, with a gold line inside its edge. Everything in it is sized in em from one font size that
+   follows the screen (width and height), so it grows on large screens and never outgrows a short one. */
 .aimp-hero-arch {
+	font-size: clamp(16px, min(1.2vw + 8px, 2vh + 4px), 30px);
 	position: relative;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 0.7rem;
-	width: 19rem;
+	gap: 0.7em;
+	width: 19em;
 	max-width: 100%;
-	padding: 3.6rem 1.75rem 1.6rem;
-	border-radius: 9.5rem 9.5rem 1rem 1rem;
+	padding: 3.6em 1.75em 1.6em;
+	border-radius: 9.5em 9.5em 1em 1em;
 	background: rgba(253, 248, 244, 0.9);
 	outline: 1.5px solid var(--hero-gold);
-	outline-offset: -8px;
+	outline-offset: -0.5em;
 	box-shadow: 0 12px 36px rgba(70, 45, 10, 0.18);
 	text-align: center;
 }
@@ -72,11 +81,11 @@
 /* The logo as a round seal, half over the top of the arch. */
 .aimp-hero-seal {
 	position: absolute;
-	top: -2.4rem;
+	top: -2.4em;
 	left: 50%;
-	width: 4.75rem;
-	height: 4.75rem;
-	padding: 0.45rem;
+	width: 4.75em;
+	height: 4.75em;
+	padding: 0.45em;
 	border-radius: 50%;
 	background: var(--hero-cream);
 	box-shadow: 0 0 0 1.5px var(--hero-gold), 0 4px 14px rgba(90, 61, 18, 0.25);
@@ -88,7 +97,7 @@
 	margin: 0;
 	padding: 0;
 	color: var(--hero-brown);
-	font-size: 1.5rem;
+	font-size: 1.5em;
 	font-weight: 700;
 	line-height: 1.2;
 	text-wrap: balance;
@@ -98,24 +107,24 @@
 	margin: 0;
 	padding: 0;
 	color: var(--hero-brown);
-	font-size: 0.95rem;
+	font-size: 0.95em;
 	line-height: 1.5;
 }
 
 .aimp-hero-buttons {
 	display: flex;
 	flex-direction: column;
-	gap: 0.55rem;
+	gap: 0.55em;
 	width: 100%;
-	margin-top: 0.4rem;
+	margin-top: 0.4em;
 }
 
 .aimp-hero .aimp-hero-button {
 	display: block;
-	padding: 0.75rem 1rem;
+	padding: 0.75em 1em;
 	border: 1.5px solid var(--hero-gold);
 	border-radius: 100px;
-	font-size: 0.85rem;
+	font-size: 0.85em;
 	font-weight: 700;
 	letter-spacing: 0.03em;
 	line-height: 1.2;
@@ -160,9 +169,10 @@
 	z-index: 1;
 	display: grid;
 	place-items: center;
-	width: 2.9rem;
-	height: 2.9rem;
-	margin: 0 0 0 -1.45rem;
+	width: clamp(2.9rem, 3vw, 3.6rem);
+	height: clamp(2.9rem, 3vw, 3.6rem);
+	margin: 0;
+	translate: -50% 0;
 	padding: 0;
 	border: 1.5px solid var(--hero-line);
 	border-radius: 50%;
@@ -197,24 +207,24 @@
 	}
 
 	.aimp-hero-arch {
-		width: 17.25rem;
+		width: min(17.25em, 100%);
 		margin: 0 auto;
-		padding: 3.1rem 1.4rem 1.3rem;
-		border-radius: 8.6rem 8.6rem 1rem 1rem;
+		padding: 3.1em 1.4em 1.3em;
+		border-radius: 8.6em 8.6em 1em 1em;
 	}
 
 	.aimp-hero-seal {
-		top: -2rem;
-		width: 4rem;
-		height: 4rem;
+		top: -2em;
+		width: 4em;
+		height: 4em;
 	}
 
 	.aimp-hero .aimp-hero-title {
-		font-size: 1.3rem;
+		font-size: 1.3em;
 	}
 
 	.aimp-hero .aimp-hero-text {
-		font-size: 0.9rem;
+		font-size: 0.9em;
 	}
 }
 

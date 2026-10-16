@@ -9,7 +9,7 @@
 	position: relative;
 	max-width: 1320px;
 	margin: 0 auto;
-	padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem);
+	padding: clamp(2.5rem, 6vw, 5.5rem) clamp(1rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem);
 	color: var(--ks-gold-text);
 	text-align: center;
 }
@@ -493,5 +493,48 @@
 	.aimp-kit-steps .aimp-kit-steps-cta {
 		width: auto;
 		margin-top: 1.4rem;
+	}
+}
+
+/* ------------------------------------------------------------------ laptops and desktops: a bigger bar */
+@media (min-width: 1025px) {
+	.aimp-kit-steps {
+		max-width: 1560px;
+	}
+
+	.aimp-kit-steps .aimp-kit-steps-title {
+		font-size: clamp(1.6rem, 1.9vw, 2.3rem);
+	}
+
+	.aimp-kit-step {
+		padding: 1.8rem 1.2rem 1.4rem;
+	}
+
+	.aimp-kit-steps-drawing {
+		width: min(100%, 190px);
+	}
+
+	.aimp-kit-step-seal {
+		top: -1.05rem;
+		width: 2.1rem;
+		height: 2.1rem;
+		font-size: 1rem;
+	}
+
+	.aimp-kit-steps .aimp-kit-step-title {
+		font-size: clamp(1.15rem, 1.15vw, 1.4rem);
+	}
+
+	.aimp-kit-steps .aimp-kit-step-text {
+		font-size: clamp(0.95rem, 0.9vw, 1.1rem);
+	}
+
+	.aimp-kit-steps .aimp-kit-steps-cta {
+		width: 14rem;
+	}
+
+	.aimp-kit-steps .aimp-kit-steps-button {
+		padding: 0.85rem 1.3rem;
+		font-size: 1.05rem;
 	}
 }

@@ -25,6 +25,14 @@
 	}
 
 	function setup(hero) {
+		// No white band above the hero: the Divi section and row around it get no top padding (hero.css does this
+		// with :has() where the browser supports it).
+		['.et_pb_section', '.et_pb_row'].forEach(function (selector) {
+			var wrap = hero.closest(selector);
+			if (wrap) {
+				wrap.style.paddingTop = '0px';
+			}
+		});
 		var arrow = hero.querySelector('.aimp-hero-arrow');
 		if (!arrow) {
 			return;
