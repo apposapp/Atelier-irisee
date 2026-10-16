@@ -314,7 +314,7 @@ class AIMP_Shop {
 		return array(
 			'fabrics'      => array( __( 'Fabrics', 'atelier-irisee-master-plugin' ), self::page_for_type( 'fabrics' ), 'overview_img_fabrics', array( 'fabric_cat' ) ),
 			'patterns'     => array( __( 'Patterns', 'atelier-irisee-master-plugin' ), self::page_for_type( 'patterns' ), 'overview_img_patterns', array( 'pattern_cat' ) ),
-			'haberdashery' => array( __( 'Haberdashery', 'atelier-irisee-master-plugin' ), self::page_for_type( 'haberdashery' ), 'overview_img_haberdashery', array( 'button_cat', 'zip_cat', 'ribbon_cat', 'bias_cat' ) ),
+			'haberdashery' => array( __( 'Haberdashery', 'atelier-irisee-master-plugin' ), self::page_for_type( 'haberdashery' ), 'overview_img_haberdashery', array_column( AIMP_Notions::kinds(), 'setting' ) ),
 			'giftcards'    => array( __( 'Gift cards', 'atelier-irisee-master-plugin' ), ( $giftcard && 'publish' === get_post_status( $giftcard ) ) ? $giftcard : 0, 'overview_img_giftcards', array() ),
 			'configurator' => array( __( 'Sewing project kits', 'atelier-irisee-master-plugin' ), ( $configurator && 'publish' === get_post_status( $configurator ) ) ? $configurator : 0, 'overview_img_configurator', array() ),
 		);
@@ -425,7 +425,7 @@ class AIMP_Shop {
 				$keys = array( 'fabric_cat' );
 				break;
 			case 'haberdashery':
-				$keys = array( 'button_cat', 'zip_cat', 'ribbon_cat', 'bias_cat' );
+				$keys = array_column( AIMP_Notions::kinds(), 'setting' );
 				break;
 			default:
 				return array();
@@ -498,8 +498,8 @@ class AIMP_Shop {
 			'categories' => self::category_facet( $type, $roots ),
 			'attributes' => self::attribute_facet( $ids ),
 			'skills'     => self::skill_facet( $ids ),
-			// Buttons: type, diameter, colour and material (only when the page has buttons).
-			'buttons'    => self::button_facets( $ids ),
+			// Haberdashery: type, colour, diameter, width, length and material (only those the page has).
+			'buttons'    => self::notion_facets( $ids ),
 			'price'      => self::price_range( $ids ),
 		);
 		set_transient( $key, $facets, 12 * HOUR_IN_SECONDS );
@@ -650,100 +650,144 @@ class AIMP_Shop {
 	}
 
 	/**
-	 * Button filters: key => meta key (the request and address use the key: aimp_btype=button,press_stud).
+	 * Haberdashery filters: key => label. The request uses m_<key>, the address aimp_<key>.
 	 *
 	 * @return array
 	 */
-	public static function button_filters() {
+	public static function notion_filters() {
 		return array(
-			'btype' => AIMP_Catalog::META_BTN_TYPE,
-			'bdia'  => AIMP_Catalog::META_BTN_DIAMETER,
-			'bcol'  => AIMP_Catalog::META_BTN_COLOUR,
-			'bmat'  => AIMP_Catalog::META_BTN_MATERIAL,
+			'htype' => __( 'Type', 'atelier-irisee-master-plugin' ),
+			'hcol'  => __( 'Colour', 'atelier-irisee-master-plugin' ),
+			'hdia'  => __( 'Diameter', 'atelier-irisee-master-plugin' ),
+			'hwid'  => __( 'Width', 'atelier-irisee-master-plugin' ),
+			'hlen'  => __( 'Length', 'atelier-irisee-master-plugin' ),
+			'hmat'  => __( 'Material', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
 	/**
-	 * The button filters with the values the buttons among these products have.
+	 * The filter values of a haberdashery product: key => [ value key, label, sort ].
+	 *
+	 * @param WC_Product $product Product.
+	 * @return array
+	 */
+	private static function notion_values( $product ) {
+		$kind = AIMP_Notions::kind_of( $product );
+		$info = AIMP_Notions::kind( $kind );
+		if ( ! $info ) {
+			return array();
+		}
+		$values = array();
+		$type   = AIMP_Notions::type_of( $product, $kind );
+		if ( '' !== $type && isset( $info['types'][ $type ] ) ) {
+			$values['htype'] = array( $type, $info['types'][ $type ], array_search( $type, array_keys( AIMP_Notions::rules() ), true ) );
+		}
+		foreach ( array( 'hcol' => 'colour', 'hmat' => 'material' ) as $key => $field ) {
+			$text = in_array( $field, $info['specs'], true ) ? AIMP_Notions::field_text( $product, $field, $kind ) : '';
+			if ( '' !== $text ) {
+				$values[ $key ] = array( strtolower( $text ), $text, strtolower( $text ) );
+			}
+		}
+		foreach ( array( 'hdia' => 'diameter', 'hwid' => 'width', 'hlen' => 'length' ) as $key => $field ) {
+			$number = in_array( $field, $info['specs'], true ) || ( 'length' === $field && 'roll' === AIMP_Notions::sold( $product ) ) ? AIMP_Notions::number( $product, $field ) : 0;
+			if ( $number > 0 ) {
+				$unit           = AIMP_Notions::unit( $kind, $field );
+				$cm             = 'cm' === $unit ? $number : $number / 10;
+				$values[ $key ] = array( wc_format_decimal( $number, 1, true ) . $unit, 'length' === $field ? AIMP_Notions::length_text( $number ) : AIMP_Notions::measure_text( $number, $unit ), $cm );
+			}
+		}
+		return $values;
+	}
+
+	/**
+	 * Published haberdashery products (all kinds' categories): IDs.
+	 *
+	 * @return int[]
+	 */
+	private static function notion_ids() {
+		$cats = self::roots( 'haberdashery' );
+		if ( ! $cats ) {
+			return array();
+		}
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'product',
+				'post_status'    => 'publish',
+				'fields'         => 'ids',
+				'posts_per_page' => -1,
+				'no_found_rows'  => true,
+				'tax_query'      => self::scope_tax_query( $cats ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			)
+		);
+		return array_map( 'absint', $query->posts );
+	}
+
+	/**
+	 * The haberdashery filters with the values the products of the page have.
 	 *
 	 * @param int[] $ids Product IDs.
 	 * @return array[] [ key, label, options: [ key, label ] ]
 	 */
-	private static function button_facets( $ids ) {
-		global $wpdb;
-		$root = AIMP_Settings::get( 'button_cat' );
-		if ( ! $ids || ! $root ) {
+	private static function notion_facets( $ids ) {
+		$ids = $ids ? array_values( array_intersect( array_map( 'absint', $ids ), self::notion_ids() ) ) : array();
+		if ( ! $ids ) {
 			return array();
 		}
-		$buttons = get_objects_in_term( AIMP_Catalog::category_tree( $root ), 'product_cat' );
-		$buttons = is_wp_error( $buttons ) ? array() : array_values( array_intersect( array_map( 'absint', $ids ), array_map( 'absint', $buttons ) ) );
-		if ( ! $buttons ) {
-			return array();
+		$found = array();
+		foreach ( $ids as $id ) {
+			$product = wc_get_product( $id );
+			foreach ( $product ? self::notion_values( $product ) : array() as $key => $value ) {
+				$found[ $key ][ $value[0] ] = $value;
+			}
 		}
-		$in     = implode( ',', $buttons );
-		$values = function ( $meta_key ) use ( $wpdb, $in ) {
-			return array_filter(
-				array_map(
-					'strval',
-					(array) $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- cached in a transient by facets().
-						$wpdb->prepare( "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value <> '' AND post_id IN ( {$in} )", $meta_key ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- integers only.
-					)
-				),
-				'strlen'
-			);
-		};
-		$labels = array(
-			'btype' => __( 'Button type', 'atelier-irisee-master-plugin' ),
-			'bdia'  => __( 'Diameter', 'atelier-irisee-master-plugin' ),
-			'bcol'  => __( 'Colour', 'atelier-irisee-master-plugin' ),
-			'bmat'  => __( 'Material', 'atelier-irisee-master-plugin' ),
-		);
 		$facets = array();
-		foreach ( self::button_filters() as $key => $meta_key ) {
-			$found   = $values( $meta_key );
-			$options = array();
-			if ( 'btype' === $key ) {
-				// Buttons saved without a type are plain buttons.
-				$typed = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( DISTINCT post_id ) FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value <> '' AND post_id IN ( {$in} )", $meta_key ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- cached; integers only.
-				if ( $typed < count( $buttons ) ) {
-					$found[] = 'button';
+		foreach ( self::notion_filters() as $key => $label ) {
+			if ( empty( $found[ $key ] ) ) {
+				continue;
+			}
+			$options = array_values( $found[ $key ] );
+			usort(
+				$options,
+				function ( $a, $b ) {
+					return is_string( $a[2] ) ? strnatcasecmp( $a[2], $b[2] ) : ( $a[2] <=> $b[2] );
 				}
-				foreach ( AIMP_Catalog::button_types() as $type => $info ) {
-					if ( in_array( $type, $found, true ) ) {
-						$options[] = array(
-							'key'   => $type,
-							'label' => $info[0],
+			);
+			$facets[] = array(
+				'key'     => $key,
+				'label'   => $label,
+				'options' => array_map(
+					function ( $option ) {
+						return array(
+							'key'   => (string) $option[0],
+							'label' => $option[1],
 						);
-					}
-				}
-			} elseif ( 'bdia' === $key ) {
-				$numbers = array_values( array_unique( array_map( 'floatval', $found ) ) );
-				sort( $numbers, SORT_NUMERIC );
-				foreach ( $numbers as $mm ) {
-					$options[] = array(
-						'key'   => wc_format_decimal( $mm, 1, true ),
-						'label' => AIMP_Catalog::mm_text( $mm ),
-					);
-				}
-			} else {
-				$found = array_values( array_unique( $found ) );
-				natcasesort( $found );
-				foreach ( $found as $value ) {
-					$options[] = array(
-						'key'   => $value,
-						'label' => $value,
-					);
-				}
-			}
-			if ( $options ) {
-				$facets[] = array(
-					'key'     => $key,
-					'label'   => $labels[ $key ],
-					'options' => array_values( $options ),
-				);
-			}
+					},
+					$options
+				),
+			);
 		}
 		return $facets;
+	}
+
+	/**
+	 * The haberdashery products that match the chosen filters (any of the values of a filter, all filters).
+	 *
+	 * @param array $chosen key => [ value keys ].
+	 * @return int[]
+	 */
+	private static function notion_matches( $chosen ) {
+		$ids = array();
+		foreach ( self::notion_ids() as $id ) {
+			$product = wc_get_product( $id );
+			$values  = $product ? self::notion_values( $product ) : array();
+			foreach ( $chosen as $key => $list ) {
+				if ( ! isset( $values[ $key ] ) || ! in_array( (string) $values[ $key ][0], $list, true ) ) {
+					continue 2;
+				}
+			}
+			$ids[] = $id;
+		}
+		return $ids;
 	}
 
 	/**
@@ -785,7 +829,7 @@ class AIMP_Shop {
 		$per_10cm                  = AIMP_Catalog::sold_per_10cm( $product );
 		$item                      = AIMP_Catalog::card( $product );
 		$item['price_suffix']      = AIMP_Catalog::price_suffix( $product );
-		$item['subtitle']          = AIMP_Catalog::is_button( $product ) ? AIMP_Catalog::button_diameter_text( $product ) : '';
+		$item['subtitle']          = AIMP_Notions::main_text( $product );
 		$item['badge']             = $product->is_in_stock() ? '' : __( 'Out of stock', 'atelier-irisee-master-plugin' );
 		$item['short_description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
 		$item['gallery']           = AIMP_Catalog::images( $product );
@@ -838,18 +882,32 @@ class AIMP_Shop {
 			'buttons'  => array(),
 		);
 
-		// Button filters arrive as m_bdia=15,18 (several values: any of them).
-		foreach ( array_keys( self::button_filters() ) as $key ) {
-			$list = array_slice( array_values( array_filter( array_map( 'trim', explode( ',', $text( 'm_' . $key, 500 ) ) ), 'strlen' ) ), 0, 30 );
-			if ( 'btype' === $key ) {
-				$list = array_values( array_intersect( $list, array_keys( AIMP_Catalog::button_types() ) ) );
-			} elseif ( 'bdia' === $key ) {
-				$list = array_map(
-					function ( $value ) {
-						return (float) wc_format_decimal( $value );
-					},
-					$list
-				);
+		// Haberdashery filters arrive as m_hdia=15mm,18mm (several values: any of them). Links from 3.6 (m_b*) still work.
+		$legacy = array(
+			'htype' => 'btype',
+			'hcol'  => 'bcol',
+			'hdia'  => 'bdia',
+			'hmat'  => 'bmat',
+		);
+		foreach ( array_keys( self::notion_filters() ) as $key ) {
+			$raw = $text( 'm_' . $key, 500 );
+			if ( '' === $raw && isset( $legacy[ $key ] ) ) {
+				$raw = $text( 'm_' . $legacy[ $key ], 500 );
+				if ( 'hdia' === $key && '' !== $raw ) {
+					$raw = implode(
+						',',
+						array_map(
+							function ( $value ) {
+								return wc_format_decimal( $value, 1, true ) . 'mm';
+							},
+							explode( ',', $raw )
+						)
+					);
+				}
+			}
+			$list = array_slice( array_values( array_filter( array_map( 'trim', explode( ',', $raw ) ), 'strlen' ) ), 0, 30 );
+			if ( in_array( $key, array( 'hcol', 'hmat' ), true ) ) {
+				$list = array_map( 'strtolower', $list );
 			}
 			if ( $list ) {
 				$args['buttons'][ $key ] = $list;
@@ -928,15 +986,6 @@ class AIMP_Shop {
 		}
 
 		$tax_query = self::scope_tax_query( $cats );
-		// A button filter only shows buttons.
-		if ( $args['buttons'] && AIMP_Settings::get( 'button_cat' ) ) {
-			$tax_query[] = array(
-				'taxonomy'         => 'product_cat',
-				'field'            => 'term_id',
-				'terms'            => array( (int) AIMP_Settings::get( 'button_cat' ) ),
-				'include_children' => true,
-			);
-		}
 		foreach ( $args['attrs'] as $taxonomy => $slugs ) {
 			$tax_query[] = array(
 				'taxonomy' => $taxonomy,
@@ -954,37 +1003,8 @@ class AIMP_Shop {
 				'compare' => 'IN',
 			);
 		}
-		$filters = self::button_filters();
-		foreach ( $args['buttons'] as $key => $list ) {
-			if ( 'btype' === $key && in_array( 'button', $list, true ) ) {
-				// Plain buttons include buttons saved without a type.
-				$meta_query[] = array(
-					'relation' => 'OR',
-					array(
-						'key'     => $filters[ $key ],
-						'value'   => $list,
-						'compare' => 'IN',
-					),
-					array(
-						'key'     => $filters[ $key ],
-						'compare' => 'NOT EXISTS',
-					),
-				);
-			} elseif ( 'bdia' === $key ) {
-				$meta_query[] = array(
-					'key'     => $filters[ $key ],
-					'value'   => $list,
-					'compare' => 'IN',
-					'type'    => 'DECIMAL(10,1)',
-				);
-			} else {
-				$meta_query[] = array(
-					'key'     => $filters[ $key ],
-					'value'   => $list,
-					'compare' => 'IN',
-				);
-			}
-		}
+		// Haberdashery filters: only the matching haberdashery products.
+		$notion_in = $args['buttons'] ? self::notion_matches( $args['buttons'] ) : null;
 		if ( $args['in_stock'] ) {
 			$meta_query[] = array(
 				'key'     => '_stock_status',
@@ -1024,6 +1044,9 @@ class AIMP_Shop {
 		);
 		if ( count( $meta_query ) > 1 ) {
 			$query_args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		}
+		if ( null !== $notion_in ) {
+			$query_args['post__in'] = $notion_in ? $notion_in : array( 0 );
 		}
 		if ( '' !== $args['search'] ) {
 			$query_args['s'] = $args['search'];

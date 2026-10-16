@@ -1,0 +1,353 @@
+/* [atelier_irisee_kit_steps]: four steps of the customizer on a gold thread, for the home page.
+   Desktop one playful row (about 320px), tablet a smaller row, phone a 2 × 2 grid; fits one screen. */
+.aimp-kit-steps {
+	--ks-gold: #b38f4f;
+	--ks-gold-text: #8a6a33;
+	--ks-brown: #613907;
+	--ks-tint: #fbf8f2;
+	box-sizing: border-box;
+	position: relative;
+	max-width: 1180px;
+	margin: 0 auto;
+	padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem);
+	color: var(--ks-gold-text);
+	text-align: center;
+}
+
+.aimp-kit-steps *,
+.aimp-kit-steps *::before,
+.aimp-kit-steps *::after {
+	box-sizing: border-box;
+}
+
+.aimp-kit-steps .aimp-kit-steps-title {
+	margin: 0 0 clamp(0.75rem, 2vw, 1.5rem);
+	color: var(--ks-brown);
+	font-size: clamp(1.15rem, 2.2vw, 1.6rem);
+	line-height: 1.25;
+	text-wrap: balance;
+}
+
+.aimp-kit-steps-row {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+/* The thread, behind the steps. */
+.aimp-kit-steps-thread {
+	position: absolute;
+	top: 38%;
+	left: 0;
+	width: calc(100% - 9rem);
+	height: 120px;
+	transform: translateY(-50%);
+	overflow: visible;
+	pointer-events: none;
+}
+
+.aimp-kit-steps-thread path {
+	fill: none;
+	stroke: var(--ks-gold);
+	stroke-width: 2;
+	stroke-dasharray: 9 7;
+	vector-effect: non-scaling-stroke;
+	opacity: 0.7;
+}
+
+.aimp-kit-steps-list {
+	position: relative;
+	display: grid;
+	flex: 1 1 auto;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: clamp(0.5rem, 1.5vw, 1.25rem);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* A step: a white card on the thread, at playful heights and angles. */
+.aimp-kit-step {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 0;
+	padding: 1.1rem 0.75rem 0.9rem;
+	border: 1px solid var(--ks-gold);
+	border-radius: 18px;
+	background: #fff;
+	box-shadow: 0 6px 18px rgba(97, 57, 7, 0.08);
+	transition: transform 0.35s ease;
+}
+
+.aimp-kit-step--pattern { transform: translateY(-10px) rotate(-2.5deg); }
+.aimp-kit-step--fabric { transform: translateY(14px) rotate(1.5deg); }
+.aimp-kit-step--notions { transform: translateY(-6px) rotate(-1deg); }
+.aimp-kit-step--kit { transform: translateY(12px) rotate(2deg); }
+
+.aimp-kit-step:hover {
+	animation: ks-wiggle 0.6s ease;
+}
+
+.aimp-kit-step-seal {
+	position: absolute;
+	top: -0.85rem;
+	left: 50%;
+	display: grid;
+	place-items: center;
+	width: 1.7rem;
+	height: 1.7rem;
+	transform: translateX(-50%);
+	border-radius: 50%;
+	background: var(--ks-gold);
+	box-shadow: 0 0 0 3px #fff;
+	color: #fff;
+	font-size: 0.85rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.aimp-kit-steps-drawing {
+	width: min(100%, 120px);
+	height: auto;
+	aspect-ratio: 4 / 3;
+	color: var(--ks-gold);
+}
+
+.aimp-kit-steps .aimp-kit-step-title {
+	margin: 0.35rem 0 0.15rem;
+	color: var(--ks-brown);
+	font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+	line-height: 1.25;
+}
+
+.aimp-kit-steps .aimp-kit-step-text {
+	margin: 0;
+	color: var(--ks-gold-text);
+	font-size: clamp(0.78rem, 1.05vw, 0.9rem);
+	line-height: 1.4;
+}
+
+/* Call to action with a needle. */
+.aimp-kit-steps-cta {
+	display: flex;
+	flex: 0 0 auto;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.4rem;
+	width: 8.5rem;
+}
+
+.aimp-kit-steps-needle {
+	width: 2.4rem;
+	height: 2.4rem;
+	color: var(--ks-gold);
+	animation: ks-bob 3s ease-in-out infinite;
+}
+
+.aimp-kit-steps .aimp-kit-steps-button {
+	display: inline-block;
+	padding: 0.7rem 1.1rem;
+	border: 1px solid var(--ks-gold);
+	border-radius: 100px;
+	background: var(--ks-gold);
+	color: #fff;
+	font-weight: 700;
+	line-height: 1.2;
+	text-decoration: none;
+	transition: background 0.2s ease, color 0.2s ease;
+}
+
+.aimp-kit-steps .aimp-kit-steps-button:hover,
+.aimp-kit-steps .aimp-kit-steps-button:focus-visible {
+	background: #fff;
+	color: var(--ks-brown);
+}
+
+.aimp-kit-steps .aimp-kit-steps-button:focus-visible {
+	outline: 2px solid var(--ks-brown);
+	outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ the drawings move */
+.ks-cut {
+	stroke-dasharray: 4 4;
+	animation: ks-cut 6s linear infinite;
+}
+
+.ks-scissors {
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: ks-snip 1.2s ease-in-out infinite;
+}
+
+.ks-cloth {
+	transform-box: fill-box;
+	transform-origin: left center;
+	animation: ks-unroll 6.5s ease-in-out infinite;
+}
+
+.ks-weave {
+	stroke-width: 1;
+	opacity: 0.5;
+}
+
+.ks-swatch {
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: ks-fan 6.5s ease-in-out infinite;
+}
+
+.ks-swatch--2 {
+	animation-delay: 0.4s;
+}
+
+.ks-button {
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: ks-drop 5.5s cubic-bezier(0.3, 1.5, 0.6, 1) infinite;
+}
+
+.ks-button--2 {
+	animation-delay: 0.35s;
+}
+
+.ks-button--3 {
+	animation-delay: 0.7s;
+}
+
+.ks-teeth {
+	stroke-width: 1.5;
+}
+
+.ks-slider {
+	animation: ks-zip 5.5s ease-in-out infinite;
+}
+
+.ks-lid {
+	transform-box: fill-box;
+	transform-origin: left bottom;
+	animation: ks-lid 7s ease-in-out infinite;
+}
+
+.ks-bow {
+	transform-box: fill-box;
+	transform-origin: center bottom;
+	animation: ks-bow 7s ease-in-out infinite;
+}
+
+.ks-spark {
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: ks-twinkle 2.4s ease-in-out infinite;
+}
+
+.ks-spark--2 {
+	animation-delay: 1.2s;
+}
+
+/* The thread is sewn once when the bar comes into view (kit-steps.js); without the script it is just there. */
+.aimp-kit-steps.is-ready .aimp-kit-steps-thread path {
+	stroke-dasharray: 2000;
+	stroke-dashoffset: 2000;
+}
+
+.aimp-kit-steps.is-sewn .aimp-kit-steps-thread path {
+	animation: ks-sew 2.2s ease-out forwards;
+}
+
+@keyframes ks-sew {
+	0% { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+	99% { stroke-dasharray: 2000; stroke-dashoffset: 0; }
+	100% { stroke-dasharray: 9 7; stroke-dashoffset: 0; }
+}
+
+@keyframes ks-cut { to { stroke-dashoffset: -64; } }
+@keyframes ks-snip { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-12deg); } }
+@keyframes ks-unroll { 0%, 100% { transform: scaleX(0.35); } 40%, 70% { transform: scaleX(1); } }
+@keyframes ks-fan { 0%, 30%, 100% { opacity: 0; transform: translateY(6px) rotate(0); } 50%, 80% { opacity: 1; transform: translateY(0) rotate(-6deg); } }
+@keyframes ks-drop { 0% { opacity: 0; transform: translateY(-24px) rotate(-90deg); } 18%, 85% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 0; transform: translateY(0) rotate(0); } }
+@keyframes ks-zip { 0%, 100% { transform: translateY(-24px); } 50% { transform: translateY(24px); } }
+@keyframes ks-lid { 0%, 15% { transform: rotate(-35deg) translateY(-6px); } 45%, 100% { transform: rotate(0) translateY(0); } }
+@keyframes ks-bow { 0%, 45% { opacity: 0; transform: scale(0.2); } 60%, 100% { opacity: 1; transform: scale(1); } }
+@keyframes ks-twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1.15); } }
+@keyframes ks-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-5px) rotate(-6deg); } }
+@keyframes ks-wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -3deg; } 75% { rotate: 3deg; } }
+
+/* ------------------------------------------------------------------ tablet: same row, smaller */
+@media (max-width: 1024px) {
+	.aimp-kit-steps-cta {
+		width: 7rem;
+	}
+
+	.aimp-kit-steps-thread {
+		width: calc(100% - 7.5rem);
+	}
+
+	.aimp-kit-step {
+		padding: 1rem 0.5rem 0.75rem;
+	}
+}
+
+/* ------------------------------------------------------------------ phone: 2 × 2 grid, the button below */
+@media (max-width: 700px) {
+	.aimp-kit-steps .aimp-kit-steps-title {
+		margin-bottom: 1.6rem;
+	}
+
+	.aimp-kit-step--pattern { transform: translateY(-4px) rotate(-2deg); }
+	.aimp-kit-step--fabric { transform: translateY(8px) rotate(1.5deg); }
+	.aimp-kit-step--notions { transform: translateY(-2px) rotate(-1deg); }
+	.aimp-kit-step--kit { transform: translateY(8px) rotate(1.5deg); }
+
+	.aimp-kit-steps-row {
+		flex-direction: column;
+	}
+
+	.aimp-kit-steps-thread {
+		display: none;
+	}
+
+	.aimp-kit-steps-list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		row-gap: 1.6rem;
+		width: 100%;
+	}
+
+	/* A zigzag stitch between the cards instead of the long thread. */
+	.aimp-kit-step {
+		border-style: dashed;
+		padding: 1rem 0.5rem 0.75rem;
+	}
+
+	.aimp-kit-steps-drawing {
+		width: min(100%, 92px);
+	}
+
+	.aimp-kit-steps-cta {
+		flex-direction: row;
+		justify-content: center;
+		width: auto;
+		margin-top: 0.25rem;
+	}
+
+	.aimp-kit-steps-needle {
+		width: 2rem;
+		height: 2rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-kit-steps *,
+	.aimp-kit-steps *::before {
+		animation: none !important;
+		transition: none !important;
+	}
+
+	.aimp-kit-steps.is-ready .aimp-kit-steps-thread path {
+		stroke-dasharray: 9 7;
+		stroke-dashoffset: 0;
+	}
+}

@@ -945,19 +945,19 @@
 }
 
 /* Buttons: the "Button details" box (in the workspace: its fieldsets in the cards). */
-.aimp-button-details fieldset {
+.aimp-notion-details fieldset {
 	margin: 0 0 1rem;
 	padding: 0.75rem 1rem;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 }
 
-.aimp-button-details legend {
+.aimp-notion-details legend {
 	padding: 0 0.4rem;
 	font-weight: 600;
 }
 
-.aimp-button-specs p {
+.aimp-notion-specs p {
 	display: grid;
 	grid-template-columns: 11rem minmax(0, 1fr);
 	align-items: center;
@@ -965,42 +965,42 @@
 	margin: 0.5rem 0;
 }
 
-.aimp-button-specs input,
-.aimp-button-specs select {
+.aimp-notion-specs input,
+.aimp-notion-specs select {
 	width: 100%;
 	max-width: 24rem;
 }
 
-.aimp-button-sold-choice {
+.aimp-notion-sold-choice {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 0.5rem 1.5rem;
 }
 
-.aimp-button-sold-choice label {
+.aimp-notion-sold-choice label {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.4rem;
 }
 
-.aimp-button-ideal-list {
+.aimp-notion-ideal-list {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 	gap: 0.75rem;
 	margin-top: 0.5rem;
 }
 
-.aimp-button-ideal-list select {
+.aimp-notion-ideal-list select {
 	width: 100%;
 }
 
 /* Pattern → Buttons: a switch and a diameter range per type. */
-.aimp-button-rules {
+.aimp-notion-rules {
 	padding: 0 12px 12px;
 }
 
-.aimp-button-rules .aimp-button-rule {
+.aimp-notion-rules .aimp-notion-rule {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -1011,17 +1011,17 @@
 	border-radius: 6px;
 }
 
-.aimp-button-rules .aimp-button-rule.is-on {
+.aimp-notion-rules .aimp-notion-rule.is-on {
 	border-color: #b38f4f;
 }
 
-.woocommerce_options_panel .aimp-button-rules label {
+.woocommerce_options_panel .aimp-notion-rules label {
 	float: none;
 	width: auto;
 	margin: 0;
 }
 
-.aimp-button-rule-switch {
+.aimp-notion-rule-switch {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -1029,18 +1029,18 @@
 	font-weight: 600;
 }
 
-.aimp-button-rule-range {
+.aimp-notion-rule-range {
 	display: inline-flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 6px 12px;
 }
 
-.aimp-button-rule:not(.is-on) .aimp-button-rule-range {
+.aimp-notion-rule:not(.is-on) .aimp-notion-rule-range {
 	opacity: 0.45;
 }
 
-.woocommerce_options_panel .aimp-button-rule-range input.small-text {
+.woocommerce_options_panel .aimp-notion-rule-range input.small-text {
 	float: none;
 	width: 5em;
 }
@@ -1070,7 +1070,7 @@
 	flex: none;
 }
 
-.woocommerce_variation .aimp-button-allowed {
+.woocommerce_variation .aimp-notion-allowed {
 	margin: 6px 0 0;
 	padding: 0;
 	color: #8a6a33;
@@ -1079,6 +1079,87 @@
 }
 
 /* Button details: order information editor. */
-.aimp-button-order-info {
+.aimp-notion-order-info {
 	margin: 0 0 1rem;
+}
+
+/* Pattern → Haberdashery: one box per kind. */
+.aimp-notion-rules .aimp-notion-rule-group {
+	margin: 12px 0 0;
+	padding: 6px 12px 10px;
+	border: 1px solid #e3d5bb;
+	border-radius: 8px;
+	background: #fcfaf6;
+}
+
+.woocommerce_options_panel .aimp-notion-rules .aimp-notion-rule-group legend {
+	float: none;
+	width: auto;
+	margin: 0;
+	padding: 0 4px;
+	color: #8a6a33;
+	font-weight: 700;
+}
+
+.aimp-notion-rules .aimp-notion-rule {
+	background: #fff;
+}
+
+.woocommerce_variation .aimp-material-group > .aimp-notion-allowed {
+	margin: 6px 0 0;
+	color: #8a6a33;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+/* Haberdashery details: one part per kind. */
+.aimp-notion-kind[hidden] {
+	display: none;
+}
+
+/* Designs: "Main picture" next to "Other pictures"; fitting fabrics as a table with positions. */
+.aimp-design-picture-boxes {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+	gap: 12px;
+}
+
+@media (max-width: 960px) {
+	.aimp-design-picture-boxes {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.aimp-design-picture-boxes > div {
+	padding: 8px 10px 10px;
+	border: 1px solid #e3d5bb;
+	border-radius: 8px;
+	background: #fcfaf6;
+}
+
+.aimp-design-picture-boxes .aimp-design-label {
+	margin-top: 0;
+}
+
+.aimp-design-picture-boxes .description {
+	margin: 0 0 6px;
+}
+
+.aimp-design-main input:checked + img {
+	border-color: #613907;
+	box-shadow: 0 0 0 2px #b38f4f;
+}
+
+.aimp-design-others li.is-main {
+	opacity: 0.35;
+}
+
+.aimp-design-others li.is-main label {
+	cursor: not-allowed;
+}
+
+table.aimp-design-fabrics {
+	display: table;
+	max-width: 32rem;
+	margin: 4px 0 8px;
 }

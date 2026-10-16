@@ -25,8 +25,6 @@ class AIMP_Product_Fields {
 
 		add_action( 'woocommerce_product_after_variable_attributes', array( __CLASS__, 'render_variation_fields' ), 10, 3 );
 		add_action( 'woocommerce_admin_process_variation_object', array( __CLASS__, 'save_variation_fields' ), 10, 2 );
-		add_action( 'woocommerce_product_options_general_product_data', array( __CLASS__, 'render_zip_length_field' ) );
-		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_zip_length_field' ) );
 		add_filter( 'woocommerce_product_data_tabs', array( __CLASS__, 'add_pattern_tab' ) );
 		add_action( 'woocommerce_product_data_panels', array( __CLASS__, 'render_pattern_panel' ) );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_fabric_priority' ) );
@@ -212,12 +210,16 @@ class AIMP_Product_Fields {
 			}
 			return '0' === $saved ? '' : $saved;
 		};
-		// Button types the pattern does not use (Atelier Irisee tab → Buttons) get no field; admin.js follows the switches.
-		$off   = array();
-		$types = AIMP_Catalog::button_types();
-		foreach ( self::shown_button_rules( wc_get_product( $variation_post->post_parent ) ) as $type => $rule ) {
-			if ( ! $rule['on'] ) {
-				$off[ $types[ $type ][1] ] = true;
+		// Haberdashery the pattern does not use (Atelier Irisee tab → Haberdashery) can't be filled in; admin.js
+		// follows the switches.
+		$pattern = wc_get_product( $variation_post->post_parent );
+		$off     = array();
+		$ruled   = array();
+		foreach ( self::shown_rules( $pattern ) as $rule => $state ) {
+			$material           = AIMP_Notions::rules()[ $rule ][2];
+			$ruled[ $material ] = true;
+			if ( ! $state['on'] ) {
+				$off[ $material ] = true;
 			}
 		}
 		$input = function ( $name, $label, $unit, $current ) use ( $loop, $off ) {
@@ -235,26 +237,32 @@ class AIMP_Product_Fields {
 				isset( $off[ $name ] ) ? ' disabled' : ''
 			);
 		};
-		$allowed = self::allowed_buttons_text( wc_get_product( $variation_post->post_parent ) );
+		$note = function ( $fields ) use ( $pattern, $ruled ) {
+			$materials = array_keys( array_intersect_key( $fields, $ruled ) );
+			if ( ! $materials ) {
+				return;
+			}
+			// What may be filled in: the kinds switched on (Atelier Irisee tab → Haberdashery); admin.js keeps it up to date.
+			printf(
+				'<p class="aimp-notion-allowed" data-aimp-allowed="%1$s">%2$s</p>',
+				esc_attr( implode( ',', $materials ) ),
+				esc_html( self::allowed_text( $pattern, $materials ) )
+			);
+		};
 		?>
 		<div class="aimp-variation-fields">
 			<h4><?php esc_html_e( 'Needed materials & sizes', 'atelier-irisee-master-plugin' ); ?></h4>
 			<div class="aimp-material-groups">
 				<?php foreach ( $groups as $group => $fields ) : ?>
 					<?php if ( count( $fields ) > 1 ) : ?>
-						<?php $is_buttons = (bool) array_intersect_key( $fields, array_flip( wp_list_pluck( $types, 1 ) ) ); ?>
-						<fieldset class="aimp-material-group has-types<?php echo $is_buttons ? ' aimp-button-group' : ''; ?>">
+						<fieldset class="aimp-material-group has-types">
 							<legend><?php echo esc_html( $group ); ?></legend>
 							<?php
 							foreach ( $fields as $key => $field ) {
 								$input( $key, $field['label'], $field['unit'], $value( $key, $field ) );
 							}
+							$note( $fields );
 							?>
-							<?php if ( $is_buttons ) : ?>
-								<?php // What may be filled in: the types switched on (Atelier Irisee tab → Buttons); admin.js keeps it up to date. ?>
-								<p class="aimp-button-allowed" data-aimp-button-allowed><?php echo esc_html( $allowed ); ?></p>
-								<input type="hidden" class="aimp-button-on" name="<?php echo esc_attr( 'aimp_button_on[' . $loop . ']' ); ?>" value="<?php echo esc_attr( implode( ',', array_diff( wp_list_pluck( $types, 1 ), array_keys( $off ) ) ) ); ?>">
-							<?php endif; ?>
 						</fieldset>
 					<?php else : ?>
 						<div class="aimp-material-group">
@@ -262,10 +270,12 @@ class AIMP_Product_Fields {
 							foreach ( $fields as $key => $field ) {
 								$input( $key, $field['label'], $field['unit'], $value( $key, $field ) );
 							}
+							$note( $fields );
 							?>
 						</div>
 					<?php endif; ?>
 				<?php endforeach; ?>
+				<input type="hidden" class="aimp-notion-on" name="<?php echo esc_attr( 'aimp_notion_on[' . $loop . ']' ); ?>" value="<?php echo esc_attr( implode( ',', array_keys( array_diff_key( $ruled, $off ) ) ) ); ?>">
 				<fieldset class="aimp-material-group aimp-measurement-group has-types">
 					<legend><?php esc_html_e( 'Body measurements', 'atelier-irisee-master-plugin' ); ?></legend>
 					<?php
@@ -304,13 +314,13 @@ class AIMP_Product_Fields {
 		foreach ( self::measurement_fields() as $meta => $label ) {
 			$fields[ ltrim( $meta, '_' ) ] = array( $meta, 'cm' );
 		}
-		// Button types switched off on the Atelier Irisee tab (as on the screen, also before the pattern is saved).
+		// Haberdashery switched off on the Atelier Irisee tab (as on the screen, also before the pattern is saved).
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
-		$on_list = isset( $_POST['aimp_button_on'][ $i ] ) ? array_filter( explode( ',', sanitize_text_field( wp_unslash( $_POST['aimp_button_on'][ $i ] ) ) ) ) : null;
+		$on_list = isset( $_POST['aimp_notion_on'][ $i ] ) ? array_filter( explode( ',', sanitize_text_field( wp_unslash( $_POST['aimp_notion_on'][ $i ] ) ) ) ) : null;
 		$off     = array();
-		foreach ( self::shown_button_rules( wc_get_product( $variation->get_parent_id() ) ) as $type => $rule ) {
-			$material = AIMP_Catalog::button_types()[ $type ][1];
-			if ( null === $on_list ? ! $rule['on'] : ! in_array( $material, $on_list, true ) ) {
+		foreach ( self::shown_rules( wc_get_product( $variation->get_parent_id() ) ) as $rule => $state ) {
+			$material = AIMP_Notions::rules()[ $rule ][2];
+			if ( null === $on_list ? ! $state['on'] : ! in_array( $material, $on_list, true ) ) {
 				$off[ $material ] = true;
 			}
 		}
@@ -467,16 +477,18 @@ class AIMP_Product_Fields {
 				<?php self::render_designs( $product_object, $designs, $design_set, $terms ); ?>
 			<?php endif; ?>
 			<?php if ( $is_product ) : ?>
-				<?php self::render_button_rules( $product_object ); ?>
+				<?php self::render_rules( $product_object ); ?>
 			<?php endif; ?>
 			<div class="options_group aimp-priority">
 				<h4><?php esc_html_e( 'Fitting fabrics', 'atelier-irisee-master-plugin' ); ?></h4>
 				<?php if ( $designs ) : ?>
-					<p class="description"><?php esc_html_e( 'The fitting fabrics are ticked per design (Pattern details). Here you choose which fabric categories customers see first: 1 is shown first, then 2, and so on.', 'atelier-irisee-master-plugin' ); ?></p>
+					<p class="description"><?php esc_html_e( 'This pattern has designs: the fitting fabrics and their positions are set per design (Pattern details → Designs).', 'atelier-irisee-master-plugin' ); ?></p>
 				<?php else : ?>
 				<p class="description"><?php esc_html_e( 'Tick the fabric categories that suit this pattern; they are the same for all sizes. Customers choose their fabric from these categories. Give them a position to choose which they see first: 1 is shown first, then 2, and so on. Categories without a position come after them.', 'atelier-irisee-master-plugin' ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! $terms ) : ?>
+				<?php if ( $designs ) : ?>
+					<?php // Per design (Designs block). ?>
+				<?php elseif ( ! $terms ) : ?>
 					<p class="description"><?php esc_html_e( 'No fabric subcategories found. Set the Fabrics category under WooCommerce > Atelier Irisee and give it subcategories.', 'atelier-irisee-master-plugin' ); ?></p>
 				<?php else : ?>
 					<table class="widefat aimp-priority-table">
@@ -534,35 +546,81 @@ class AIMP_Product_Fields {
 		?>
 		<div class="options_group aimp-designs" data-aimp-designs>
 			<h4><?php esc_html_e( 'Designs', 'atelier-irisee-master-plugin' ); ?></h4>
-			<p class="description"><?php esc_html_e( 'Each design is its own choice in the configurator, with its own sizes (the rows of the Variations tab). Tick the pictures of each design (the first ticked picture is its card picture), and fill its fitting fabrics, height and project time. Add the pictures to the product gallery first.', 'atelier-irisee-master-plugin' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Each design is its own choice in the configurator, with its own sizes (the rows of the Variations tab). Choose the main picture of each design and tick its other pictures, then fill its fitting fabrics (with their positions), height and project time. Add the pictures to the product gallery first.', 'atelier-irisee-master-plugin' ); ?></p>
 			<?php foreach ( $designs as $slug => $name ) : ?>
 				<?php
-				$row  = isset( $saved[ $slug ] ) ? $saved[ $slug ] : array( 'image_ids' => array(), 'fabric_cats' => array(), 'height' => '', 'project_time' => '' );
+				$row  = isset( $saved[ $slug ] ) ? $saved[ $slug ] : array( 'image_ids' => array(), 'fabric_cats' => array(), 'height' => '', 'project_time' => '', 'fabric_priority' => array() );
 				$base = 'aimp_designs[' . $slug . ']';
 				?>
 				<fieldset class="aimp-design" data-design="<?php echo esc_attr( $slug ); ?>">
 					<legend><?php echo esc_html( $name ); ?></legend>
-					<p class="aimp-design-label"><?php echo esc_html( sprintf( /* translators: %s: design name */ __( 'Pictures of this design: %s', 'atelier-irisee-master-plugin' ), $name ) ); ?></p>
-					<ul class="aimp-design-pictures" data-name="<?php echo esc_attr( $base . '[image_ids][]' ); ?>" data-card-label="<?php esc_attr_e( 'Card picture', 'atelier-irisee-master-plugin' ); ?>">
-						<?php foreach ( $pictures as $picture ) : ?>
-							<?php $url = wp_get_attachment_image_url( $picture, 'thumbnail' ); ?>
-							<?php if ( $url ) : ?>
-								<li data-id="<?php echo esc_attr( $picture ); ?>">
-									<label>
-										<input type="checkbox" name="<?php echo esc_attr( $base . '[image_ids][]' ); ?>" value="<?php echo esc_attr( $picture ); ?>"<?php checked( in_array( $picture, $row['image_ids'], true ) ); ?>>
-										<img src="<?php echo esc_url( $url ); ?>" alt="">
-									</label>
-								</li>
-							<?php endif; ?>
-						<?php endforeach; ?>
-					</ul>
+					<?php $main = $row['image_ids'] ? (int) $row['image_ids'][0] : 0; ?>
+					<div class="aimp-design-picture-boxes">
+						<div class="aimp-design-main-box">
+							<p class="aimp-design-label"><?php echo esc_html( sprintf( /* translators: %s: design name */ __( 'Main picture: %s', 'atelier-irisee-master-plugin' ), $name ) ); ?></p>
+							<p class="description"><?php esc_html_e( 'The picture of the design\'s card in the configurator, shown first.', 'atelier-irisee-master-plugin' ); ?></p>
+							<ul class="aimp-design-pictures aimp-design-main" data-type="radio" data-name="<?php echo esc_attr( $base . '[main_image]' ); ?>">
+								<?php foreach ( $pictures as $picture ) : ?>
+									<?php $url = wp_get_attachment_image_url( $picture, 'thumbnail' ); ?>
+									<?php if ( $url ) : ?>
+										<li data-id="<?php echo esc_attr( $picture ); ?>">
+											<label>
+												<input type="radio" name="<?php echo esc_attr( $base . '[main_image]' ); ?>" value="<?php echo esc_attr( $picture ); ?>"<?php checked( $main, $picture ); ?>>
+												<img src="<?php echo esc_url( $url ); ?>" alt="">
+											</label>
+										</li>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							</ul>
+						</div>
+						<div class="aimp-design-other-box">
+							<p class="aimp-design-label"><?php echo esc_html( sprintf( /* translators: %s: design name */ __( 'Other pictures of this design: %s', 'atelier-irisee-master-plugin' ), $name ) ); ?></p>
+							<p class="description"><?php esc_html_e( 'Tick every other picture of this design; they are shown after the main picture.', 'atelier-irisee-master-plugin' ); ?></p>
+							<ul class="aimp-design-pictures aimp-design-others" data-type="checkbox" data-name="<?php echo esc_attr( $base . '[image_ids][]' ); ?>">
+								<?php foreach ( $pictures as $picture ) : ?>
+									<?php $url = wp_get_attachment_image_url( $picture, 'thumbnail' ); ?>
+									<?php if ( $url ) : ?>
+										<li data-id="<?php echo esc_attr( $picture ); ?>"<?php echo $picture === $main ? ' class="is-main"' : ''; ?>>
+											<label>
+												<input type="checkbox" name="<?php echo esc_attr( $base . '[image_ids][]' ); ?>" value="<?php echo esc_attr( $picture ); ?>"<?php checked( $picture !== $main && in_array( $picture, $row['image_ids'], true ) ); ?><?php disabled( $picture === $main ); ?>>
+												<img src="<?php echo esc_url( $url ); ?>" alt="">
+											</label>
+										</li>
+									<?php endif; ?>
+								<?php endforeach; ?>
+							</ul>
+						</div>
+					</div>
 					<p class="description aimp-design-empty"<?php echo $pictures ? ' hidden' : ''; ?>><?php esc_html_e( 'Add the pictures to the product gallery first.', 'atelier-irisee-master-plugin' ); ?></p>
 					<p class="aimp-design-label"><?php echo esc_html( sprintf( /* translators: %s: design name */ __( 'Fitting fabrics: %s', 'atelier-irisee-master-plugin' ), $name ) ); ?></p>
-					<div class="aimp-design-fabrics">
-						<?php foreach ( $terms as $term ) : ?>
-							<label><input type="checkbox" name="<?php echo esc_attr( $base . '[fabric_cats][]' ); ?>" value="<?php echo esc_attr( $term->term_id ); ?>"<?php checked( in_array( (int) $term->term_id, $row['fabric_cats'], true ) ); ?>> <?php echo esc_html( $term->name ); ?></label>
-						<?php endforeach; ?>
-					</div>
+					<p class="description"><?php esc_html_e( 'Tick the fabric categories that suit this design. Give them a position to choose which customers see first: 1 is shown first, then 2, and so on.', 'atelier-irisee-master-plugin' ); ?></p>
+					<table class="widefat aimp-priority-table aimp-design-fabrics">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Fabric category', 'atelier-irisee-master-plugin' ); ?></th>
+								<th><?php esc_html_e( 'Allowed', 'atelier-irisee-master-plugin' ); ?></th>
+								<th><?php esc_html_e( 'Position', 'atelier-irisee-master-plugin' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $terms as $term ) : ?>
+								<?php
+								$term_id = (int) $term->term_id;
+								$allowed = in_array( $term_id, $row['fabric_cats'], true );
+								$field   = 'aimp_design_' . $slug . '_' . $term_id;
+								?>
+								<tr<?php echo $allowed ? '' : ' class="is-off"'; ?>>
+									<td><label for="<?php echo esc_attr( $field ); ?>"><?php echo esc_html( $term->name ); ?></label></td>
+									<td><input type="checkbox" class="aimp-fitting-checkbox" id="<?php echo esc_attr( $field ); ?>" name="<?php echo esc_attr( $base . '[fabric_cats][]' ); ?>" value="<?php echo esc_attr( $term_id ); ?>"<?php checked( $allowed ); ?>></td>
+									<td>
+										<input type="number" min="1" step="1" class="small-text" name="<?php echo esc_attr( $base . '[fabric_priority][' . $term_id . ']' ); ?>"
+											aria-label="<?php echo esc_attr( sprintf( /* translators: %s: fabric category */ __( 'Position of %s', 'atelier-irisee-master-plugin' ), $term->name ) ); ?>"
+											value="<?php echo isset( $row['fabric_priority'][ $term_id ] ) ? (int) $row['fabric_priority'][ $term_id ] : ''; ?>"<?php disabled( ! $allowed ); ?>>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
 					<p class="aimp-design-fields">
 						<label><?php esc_html_e( 'Height (cm)', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" step="0.1" class="short" name="<?php echo esc_attr( $base . '[height]' ); ?>" value="<?php echo esc_attr( $row['height'] ); ?>"></label>
 						<label><?php esc_html_e( 'Average project time', 'atelier-irisee-master-plugin' ); ?> <input type="text" class="short" placeholder="<?php esc_attr_e( 'e.g. 5h', 'atelier-irisee-master-plugin' ); ?>" name="<?php echo esc_attr( $base . '[project_time]' ); ?>" value="<?php echo esc_attr( $row['project_time'] ); ?>"></label>
@@ -575,145 +633,157 @@ class AIMP_Product_Fields {
 	}
 
 	/**
-	 * Which button types the pattern uses, as shown on the tab. A pattern saved before 3.6 has no rules yet:
-	 * a type then counts as used when a size has an amount for it.
+	 * Which haberdashery the pattern uses, as shown on the tab: rule => [ on, min, max, saved ]. A rule that was
+	 * never saved (patterns from before 3.6, or kinds new in 3.7) shows as on when a size has an amount for it.
 	 *
-	 * @param WC_Product $product Pattern.
-	 * @return array type => [ on, min, max ]
+	 * @param WC_Product|null $product Pattern.
+	 * @return array
 	 */
-	private static function shown_button_rules( $product ) {
-		$rules = AIMP_Catalog::button_rules( $product->get_id() );
-		if ( ! $product->get_id() || metadata_exists( 'post', $product->get_id(), AIMP_Catalog::META_BUTTON_RULES ) ) {
-			return $product->get_id() ? $rules : array_map(
-				function ( $rule ) {
-					$rule['on'] = false;
-					return $rule;
-				},
-				$rules
-			);
-		}
+	private static function shown_rules( $product ) {
+		$id     = $product ? $product->get_id() : 0;
+		$rules  = AIMP_Notions::pattern_rules( $id );
 		$fields = AIMP_Catalog::material_fields();
-		foreach ( AIMP_Catalog::button_types() as $type => $info ) {
+		$sizes  = $product ? $product->get_children() : array();
+		foreach ( AIMP_Notions::rules() as $rule => $info ) {
+			if ( $rules[ $rule ]['saved'] ) {
+				continue;
+			}
 			$used = false;
-			foreach ( $product->get_children() as $child_id ) {
-				if ( (float) get_post_meta( $child_id, $fields[ $info[1] ]['meta'], true ) > 0 ) {
+			foreach ( $sizes as $child_id ) {
+				if ( (float) get_post_meta( $child_id, $fields[ $info[2] ]['meta'], true ) > 0 ) {
 					$used = true;
 					break;
 				}
 			}
-			$rules[ $type ]['on'] = $used;
+			$rules[ $rule ]['on'] = $used;
 		}
 		return $rules;
 	}
 
 	/**
-	 * "Buttons": per type (button, jeans button, press stud) a switch and the diameter range that fits. Only
-	 * switched-on types get an amount field on the sizes, and the configurator only offers buttons of that type
-	 * whose diameter is within the range.
+	 * "Haberdashery": per kind (buttons, zips, elastic, bias tape, ribbons & cords, interfacing) and type a switch,
+	 * and the diameter or width that fits. Only switched-on kinds get an amount field on the sizes, and the
+	 * configurator only offers products of that type and size.
 	 *
 	 * @param WC_Product $product Pattern.
 	 */
-	private static function render_button_rules( $product ) {
-		$rules  = self::shown_button_rules( $product );
+	private static function render_rules( $product ) {
+		$rules  = self::shown_rules( $product );
 		$fields = AIMP_Catalog::material_fields();
-		$labels = array(
-			'button'       => __( 'This pattern uses buttons', 'atelier-irisee-master-plugin' ),
-			'jeans_button' => __( 'This pattern uses jeans buttons', 'atelier-irisee-master-plugin' ),
-			'press_stud'   => __( 'This pattern uses press studs', 'atelier-irisee-master-plugin' ),
-		);
+		$attrs  = function ( $unit ) {
+			$cm = 'cm' === $unit;
+			return sprintf(
+				' data-range="%1$s" data-from="%2$s" data-upto="%3$s" data-unit="%4$s"',
+				/* translators: 1: smallest size, 2: largest size */
+				esc_attr( $cm ? __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ) : __( '%1$s–%2$s mm', 'atelier-irisee-master-plugin' ) ),
+				/* translators: %s: size */
+				esc_attr( $cm ? __( 'from %s cm', 'atelier-irisee-master-plugin' ) : __( 'from %s mm', 'atelier-irisee-master-plugin' ) ),
+				/* translators: %s: size */
+				esc_attr( $cm ? __( 'up to %s cm', 'atelier-irisee-master-plugin' ) : __( 'up to %s mm', 'atelier-irisee-master-plugin' ) ),
+				esc_attr( $unit )
+			);
+		};
 		?>
-		<div class="options_group aimp-button-rules" data-aimp-button-rules
-			data-allowed="<?php /* translators: %s: the allowed button types, e.g. "Buttons 14–18 mm" */ echo esc_attr( __( 'Allowed: %s', 'atelier-irisee-master-plugin' ) ); ?>"
-			data-none="<?php esc_attr_e( 'Switch on a button type on the Atelier Irisee tab (Buttons) to fill in buttons.', 'atelier-irisee-master-plugin' ); ?>"
-			data-range="<?php /* translators: 1: smallest diameter, 2: largest diameter (in mm) */ echo esc_attr( __( '%1$s–%2$s mm', 'atelier-irisee-master-plugin' ) ); ?>"
-			data-from="<?php /* translators: %s: diameter in mm */ echo esc_attr( __( 'from %s mm', 'atelier-irisee-master-plugin' ) ); ?>"
-			data-upto="<?php /* translators: %s: diameter in mm */ echo esc_attr( __( 'up to %s mm', 'atelier-irisee-master-plugin' ) ); ?>">
-			<h4><?php esc_html_e( 'Buttons', 'atelier-irisee-master-plugin' ); ?></h4>
-			<p class="description"><?php esc_html_e( 'Switch on the kinds of buttons this pattern needs and the diameter that fits (empty = any diameter). Each size then gets an amount field for it on the Variations tab, and the configurator only offers buttons of that type and diameter.', 'atelier-irisee-master-plugin' ); ?></p>
-			<?php foreach ( AIMP_Catalog::button_types() as $type => $info ) : ?>
-				<?php
-				$rule = $rules[ $type ];
-				$base = 'aimp_button_rules[' . $type . ']';
-				?>
-				<div class="aimp-button-rule<?php echo $rule['on'] ? ' is-on' : ''; ?>" data-material="<?php echo esc_attr( $info[1] ); ?>" data-label="<?php echo esc_attr( $fields[ $info[1] ]['label'] ); ?>">
-					<label class="aimp-button-rule-switch">
-						<input type="checkbox" class="aimp-button-rule-toggle" name="<?php echo esc_attr( $base . '[on]' ); ?>" value="1"<?php checked( $rule['on'] ); ?>>
-						<?php echo esc_html( $labels[ $type ] ); ?>
-					</label>
-					<span class="aimp-button-rule-range">
-						<label>
-							<?php esc_html_e( 'Diameter from', 'atelier-irisee-master-plugin' ); ?>
-							<input type="number" class="small-text" min="0" step="0.5" name="<?php echo esc_attr( $base . '[min]' ); ?>" value="<?php echo esc_attr( (string) $rule['min'] ); ?>">
-						</label>
-						<label>
-							<?php esc_html_e( 'to', 'atelier-irisee-master-plugin' ); ?>
-							<input type="number" class="small-text" min="0" step="0.5" name="<?php echo esc_attr( $base . '[max]' ); ?>" value="<?php echo esc_attr( (string) $rule['max'] ); ?>">
-							<?php esc_html_e( 'mm', 'atelier-irisee-master-plugin' ); ?>
-						</label>
-					</span>
-				</div>
+		<div class="options_group aimp-notion-rules" data-aimp-notion-rules
+			data-allowed="<?php /* translators: %s: what may be filled in, e.g. "Buttons 14–18 mm" */ echo esc_attr( __( 'Allowed: %s', 'atelier-irisee-master-plugin' ) ); ?>"
+			data-none="<?php esc_attr_e( 'Switch it on on the Atelier Irisee tab (Haberdashery) to fill this in.', 'atelier-irisee-master-plugin' ); ?>">
+			<h4><?php esc_html_e( 'Haberdashery', 'atelier-irisee-master-plugin' ); ?></h4>
+			<p class="description"><?php esc_html_e( 'Switch on what this pattern needs, with the diameter or width that fits (empty = any size). Each size then gets an amount field for it on the Variations tab, and the configurator only offers products of that type and size. Zips are matched on the length a size needs.', 'atelier-irisee-master-plugin' ); ?></p>
+			<?php foreach ( AIMP_Notions::kinds() as $kind => $kind_info ) : ?>
+				<fieldset class="aimp-notion-rule-group" data-kind="<?php echo esc_attr( $kind ); ?>">
+					<legend><?php echo esc_html( $kind_info['name'] ); ?></legend>
+					<?php foreach ( AIMP_Notions::rules() as $rule_key => $info ) : ?>
+						<?php
+						if ( $info[0] !== $kind ) {
+							continue;
+						}
+						$rule  = $rules[ $rule_key ];
+						$base  = 'aimp_notion_rules[' . $rule_key . ']';
+						$label = $fields[ $info[2] ]['label'];
+						$unit  = AIMP_Notions::rule_unit( $rule_key );
+						$range = '' !== $kind_info['range'] ? AIMP_Notions::fields()[ $kind_info['range'] ][1] : '';
+						?>
+						<div class="aimp-notion-rule<?php echo $rule['on'] ? ' is-on' : ''; ?>" data-material="<?php echo esc_attr( $info[2] ); ?>" data-label="<?php echo esc_attr( $label ); ?>"<?php echo '' !== $unit ? $attrs( $unit ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $attrs. ?>>
+							<label class="aimp-notion-rule-switch">
+								<input type="checkbox" class="aimp-notion-rule-toggle" name="<?php echo esc_attr( $base . '[on]' ); ?>" value="1"<?php checked( $rule['on'] ); ?>>
+								<?php echo esc_html( $label ); ?>
+							</label>
+							<?php if ( '' !== $unit ) : ?>
+								<span class="aimp-notion-rule-range">
+									<label>
+										<?php echo esc_html( sprintf( /* translators: %s: "Diameter" or "Width" */ __( '%s from', 'atelier-irisee-master-plugin' ), $range ) ); ?>
+										<input type="number" class="small-text" min="0" step="<?php echo 'cm' === $unit ? '1' : '0.5'; ?>" name="<?php echo esc_attr( $base . '[min]' ); ?>" value="<?php echo esc_attr( (string) $rule['min'] ); ?>">
+									</label>
+									<label>
+										<?php esc_html_e( 'to', 'atelier-irisee-master-plugin' ); ?>
+										<input type="number" class="small-text" min="0" step="<?php echo 'cm' === $unit ? '1' : '0.5'; ?>" name="<?php echo esc_attr( $base . '[max]' ); ?>" value="<?php echo esc_attr( (string) $rule['max'] ); ?>">
+										<?php echo esc_html( $unit ); ?>
+									</label>
+								</span>
+							<?php endif; ?>
+						</div>
+					<?php endforeach; ?>
+				</fieldset>
 			<?php endforeach; ?>
-			<input type="hidden" name="aimp_button_rules_present" value="1">
+			<input type="hidden" name="aimp_notion_rules_present" value="1">
 		</div>
 		<?php
 	}
 
 	/**
-	 * Saves the "Buttons" block.
+	 * Saves the "Haberdashery" block. A kind switched off loses its amounts on every size.
 	 *
 	 * @param WC_Product $product Pattern.
 	 */
-	private static function save_button_rules( $product ) {
+	private static function save_rules( $product ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
-		if ( empty( $_POST['aimp_button_rules_present'] ) || ! $product->is_type( 'variable' ) ) {
+		if ( empty( $_POST['aimp_notion_rules_present'] ) || ! $product->is_type( 'variable' ) ) {
 			return;
 		}
-		$input = isset( $_POST['aimp_button_rules'] ) && is_array( $_POST['aimp_button_rules'] ) ? wp_unslash( $_POST['aimp_button_rules'] ) : array();
+		$input = isset( $_POST['aimp_notion_rules'] ) && is_array( $_POST['aimp_notion_rules'] ) ? wp_unslash( $_POST['aimp_notion_rules'] ) : array();
 		// phpcs:enable
 		$number = function ( $value ) {
 			$value = wc_clean( (string) $value );
 			return '' === $value || (float) $value <= 0 ? '' : wc_format_decimal( (float) $value, 1, true );
 		};
-		$clean = array();
-		foreach ( array_keys( AIMP_Catalog::button_types() ) as $type ) {
-			$row            = isset( $input[ $type ] ) && is_array( $input[ $type ] ) ? $input[ $type ] : array();
-			$clean[ $type ] = array(
+		$clean  = array();
+		$fields = AIMP_Catalog::material_fields();
+		foreach ( AIMP_Notions::rules() as $rule => $info ) {
+			$row            = isset( $input[ $rule ] ) && is_array( $input[ $rule ] ) ? $input[ $rule ] : array();
+			$clean[ $rule ] = array(
 				'on'  => ! empty( $row['on'] ),
 				'min' => isset( $row['min'] ) ? $number( $row['min'] ) : '',
 				'max' => isset( $row['max'] ) ? $number( $row['max'] ) : '',
 			);
-		}
-		$product->update_meta_data( AIMP_Catalog::META_BUTTON_RULES, $clean );
-		$fields = AIMP_Catalog::material_fields();
-		foreach ( AIMP_Catalog::button_types() as $type => $info ) {
-			if ( $clean[ $type ]['on'] ) {
-				continue;
-			}
-			foreach ( $product->get_children() as $child_id ) {
-				delete_post_meta( $child_id, $fields[ $info[1] ]['meta'] );
-			}
-		}
-	}
-
-	/**
-	 * "Allowed: Buttons 14–18 mm · Press studs" under the Buttons of a size, or how to switch one on.
-	 *
-	 * @param WC_Product|null $product Pattern.
-	 * @return string
-	 */
-	private static function allowed_buttons_text( $product ) {
-		$parts  = array();
-		$fields = AIMP_Catalog::material_fields();
-		if ( $product ) {
-			foreach ( self::shown_button_rules( $product ) as $type => $rule ) {
-				if ( $rule['on'] ) {
-					$range   = AIMP_Catalog::button_rule_text( $rule );
-					$parts[] = $fields[ AIMP_Catalog::button_types()[ $type ][1] ]['label'] . ( '' !== $range ? ' ' . $range : '' );
+			if ( ! $clean[ $rule ]['on'] ) {
+				foreach ( $product->get_children() as $child_id ) {
+					delete_post_meta( $child_id, $fields[ $info[2] ]['meta'] );
 				}
 			}
 		}
-		/* translators: %s: the allowed button types, e.g. "Buttons 14–18 mm" */
-		return $parts ? sprintf( __( 'Allowed: %s', 'atelier-irisee-master-plugin' ), implode( ' · ', $parts ) ) : __( 'Switch on a button type on the Atelier Irisee tab (Buttons) to fill in buttons.', 'atelier-irisee-master-plugin' );
+		$product->update_meta_data( AIMP_Notions::META_RULES, $clean );
+		$product->delete_meta_data( AIMP_Notions::META_BUTTON_RULES );
+	}
+
+	/**
+	 * "Allowed: Buttons 14–18 mm · Press studs" under a group of a size, or how to switch one on.
+	 *
+	 * @param WC_Product|null $product   Pattern.
+	 * @param string[]        $materials Material keys of the group.
+	 * @return string
+	 */
+	private static function allowed_text( $product, $materials ) {
+		$parts  = array();
+		$fields = AIMP_Catalog::material_fields();
+		foreach ( self::shown_rules( $product ) as $rule => $state ) {
+			$material = AIMP_Notions::rules()[ $rule ][2];
+			if ( $state['on'] && in_array( $material, $materials, true ) ) {
+				$range   = AIMP_Notions::range_text( $state, AIMP_Notions::rule_unit( $rule ) );
+				$parts[] = $fields[ $material ]['label'] . ( '' !== $range ? ' ' . $range : '' );
+			}
+		}
+		/* translators: %s: what may be filled in, e.g. "Buttons 14–18 mm" */
+		return $parts ? sprintf( __( 'Allowed: %s', 'atelier-irisee-master-plugin' ), implode( ' · ', $parts ) ) : __( 'Switch it on on the Atelier Irisee tab (Haberdashery) to fill this in.', 'atelier-irisee-master-plugin' );
 	}
 
 	/**
@@ -732,9 +802,19 @@ class AIMP_Product_Fields {
 		foreach ( AIMP_Catalog::designs( $product ) as $slug => $name ) {
 			$row            = isset( $input[ $slug ] ) && is_array( $input[ $slug ] ) ? $input[ $slug ] : array();
 			$height         = isset( $row['height'] ) ? wc_clean( $row['height'] ) : '';
+			$main           = isset( $row['main_image'] ) ? absint( $row['main_image'] ) : 0;
+			$others         = array_map( 'absint', isset( $row['image_ids'] ) ? (array) $row['image_ids'] : array() );
+			$fabric_cats    = array_values( array_unique( array_filter( array_map( 'absint', isset( $row['fabric_cats'] ) ? (array) $row['fabric_cats'] : array() ) ) ) );
+			$positions      = array();
+			foreach ( isset( $row['fabric_priority'] ) ? (array) $row['fabric_priority'] : array() as $term_id => $position ) {
+				if ( in_array( absint( $term_id ), $fabric_cats, true ) && absint( $position ) ) {
+					$positions[ absint( $term_id ) ] = absint( $position );
+				}
+			}
 			$clean[ $slug ] = array(
-				'image_ids'    => array_values( array_unique( array_filter( array_map( 'absint', isset( $row['image_ids'] ) ? (array) $row['image_ids'] : array() ) ) ) ),
-				'fabric_cats'  => array_values( array_unique( array_filter( array_map( 'absint', isset( $row['fabric_cats'] ) ? (array) $row['fabric_cats'] : array() ) ) ) ),
+				'image_ids'       => array_values( array_unique( array_filter( array_merge( array( $main ), $others ) ) ) ),
+				'fabric_cats'     => $fabric_cats,
+				'fabric_priority' => $positions,
 				'height'       => '' === $height ? '' : wc_format_decimal( max( 0, (float) $height ), 2, true ),
 				'project_time' => isset( $row['project_time'] ) ? sanitize_text_field( $row['project_time'] ) : '',
 			);
@@ -776,7 +856,7 @@ class AIMP_Product_Fields {
 		}
 		if ( current_user_can( 'edit_products' ) ) {
 			self::save_designs( $product );
-			self::save_button_rules( $product );
+			self::save_rules( $product );
 		}
 		if ( isset( $_POST[ AIMP_Catalog::META_PROJECT_TIME ] ) && current_user_can( 'edit_products' ) ) {
 			$time = sanitize_text_field( wp_unslash( $_POST[ AIMP_Catalog::META_PROJECT_TIME ] ) );
@@ -811,43 +891,6 @@ class AIMP_Product_Fields {
 			$product->update_meta_data( AIMP_Catalog::META_FABRIC_PRIORITY, $priority );
 		} else {
 			$product->delete_meta_data( AIMP_Catalog::META_FABRIC_PRIORITY );
-		}
-	}
-
-	public static function render_zip_length_field() {
-		echo '<div class="options_group show_if_simple">';
-		woocommerce_wp_text_input(
-			array(
-				'id'                => AIMP_Catalog::META_ZIP_LENGTH,
-				'label'             => __( 'Zip length (cm)', 'atelier-irisee-master-plugin' ),
-				'description'       => __( 'Only used for products in the Zips category. The configurator only offers zips whose length equals the length a pattern size needs.', 'atelier-irisee-master-plugin' ),
-				'desc_tip'          => true,
-				'type'              => 'number',
-				'custom_attributes' => array(
-					'min'  => '0',
-					'step' => '0.1',
-				),
-			)
-		);
-		echo '</div>';
-	}
-
-	/**
-	 * Runs inside WooCommerce's product save, which already verified its nonce.
-	 *
-	 * @param WC_Product $product Product.
-	 */
-	public static function save_zip_length_field( $product ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
-		if ( ! isset( $_POST[ AIMP_Catalog::META_ZIP_LENGTH ] ) ) {
-			return;
-		}
-		$value = wc_clean( wp_unslash( $_POST[ AIMP_Catalog::META_ZIP_LENGTH ] ) );
-		// phpcs:enable
-		if ( '' === $value ) {
-			$product->delete_meta_data( AIMP_Catalog::META_ZIP_LENGTH );
-		} else {
-			$product->update_meta_data( AIMP_Catalog::META_ZIP_LENGTH, wc_format_decimal( max( 0, (float) $value ), 2, true ) );
 		}
 	}
 }

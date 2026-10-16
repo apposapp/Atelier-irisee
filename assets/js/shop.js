@@ -22,8 +22,10 @@
 	var t = cfg.i18n[lang];
 	UI.persistLang(lang);
 
-	// Button filters (type, diameter, colour, material), as in AIMP_Shop::button_filters().
-	var BUTTON_KEYS = ['btype', 'bdia', 'bcol', 'bmat'];
+	// Haberdashery filters (type, colour, diameter, width, length, material), as in AIMP_Shop::notion_filters().
+	var BUTTON_KEYS = ['htype', 'hcol', 'hdia', 'hwid', 'hlen', 'hmat'];
+	// Links from 3.6: aimp_btype, aimp_bcol, aimp_bdia (15 = 15 mm), aimp_bmat.
+	var LEGACY_KEYS = { htype: 'btype', hcol: 'bcol', hdia: 'bdia', hmat: 'bmat' };
 
 	function defaultFilters() {
 		return { category: [], search: '', min: '', max: '', inStock: false, sort: 'recommended', attrs: {}, skills: [], buttons: {} };
@@ -100,11 +102,17 @@
 				f.attrs[key.slice(5)] = value.split(',').filter(Boolean);
 			}
 		});
-		// Button filters: aimp_btype, aimp_bdia, aimp_bcol, aimp_bmat.
+		// Haberdashery filters: aimp_htype, aimp_hcol, aimp_hdia, aimp_hwid, aimp_hlen, aimp_hmat.
 		BUTTON_KEYS.forEach(function (key) {
 			var value = params.get('aimp_' + key);
+			var legacy = !value && LEGACY_KEYS[key] ? params.get('aimp_' + LEGACY_KEYS[key]) : '';
+			if (legacy) {
+				value = key === 'hdia' ? legacy.split(',').map(function (v) { return v + 'mm'; }).join(',') : legacy;
+			}
 			if (value) {
-				f.buttons[key] = value.split(',').filter(Boolean);
+				f.buttons[key] = value.split(',').filter(Boolean).map(function (v) {
+					return key === 'hcol' || key === 'hmat' ? v.toLowerCase() : v;
+				});
 			}
 		});
 	};

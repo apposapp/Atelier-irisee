@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.6.2
+Stable tag: 3.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,17 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.7.0 =
+* Haberdashery like buttons: zips, interfacing, elastic, ribbons & cords and bias tape each get Products → "All …" and "Add …", the Atelier Irisee workspace, a Haberdashery details box (order information, specifications, sold per, Ideal for), a product page with the buy bar, Ideal for, specification tiles and "Fits these patterns", and the Type and size columns.
+* Specifications: zips type, length and colour; interfacing width; elastic colour, length and width; ribbons & cords type (ribbon or cord), length, width and colour; bias tape colour, width and length.
+* Sold per: zips and buttons per piece or per set; elastic, bias tape, ribbons & cords and interfacing per 10 cm or per piece/roll of a fixed length. The buy bar says "per roll of 3 m", "per set of 6", "per 10 cm" or "per piece".
+* Patterns: the Buttons block becomes "Haberdashery": per kind and type a switch, with the diameter or width that fits. Only switched-on kinds can be filled in on the sizes. The configurator offers only fitting products; elastic, cord and interfacing are now in the kit. Rolls and sets are added whole, with a notice.
+* Settings → Categories: new Interfacing and Elastic categories; "Ribbons & cords category"; the four zip type categories are replaced by the zip Type field (zips in them get that type automatically).
+* Shop pages: haberdashery filters for type, colour, diameter, width, length and material.
+* Recommendation box: a pattern with designs can be recommended per design ("Lison – Jurk"); the configurator button then opens that design.
+* Designs: a separate Main picture per design next to the other pictures, and the fitting fabrics with their positions per design.
+* New shortcode [atelier_irisee_kit_steps]: a playful bar for the home page with the four steps of the customizer on a gold thread, and a button to the configurator.
 
 = 3.6.2 =
 * Header: no more flickering at the top of the page or when scrolling up (the header is now fixed, with a spacer of its full height, so getting slimmer no longer moves the page).

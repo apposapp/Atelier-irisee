@@ -54,10 +54,10 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
    The pattern's **Atelier Irisee** tab (in Product data) lets you choose which fabric categories customers see first. It lists the fabric categories ticked under "Fabric categories allowed" on the sizes. Give a category position 1, 2, 3… and those fabrics are listed first under the "Recommended" sort.
 
    All pictures of the pattern are shown in the configurator: the main image, the product gallery, and the variation images. When a customer picks a size that has its own picture, that picture is shown.
-3. **Fabrics, buttons, zips, ribbons and bias tape** are *simple* products.
-   - Fabric, ribbon and bias tape prices and stock are **per 10 cm**. A size that needs 85 cm of bias tape adds 9 × 10 cm to the cart, because lengths are rounded up.
-   - Zips have a **Zip length (cm)** field in the General tab. The configurator only offers zips whose length matches what the size needs.
-   - Buttons (products in the Buttons category) get a **Button details** box, see [Buttons](#buttons).
+3. **Fabrics and haberdashery** are *simple* products.
+   - Fabric prices and stock are **per 10 cm**. Elastic, bias tape, ribbons & cords and interfacing are per 10 cm or per roll (Sold per). A size that needs 85 cm adds 9 × 10 cm, or 1 roll of 1 m.
+   - Zips have a length (Haberdashery details). The configurator only offers zips whose length matches what the size needs.
+   - Buttons, zips, interfacing, elastic, ribbons & cords and bias tape get a **Haberdashery details** box, see [Haberdashery](#haberdashery).
 4. Put the shortcode `[atelier_irisee_configurator]` on a page.
 
 ## Favorites
@@ -160,22 +160,27 @@ Each subject is stored in its own meta field (`_aimp_inspiration`, `_aimp_order_
 
 **Styling:** the product and shop pages share one style block at the end of `configurator.css`, so WooCommerce and theme styles can't change them.
 
-## Buttons
+## Haberdashery
 
-**Products → All buttons / Add a button** (shown once the Buttons category is set). "Add a button" ticks the Buttons category, makes a simple product and opens the button workspace: price and stock with "Sold per", the description, the specifications, "Ideal for" and the recommendation.
+Six kinds of haberdashery, described in one registry (`AIMP_Notions::kinds()`): buttons, zips, interfacing, elastic, ribbons & cords and bias tape. Each kind has its own category (Settings → Categories: `button_cat`, `zip_cat`, `interfacing_cat`, `elastic_cat`, `ribbon_cat`, `bias_cat`), Products → "All …" / "Add …", and the Atelier Irisee workspace.
 
-**Button details** (`AIMP_Button_Fields`, meta keys in `AIMP_Catalog::META_BTN_*`):
-- `_aimp_btn_type`: `button`, `jeans_button` or `press_stud` (`AIMP_Catalog::button_types()`). A button without a type counts as `button`.
-- `_aimp_btn_colour`, `_aimp_btn_material`, `_aimp_btn_finish`, `_aimp_btn_mounting`: free texts (material, finish and mounting have suggestions).
-- `_aimp_btn_diameter`: mm.
-- `_aimp_btn_set_size`: empty = per piece; 2 or more = sold per set. A set is one unit: its price and stock are per set. `AIMP_Catalog::pack_qty()` turns a need in pieces into whole sets.
-- `_aimp_btn_ideal_for`: up to four keys of `AIMP_Catalog::ideal_for_options()`, shown with the icons of `AIMP_Product_Page::clothing_icon()`.
+**Haberdashery details** (`AIMP_Notion_Fields`), meta keys `AIMP_Notions::META_*`:
+- `_aimp_hab_type`: the kind's types (buttons: button, jeans button, press stud; zips: the four zip types; ribbons & cords: ribbon, cord). Without a type a product counts as the kind's default type; a zip without a type fits every zip type.
+- `_aimp_hab_colour`, `_aimp_hab_material`, `_aimp_hab_finish`, `_aimp_hab_mounting`: free texts.
+- `_aimp_hab_diameter` (mm), `_aimp_hab_width` (mm; interfacing cm), `_aimp_hab_length` (cm: the zip length, or the length of one roll).
+- `_aimp_hab_sold`: `piece` or `set` (buttons, zips; set size `_aimp_hab_set_size`), `10cm` or `roll` (the others). `AIMP_Notions::pack_qty()` turns a need (pieces, or cm) into the cart quantity: whole sets, 10 cm units or whole rolls.
+- `_aimp_hab_ideal_for`: up to four keys of `AIMP_Notions::ideal_for_options()` (icons: `AIMP_Product_Page::clothing_icon()`).
+- `_aimp_order_info`: shown under the buy bar, as on fabrics.
 
-**Patterns:** `_aimp_button_rules` on the pattern = `[ type => [ on, min, max ] ]` (Atelier Irisee tab → Buttons). Types that are off get no amount field on the sizes, and `get_requirements()` sets their amount to 0. Patterns saved before 3.6 have no rules: every type then counts as on, with any diameter.
+3.7 copies the 3.6 button keys (`_aimp_btn_*`) and the zip length (`_aimp_zip_length`) once to these keys (`AIMP_Notions::migrate()`, option `aimp_db_version`); zips in the old zip type categories get that type.
 
-**Configurator:** the steps `buttons`, `jeans_buttons` and `snaps` (press studs) all use the Buttons category, with a meta query on the type and the diameter range (`AIMP_Catalog::button_meta_query()`; the cart checks `button_fits()`). Card quantities, the cart lines and saved kit prices use whole sets.
+**Patterns:** `_aimp_notion_rules` = `[ rule => [ on, min, max ] ]` for the rules of `AIMP_Notions::rules()` (button, jeans_button, press_stud, the four zip types, elastic, bias, ribbon, cord, interfacing). Off = no amount field on the sizes, amounts cleared, and `get_requirements()` sets the amount to 0. A rule that was never saved counts as on with any size (3.6 `_aimp_button_rules` is still read).
 
-**Shop filters:** `aimp_btype`, `aimp_bdia`, `aimp_bcol`, `aimp_bmat` in the address (`m_*` in the request), see `AIMP_Shop::button_filters()`.
+**Configurator:** one step per rule (`AIMP_Catalog::notion_types()`), in the kind's category, with `AIMP_Notions::meta_query()` (type and range); the cart checks `AIMP_Notions::fits()`. Zips also match the exact length. Cards carry `qty`, `qty_text`, `price_suffix` and the set/roll notice `set_note`.
+
+**Shop filters:** `aimp_htype`, `aimp_hcol`, `aimp_hdia`, `aimp_hwid`, `aimp_hlen`, `aimp_hmat` in the address (`m_*` in the request), see `AIMP_Shop::notion_filters()`; 3.6 links (`aimp_b*`) still work.
+
+**Kit steps bar:** `[atelier_irisee_kit_steps title="…" button="…" url="…"]` (`AIMP_Kit_Steps`): the four steps of the customizer on a gold thread, for the home page.
 
 ## Header, site look and editor
 

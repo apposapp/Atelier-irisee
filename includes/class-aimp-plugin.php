@@ -20,9 +20,10 @@ class AIMP_Plugin {
 
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-settings.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-catalog.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-notions.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-product-fields.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-fabric-fields.php';
-		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-button-fields.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-notion-fields.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-cart.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-ajax.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-shortcode.php';
@@ -48,14 +49,16 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-product-workspace.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-trust.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-mosaic.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-kit-steps.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/login/class-aimp-login.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/giftcards/class-aimp-giftcards.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-account.php';
 
 		AIMP_Settings::init();
+		AIMP_Notions::init();
 		AIMP_Product_Fields::init();
 		AIMP_Fabric_Fields::init();
-		AIMP_Button_Fields::init();
+		AIMP_Notion_Fields::init();
 		AIMP_Cart::init();
 		AIMP_Ajax::init();
 		AIMP_Shortcode::init();
@@ -81,6 +84,7 @@ class AIMP_Plugin {
 		AIMP_Product_Workspace::init();
 		AIMP_Trust::init();
 		AIMP_Mosaic::init();
+		AIMP_Kit_Steps::init();
 		AIMP_Login::init();
 		AIMP_Giftcards::init();
 		AIMP_Account::init();

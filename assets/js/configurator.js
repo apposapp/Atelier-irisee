@@ -1276,7 +1276,8 @@
 			var needText = info.need(s.size) + (bucket.selected.qty_text ? ' · ' + bucket.selected.qty_text : '');
 			// Sets: they can only be bought in whole sets, which can be more than needed.
 			panel.innerHTML = (bucket.selected.set_note ? '<div class="aimp-notice aimp-set-note" role="status">' + esc(bucket.selected.set_note) + '</div>' : '') +
-				this.materialDetailsHtml(bucket.selected, bucket.image, t[info.unitLabel], needText);
+				// The card says what its price is for ("per roll of 3 m", "per 10 cm", …), next to the price.
+				this.materialDetailsHtml(bucket.selected, bucket.image, bucket.selected.price_suffix ? t.price : t[info.unitLabel], needText);
 			this.bindGallery(panel, bucket.selected.gallery, function (i) {
 				bucket.image = i;
 			});

@@ -193,10 +193,11 @@ class AIMP_Product_Page {
 			'inside_leg' => __( 'Inside leg', 'atelier-irisee-master-plugin' ),
 			'height'     => __( 'Height', 'atelier-irisee-master-plugin' ),
 		);
-		$rules         = AIMP_Catalog::button_rules( $pattern->get_id() );
+		// Haberdashery with the diameter or width that fits ("6 · 15–20 mm").
+		$rules         = AIMP_Notions::pattern_rules( $pattern->get_id() );
 		$button_ranges = array();
-		foreach ( AIMP_Catalog::button_types() as $type => $info ) {
-			$button_ranges[ $info[1] ] = AIMP_Catalog::button_rule_text( $rules[ $type ] );
+		foreach ( AIMP_Notions::rules() as $rule => $info ) {
+			$button_ranges[ $info[2] ] = AIMP_Notions::range_text( $rules[ $rule ], AIMP_Notions::rule_unit( $rule ) );
 		}
 		$sizes = array();
 		foreach ( $pattern->get_children() as $child_id ) {
@@ -230,7 +231,7 @@ class AIMP_Product_Page {
 					/* translators: 1: smallest length, 2: largest length (in cm) */
 					? sprintf( __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $min, floor( $min ) == $min ? 0 : 1 ), AIMP_I18n::number( $max, floor( $max ) == $max ? 0 : 1 ) )
 					: sprintf( '%d–%d', $min, $max ) );
-				// Buttons: with the diameter that fits ("6 · 15–20 mm").
+
 				$range         = isset( $button_ranges[ $key ] ) ? $button_ranges[ $key ] : '';
 				$accessories[] = array( $field['label'], '' !== $range ? $text . ' · ' . $range : $text );
 			}
@@ -545,8 +546,9 @@ class AIMP_Product_Page {
 			'step'       => $factor,
 			'value'      => $min * $factor,
 			'low'        => $left > 0 && $left <= $threshold ? $left * $factor : 0,
-			// Buttons sold per set: the amount is in sets (1 set = 1 in stock).
-			'set_size'   => $product->is_type( 'simple' ) ? AIMP_Catalog::button_set_size( $product ) : 1,
+			// Haberdashery: the amount is in pieces, sets or rolls (1 = 1 in stock); the unit is shown next to the price.
+			'unit_text'  => '' !== AIMP_Notions::kind_of( $product ) && ! $per_10cm ? AIMP_Notions::price_suffix( $product ) : '',
+			'set_size'   => AIMP_Notions::set_size( $product ),
 		);
 	}
 
@@ -672,8 +674,6 @@ class AIMP_Product_Page {
 			'per10cm'     => __( 'per 10 cm', 'atelier-irisee-master-plugin' ),
 			/* translators: %s: price of one piece */
 			'perPiece'    => __( '%s per piece', 'atelier-irisee-master-plugin' ),
-			/* translators: 1: price of one set, 2: number of buttons in a set */
-			'perSet'      => __( '%1$s per set of %2$d', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -791,7 +791,7 @@ class AIMP_Product_Page {
 		$per_10cm = AIMP_Catalog::sold_per_10cm( $product );
 		$pattern  = AIMP_Catalog::get_pattern( $product->get_id() );
 		$fabric   = AIMP_Catalog::in_categories( $product, AIMP_Catalog::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
-		$button   = ! $fabric && AIMP_Catalog::is_button( $product );
+		$notion   = $fabric ? '' : AIMP_Notions::kind_of( $product );
 
 		// Patterns show no size pictures (sizes are chosen in the configurator); other variable products do.
 		$extra = array();
@@ -815,73 +815,84 @@ class AIMP_Product_Page {
 			'buy'              => self::buy_data( $product, $per_10cm ),
 			'fabric'           => $fabric ? AIMP_Catalog::fabric_texts( $product ) : null,
 			// Buttons: specifications (tiles) and "Ideal for" (clothes with an icon).
-			'button'           => $button ? self::button_data( $product ) : null,
+			// Haberdashery (buttons, zips, …): specifications (tiles), "Ideal for", how it is sold, order information.
+			'notion'           => '' !== $notion ? self::notion_data( $product ) : null,
 			'gallery'          => $gallery,
 			'attributes'       => AIMP_Catalog::attributes( $product, (bool) $pattern ),
 			// The configurator; from a pattern it opens with that pattern already chosen.
 			'configurator_url' => ( $configurator && 'publish' === get_post_status( $configurator ) )
-				? ( $pattern ? add_query_arg( 'aimp_pattern', $product->get_id(), get_permalink( $configurator ) ) : get_permalink( $configurator ) )
+				? ( $pattern ? add_query_arg( 'aimp_pattern', $product->get_id(), get_permalink( $configurator ) ) : self::recommended_configurator_url( $product, get_permalink( $configurator ) ) )
 				: '',
 			// Accessories and the size table (per design for a pack with designs).
 			'size_table'       => $pattern ? self::size_table( $product ) : array(),
 			// A pack with designs: per design its name, project time and configurator link.
 			'designs'          => $pattern ? self::design_list( $product, ( $configurator && 'publish' === get_post_status( $configurator ) ) ? get_permalink( $configurator ) : '' ) : array(),
-			'fitting'          => $fabric ? self::fitting_patterns( $product ) : ( $button ? self::fitting_button_patterns( $product ) : array() ),
+			'fitting'          => $fabric ? self::fitting_patterns( $product ) : ( '' !== $notion ? self::fitting_notion_patterns( $product ) : array() ),
 			'related'          => array_filter( array_map( 'wc_get_product', wc_get_related_products( $product->get_id(), self::RELATED ) ) ),
 		);
 	}
 
 	/**
-	 * A button's page data: [ specs: subject => [ label, value ], ideal_for: [ [ key, label ] ], set_size ].
+	 * A haberdashery product's page data: [ kind, specs: subject => [ label, value ], ideal_for: [ [ key, label ] ],
+	 * set_size, order_info ].
 	 *
-	 * @param WC_Product $product Button.
+	 * @param WC_Product $product Product.
 	 * @return array
 	 */
-	public static function button_data( $product ) {
-		$options = AIMP_Catalog::ideal_for_options();
+	public static function notion_data( $product ) {
+		$options = AIMP_Notions::ideal_for_options();
 		$ideal   = array();
-		foreach ( AIMP_Catalog::ideal_for( $product ) as $key ) {
+		foreach ( AIMP_Notions::ideal_for( $product ) as $key ) {
 			$ideal[] = array( $key, $options[ $key ] );
 		}
 		return array(
-			'specs'     => AIMP_Catalog::button_specs( $product ),
-			'ideal_for' => $ideal,
-			'set_size'  => AIMP_Catalog::button_set_size( $product ),
+			'kind'       => AIMP_Notions::kind_of( $product ),
+			'specs'      => AIMP_Notions::specs( $product ),
+			'ideal_for'  => $ideal,
+			'set_size'   => AIMP_Notions::set_size( $product ),
 			'order_info' => (string) $product->get_meta( AIMP_Catalog::META_ORDER_INFO ),
 		);
 	}
 
 	/**
-	 * Patterns that use this kind of button (switched on) with a diameter range that includes this button.
+	 * Patterns that use this product: a rule of its kind and type is switched on, its size is within the
+	 * pattern's range, and a size needs it (zips: a size needs exactly this length).
 	 *
-	 * @param WC_Product $button Button.
+	 * @param WC_Product $product Haberdashery product.
 	 * @return WC_Product[]
 	 */
-	public static function fitting_button_patterns( $button ) {
-		$key = 'aimp_shop_btnfits_' . $button->get_id() . '_' . AIMP_Shop::cache_version();
+	public static function fitting_notion_patterns( $product ) {
+		$key = 'aimp_shop_habfits_' . $product->get_id() . '_' . AIMP_Shop::cache_version();
 		$ids = get_transient( $key );
 
 		if ( ! is_array( $ids ) ) {
-			$ids  = array();
-			$root = AIMP_Settings::get( 'pattern_cat' );
-			$type = AIMP_Catalog::button_type( $button );
-			if ( $root ) {
+			$ids    = array();
+			$root   = AIMP_Settings::get( 'pattern_cat' );
+			$kind   = AIMP_Notions::kind_of( $product );
+			$fields = AIMP_Catalog::material_fields();
+			$length = AIMP_Notions::number( $product, 'length' );
+			if ( $root && '' !== $kind ) {
 				$args                   = AIMP_Catalog::base_query_args( array( $root ), 'variable' );
 				$args['posts_per_page'] = -1;
 				$args['no_found_rows']  = true;
-				$types                  = AIMP_Catalog::button_types();
-				$fields                 = AIMP_Catalog::material_fields();
 				foreach ( ( new WP_Query( $args ) )->posts as $pattern_id ) {
-					$rules = AIMP_Catalog::button_rules( (int) $pattern_id );
-					if ( ! AIMP_Catalog::button_fits( $button, $type, $rules[ $type ] ) ) {
-						continue;
-					}
-					// The pattern must also need this kind of button in at least one size.
-					foreach ( wc_get_product( $pattern_id ) ? wc_get_product( $pattern_id )->get_children() : array() as $child_id ) {
-						if ( (float) get_post_meta( $child_id, $fields[ $types[ $type ][1] ]['meta'], true ) > 0 ) {
-							$ids[] = (int) $pattern_id;
-							break;
+					$pattern = wc_get_product( $pattern_id );
+					$rules   = AIMP_Notions::pattern_rules( (int) $pattern_id );
+					$fits    = false;
+					foreach ( AIMP_Notions::rules() as $rule => $info ) {
+						if ( $info[0] !== $kind || ! AIMP_Notions::fits( $product, $rule, $rules[ $rule ] ) ) {
+							continue;
 						}
+						foreach ( $pattern ? $pattern->get_children() : array() as $child_id ) {
+							$amount = (float) get_post_meta( $child_id, $fields[ $info[2] ]['meta'], true );
+							if ( $amount > 0 && ( 'zip' !== $kind || abs( $amount - $length ) < 0.01 ) ) {
+								$fits = true;
+								break 2;
+							}
+						}
+					}
+					if ( $fits ) {
+						$ids[] = (int) $pattern_id;
 					}
 					if ( count( $ids ) >= self::FITTING ) {
 						break;
@@ -894,8 +905,8 @@ class AIMP_Product_Page {
 		return array_values(
 			array_filter(
 				array_map( 'wc_get_product', $ids ),
-				function ( $product ) {
-					return $product && $product->is_visible();
+				function ( $item ) {
+					return $item && $item->is_visible();
 				}
 			)
 		);
@@ -904,7 +915,7 @@ class AIMP_Product_Page {
 	/**
 	 * Gold line icon for an "Ideal for" kind of clothes.
 	 *
-	 * @param string $key A key of AIMP_Catalog::ideal_for_options().
+	 * @param string $key A key of AIMP_Notions::ideal_for_options().
 	 * @return string SVG.
 	 */
 	public static function clothing_icon( $key ) {
@@ -1038,8 +1049,8 @@ class AIMP_Product_Page {
 			esc_url( $card['permalink'] ),
 			esc_url( $card['image'] ),
 			esc_attr( '' !== $card['image_alt'] ? $card['image_alt'] : $card['name'] ),
-			// Buttons: the diameter under the name.
-			esc_html( $card['name'] ) . ( AIMP_Catalog::is_button( $product ) && '' !== AIMP_Catalog::button_diameter_text( $product ) ? '<small class="aimp-card-sub">' . esc_html( AIMP_Catalog::button_diameter_text( $product ) ) . '</small>' : '' ),
+			// Haberdashery: the diameter, length or width under the name.
+			esc_html( $card['name'] ) . ( '' !== AIMP_Notions::main_text( $product ) ? '<small class="aimp-card-sub">' . esc_html( AIMP_Notions::main_text( $product ) ) . '</small>' : '' ),
 			wp_kses_post( $card['price_html'] ),
 			$suffix, // Escaped above.
 			AIMP_Favorites::button_html( $product->get_id(), 'aimp-fav--overlay' )
@@ -1079,6 +1090,9 @@ class AIMP_Product_Page {
 			'zips'        => '<path d="M12 3v12"/><path d="M9.5 5H12M12 7.5h2.5M9.5 10H12M12 12.5h2.5"/><rect x="9" y="15" width="6" height="6" rx="1.5"/>',
 			'ribbons'     => '<path d="M12 10c-2-3.5-6.5-4-7-1.5S8 13 12 10zm0 0c2-3.5 6.5-4 7-1.5S16 13 12 10z"/><path d="M11 11l-3 9M13 11l3 9"/>',
 			'bias'        => '<path d="M3 16c3-6 6-6 9 0s6 6 9 0"/><path d="M3 11c3-6 6-6 9 0s6 6 9 0"/>',
+			// Elastic: a band with stretch marks; interfacing: a sheet with an iron-on dot pattern.
+			'elastic'     => '<path d="M2.5 9.5h19v5h-19z"/><path d="M6 9.5l1.5 5M10 9.5l1.5 5M14 9.5l1.5 5M18 9.5l1.5 5"/>',
+			'interfacing' => '<path d="M5 3.5h10l4 4v13H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5h.01M8.5 18h.01M12 18h.01"/>',
 			// Button page: type (a button with four holes), diameter (a button between two measuring lines),
 			// material, surface finish (a sparkle), mounting method (a needle and thread), sold per (a stack).
 			'button_type'     => '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="6"/><circle cx="10.3" cy="10.3" r=".9"/><circle cx="13.7" cy="10.3" r=".9"/><circle cx="10.3" cy="13.7" r=".9"/><circle cx="13.7" cy="13.7" r=".9"/>',
@@ -1087,6 +1101,8 @@ class AIMP_Product_Page {
 			'finish'          => '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>',
 			'mounting'        => '<path d="M19.5 4.5 7 17"/><path d="M17.5 3.5l3 3"/><ellipse cx="18.6" cy="5.4" rx=".5" ry="1.2" transform="rotate(45 18.6 5.4)"/><path d="M7 17c-2 1-3.5.5-4 2s1.5 2 3 1 1.5-2.5 4-2.5"/>',
 			'set'             => '<circle cx="8" cy="9" r="4"/><circle cx="16" cy="9" r="4"/><circle cx="12" cy="16" r="4"/>',
+			// Length: a ruler (the width uses the fabric width arrows).
+			'length'          => '<rect x="2.5" y="8.5" width="19" height="7" rx="1"/><path d="M6 8.5v3M9.5 8.5v2M13 8.5v3M16.5 8.5v2M20 8.5v3"/>',
 		);
 		$path  = isset( $paths[ $subject ] ) ? $paths[ $subject ] : $paths['tips'];
 		return '<svg class="aimp-washing-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';
@@ -1107,10 +1123,54 @@ class AIMP_Product_Page {
 		if ( AIMP_Catalog::get_pattern( $product->get_id() ) ) {
 			$fabric = wc_get_product( $id );
 			$ok     = $fabric && 'publish' === $fabric->get_status() && AIMP_Catalog::in_categories( $fabric, AIMP_Catalog::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
-			return ( $ok && $fabric->is_visible() ) ? $fabric : null;
+			return ( $ok && $fabric->is_visible() ) ? self::recommended_box( $fabric ) : null;
 		}
-		$pattern = AIMP_Catalog::get_pattern( $id );
-		return ( $pattern && $pattern->is_visible() ) ? $pattern : null;
+		// A pattern, or one design of a pack (saved as the design's first size).
+		$object  = wc_get_product( $id );
+		$design  = $object && $object->is_type( 'variation' ) ? AIMP_Catalog::variation_design( $object ) : '';
+		$pattern = AIMP_Catalog::get_pattern( $object && $object->is_type( 'variation' ) ? $object->get_parent_id() : $id );
+		if ( ! $pattern || ! $pattern->is_visible() ) {
+			return null;
+		}
+		$first = '' !== $design ? AIMP_Catalog::design_first_sizes( $pattern ) : array();
+		if ( isset( $first[ $design ] ) ) {
+			$card = AIMP_Catalog::design_card( $pattern, $design, $first[ $design ] );
+			return array(
+				'url'        => $pattern->get_permalink(),
+				'image'      => sprintf( '<img src="%1$s" alt="%2$s" class="aimp-recommended-image" loading="lazy">', esc_url( $card['image'] ), esc_attr( '' !== $card['image_alt'] ? $card['image_alt'] : $card['name'] ) ),
+				'name'       => $card['name'],
+				'pattern_id' => (int) $first[ $design ],
+			);
+		}
+		return self::recommended_box( $pattern );
+	}
+
+	/**
+	 * The recommendation box of a product: [ url, image (HTML), name, pattern_id ].
+	 *
+	 * @param WC_Product $product Fabric or pattern.
+	 * @return array
+	 */
+	private static function recommended_box( $product ) {
+		return array(
+			'url'        => $product->get_permalink(),
+			'image'      => $product->get_image( 'woocommerce_thumbnail', array( 'class' => 'aimp-recommended-image' ) ),
+			'name'       => wp_strip_all_tags( $product->get_name() ),
+			'pattern_id' => AIMP_Catalog::get_pattern( $product->get_id() ) ? $product->get_id() : 0,
+		);
+	}
+
+	/**
+	 * The configurator from a fabric or haberdashery product: with its recommended pattern (or design) already
+	 * chosen, otherwise empty.
+	 *
+	 * @param WC_Product $product Product.
+	 * @param string     $url     Configurator page.
+	 * @return string
+	 */
+	private static function recommended_configurator_url( $product, $url ) {
+		$rec = self::recommended_product( $product );
+		return $rec && ! empty( $rec['pattern_id'] ) ? add_query_arg( 'aimp_pattern', $rec['pattern_id'], $url ) : $url;
 	}
 
 	/**

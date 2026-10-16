@@ -67,8 +67,8 @@ jQuery(function ($) {
 });
 
 /**
- * Pattern with designs (Atelier Irisee tab → Designs): the picture grids follow the product picture and
- * gallery (also before saving), and the first ticked picture of a design is marked as its card picture.
+ * Pattern with designs (Atelier Irisee tab → Designs): the "Main picture" and "Other pictures" grids follow the
+ * product picture and gallery (also before saving). The main picture can't be ticked again as another picture.
  */
 jQuery(function ($) {
 	'use strict';
@@ -95,14 +95,23 @@ jQuery(function ($) {
 		return list;
 	}
 
-	function markCards() {
-		$grids.each(function () {
-			var $grid = $(this);
-			$grid.find('li').removeClass('is-card').find('.aimp-design-card').remove();
-			var $first = $grid.find('input:checked').first().closest('li');
-			if ($first.length) {
-				$first.addClass('is-card').append($('<span class="aimp-design-card"></span>').text($grid.attr('data-card-label') || ''));
-			}
+	// The main picture of each design is not one of its "other pictures".
+	function linkMain() {
+		$('.aimp-design').each(function () {
+			var $design = $(this);
+			var main = $design.find('.aimp-design-main input:checked').val() || '';
+			$design.find('.aimp-design-others li').each(function () {
+				var $li = $(this);
+				var isMain = $li.attr('data-id') === main;
+				$li.toggleClass('is-main', isMain);
+				var input = $li.find('input').get(0);
+				if (input) {
+					if (isMain) {
+						input.checked = false;
+					}
+					input.disabled = isMain;
+				}
+			});
 		});
 	}
 
@@ -111,6 +120,7 @@ jQuery(function ($) {
 		$grids.each(function () {
 			var $grid = $(this);
 			var name = $grid.attr('data-name');
+			var type = $grid.attr('data-type') === 'radio' ? 'radio' : 'checkbox';
 			var existing = {};
 			$grid.children('li').each(function () {
 				existing[$(this).attr('data-id')] = $(this);
@@ -121,7 +131,7 @@ jQuery(function ($) {
 				if (!$li) {
 					$li = $('<li></li>').attr('data-id', picture.id).append(
 						$('<label></label>')
-							.append($('<input type="checkbox">').attr('name', name).val(picture.id))
+							.append($('<input>').attr({ type: type, name: name }).val(picture.id))
 							.append($('<img alt="">').attr('src', picture.src))
 					);
 				}
@@ -129,10 +139,10 @@ jQuery(function ($) {
 			});
 			$grid.closest('.aimp-design').find('.aimp-design-empty').prop('hidden', pictures.length > 0);
 		});
-		markCards();
+		linkMain();
 	}
 
-	$(document).on('change', '.aimp-design-pictures input', markCards);
+	$(document).on('change', '.aimp-design-main input', linkMain);
 	var gallery = document.getElementById('product_images_container');
 	var thumb = document.getElementById('postimagediv');
 	if (window.MutationObserver) {
@@ -147,50 +157,68 @@ jQuery(function ($) {
 			observer.observe(thumb, { childList: true, subtree: true });
 		}
 	}
-	markCards();
+	linkMain();
 });
 
 /**
- * "Button details" box: only for products in the Buttons category (or one of its subcategories), following the
- * category checkboxes live. The set size is only filled in for "Per set of".
+ * "Haberdashery details" box: only for products in one of the haberdashery categories (buttons, zips,
+ * interfacing, elastic, ribbons & cords, bias tape), showing the fields of that kind. Follows the category
+ * checkboxes live, also before saving. Typing a set size or a roll length chooses that way of selling.
  */
 jQuery(function ($) {
 	'use strict';
 
-	var $details = $('.aimp-button-details');
-	var $box = $('#aimp-button-details');
+	var $details = $('.aimp-notion-details');
+	var $box = $('#aimp-notion-details');
 	if (!$details.length || !$box.length) {
 		return;
 	}
-	var terms = ($details.data('button-terms') || []).map(function (id) {
-		return parseInt(id, 10);
-	});
+	var kindTerms = $details.data('kind-terms') || {};
+
+	function currentKind() {
+		var ticked = $('#product_catchecklist input[type="checkbox"]:checked').map(function () {
+			return parseInt(this.value, 10);
+		}).get();
+		var found = '';
+		Object.keys(kindTerms).some(function (kind) {
+			var terms = (kindTerms[kind] || []).map(function (id) {
+				return parseInt(id, 10);
+			});
+			if (ticked.some(function (id) { return terms.indexOf(id) !== -1; })) {
+				found = kind;
+				return true;
+			}
+			return false;
+		});
+		return found;
+	}
 
 	function refresh() {
-		var isButton = $('#product_catchecklist input[type="checkbox"]:checked').filter(function () {
-			return terms.indexOf(parseInt(this.value, 10)) !== -1;
-		}).length > 0;
-		$box.toggle(isButton);
+		var kind = currentKind();
+		$box.toggle(kind !== '');
+		$details.find('.aimp-notion-kind').each(function () {
+			this.hidden = this.getAttribute('data-kind') !== kind;
+		});
 	}
 
 	$(document).on('change', '#product_catchecklist input[type="checkbox"]', refresh);
 	refresh();
 
-	// Typing a set size chooses "Per set of".
-	$details.on('input', 'input[name="aimp_button[set_size]"]', function () {
+	$details.on('input', 'input[data-sold]', function () {
 		if (this.value !== '') {
-			$details.find('input[name="aimp_button[sold]"][value="set"]').prop('checked', true);
+			$(this).closest('label').find('input[type="radio"]').prop('checked', true);
 		}
 	});
 });
 
 /**
- * Pattern → Buttons: a switched-off type has no amount field on the sizes (Variations tab), also before saving.
+ * Pattern → Haberdashery: what is switched off can't be filled in on the sizes (Variations tab), also before
+ * saving; each group of a size says what is allowed.
  */
 jQuery(function ($) {
 	'use strict';
 
-	var $rules = $('[data-aimp-button-rules]');
+	var $rules = $('[data-aimp-notion-rules]');
 	if (!$rules.length) {
 		return;
 	}
@@ -199,39 +227,54 @@ jQuery(function ($) {
 		return String(str).replace('%1$s', a).replace('%2$s', b).replace('%s', a);
 	}
 
+	function rangeText($rule) {
+		if (!$rule.attr('data-range')) {
+			return '';
+		}
+		var min = parseFloat($rule.find('input[name$="[min]"]').val()) || 0;
+		var max = parseFloat($rule.find('input[name$="[max]"]').val()) || 0;
+		if (min && max) {
+			return min === max ? min + ' ' + $rule.attr('data-unit') : fmt($rule.attr('data-range'), Math.min(min, max), Math.max(min, max));
+		}
+		if (min) {
+			return fmt($rule.attr('data-from'), min);
+		}
+		if (max) {
+			return fmt($rule.attr('data-upto'), max);
+		}
+		return '';
+	}
+
 	function apply() {
 		var onList = [];
-		var parts = [];
-		$rules.find('.aimp-button-rule').each(function () {
+		var texts = {};
+		$rules.find('.aimp-notion-rule').each(function () {
 			var $rule = $(this);
-			var on = $rule.find('.aimp-button-rule-toggle').prop('checked');
+			var on = $rule.find('.aimp-notion-rule-toggle').prop('checked');
 			var material = $rule.attr('data-material');
 			$rule.toggleClass('is-on', on);
-			// A type that is off can't be filled in on the sizes (hidden and disabled, so it is not sent).
+			// Switched off: hidden and disabled on every size, so nothing is typed or sent.
 			var $fields = $('.aimp-variation-fields .aimp-material-field[data-material="' + material + '"]');
 			$fields.prop('hidden', !on);
 			$fields.find('input').prop('disabled', !on);
 			if (on) {
 				onList.push(material);
-				var min = parseFloat($rule.find('input[name$="[min]"]').val()) || 0;
-				var max = parseFloat($rule.find('input[name$="[max]"]').val()) || 0;
-				var range = '';
-				if (min && max) {
-					range = min === max ? fmt($rules.attr('data-from'), min).replace(/^\D+/, '') : fmt($rules.attr('data-range'), Math.min(min, max), Math.max(min, max));
-				} else if (min) {
-					range = fmt($rules.attr('data-from'), min);
-				} else if (max) {
-					range = fmt($rules.attr('data-upto'), max);
-				}
-				parts.push($rule.attr('data-label') + (range ? ' ' + range : ''));
+				var range = rangeText($rule);
+				texts[material] = $rule.attr('data-label') + (range ? ' ' + range : '');
 			}
 		});
-		var note = parts.length ? fmt($rules.attr('data-allowed'), parts.join(' · ')) : $rules.attr('data-none');
-		$('.aimp-variation-fields [data-aimp-button-allowed]').text(note);
-		$('.aimp-variation-fields .aimp-button-on').val(onList.join(','));
+		$('.aimp-variation-fields [data-aimp-allowed]').each(function () {
+			var parts = this.getAttribute('data-aimp-allowed').split(',').filter(function (material) {
+				return !!texts[material];
+			}).map(function (material) {
+				return texts[material];
+			});
+			this.textContent = parts.length ? fmt($rules.attr('data-allowed'), parts.join(' · ')) : $rules.attr('data-none');
+		});
+		$('.aimp-variation-fields .aimp-notion-on').val(onList.join(','));
 	}
 
-	$rules.on('change', '.aimp-button-rule-toggle', apply);
+	$rules.on('change', '.aimp-notion-rule-toggle', apply);
 	$rules.on('input', 'input[type="number"]', apply);
 	$('#woocommerce-product-data').on('woocommerce_variations_loaded woocommerce_variations_added', apply);
 	apply();

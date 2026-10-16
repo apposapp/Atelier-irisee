@@ -1,6 +1,6 @@
 <?php
 /**
- * Product edit screen for fabrics, patterns and buttons: one "Atelier Irisee" workspace with only the fields these
+ * Product edit screen for fabrics, patterns and haberdashery: one "Atelier Irisee" workspace with only the fields these
  * products use, as numbered cards. Every other field is still there, neatly grouped under "Show all
  * other fields".
  *
@@ -18,26 +18,48 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class AIMP_Product_Workspace {
 
-	/** Product kinds with their own menu items and workspace: kind => category setting. */
-	const KINDS = array(
-		'fabric'  => 'fabric_cat',
-		'pattern' => 'pattern_cat',
-		'button'  => 'button_cat',
-	);
+	/**
+	 * Product kinds with their own menu items and workspace: kind => category setting. Fabric, pattern and every
+	 * haberdashery kind (AIMP_Notions::kinds()).
+	 *
+	 * @return array
+	 */
+	public static function kinds() {
+		return array(
+			'fabric'  => 'fabric_cat',
+			'pattern' => 'pattern_cat',
+		) + array_map(
+			function ( $info ) {
+				return $info['setting'];
+			},
+			AIMP_Notions::kinds()
+		);
+	}
+
+	/**
+	 * Whether a workspace type is a haberdashery kind.
+	 *
+	 * @param string $type Type.
+	 * @return bool
+	 */
+	private static function is_notion( $type ) {
+		return null !== AIMP_Notions::kind( $type );
+	}
 
 	public static function init() {
 		add_action( 'add_meta_boxes_product', array( __CLASS__, 'add_box' ), 1 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ), 20 );
 		// Patterns: the long description sits under "other fields"; WordPress's sticky editor toolbar would misbehave there.
 		add_filter( 'wp_editor_expand', array( __CLASS__, 'editor_expand' ), 10, 2 );
-		// Products → All fabrics / Add a fabric / All patterns / Add a pattern / All buttons / Add a button.
+		// Products → All fabrics / Add a fabric / All patterns / Add a pattern / All buttons / Add a button / ….
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 60 );
 		add_filter( 'submenu_file', array( __CLASS__, 'current_submenu' ) );
 		add_action( 'save_post_product', array( __CLASS__, 'prepare_new' ), 10, 3 );
 	}
 
 	public static function editor_expand( $expand, $post_type ) {
-		return ( 'product' === $post_type && in_array( self::current_type(), array( 'pattern', 'button' ), true ) ) ? false : $expand;
+		$type = self::current_type();
+		return ( 'product' === $post_type && ( 'pattern' === $type || self::is_notion( $type ) ) ) ? false : $expand;
 	}
 
 	/**
@@ -49,8 +71,10 @@ class AIMP_Product_Workspace {
 		$kinds  = array(
 			'fabric'  => array( 'fabric_cat', __( 'All fabrics', 'atelier-irisee-master-plugin' ), __( 'Add a fabric', 'atelier-irisee-master-plugin' ) ),
 			'pattern' => array( 'pattern_cat', __( 'All patterns', 'atelier-irisee-master-plugin' ), __( 'Add a pattern', 'atelier-irisee-master-plugin' ) ),
-			'button'  => array( 'button_cat', __( 'All buttons', 'atelier-irisee-master-plugin' ), __( 'Add a button', 'atelier-irisee-master-plugin' ) ),
 		);
+		foreach ( AIMP_Notions::kinds() as $kind => $info ) {
+			$kinds[ $kind ] = array( $info['setting'], $info['all'], $info['add'] );
+		}
 		foreach ( $kinds as $kind => $labels ) {
 			$term = get_term( AIMP_Settings::get( $labels[0] ), 'product_cat' );
 			if ( ! $term || is_wp_error( $term ) ) {
@@ -76,7 +100,7 @@ class AIMP_Product_Workspace {
 		}
 		if ( 'edit-product' === $screen->id && ! empty( $_GET['product_cat'] ) ) {
 			$slug = sanitize_title( wp_unslash( $_GET['product_cat'] ) );
-			foreach ( self::KINDS as $key ) {
+			foreach ( self::kinds() as $key ) {
 				$term = get_term( AIMP_Settings::get( $key ), 'product_cat' );
 				if ( $term && ! is_wp_error( $term ) && $term->slug === $slug ) {
 					return 'edit.php?post_type=product&product_cat=' . rawurlencode( $term->slug );
@@ -85,7 +109,7 @@ class AIMP_Product_Workspace {
 		}
 		if ( 'add' === $screen->action && ! empty( $_GET['aimp_new'] ) ) {
 			$kind = sanitize_key( wp_unslash( $_GET['aimp_new'] ) );
-			if ( isset( self::KINDS[ $kind ] ) ) {
+			if ( isset( self::kinds()[ $kind ] ) ) {
 				return 'post-new.php?post_type=product&aimp_new=' . $kind;
 			}
 		}
@@ -104,10 +128,10 @@ class AIMP_Product_Workspace {
 	public static function prepare_new( $post_id, $post, $update ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only on the "new product" screen, for its own draft.
 		$kind = isset( $_GET['aimp_new'] ) ? sanitize_key( wp_unslash( $_GET['aimp_new'] ) ) : '';
-		if ( $update || 'auto-draft' !== $post->post_status || ! isset( self::KINDS[ $kind ] ) || ! current_user_can( 'edit_products' ) ) {
+		if ( $update || 'auto-draft' !== $post->post_status || ! isset( self::kinds()[ $kind ] ) || ! current_user_can( 'edit_products' ) ) {
 			return;
 		}
-		$cat = AIMP_Settings::get( self::KINDS[ $kind ] );
+		$cat = AIMP_Settings::get( self::kinds()[ $kind ] );
 		if ( $cat ) {
 			wp_set_object_terms( $post_id, array( (int) $cat ), 'product_cat' );
 		}
@@ -115,7 +139,7 @@ class AIMP_Product_Workspace {
 	}
 
 	/**
-	 * Fabric, pattern, button or '' (the normal screen), from the saved categories.
+	 * Fabric, pattern, a haberdashery kind (button, zip, …) or '' (the normal screen), from the saved categories.
 	 *
 	 * @param WC_Product|null $product Product.
 	 * @return string
@@ -130,10 +154,7 @@ class AIMP_Product_Workspace {
 		if ( $product->is_type( 'simple' ) && AIMP_Catalog::in_categories( $product, AIMP_Catalog::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) ) ) {
 			return 'fabric';
 		}
-		if ( AIMP_Catalog::is_button( $product ) ) {
-			return 'button';
-		}
-		return '';
+		return AIMP_Notions::kind_of( $product );
 	}
 
 	private static function current_type() {
@@ -178,7 +199,7 @@ class AIMP_Product_Workspace {
 
 	public static function render() {
 		$type = self::current_type();
-		echo '<div class="aimp-ws" data-aimp-ws data-type="' . esc_attr( $type ) . '" data-skill="' . esc_attr( AIMP_Catalog::META_SKILL ) . '" data-price="' . esc_attr( AIMP_Product_Fields::META_PRICE ) . '" data-long-label="' . esc_attr__( 'Long description', 'atelier-irisee-master-plugin' ) . '">';
+		echo '<div class="aimp-ws" data-aimp-ws data-type="' . esc_attr( $type ) . '"' . ( self::is_notion( $type ) ? ' data-notion' : '' ) . ' data-skill="' . esc_attr( AIMP_Catalog::META_SKILL ) . '" data-price="' . esc_attr( AIMP_Product_Fields::META_PRICE ) . '" data-long-label="' . esc_attr__( 'Long description', 'atelier-irisee-master-plugin' ) . '">';
 		echo '<div data-ws-slot="check"></div>';
 		if ( 'fabric' === $type ) {
 			self::card( 1, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'The price is per 10 cm.', 'atelier-irisee-master-plugin' ) );
@@ -186,11 +207,11 @@ class AIMP_Product_Workspace {
 			self::card( 3, __( 'Specifications', 'atelier-irisee-master-plugin' ), 'specs' );
 			self::card( 4, __( 'Washing instructions', 'atelier-irisee-master-plugin' ), 'washing' );
 			self::card( 5, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
-		} elseif ( 'button' === $type ) {
-			self::card( 1, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'The price and the stock are per piece, or per set when the button is sold per set.', 'atelier-irisee-master-plugin' ) );
+		} elseif ( self::is_notion( $type ) ) {
+			self::card( 1, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'The price and the stock follow "Sold per": per piece, per set, per 10 cm or per roll.', 'atelier-irisee-master-plugin' ) );
 			self::card( 2, __( 'Order information', 'atelier-irisee-master-plugin' ), 'order' );
-			self::card( 3, __( 'Description', 'atelier-irisee-master-plugin' ), 'description', __( 'Shown on the button page under "Description". The pictures are set on the right: Product image and Product gallery.', 'atelier-irisee-master-plugin' ) );
-			self::card( 4, __( 'Specifications', 'atelier-irisee-master-plugin' ), 'specs', __( 'The type and the diameter decide in which patterns the button is offered.', 'atelier-irisee-master-plugin' ) );
+			self::card( 3, __( 'Description', 'atelier-irisee-master-plugin' ), 'description', __( 'Shown on the product page under "Description". The pictures are set on the right: Product image and Product gallery.', 'atelier-irisee-master-plugin' ) );
+			self::card( 4, __( 'Specifications', 'atelier-irisee-master-plugin' ), 'specs', __( 'The type and the size decide in which patterns the product is offered.', 'atelier-irisee-master-plugin' ) );
 			self::card( 5, __( 'Ideal for', 'atelier-irisee-master-plugin' ), 'ideal' );
 			self::card( 6, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
 		} else {
@@ -198,7 +219,7 @@ class AIMP_Product_Workspace {
 			self::card( 2, __( 'Price and stock', 'atelier-irisee-master-plugin' ), 'price', __( 'One price and one stock for all sizes.', 'atelier-irisee-master-plugin' ) );
 			self::card( 3, __( 'Pattern details', 'atelier-irisee-master-plugin' ), 'details', __( 'The same for all sizes.', 'atelier-irisee-master-plugin' ) );
 			self::card( 4, __( 'Fitting fabrics', 'atelier-irisee-master-plugin' ), 'priority' );
-			self::card( 5, __( 'Sizes and material needs', 'atelier-irisee-master-plugin' ), 'sizes', __( 'Attributes: the sizes, and for a pack with two designs a Design attribute. Variations: per size (and design) the fabric, buttons, zip, ribbon and bias tape it needs, and the measurements.', 'atelier-irisee-master-plugin' ) );
+			self::card( 5, __( 'Sizes and material needs', 'atelier-irisee-master-plugin' ), 'sizes', __( 'Attributes: the sizes, and for a pack with two designs a Design attribute. Variations: per size (and design) the fabric and haberdashery it needs (only what is switched on under Pattern details → Haberdashery), and the measurements.', 'atelier-irisee-master-plugin' ) );
 			self::card( 6, __( 'Recommendation', 'atelier-irisee-master-plugin' ), 'recommendation' );
 		}
 		printf(

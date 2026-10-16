@@ -120,8 +120,8 @@
 			return;
 		}
 		var per10cm = bar.getAttribute('data-per-10cm') === '1';
-		var setSize = parseInt(bar.getAttribute('data-set-size'), 10) || 1;
-		var isButton = bar.hasAttribute('data-button');
+		// Haberdashery: what the price is for ("per piece", "per set of 6", "per roll of 3 m"), always shown.
+		var unitText = bar.getAttribute('data-unit-text') || '';
 		var unitPrice = parseFloat(bar.getAttribute('data-unit-price')) || 0;
 		var step = parseInt(field.getAttribute('step'), 10) || 1;
 		var min = parseInt(field.getAttribute('min'), 10) || step;
@@ -161,14 +161,13 @@
 			if (unitLine) {
 				if (per10cm) {
 					unitLine.textContent = UI.money(unitPrice, cfg.currency) + ' ' + t.per10cm;
-				} else if (setSize > 1) {
-					// Buttons sold per set: always "€x per set of 6".
-					unitLine.textContent = UI.fmt(t.perSet, UI.money(unitPrice, cfg.currency), setSize);
+				} else if (unitText) {
+					unitLine.textContent = UI.money(unitPrice, cfg.currency) + ' ' + unitText;
 					unitLine.hidden = false;
 				} else {
+					// Other products: "€x per piece" from 2 pieces.
 					unitLine.textContent = UI.fmt(t.perPiece, UI.money(unitPrice, cfg.currency));
-					// Buttons always say "per piece"; other products only from 2 pieces.
-					unitLine.hidden = !isButton && units < 2;
+					unitLine.hidden = units < 2;
 				}
 			}
 		};

@@ -464,7 +464,7 @@ class AIMP_Cart {
 				'key'   => __( 'For', 'atelier-irisee-master-plugin' ),
 				'value' => $meta['label'],
 			);
-			if ( in_array( $meta['role'], array( 'fabric', 'ribbon', 'bias' ), true ) ) {
+			if ( AIMP_Catalog::sold_per_10cm( $cart_item['data'] ) ) {
 				$item_data[] = array(
 					'key'   => __( 'Length', 'atelier-irisee-master-plugin' ),
 					'value' => AIMP_Catalog::fabric_text( (int) $meta['qty'] ),
@@ -499,7 +499,7 @@ class AIMP_Cart {
 			sprintf( '%s (#%s)', $meta['label'], strtoupper( substr( str_replace( '-', '', $meta['group'] ), 0, 6 ) ) ),
 			true
 		);
-		if ( in_array( $meta['role'], array( 'fabric', 'ribbon', 'bias' ), true ) ) {
+		if ( isset( $values['data'] ) && AIMP_Catalog::sold_per_10cm( $values['data'] ) ) {
 			$item->add_meta_data( 'aimp_length', AIMP_Catalog::fabric_text( (int) $meta['qty'] ), true );
 		}
 		if ( self::kit_discount() ) {

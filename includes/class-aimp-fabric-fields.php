@@ -192,12 +192,23 @@ class AIMP_Fabric_Fields {
 	}
 
 	/**
-	 * All published patterns: ID => name.
+	 * All published patterns, and each design of a pack ("Lison – Jurk"): ID => name.
 	 *
 	 * @return array
 	 */
 	private static function pattern_choices() {
-		return self::products_in( AIMP_Settings::get( 'pattern_cat' ) );
+		$choices = array();
+		foreach ( self::products_in( AIMP_Settings::get( 'pattern_cat' ) ) as $id => $name ) {
+			$choices[ $id ] = $name;
+			// A pack with designs: each design can be recommended too (saved as the design's first size).
+			$pattern = wc_get_product( $id );
+			$first   = $pattern ? AIMP_Catalog::design_first_sizes( $pattern ) : array();
+			$names   = $first ? AIMP_Catalog::designs( $pattern ) : array();
+			foreach ( $first as $slug => $variation_id ) {
+				$choices[ (int) $variation_id ] = $name . ' – ' . ( isset( $names[ $slug ] ) ? $names[ $slug ] : $slug );
+			}
+		}
+		return $choices;
 	}
 
 	/**

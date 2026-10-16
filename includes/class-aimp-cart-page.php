@@ -19,7 +19,7 @@ class AIMP_Cart_Page {
 	const TAG = 'atelier_irisee_cart';
 
 	/** Order of the items inside a set. */
-	const ROLE_ORDER = array( 'pattern', 'fabric', 'zip_divisible', 'zip_invisible', 'zip_non_divisible', 'zip_double_divisible', 'zip', 'button', 'snap', 'jeans_button', 'bias', 'ribbon' );
+	const ROLE_ORDER = array( 'pattern', 'fabric', 'zip_divisible', 'zip_invisible', 'zip_non_divisible', 'zip_double_divisible', 'zip', 'button', 'jeans_button', 'snap', 'elastic', 'bias', 'ribbon', 'cord', 'interfacing' );
 
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
@@ -100,9 +100,10 @@ class AIMP_Cart_Page {
 				AIMP_I18n::number( $qty * AIMP_Catalog::FABRIC_UNIT_CM )
 			);
 		}
-		$set = AIMP_Catalog::button_set_size( $item['data'] );
-		if ( $set > 1 ) {
-			return AIMP_Catalog::sets_text( $qty, $set );
+		// Sets and rolls: "2 × set of 6", "1 × roll of 3 m".
+		$text = AIMP_Notions::qty_text( $item['data'], $qty );
+		if ( '' !== $text ) {
+			return $text;
 		}
 		/* translators: %d: number of pieces */
 		return sprintf( _n( '%d piece', '%d pieces', $qty, 'atelier-irisee-master-plugin' ), $qty );
