@@ -673,7 +673,9 @@
 			})
 			.join('') +
 			// Phones: "‹ Back" sits with the steps (configurator.css), instead of in the bar at the bottom.
-			(current > 0 && !self.state.added ? '<li class="aimp-steps-back"><button type="button" data-action="steps-back">‹ ' + esc(t.back) + '</button></li>' : '');
+			(current > 0 && !self.state.added ? '<li class="aimp-steps-back"><button type="button" data-action="steps-back">' +
+				'<svg class="aimp-steps-back-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H4M10 6l-6 6 6 6"/></svg>' +
+				esc(t.back) + '</button></li>' : '');
 		var back = this.stepsEl.querySelector('[data-action="steps-back"]');
 		if (back) {
 			back.addEventListener('click', function () {
@@ -1758,13 +1760,13 @@
 				button.hidden = true;
 				back.hidden = true;
 				self.renderSteps();
-				messages.innerHTML =
-					'<div class="aimp-notice aimp-notice--success"><p>' + esc(data.message) + '</p>' +
-					'<p class="aimp-actions">' +
-					'<a class="aimp-button" href="' + esc(data.cart_url || cfg.cartUrl) + '">' + esc(t.viewCart) + '</a> ' +
-					'<button type="button" class="aimp-button aimp-button--ghost" data-action="again">' + esc(t.configureAnother) + '</button>' +
-					'</p></div>';
-				messages.querySelector('[data-action="again"]').addEventListener('click', function () {
+				messages.innerHTML = '<div class="aimp-notice aimp-notice--success"><p>' + esc(data.message) + '</p></div>';
+				// The step's button bar (at the bottom on phones) now offers the cart or a new kit.
+				var bar = self.body.querySelector('.aimp-step--summary > .aimp-actions');
+				bar.innerHTML =
+					'<button type="button" class="aimp-button aimp-button--ghost" data-action="again">' + esc(t.makeAnother) + '</button>' +
+					'<a class="aimp-button" href="' + esc(data.cart_url || cfg.cartUrl) + '">' + esc(t.goToCart) + '</a>';
+				bar.querySelector('[data-action="again"]').addEventListener('click', function () {
 					var patterns = s.patterns;
 					var category = s.category;
 					var page = s.patternPage;

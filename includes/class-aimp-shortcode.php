@@ -135,6 +135,8 @@ class AIMP_Shortcode {
 			'youNeed'         => __( 'You need', 'atelier-irisee-master-plugin' ),
 			'totalForSize'    => __( 'Total for this size', 'atelier-irisee-master-plugin' ),
 			'confirmFabric'   => __( 'Confirm fabric', 'atelier-irisee-master-plugin' ),
+			'goToCart'        => __( 'Go to shopping cart', 'atelier-irisee-master-plugin' ),
+			'makeAnother'     => __( 'Make another', 'atelier-irisee-master-plugin' ),
 			'chooseThis'      => __( 'Choose this', 'atelier-irisee-master-plugin' ),
 			'removeFromKit'   => __( 'Remove from my kit', 'atelier-irisee-master-plugin' ),
 			'howItWorks'      => __( 'How it works', 'atelier-irisee-master-plugin' ),

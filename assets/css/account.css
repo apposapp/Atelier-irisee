@@ -687,6 +687,50 @@
 		text-align: right;
 	}
 
+	/* Number and status on top, date and price below, the button last. */
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-number {
+		grid-area: 1 / 1;
+	}
+
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-status {
+		grid-area: 1 / 2;
+	}
+
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-date {
+		grid-area: 2 / 1;
+	}
+
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-total {
+		grid-area: 2 / 2;
+	}
+
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-actions {
+		grid-row: 3;
+	}
+
+	/* The status as a small gold pill, the price bold; a thin line between the two rows. */
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-status {
+		justify-self: end;
+		align-self: center;
+		padding: 0.15rem 0.65rem;
+		border-radius: 100px;
+		background: var(--aimp-gold-tint, #f6ecd9);
+		color: var(--aimp-acc-text, #8a6a33);
+		font-size: 0.85em;
+		line-height: 1.5;
+	}
+
+	.aimp-account .woocommerce-orders-table :is(.woocommerce-orders-table__cell-order-date, .woocommerce-orders-table__cell-order-total) {
+		margin-top: 0.35rem;
+		padding-top: 0.45rem;
+		border-top: 1px solid var(--aimp-gold-tint, #f0e3c8);
+	}
+
+	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-total {
+		font-size: 1.1em;
+		font-weight: 700;
+	}
+
 	.aimp-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-date {
 		font-size: 0.9em;
 	}
@@ -722,7 +766,7 @@
 	inset: 0;
 	background: rgba(40, 25, 5, 0.35);
 	opacity: 0;
-	transition: opacity 0.3s ease;
+	transition: opacity 0.35s ease;
 }
 
 .aimp-account-sheet-panel {
@@ -735,8 +779,9 @@
 	padding: 0 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
 	border-radius: 24px 24px 0 0;
 	background: #fff;
-	transform: translateY(100%);
-	transition: transform 0.3s ease;
+	opacity: 0;
+	transform: translateY(40%);
+	transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
 }
 
 .aimp-account-sheet.is-open .aimp-account-sheet-backdrop {
@@ -744,6 +789,7 @@
 }
 
 .aimp-account-sheet.is-open .aimp-account-sheet-panel {
+	opacity: 1;
 	transform: none;
 }
 
@@ -797,4 +843,22 @@
 	.aimp-account-sheet-backdrop {
 		transition: none;
 	}
+}
+
+/* The order's details: a small picture before every product. */
+.aimp-order-thumb {
+	display: inline-block;
+	width: 44px;
+	height: 44px;
+	margin: 0 0.6rem 0 0;
+	vertical-align: middle;
+}
+
+.aimp-order-thumb img {
+	display: block;
+	width: 44px;
+	height: 44px;
+	border: 1px solid var(--aimp-gold-tint, #f0e3c8);
+	border-radius: 8px;
+	object-fit: cover;
 }

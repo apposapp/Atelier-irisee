@@ -1283,3 +1283,11 @@ html:has(.aimp-product-reviews) {
 		flex-direction: column;
 	}
 }
+
+/* Phones: opening Specifications or Washing never moves the page (the sections are reordered, and the browser
+   would otherwise keep a later section in place and scroll the page up). */
+@media (max-width: 700px) {
+	.aimp-configurator.aimp-product {
+		overflow-anchor: none;
+	}
+}

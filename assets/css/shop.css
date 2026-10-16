@@ -1081,3 +1081,11 @@ html.aimp-sheet-open body {
 		font-size: 0.88rem;
 	}
 }
+
+/* The heart in a sheet: top left (the × is top right), and under the sheet's head when the details scroll. */
+.aimp-sheet-panel .aimp-fav--overlay,
+.aimp-configurator.aimp-sheet-panel .aimp-fav--overlay {
+	right: auto;
+	left: 0.6rem;
+	z-index: 1;
+}

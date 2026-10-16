@@ -291,8 +291,19 @@ class AIMP_Account {
 		$endpoint = function ( $url, $endpoint, $value ) {
 			return 'orders' === $endpoint ? AIMP_Account::page_url( 'orders', array( 'orders_page' => max( 1, (int) $value ) ) ) : $url;
 		};
+		// The list: only the price as total ("€ 42,50", not "€ 42,50 for 3 items").
+		$total = function ( $order ) {
+			echo wp_kses_post( $order->get_formatted_order_total() );
+		};
+		// The order's details: a small picture before every product.
+		$thumb = function ( $name, $item ) {
+			$product = is_callable( array( $item, 'get_product' ) ) ? $item->get_product() : null;
+			return $product ? '<span class="aimp-order-thumb">' . $product->get_image( 'thumbnail' ) . '</span>' . $name : $name;
+		};
 		add_filter( 'woocommerce_get_view_order_url', $view_url, 10, 2 );
 		add_filter( 'woocommerce_get_endpoint_url', $endpoint, 10, 3 );
+		add_action( 'woocommerce_my_account_my_orders_column_order-total', $total );
+		add_filter( 'woocommerce_order_item_name', $thumb, 10, 2 );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- navigation only; WooCommerce checks the order owner.
 		$order_id = isset( $_GET['order'] ) ? absint( $_GET['order'] ) : 0;
@@ -307,6 +318,8 @@ class AIMP_Account {
 
 		remove_filter( 'woocommerce_get_view_order_url', $view_url, 10 );
 		remove_filter( 'woocommerce_get_endpoint_url', $endpoint, 10 );
+		remove_action( 'woocommerce_my_account_my_orders_column_order-total', $total );
+		remove_filter( 'woocommerce_order_item_name', $thumb, 10 );
 	}
 
 	/* ---------- Refunds ---------- */

@@ -1506,4 +1506,8 @@ return array(
 	'Number (all sizes)' => 'Nombre (toutes les tailles)',
 	'Switch on what this pattern needs, with the diameter or width that fits (empty = any size), and the number or length for all sizes. A size can still have its own number or length on the Variations tab. Zips: only zips of exactly that length are offered. Ribbons and cords: all of them are offered.' => 'Activez ce dont ce patron a besoin, avec le diamètre ou la largeur qui convient (vide = toute taille), et le nombre ou la longueur pour toutes les tailles. Une taille peut encore avoir son propre nombre ou sa propre longueur dans l\'onglet Variations. Fermetures éclair : seules celles de cette longueur exacte sont proposées. Rubans et cordons : tous sont proposés.',
 	'e.g. Cuffs' => 'p. ex. Poignets',
+
+	// 3.12.1
+	'Go to shopping cart' => 'Voir le panier',
+	'Make another' => 'En créer un autre',
 );

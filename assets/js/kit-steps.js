@@ -67,9 +67,9 @@
 			var x0 = Math.min(c[0].left, c[2].left) - 7;
 			var xr = Math.max(c[1].right, c[3].right) + 7;
 			var bot = Math.max(c[2].bottom, c[3].bottom) + 12;
-			// The gaps are narrow: small loops, so they only touch the empty corners of the cards.
-			var ra = 7 * LOOPS[0].size;
-			var rb = 7 * LOOPS[1].size;
+			// Loops big enough to read as loops at speed (they only touch the empty corners of the cards).
+			var ra = 11 * LOOPS[0].size;
+			var rb = 11 * LOOPS[1].size;
 			var bx = b.left + b.width / 2;
 			var top = c[0].top + 10;
 			d = 'M' + f(x0) + ' ' + f(top);
@@ -143,6 +143,8 @@
 		sewn.setAttribute('mask', 'url(#' + maskId + ')');
 
 		var len = 0;
+		// Phones: a slower pass, so the needle doesn't seem to jump through the loops.
+		var duration = DURATION;
 		function layout() {
 			var box = thread.getBoundingClientRect();
 			var w = Math.max(1, Math.round(box.width));
@@ -160,6 +162,7 @@
 			// Two columns: the phone layout.
 			var phone = cards.length >= 4 && Math.abs(cards[0].top - cards[1].top) < 30 && cards[2].top > cards[0].bottom - 5;
 			var d = seam(box, cards, button.getBoundingClientRect(), phone);
+			duration = phone ? 8000 : DURATION;
 			guide.setAttribute('d', d);
 			sewn.setAttribute('d', d);
 			reveal.setAttribute('d', d);
@@ -213,12 +216,12 @@
 			if (start === null) {
 				start = now;
 			}
-			var elapsed = (now - start) % (DURATION + PAUSE);
-			var share = Math.min(1, elapsed / DURATION);
+			var elapsed = (now - start) % (duration + PAUSE);
+			var share = Math.min(1, elapsed / duration);
 			// The needle stays visible up to the button, then fades during the pause.
 			var opacity = share < 0.04 ? share / 0.04 : 1;
-			if (elapsed > DURATION) {
-				opacity = Math.max(0, 1 - (elapsed - DURATION) / (PAUSE * 0.6));
+			if (elapsed > duration) {
+				opacity = Math.max(0, 1 - (elapsed - duration) / (PAUSE * 0.6));
 			}
 			if (share >= 1 && !sparked) {
 				sparked = true;

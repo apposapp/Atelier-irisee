@@ -156,7 +156,7 @@
 		document.documentElement.classList.remove('aimp-sheet-open');
 		window.setTimeout(function () {
 			sheet.hidden = true;
-		}, 300);
+		}, 450);
 	}
 
 	function open(html) {

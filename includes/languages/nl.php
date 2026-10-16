@@ -1506,4 +1506,8 @@ return array(
 	'Number (all sizes)' => 'Aantal (alle maten)',
 	'Switch on what this pattern needs, with the diameter or width that fits (empty = any size), and the number or length for all sizes. A size can still have its own number or length on the Variations tab. Zips: only zips of exactly that length are offered. Ribbons and cords: all of them are offered.' => 'Zet aan wat dit patroon nodig heeft, met de diameter of breedte die past (leeg = elke maat), en het aantal of de lengte voor alle maten. Een maat kan nog een eigen aantal of lengte krijgen op het tabblad Variaties. Ritsen: enkel ritsen van precies die lengte worden aangeboden. Linten en koorden: ze worden allemaal aangeboden.',
 	'e.g. Cuffs' => 'bv. Manchetten',
+
+	// 3.12.1
+	'Go to shopping cart' => 'Naar winkelmandje',
+	'Make another' => 'Nog een maken',
 );

@@ -1277,11 +1277,11 @@
 	}
 
 	/* Step bar: numbers only, the current step with its name. */
-	.aimp-configurator .aimp-steps li:not(.is-current) {
+	.aimp-configurator .aimp-steps li:not(.is-current):not(.aimp-steps-back) {
 		font-size: 0;
 	}
 
-	.aimp-configurator .aimp-steps li:not(.is-current) .aimp-step-num {
+	.aimp-configurator .aimp-steps li:not(.is-current):not(.aimp-steps-back) .aimp-step-num {
 		font-size: 13px;
 	}
 }
@@ -1763,4 +1763,15 @@
 
 .aimp-howto .aimp-kit-steps {
 	padding-top: 1.25rem;
+}
+
+/* "Back" in the step bar: a gold arrow before the text. */
+.aimp-configurator .aimp-steps-back button {
+	gap: 0.35rem;
+}
+
+.aimp-steps-back-arrow {
+	width: 1em;
+	height: 1em;
+	flex: 0 0 auto;
 }
