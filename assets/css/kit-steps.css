@@ -344,12 +344,23 @@
 	}
 }
 
-/* ------------------------------------------------------------------ fabric card: a pinked swatch waving like
-   cloth, a flower print, folded fabrics and a tape measure */
-.ks-swatch-wave {
+/* ------------------------------------------------------------------ fabric card: a roll of floral fabric that
+   unrolls (the roll turns with it) and a sewing tape measure */
+.ks-sheet,
+.ks-roll,
+.ks-tape-band {
+	fill: #fff;
+}
+
+.ks-unroll-clip {
 	transform-box: fill-box;
-	transform-origin: 0% 0%;
-	animation: ks-flutter 3.2s ease-in-out infinite;
+	transform-origin: left center;
+	animation: ks-unroll 6.5s ease-in-out infinite;
+}
+
+.ks-roll-spiral {
+	transform-origin: 28px 38px;
+	animation: ks-roll 6.5s ease-in-out infinite;
 }
 
 .ks-print circle {
@@ -363,16 +374,20 @@
 	opacity: 1;
 }
 
-.ks-fold-line,
 .ks-tape-ticks {
-	stroke-width: 1.2;
-	opacity: 0.7;
+	stroke-width: 0.8;
 }
 
-.ks-tape {
-	transform-box: fill-box;
-	transform-origin: 90% 50%;
-	animation: ks-tape 6s ease-in-out infinite;
+.ks-tape-tip {
+	fill: currentColor;
+}
+
+.ks-tape-num {
+	fill: currentColor;
+	stroke: none;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 4.6px;
+	text-anchor: middle;
 }
 
 /* Zip: the pull tab swings as the slider moves. */
@@ -382,15 +397,14 @@
 	animation: ks-swing 1.4s ease-in-out infinite;
 }
 
-@keyframes ks-flutter {
-	0%, 100% { transform: rotate(0deg) skewY(0deg); }
-	30% { transform: rotate(-2deg) skewY(2.5deg); }
-	65% { transform: rotate(1.5deg) skewY(-2deg); }
+@keyframes ks-unroll {
+	0%, 100% { transform: scaleX(0.25); }
+	45%, 80% { transform: scaleX(1); }
 }
 
-@keyframes ks-tape {
+@keyframes ks-roll {
 	0%, 100% { transform: rotate(0deg); }
-	50% { transform: rotate(-4deg); }
+	45%, 80% { transform: rotate(200deg); }
 }
 
 @keyframes ks-swing {

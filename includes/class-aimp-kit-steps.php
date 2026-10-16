@@ -47,20 +47,19 @@ class AIMP_Kit_Steps {
 	 * @return string SVG.
 	 */
 	private static function drawing( $key ) {
+		$clip  = wp_unique_id( 'aimp-ks-unroll-' );
 		$parts = array(
 			// A pattern sheet with a folded corner; a dress outline that draws itself as a cutting line, and scissors.
 			'pattern' => '<path class="ks-paper" d="M28 10h48l16 16v58H28z"/><path class="ks-paper" d="M76 10v16h16"/>' .
 				'<path class="ks-cut" d="M52 26l-6 6 4 10-10 34h40L70 42l4-10-6-6c-2 4-5 6-8 6s-6-2-8-6z"/>' .
 				'<g class="ks-scissors"><circle cx="98" cy="72" r="4"/><circle cx="98" cy="84" r="4"/><path d="M101 74l14-10M101 82l14 10"/></g>',
-			// A fabric swatch with pinked edges and a flower print, waving like cloth; a stack of folded fabrics and
-			// a tape measure in front of it.
-			'fabric'  => '<g class="ks-swatch-wave"><path class="ks-pinked" d="' . self::pinked( 40, 6, 64, 44, 4 ) . '"/>' .
-				'<g class="ks-print">' . self::flower( 54, 18 ) . self::flower( 86, 24 ) . self::flower( 68, 38 ) .
-				'<circle cx="72" cy="16" r="1"/><circle cx="58" cy="32" r="1"/><circle cx="92" cy="40" r="1"/><circle cx="80" cy="34" r="1"/><circle cx="48" cy="42" r="1"/></g></g>' .
-				'<g class="ks-folds"><path d="M8 60h40a4 4 0 0 1 0 8H8z"/><path d="M12 68h40a4 4 0 0 1 0 8H12z"/><path d="M8 76h40a4 4 0 0 1 0 8H8z"/>' .
-				'<path class="ks-fold-line" d="M14 64h22M18 72h22M14 80h22"/></g>' .
-				'<g class="ks-tape"><path d="M58 84l46-10"/><path d="M58 78l44-9.6"/><path class="ks-tape-ticks" d="M64 82.7l-1.2-5.5M71 81.2l-.8-4M78 79.7l-1.2-5.5M85 78.2l-.8-4M92 76.7l-1.2-5.5"/>' .
-				'<circle cx="108" cy="70" r="6"/><circle cx="108" cy="70" r="2"/></g>',
+			// A roll of floral fabric that unrolls to the right, and a sewing tape measure underneath.
+			'fabric'  => '<defs><clipPath id="' . esc_attr( $clip ) . '"><rect class="ks-unroll-clip" x="28" y="10" width="84" height="56"/></clipPath></defs>' .
+				'<g class="ks-unroll" clip-path="url(#' . esc_attr( $clip ) . ')"><path class="ks-sheet" d="M28 18H98c4 7-3 13 1 20s-3 13 1 20H28"/>' .
+				'<g class="ks-print">' . self::flower( 58, 30 ) . self::flower( 80, 46 ) . self::flower( 70, 38, 0.8 ) .
+				'<circle cx="90" cy="28" r="1"/><circle cx="50" cy="48" r="1"/><circle cx="66" cy="24" r="1"/></g></g>' .
+				'<circle class="ks-roll" cx="28" cy="38" r="20"/><path class="ks-roll-spiral" d="M28 38m-4 0a4 4 0 1 1 8 0a9 9 0 1 1-18 0a14 14 0 1 1 28 0"/>' .
+				self::tape( 18, 70, 90 ),
 			// Buttons dropping in and a zip that opens and closes.
 			'notions' => '<g class="ks-button ks-button--1"><circle cx="26" cy="30" r="11"/><circle cx="23" cy="27" r="1.4"/><circle cx="29" cy="27" r="1.4"/><circle cx="23" cy="33" r="1.4"/><circle cx="29" cy="33" r="1.4"/></g>' .
 				'<g class="ks-button ks-button--2"><circle cx="54" cy="22" r="8"/><circle cx="52" cy="22" r="1.2"/><circle cx="56" cy="22" r="1.2"/></g>' .
@@ -78,52 +77,43 @@ class AIMP_Kit_Steps {
 	}
 
 	/**
-	 * A rectangle with pinked (zigzag) edges, like a fabric sample.
+	 * A sewing tape measure: a flat band with a mark per cm (a longer one every 5), numbers and a metal tip.
 	 *
-	 * @param int $x     Left.
-	 * @param int $y     Top.
-	 * @param int $w     Width.
-	 * @param int $h     Height.
-	 * @param int $tooth Tooth size.
-	 * @return string Path data.
+	 * @param int $x Left.
+	 * @param int $y Top.
+	 * @param int $w Width.
+	 * @return string SVG group.
 	 */
-	private static function pinked( $x, $y, $w, $h, $tooth ) {
-		$points = array();
-		$nx     = (int) round( $w / $tooth );
-		$ny     = (int) round( $h / $tooth );
-		for ( $i = 0; $i <= $nx; $i++ ) { // Top, left to right.
-			$points[] = array( $x + $i * $w / $nx, $y + ( $i % 2 ? -$tooth / 2 : 0 ) );
+	private static function tape( $x, $y, $w ) {
+		$ticks = '';
+		$nums  = '';
+		for ( $i = 0; $x + 6 + $i * 3 < $x + $w - 2; $i++ ) {
+			$tx     = $x + 6 + $i * 3;
+			$ticks .= 'M' . $tx . ' ' . $y . 'v' . ( 0 === $i % 5 ? 4 : 2.2 );
+			if ( 5 === $i % 10 && $tx < $x + $w - 8 ) {
+				$nums .= '<text class="ks-tape-num" x="' . $tx . '" y="' . ( $y + 8.6 ) . '">' . $i . '</text>';
+			}
 		}
-		for ( $i = 1; $i <= $ny; $i++ ) { // Right, down.
-			$points[] = array( $x + $w + ( $i % 2 ? $tooth / 2 : 0 ), $y + $i * $h / $ny );
-		}
-		for ( $i = $nx - 1; $i >= 0; $i-- ) { // Bottom, right to left.
-			$points[] = array( $x + $i * $w / $nx, $y + $h + ( $i % 2 ? $tooth / 2 : 0 ) );
-		}
-		for ( $i = $ny - 1; $i > 0; $i-- ) { // Left, up.
-			$points[] = array( $x + ( $i % 2 ? -$tooth / 2 : 0 ), $y + $i * $h / $ny );
-		}
-		$d = '';
-		foreach ( $points as $n => $point ) {
-			$d .= ( 0 === $n ? 'M' : 'L' ) . round( $point[0], 1 ) . ' ' . round( $point[1], 1 );
-		}
-		return $d . 'Z';
+		return '<g class="ks-tape"><rect class="ks-tape-band" x="' . $x . '" y="' . $y . '" width="' . $w . '" height="10" rx="1"/>' .
+			'<path class="ks-tape-ticks" d="' . $ticks . '"/>' . $nums .
+			'<rect class="ks-tape-tip" x="' . ( $x - 3 ) . '" y="' . ( $y - 0.5 ) . '" width="5" height="11" rx="1"/></g>';
 	}
 
 	/**
 	 * A small five-petal flower for the fabric print.
 	 *
-	 * @param int $cx Centre x.
-	 * @param int $cy Centre y.
+	 * @param int   $cx    Centre x.
+	 * @param int   $cy    Centre y.
+	 * @param float $scale Size.
 	 * @return string SVG.
 	 */
-	private static function flower( $cx, $cy ) {
+	private static function flower( $cx, $cy, $scale = 1 ) {
 		$svg = '';
 		for ( $i = 0; $i < 5; $i++ ) {
 			$a    = deg2rad( $i * 72 - 90 );
-			$svg .= '<circle cx="' . round( $cx + cos( $a ) * 2.6, 1 ) . '" cy="' . round( $cy + sin( $a ) * 2.6, 1 ) . '" r="1.6"/>';
+			$svg .= '<circle cx="' . round( $cx + cos( $a ) * 2.6 * $scale, 1 ) . '" cy="' . round( $cy + sin( $a ) * 2.6 * $scale, 1 ) . '" r="' . round( 1.6 * $scale, 2 ) . '"/>';
 		}
-		return $svg . '<circle class="ks-print-heart" cx="' . $cx . '" cy="' . $cy . '" r="0.9"/>';
+		return $svg . '<circle class="ks-print-heart" cx="' . $cx . '" cy="' . $cy . '" r="' . round( 0.9 * $scale, 2 ) . '"/>';
 	}
 
 	/**
