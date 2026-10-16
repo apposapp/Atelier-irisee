@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.10.0
+Stable tag: 3.10.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.10.1 =
+* Kit steps bar on phones: the seam runs around the cards (with small loops in the gaps) instead of over their texts. The seam is measured again once the fonts have loaded.
+* Home page hero: the arrow scrolls until the title of the 4 steps is at the top, just under the (slimmer) header.
 
 = 3.10.0 =
 * Phones: the "Show results" button in the filters is white on a solid gold strip, so the filter list no longer shows through it.

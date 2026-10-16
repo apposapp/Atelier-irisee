@@ -42,9 +42,16 @@
 			if (!next) {
 				return;
 			}
+			// The kit steps bar: its title lands at the top, just under the header as it looks once scrolled (slimmer;
+			// on phones the admin bar has scrolled away by then).
+			var title = next.querySelector('.aimp-kit-steps-title');
+			var root = getComputedStyle(document.documentElement);
+			var slim = parseFloat(root.getPropertyValue('--aimp-header-slim'));
+			var bar = document.getElementById('wpadminbar');
+			// --aimp-header-offset already counts the admin bar; the slim height does not.
+			var header = slim ? slim + (bar && 'fixed' === getComputedStyle(bar).position ? bar.offsetHeight : 0) : parseFloat(root.getPropertyValue('--aimp-header-offset')) || 0;
 			var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-			var offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--aimp-header-offset')) || 0;
-			var top = next.getBoundingClientRect().top + window.pageYOffset - offset;
+			var top = (title || next).getBoundingClientRect().top + window.pageYOffset - header - (title ? 12 : 0);
 			window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });
 		});
 	}

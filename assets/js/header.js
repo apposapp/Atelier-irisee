@@ -166,6 +166,20 @@
 			return height;
 		};
 
+		// The slim height once scrolled (for scrolling to a section, e.g. the hero's arrow), measured the same way.
+		var slimHeight = function () {
+			if (header.classList.contains('is-scrolled')) {
+				return header.offsetHeight;
+			}
+			header.classList.add('is-measuring');
+			header.classList.add('is-scrolled');
+			var height = header.offsetHeight;
+			header.classList.remove('is-scrolled');
+			void header.offsetHeight;
+			header.classList.remove('is-measuring');
+			return height;
+		};
+
 		// The WordPress admin bar: fixed on wide screens; on phones it scrolls away, so the header follows it up.
 		var barTop = function () {
 			var bar = document.getElementById('wpadminbar');
@@ -178,6 +192,7 @@
 
 		var layout = function () {
 			spacer.style.height = fullHeight() + 'px';
+			document.documentElement.style.setProperty('--aimp-header-slim', slimHeight() + 'px');
 			header.classList.add('is-fixed');
 			update();
 		};

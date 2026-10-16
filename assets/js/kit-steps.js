@@ -28,6 +28,11 @@
 		return ' C ' + f(x + r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x - r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x + r) + ' ' + f(y);
 	}
 
+	// The same loop for a thread going left: from (x + r, y) out at (x - r, y).
+	function loopBack(x, y, r, dir) {
+		return ' C ' + f(x - r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x + r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x - r) + ' ' + f(y);
+	}
+
 	// A sideways loop on a line going down, at (x, y): from (x, y - r) out at (x, y + r).
 	function loopDown(x, y, r) {
 		return ' C ' + f(x + r * 2.8) + ' ' + f(y + r * 2.6) + ', ' + f(x + r * 2.8) + ' ' + f(y - r * 2.6) + ', ' + f(x) + ' ' + f(y + r);
@@ -35,8 +40,8 @@
 
 	/**
 	 * The seam, in the coordinates of the row: through the cards at the height of their drawings with a loop in
-	 * each gap, to the button. Phones: an S through the four cards (with loops between them) to the button under
-	 * the grid.
+	 * each gap, to the button. Phones: around the cards (never over their texts), with loops between them, to the
+	 * button under the grid.
 	 *
 	 * @param {DOMRect}   row    The row.
 	 * @param {DOMRect[]} cards  The cards.
@@ -53,29 +58,31 @@
 		var r0 = Math.max(10, Math.min(24, row.width * 0.02));
 		var d;
 		if (phone && c.length >= 4) {
-			// Phones: through the drawings of the top two cards (a loop between them), out at the right and back
-			// left through the gap between the rows (a sideways loop), then in an S through the bottom two cards
-			// (another loop between them) and down to the button.
+			// Phones: only in the lanes around the cards, never over their texts. Down the left side, right
+			// through the gap between the rows (a loop curling up between the top cards), down the right side,
+			// left under the bottom cards (a loop curling down below them) and up to the button.
 			var cx = (c[0].right + c[1].left) / 2;
-			var y1 = (c[0].top + c[0].height * 0.4 + c[1].top + c[1].height * 0.4) / 2;
-			var y2 = (c[2].top + c[2].height * 0.4 + c[3].top + c[3].height * 0.4) / 2;
 			var gapY = (Math.max(c[0].bottom, c[1].bottom) + Math.min(c[2].top, c[3].top)) / 2;
-			var right1 = Math.min(row.width - 4, c[1].right + 6);
-			var right2 = Math.min(row.width - 4, c[3].right + 6);
-			var ra = r0 * LOOPS[0].size;
-			var rb = r0 * LOOPS[1].size;
+			// Just outside the cards (they may reach past the row a little; the SVG shows what lies outside it).
+			var x0 = Math.min(c[0].left, c[2].left) - 7;
+			var xr = Math.max(c[1].right, c[3].right) + 7;
+			var bot = Math.max(c[2].bottom, c[3].bottom) + 12;
+			// The gaps are narrow: small loops, so they only touch the empty corners of the cards.
+			var ra = 7 * LOOPS[0].size;
+			var rb = 7 * LOOPS[1].size;
 			var bx = b.left + b.width / 2;
-			d = 'M0 ' + f(y1 + 8);
-			d += ' C ' + f(c[0].left + c[0].width * 0.3) + ' ' + f(y1 - 14) + ', ' + f(c[0].left + c[0].width * 0.75) + ' ' + f(y1 + 12) + ', ' + f(cx - ra) + ' ' + f(y1);
-			d += loop(cx, y1, ra, -1);
-			d += ' C ' + f(c[1].left + c[1].width * 0.35) + ' ' + f(y1 + 14) + ', ' + f(c[1].left + c[1].width * 0.8) + ' ' + f(y1 - 12) + ', ' + f(right1) + ' ' + f(y1 + c[1].height * 0.25);
-			d += ' C ' + f(right1 + 8) + ' ' + f(gapY - 10) + ', ' + f(cx + 40) + ' ' + f(gapY - 18) + ', ' + f(cx) + ' ' + f(gapY - r0 * 0.8);
-			d += loopDown(cx, gapY, r0 * 0.8);
-			d += ' C ' + f(cx - 20) + ' ' + f(gapY + 24) + ', ' + f(c[2].left + c[2].width * 0.1) + ' ' + f(y2 - 24) + ', ' + f(c[2].left + c[2].width * 0.25) + ' ' + f(y2);
-			d += ' C ' + f(c[2].left + c[2].width * 0.4) + ' ' + f(y2 + 16) + ', ' + f(c[2].left + c[2].width * 0.8) + ' ' + f(y2 - 10) + ', ' + f(cx - rb) + ' ' + f(y2);
-			d += loop(cx, y2, rb, 1);
-			d += ' C ' + f(c[3].left + c[3].width * 0.4) + ' ' + f(y2 + 14) + ', ' + f(c[3].left + c[3].width * 0.85) + ' ' + f(y2 + 10) + ', ' + f(right2) + ' ' + f(y2 + c[3].height * 0.3);
-			d += ' C ' + f(right2 + 6) + ' ' + f(b.top - 30) + ', ' + f(bx + 30) + ' ' + f(b.top - 24) + ', ' + f(bx) + ' ' + f(b.top - 3);
+			var top = c[0].top + 10;
+			d = 'M' + f(x0) + ' ' + f(top);
+			d += ' C ' + f(x0 + 4) + ' ' + f(top + (gapY - top) * 0.35) + ', ' + f(x0 - 3) + ' ' + f(top + (gapY - top) * 0.7) + ', ' + f(x0) + ' ' + f(gapY - 16);
+			d += ' C ' + f(x0 + 1) + ' ' + f(gapY - 4) + ', ' + f(x0 + 12) + ' ' + f(gapY) + ', ' + f(x0 + 24) + ' ' + f(gapY);
+			d += ' C ' + f(x0 + 24 + (cx - x0) * 0.4) + ' ' + f(gapY - 4) + ', ' + f(cx - ra - 14) + ' ' + f(gapY + 3) + ', ' + f(cx - ra) + ' ' + f(gapY);
+			d += loop(cx, gapY, ra, -1);
+			d += ' C ' + f(cx + ra + 30) + ' ' + f(gapY + 4) + ', ' + f(xr - 6) + ' ' + f(gapY) + ', ' + f(xr) + ' ' + f(gapY + 16);
+			d += ' C ' + f(xr - 4) + ' ' + f(gapY + (bot - gapY) * 0.4) + ', ' + f(xr + 3) + ' ' + f(bot - 30) + ', ' + f(xr) + ' ' + f(bot - 14);
+			d += ' C ' + f(xr) + ' ' + f(bot - 4) + ', ' + f(xr - 12) + ' ' + f(bot) + ', ' + f(xr - 24) + ' ' + f(bot);
+			d += ' C ' + f(cx + rb + 30) + ' ' + f(bot + 3) + ', ' + f(cx + rb + 12) + ' ' + f(bot - 2) + ', ' + f(cx + rb) + ' ' + f(bot);
+			d += loopBack(cx, bot, rb, 1);
+			d += ' C ' + f(cx - rb - 22) + ' ' + f(bot + 6) + ', ' + f(bx - 18) + ' ' + f(b.top - 4) + ', ' + f(bx) + ' ' + f(b.top - 3);
 			return d;
 		}
 		// Desktop and tablet: through the drawings, a loop in each gap, then to the button's left edge.
@@ -174,6 +181,11 @@
 		}
 
 		layout();
+		// Again once the fonts and pictures are in: the cards may have grown.
+		if (document.fonts && document.fonts.ready) {
+			document.fonts.ready.then(layout);
+		}
+		window.addEventListener('load', layout);
 		bar.classList.add('is-sewing');
 		if (reduce) {
 			place(1, 1);
