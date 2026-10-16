@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.12.1
+Stable tag: 3.12.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.12.2 =
+* My orders: in the order details the product name sits beside its picture, and the order number, date and status are gold instead of marked in yellow.
 
 = 3.12.1 =
 * Customizer on phones: "Back" in the step bar shows its text with an arrow; the heart in the product sheets sits top left (away from the ×) and slides under the sheet's top bar; after adding a kit to the cart, the bar offers "Go to shopping cart" and "Make another".

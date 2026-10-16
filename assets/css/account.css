@@ -847,11 +847,19 @@
 
 /* The order's details: a small picture before every product. */
 .aimp-order-thumb {
-	display: inline-block;
+	float: left;
 	width: 44px;
 	height: 44px;
-	margin: 0 0.6rem 0 0;
-	vertical-align: middle;
+	margin: 0 0.6rem 0.3rem 0;
+}
+
+/* WooCommerce marks the order number, date and status in yellow: in gold here. */
+.aimp-account mark,
+.aimp-account-sheet mark {
+	padding: 0;
+	background: none;
+	color: var(--aimp-acc-text, #8a6a33);
+	font-weight: 700;
 }
 
 .aimp-order-thumb img {
