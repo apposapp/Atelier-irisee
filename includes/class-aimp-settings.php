@@ -87,6 +87,10 @@ class AIMP_Settings {
 			'overview_img_haberdashery' => 0,
 			'overview_img_giftcards'    => 0,
 			'overview_img_configurator' => 0,
+			'hero_image'                => 0,
+			'hero_image_phone'          => 0,
+			'hero_logo'                 => 0,
+			'hero_tint'                 => 65,
 		);
 		$options = wp_parse_args( (array) get_option( self::OPTION, array() ), $defaults );
 		return isset( $options[ $key ] ) ? absint( $options[ $key ] ) : 0;
@@ -755,6 +759,7 @@ class AIMP_Settings {
 
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;
+		$sanitized             = array_merge( $sanitized, AIMP_Hero::sanitize( $input ) );
 		return $sanitized;
 	}
 
@@ -944,7 +949,7 @@ class AIMP_Settings {
 	private static function tab_sections() {
 		global $wp_settings_sections;
 		$registered = isset( $wp_settings_sections[ self::PAGE ] ) ? (array) $wp_settings_sections[ self::PAGE ] : array();
-		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_site', 'aimp_footer', 'aimp_mosaic', 'aimp_admin_menu' );
+		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_site', 'aimp_home', 'aimp_footer', 'aimp_mosaic', 'aimp_admin_menu' );
 		$sections   = array();
 		foreach ( $order as $id ) {
 			if ( isset( $registered[ $id ] ) ) {

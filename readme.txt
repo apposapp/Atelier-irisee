@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.8.5
+Stable tag: 3.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.9.0 =
+* New shortcode [atelier_irisee_hero]: a full-screen opening for the home page. Your picture under a gold filter, a cream arch with the logo as a seal, the tagline "Sew something truly yours" and buttons to the customizer and the shop, and a bouncing gold arrow that slides down to the kit steps bar.
+* New settings tab "Home page": the picture (plus an optional phone picture and logo), where the subject is, the strength of the gold filter, and the tagline and text per language.
 
 = 3.8.5 =
 * Kit steps bar: a new fabric drawing, a roll of floral fabric that unrolls, with a sewing tape measure.

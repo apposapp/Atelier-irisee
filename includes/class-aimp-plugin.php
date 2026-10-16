@@ -49,6 +49,7 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-product-workspace.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-trust.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-mosaic.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-hero.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-kit-steps.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/login/class-aimp-login.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/giftcards/class-aimp-giftcards.php';
@@ -84,6 +85,7 @@ class AIMP_Plugin {
 		AIMP_Product_Workspace::init();
 		AIMP_Trust::init();
 		AIMP_Mosaic::init();
+		AIMP_Hero::init();
 		AIMP_Kit_Steps::init();
 		AIMP_Login::init();
 		AIMP_Giftcards::init();

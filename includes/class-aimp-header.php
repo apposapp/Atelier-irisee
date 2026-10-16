@@ -153,6 +153,24 @@ class AIMP_Header {
 		return wc_get_page_permalink( 'myaccount' );
 	}
 
+	private static function divi_logo() {
+		return function_exists( 'et_get_option' ) ? (string) et_get_option( 'divi_logo' ) : '';
+	}
+
+	/**
+	 * The address of the logo picture (Divi's logo, otherwise the site logo), or '' when there is none.
+	 *
+	 * @return string
+	 */
+	public static function logo_url() {
+		$divi = self::divi_logo();
+		if ( '' !== $divi ) {
+			return $divi;
+		}
+		$id = (int) get_theme_mod( 'custom_logo' );
+		return $id ? (string) wp_get_attachment_image_url( $id, 'medium' ) : '';
+	}
+
 	/**
 	 * The logo: the one set in Divi (Theme Options → General → Logo), otherwise the WordPress site logo,
 	 * otherwise the site name.
@@ -160,7 +178,7 @@ class AIMP_Header {
 	 * @return string
 	 */
 	public static function logo_html() {
-		$divi = function_exists( 'et_get_option' ) ? (string) et_get_option( 'divi_logo' ) : '';
+		$divi = self::divi_logo();
 		if ( '' !== $divi ) {
 			return sprintf(
 				'<a class="aimp-header-logo" href="%1$s" rel="home"><img src="%2$s" alt="%3$s"></a>',

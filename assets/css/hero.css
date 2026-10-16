@@ -1,0 +1,225 @@
+/**
+ * [atelier_irisee_hero]: full-screen picture under a gold filter, a cream arch with the logo as a seal on its
+ * top edge, the tagline and two buttons on the left (the subject of the picture stays free on the right), and
+ * a bouncing gold arrow to the next section.
+ */
+.aimp-hero {
+	--hero-gold: #b38f4f;
+	--hero-deep: #96703a;
+	--hero-brown: #6b4b1a;
+	--hero-cream: #fdf8f4;
+	--hero-line: #f6e3bd;
+	box-sizing: border-box;
+	position: relative;
+	display: flex;
+	align-items: center;
+	/* Full width, also inside a Divi row (hero.js sets --aimp-hero-sb: the width of a desktop scrollbar). */
+	width: calc(100vw - var(--aimp-hero-sb, 0px));
+	max-width: none;
+	margin-left: calc(50% - 50vw + var(--aimp-hero-sb, 0px) / 2);
+	min-height: calc(100vh - var(--aimp-header-offset, 0px) - var(--aimp-tabbar-h, 0px));
+	min-height: calc(100svh - var(--aimp-header-offset, 0px) - var(--aimp-tabbar-h, 0px));
+	padding: 4.5rem 0 5.5rem;
+	overflow: hidden;
+	background-color: var(--hero-deep);
+	background-image: var(--aimp-hero-img, none);
+	background-position: var(--aimp-hero-focus, 75% 40%);
+	background-size: cover;
+	color: var(--hero-brown);
+}
+
+.aimp-hero *,
+.aimp-hero *::before,
+.aimp-hero *::after {
+	box-sizing: border-box;
+}
+
+/* The gold filter: deeper on the text side, lighter over the subject; the strength is set in the settings. */
+.aimp-hero::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(90deg, rgb(150, 112, 52), rgba(179, 143, 79, 0.88) 55%, rgba(179, 143, 79, 0.76));
+	opacity: var(--aimp-hero-tint, 0.65);
+	pointer-events: none;
+}
+
+.aimp-hero-inner {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	padding: 0 clamp(1rem, 7vw, 9rem);
+}
+
+/* The arch: cream, with a gold line inside its edge. */
+.aimp-hero-arch {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.7rem;
+	width: 19rem;
+	max-width: 100%;
+	padding: 3.6rem 1.75rem 1.6rem;
+	border-radius: 9.5rem 9.5rem 1rem 1rem;
+	background: rgba(253, 248, 244, 0.9);
+	outline: 1.5px solid var(--hero-gold);
+	outline-offset: -8px;
+	box-shadow: 0 12px 36px rgba(70, 45, 10, 0.18);
+	text-align: center;
+}
+
+/* The logo as a round seal, half over the top of the arch. */
+.aimp-hero-seal {
+	position: absolute;
+	top: -2.4rem;
+	left: 50%;
+	width: 4.75rem;
+	height: 4.75rem;
+	padding: 0.45rem;
+	border-radius: 50%;
+	background: var(--hero-cream);
+	box-shadow: 0 0 0 1.5px var(--hero-gold), 0 4px 14px rgba(90, 61, 18, 0.25);
+	object-fit: contain;
+	transform: translateX(-50%);
+}
+
+.aimp-hero .aimp-hero-title {
+	margin: 0;
+	padding: 0;
+	color: var(--hero-brown);
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1.2;
+	text-wrap: balance;
+}
+
+.aimp-hero .aimp-hero-text {
+	margin: 0;
+	padding: 0;
+	color: var(--hero-brown);
+	font-size: 0.95rem;
+	line-height: 1.5;
+}
+
+.aimp-hero-buttons {
+	display: flex;
+	flex-direction: column;
+	gap: 0.55rem;
+	width: 100%;
+	margin-top: 0.4rem;
+}
+
+.aimp-hero .aimp-hero-button {
+	display: block;
+	padding: 0.75rem 1rem;
+	border: 1.5px solid var(--hero-gold);
+	border-radius: 100px;
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	line-height: 1.2;
+	text-align: center;
+	text-decoration: none;
+	transition: background 0.2s ease, color 0.2s ease;
+}
+
+.aimp-hero .aimp-hero-button.is-primary {
+	background: var(--hero-gold);
+	color: #fff;
+}
+
+.aimp-hero .aimp-hero-button.is-outline {
+	background: transparent;
+	color: var(--hero-brown);
+}
+
+.aimp-hero .aimp-hero-button.is-primary:hover,
+.aimp-hero .aimp-hero-button.is-primary:focus-visible {
+	background: var(--hero-brown);
+	border-color: var(--hero-brown);
+}
+
+.aimp-hero .aimp-hero-button.is-outline:hover,
+.aimp-hero .aimp-hero-button.is-outline:focus-visible {
+	background: var(--hero-gold);
+	color: #fff;
+}
+
+.aimp-hero .aimp-hero-button:focus-visible,
+.aimp-hero-arrow:focus-visible {
+	outline: 2px solid var(--hero-brown);
+	outline-offset: 3px;
+}
+
+/* The arrow to the next section. */
+.aimp-hero-arrow {
+	position: absolute;
+	bottom: 1.25rem;
+	left: 50%;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	width: 2.9rem;
+	height: 2.9rem;
+	margin: 0 0 0 -1.45rem;
+	padding: 0;
+	border: 1.5px solid var(--hero-line);
+	border-radius: 50%;
+	background: rgba(179, 143, 79, 0.45);
+	color: var(--hero-line);
+	cursor: pointer;
+	animation: aimp-hero-bounce 1.8s ease-in-out infinite;
+	transition: background 0.2s ease;
+}
+
+.aimp-hero-arrow:hover {
+	background: var(--hero-gold);
+	color: #fff;
+}
+
+@keyframes aimp-hero-bounce {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(8px); }
+}
+
+/* Phones: the arch at the top in the middle, the subject below it; a portrait picture if one is set. */
+@media (max-width: 700px) {
+	.aimp-hero {
+		align-items: flex-start;
+		padding: 3.4rem 0 5rem;
+		background-image: var(--aimp-hero-img-phone, var(--aimp-hero-img, none));
+		background-position: var(--aimp-hero-focus, 50% 40%);
+	}
+
+	.aimp-hero::before {
+		background: linear-gradient(180deg, rgb(150, 112, 52), rgba(179, 143, 79, 0.85) 60%, rgba(179, 143, 79, 0.72));
+	}
+
+	.aimp-hero-arch {
+		width: 17.25rem;
+		margin: 0 auto;
+		padding: 3.1rem 1.4rem 1.3rem;
+		border-radius: 8.6rem 8.6rem 1rem 1rem;
+	}
+
+	.aimp-hero-seal {
+		top: -2rem;
+		width: 4rem;
+		height: 4rem;
+	}
+
+	.aimp-hero .aimp-hero-title {
+		font-size: 1.3rem;
+	}
+
+	.aimp-hero .aimp-hero-text {
+		font-size: 0.9rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-hero-arrow {
+		animation: none;
+	}
+}
