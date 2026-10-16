@@ -1597,11 +1597,16 @@
 	}
 }
 
-/* Phones and tablets: the chosen fabric or haberdashery product opens as a sheet (configurator.js); the step
- * itself shows only the products, full width. */
+/* Phones and tablets: the chosen pattern (with its sizes and size chart), fabric or haberdashery product opens as
+ * a sheet (configurator.js); the step itself shows only the products, full width. */
 @media (max-width: 999px) {
-	.aimp-configurator :is(.aimp-step--fabric, .aimp-step--notions) .aimp-split > .aimp-split-side {
+	.aimp-configurator :is(.aimp-step--pattern, .aimp-step--fabric, .aimp-step--notions) .aimp-split > .aimp-split-side,
+	.aimp-configurator .aimp-step--pattern > [data-role="size-chart"] {
 		display: none;
+	}
+
+	.aimp-configurator .aimp-step--pattern .aimp-split {
+		grid-template-columns: minmax(0, 1fr);
 	}
 
 	.aimp-configurator:not(.aimp-shop) .aimp-step--fabric .aimp-shop-content.aimp-split,
@@ -1614,4 +1619,27 @@
 	position: static;
 	padding: 0;
 	border: 0;
+}
+
+/* The size chart in the pattern's sheet: under the sizes, a little tighter. */
+.aimp-config-sheet .aimp-size-chart-box {
+	margin-top: 1rem;
+	padding: 0.9rem 1rem 1rem;
+}
+
+/* Phones: the chosen size's card in the chart is all gold, its text white. */
+@media (max-width: 600px) {
+	.aimp-configurator table.aimp-size-chart tbody tr.is-selected {
+		border-color: var(--aimp-gold);
+		background: var(--aimp-gold);
+	}
+
+	.aimp-configurator table.aimp-size-chart tbody tr.is-selected :is(th, td) {
+		background: transparent;
+		color: #fff;
+	}
+
+	.aimp-configurator table.aimp-size-chart tbody tr.is-selected :is(th, td)[data-label]:not(:first-child)::before {
+		color: rgba(255, 255, 255, 0.85);
+	}
 }

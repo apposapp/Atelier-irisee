@@ -180,7 +180,7 @@
 				self.renderPatternGrid();
 				self.renderSizePanel();
 				self.renderSteps();
-				scrollIntoViewIfNeeded(self.body.querySelector('[data-role="size-panel"]'));
+				self.showPanel(self.findPanel('size-panel'));
 			})
 			.catch(function () {});
 	};
@@ -740,6 +740,10 @@
 		var self = this;
 		var s = this.state;
 		if (s.pattern && s.pattern.id === item.id) {
+			// Phones and tablets: tapping the chosen pattern again opens its sheet again.
+			if (this.isSheetMode()) {
+				this.showPanel(this.findPanel('size-panel'));
+			}
 			return;
 		}
 		s.pattern = item;
@@ -750,7 +754,8 @@
 		this.renderPatternGrid();
 		this.renderSizePanel();
 		this.renderSteps();
-		scrollIntoViewIfNeeded(this.body.querySelector('[data-role="size-panel"]'));
+		// Phones and tablets: the pattern, its sizes and the size chart in a sheet (like the fabrics).
+		this.showPanel(this.findPanel('size-panel'));
 
 		var reqLang = lang;
 		request('sizes', { pattern: item.id })
@@ -762,7 +767,7 @@
 				self.renderSizePanel();
 			})
 			.catch(function (err) {
-				var panel = self.body.querySelector('[data-role="size-panel"]');
+				var panel = self.findPanel('size-panel');
 				if (panel) {
 					self.showError(panel, err);
 				}
@@ -801,7 +806,7 @@
 	Configurator.prototype.renderSizePanel = function () {
 		var self = this;
 		var s = this.state;
-		var panel = this.body.querySelector('[data-role="size-panel"]');
+		var panel = this.findPanel('size-panel');
 		if (!panel) {
 			return;
 		}
@@ -852,6 +857,10 @@
 			html += '<p class="aimp-needs-title">' + esc(t.needs) + ':</p>' + this.needsHtml(size);
 			html += '<p class="aimp-size-price">' + size.price_html + '</p>';
 		}
+		// Phones and tablets: the size chart in the sheet too, under the sizes.
+		if (this.isSheetMode()) {
+			html += '<section class="aimp-size-chart-box" data-role="size-chart-in" hidden></section>';
+		}
 
 		html +=
 			'<div class="aimp-actions">' +
@@ -859,6 +868,7 @@
 			'</div>';
 		html += '</div>';
 		panel.innerHTML = html;
+		this.renderSizeChart();
 
 		this.bindGallery(panel, pattern.gallery, function (i) {
 			s.patternImage = i;
@@ -888,6 +898,7 @@
 		});
 		panel.querySelector('[data-action="confirm"]').addEventListener('click', function () {
 			if (s.size) {
+				self.closeSheet(true);
 				self.next();
 			}
 		});
@@ -908,7 +919,9 @@
 		// The page stays where it is (phones and tablets jumped up): keep the panel's height while it is rebuilt
 		// and its picture loads, and put the scroll position back.
 		var y = window.pageYOffset;
-		var panel = this.body.querySelector('[data-role="size-panel"]');
+		var panel = this.findPanel('size-panel');
+		var sheetBody = this.sheet && !this.sheet.hidden ? this.sheet.querySelector('.aimp-sheet-body') : null;
+		var sheetY = sheetBody ? sheetBody.scrollTop : 0;
 		if (panel) {
 			panel.style.minHeight = panel.offsetHeight + 'px';
 		}
@@ -916,6 +929,9 @@
 		this.renderSizePanel();
 		this.renderSteps();
 		window.scrollTo(window.pageXOffset, y);
+		if (sheetBody) {
+			sheetBody.scrollTop = sheetY;
+		}
 		if (panel) {
 			var release = function () {
 				panel.style.minHeight = '';
@@ -935,7 +951,15 @@
 	Configurator.prototype.renderSizeChart = function () {
 		var self = this;
 		var s = this.state;
-		var box = this.body.querySelector('[data-role="size-chart"]');
+		// Phones and tablets: in the sheet, under the sizes (the box under the patterns stays empty).
+		var page = this.body.querySelector('[data-role="size-chart"]');
+		var panel = this.findPanel('size-panel');
+		var inner = panel ? panel.querySelector('[data-role="size-chart-in"]') : null;
+		var box = inner || page;
+		if (inner && page) {
+			page.hidden = true;
+			page.innerHTML = '';
+		}
 		if (!box) {
 			return;
 		}
@@ -957,13 +981,18 @@
 			html += '<th>' + esc(t[m[1]]) + '</th>';
 		});
 		html += '</tr></thead><tbody>';
-		sizes.forEach(function (sz) {
+		// In the sheet the chosen size comes first, so its measurements are right under the sizes.
+		var rows = inner && s.size ? [s.size].concat(sizes.filter(function (sz) {
+			return sz.id !== s.size.id;
+		})) : sizes;
+		rows.forEach(function (sz) {
 			var selected = s.size && s.size.id === sz.id;
 			html +=
 				'<tr data-size-row="' + esc(sz.id) + '" class="' + (selected ? 'is-selected' : '') + (sz.available ? ' is-clickable' : ' is-unavailable') + '">' +
 				'<th scope="row">' + esc(sz.label) + '</th>';
 			measures.forEach(function (m) {
-				html += '<td>' + measure(sz[m[0]]) + '</td>';
+				// The column name for the phone cards (the sheet is outside the configurator's table labelling).
+				html += '<td data-label="' + esc(t[m[1]]) + '">' + measure(sz[m[0]]) + '</td>';
 			});
 			html += '</tr>';
 		});
