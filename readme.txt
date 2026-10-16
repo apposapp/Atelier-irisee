@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.10.1
+Stable tag: 3.10.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.10.2 =
+* Customizer on phones and tablets: a chosen pattern opens in a sheet from the bottom (like the fabrics) with its picture, sizes, needs, price, size chart and "Confirm"; tapping the pattern again reopens it.
+* Size chart: the chosen size is a gold row with white text; on phones it moves to the top of the chart.
 
 = 3.10.1 =
 * Kit steps bar on phones: the seam runs around the cards (with small loops in the gaps) instead of over their texts. The seam is measured again once the fonts have loaded.
