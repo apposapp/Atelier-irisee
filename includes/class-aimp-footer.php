@@ -636,16 +636,23 @@ class AIMP_Footer {
 	 * ?wc-ajax=aimp_newsletter_status: none, pending or confirmed for this visitor.
 	 */
 	public static function ajax_status() {
+		wp_send_json_success( self::status_data() );
+	}
+
+	/**
+	 * This visitor's newsletter state and its message (also used by AIMP_Boot).
+	 *
+	 * @return array [ state, message ]
+	 */
+	public static function status_data() {
 		$id    = self::current_subscriber();
 		$state = $id ? self::status( $id ) : 'none';
 		if ( $id && empty( $_COOKIE[ self::COOKIE ] ) ) {
 			self::set_cookie( self::token( $id ) );
 		}
-		wp_send_json_success(
-			array(
-				'state'   => $state,
-				'message' => 'none' === $state ? '' : self::state_message( $state ),
-			)
+		return array(
+			'state'   => $state,
+			'message' => 'none' === $state ? '' : self::state_message( $state ),
 		);
 	}
 

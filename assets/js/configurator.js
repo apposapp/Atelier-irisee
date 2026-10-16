@@ -115,6 +115,42 @@
 		return UI.request(cfg.endpoint, action, data, lang, t.error);
 	}
 
+	// The next step's lists are asked for in the background while the customer is still choosing; the step then
+	// uses that answer instead of asking again.
+	var prefetched = {};
+
+	function prefetch(action, params) {
+		var key = action + lang + JSON.stringify(params);
+		if (!prefetched[key]) {
+			prefetched[key] = request(action, params);
+			prefetched[key].catch(function () {
+				delete prefetched[key];
+			});
+		}
+	}
+
+	function fetchOnce(action, params) {
+		var key = action + lang + JSON.stringify(params);
+		var ready = prefetched[key];
+		delete prefetched[key];
+		return ready || request(action, params);
+	}
+
+	// Adding to the cart and saving need a security code; a page from the cache (LiteSpeed) can have an expired one:
+	// then a fresh code is fetched and the request is sent once more.
+	function secureRequest(action, params) {
+		return request(action, params).catch(function (err) {
+			if (err.status !== 403) {
+				throw err;
+			}
+			return request('nonces', {}).then(function (fresh) {
+				cfg.nonce = fresh.configurator;
+				params.nonce = cfg.nonce;
+				return request(action, params);
+			});
+		});
+	}
+
 	var scrollIntoViewIfNeeded = UI.scrollIntoViewIfNeeded;
 
 	// Title of a details panel (the favorite heart sits on the picture, see galleryHtml).
@@ -1038,6 +1074,9 @@
 		this.renderSizePanel();
 		this.renderSteps();
 		window.scrollTo(window.pageXOffset, y);
+		if (chosen.fabric_units > 0) {
+			prefetch('fabrics', this.fabricParams());
+		}
 		if (sheetBody) {
 			sheetBody.scrollTop = sheetY;
 		}
@@ -1160,6 +1199,12 @@
 		var self = this;
 		var s = this.state;
 		var f = s.fabricFilters;
+		// The haberdashery lists of the next step in the background.
+		this.notionTypes().forEach(function (type) {
+			if (!s.notions[type].data) {
+				prefetch('notions', { variation: s.size.id, type: type, page: s.notions[type].page });
+			}
+		});
 		var sorts = [
 			['recommended', t.sortRecommended],
 			['name_asc', t.sortNameAsc],
@@ -1322,11 +1367,10 @@
 		});
 	};
 
-	Configurator.prototype.loadFabrics = function () {
-		var self = this;
+	Configurator.prototype.fabricParams = function () {
 		var s = this.state;
 		var f = s.fabricFilters;
-		var params = {
+		return {
 			variation: s.size.id,
 			page: s.fabricPage,
 			category: f.category.join(','),
@@ -1334,11 +1378,17 @@
 			in_stock: f.inStock ? 1 : 0,
 			sort: f.sort
 		};
+	};
+
+	Configurator.prototype.loadFabrics = function () {
+		var self = this;
+		var s = this.state;
+		var params = this.fabricParams();
 		var key = lang + JSON.stringify(params);
 		this.fabricRequestKey = key;
 		s.fabrics = null;
 		this.renderFabricGrid();
-		request('fabrics', params)
+		fetchOnce('fabrics', params)
 			.then(function (data) {
 				if (self.fabricRequestKey !== key) {
 					return;
@@ -1489,7 +1539,7 @@
 		var reqLang = lang;
 		bucket.data = null;
 		this.renderNotionGrid(type);
-		request('notions', { variation: sizeId, type: type, page: page })
+		fetchOnce('notions', { variation: sizeId, type: type, page: page })
 			.then(function (data) {
 				if (!s.size || s.size.id !== sizeId || s.notions[type].page !== page || lang !== reqLang) {
 					return;
@@ -1671,7 +1721,7 @@
 		});
 		button.disabled = true;
 		button.textContent = t.saving;
-		request('save_kit', params)
+		secureRequest('save_kit', params)
 			.then(function (data) {
 				button.hidden = true;
 				box.innerHTML =
@@ -1754,7 +1804,7 @@
 			params[n.role] = n.qty(s.size) > 0 && selected ? selected.id : 0;
 		});
 
-		request('add_to_cart', params)
+		secureRequest('add_to_cart', params)
 			.then(function (data) {
 				s.added = true;
 				button.hidden = true;

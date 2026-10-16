@@ -488,3 +488,44 @@
 		boot();
 	}
 })();
+
+/**
+ * A pattern's "Add to cart" on a page from the cache (LiteSpeed): the page can be days old and its security code
+ * expired, so a fresh one is fetched first when the page is older than 10 hours.
+ */
+(function () {
+	'use strict';
+
+	document.addEventListener('submit', function (e) {
+		var form = e.target;
+		if (!form.classList || !form.classList.contains('aimp-buy-form') || form.aimpFreshNonce) {
+			return;
+		}
+		var field = form.querySelector('input[name="aimp_pattern_nonce"]');
+		var rendered = parseInt(form.getAttribute('data-rendered'), 10) || 0;
+		if (!field || !window.fetch || Date.now() / 1000 - rendered < 36000) {
+			return;
+		}
+		e.preventDefault();
+		e.stopPropagation();
+		var send = function () {
+			form.aimpFreshNonce = true;
+			if (form.requestSubmit) {
+				form.requestSubmit();
+			} else {
+				form.submit();
+			}
+		};
+		fetch(form.getAttribute('data-nonces'), { method: 'POST', credentials: 'same-origin' })
+			.then(function (response) {
+				return response.json();
+			})
+			.then(function (json) {
+				if (json && json.success && json.data.add_pattern) {
+					field.value = json.data.add_pattern;
+				}
+			})
+			.catch(function () {})
+			.then(send);
+	}, true);
+})();

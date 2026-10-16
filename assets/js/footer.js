@@ -178,7 +178,10 @@
 		if (!hasCookie && !document.body.classList.contains('logged-in')) {
 			return;
 		}
-		post(cfg.status, {})
+		// With the other visitor data in one request (aimpBoot, class-aimp-boot.php) where available.
+		(window.aimpBoot ? window.aimpBoot().then(function (data) {
+			return data && data.newsletter ? { success: true, data: data.newsletter } : null;
+		}) : post(cfg.status, {}))
 			.then(function (json) {
 				if (json && json.success) {
 					remember(json.data.state, json.data.message || '');

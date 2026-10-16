@@ -148,7 +148,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 					<div class="aimp-buy-controls">
 						<?php if ( $aimp_buy['available'] ) : ?>
 							<?php if ( ! $aimp_giftcard ) : ?>
-								<form class="aimp-buy-form" id="<?php echo esc_attr( $aimp_form_id ); ?>" action="<?php echo esc_url( $the_product->get_permalink() ); ?>" method="post">
+								<form class="aimp-buy-form" id="<?php echo esc_attr( $aimp_form_id ); ?>" data-rendered="<?php echo esc_attr( (string) time() ); ?>" data-nonces="<?php echo esc_url( WC_AJAX::get_endpoint( 'aimp_nonces' ) ); ?>" action="<?php echo esc_url( $the_product->get_permalink() ); ?>" method="post">
 							<?php endif; ?>
 							<div class="aimp-stepper">
 								<?php if ( $aimp_giftcard ) : ?>

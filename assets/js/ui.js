@@ -144,6 +144,7 @@
 	 */
 	function request(endpoint, action, data, lang, errorText) {
 		var body = new URLSearchParams();
+		var status = 0;
 		Object.keys(data || {}).forEach(function (key) {
 			body.append(key, data[key]);
 		});
@@ -155,6 +156,7 @@
 			body: body.toString()
 		})
 			.then(function (response) {
+				status = response.status;
 				return response.json().catch(function () {
 					return null;
 				});
@@ -164,6 +166,7 @@
 					var errors = (json && json.data && json.data.errors) || [errorText];
 					var error = new Error(errors.join(' '));
 					error.errors = errors;
+					error.status = status;
 					throw error;
 				}
 				return json.data;

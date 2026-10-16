@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.12.2
+Stable tag: 3.13.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.13.0 =
+* Speed: shop pages bring their first products along (no wait for a second request); visitors without an account, cart or newsletter subscription start without any extra request (favourites from their cookie); logged-in customers and visitors with a cart get cart number, favourites and newsletter state in one request instead of three; WooCommerce's cart fragments request is no longer loaded on every page.
+* Speed: the customizer remembers pattern lists and pattern details (refreshed on every product, stock or settings change) and loads the fabrics and haberdashery of the next step in the background.
+* Page cache (LiteSpeed): adding a kit to the cart, saving a kit and adding a pattern keep working on pages from the cache (a fresh security code is fetched when needed); the cart number is always up to date.
+* The plugin's scripts load with "defer".
 
 = 3.12.2 =
 * My orders: in the order details the product name sits beside its picture, and the order number, date and status are gold instead of marked in yellow.

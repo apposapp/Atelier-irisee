@@ -65,7 +65,31 @@
 			});
 	}
 
+	// Guests keep their favourites in a cookie: read it here, no request. Logged-in customers get them with the
+	// other visitor data in one request (aimpBoot, class-aimp-boot.php).
+	function fromCookie() {
+		var match = document.cookie.match(/(?:^|;\s*)aimp_favorites=([^;]*)/);
+		var list = [];
+		try {
+			list = match ? decodeURIComponent(match[1].replace(/\+/g, ' ')).split(',') : [];
+		} catch (e) {}
+		return list.map(function (id) {
+			return parseInt(id, 10) || 0;
+		}).filter(Boolean);
+	}
+
 	function load() {
+		if (!loading && !cfg.nonce) {
+			ids = fromCookie();
+			loading = Promise.resolve(ids);
+		} else if (!loading && window.aimpBoot) {
+			loading = window.aimpBoot().then(function (data) {
+				ids = data && data.favorites ? data.favorites.map(function (id) {
+					return parseInt(id, 10) || 0;
+				}) : [];
+				return ids;
+			});
+		}
 		if (!loading) {
 			loading = request('favorites', {})
 				.then(function (data) {

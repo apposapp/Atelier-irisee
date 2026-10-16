@@ -74,6 +74,12 @@
 		if (syncUrl) {
 			this.readUrl();
 		}
+		// The first page of products, sent with the page (class-aimp-shop.php): no request for a first visit.
+		this.initial = null;
+		try {
+			this.initial = JSON.parse(root.getAttribute('data-initial') || 'null');
+		} catch (e) {}
+		root.removeAttribute('data-initial');
 		this.build();
 		UI.watchLayout(root);
 		this.load(true);
@@ -706,7 +712,11 @@
 		s.data = null;
 		this.renderGrid();
 
-		UI.request(cfg.endpoint, 'shop', params, lang, t.error)
+		// A first visit without filters: the products that came with the page.
+		var initial = this.initial;
+		this.initial = null;
+		var fromPage = initial && withFacets && initial.lang === lang && !this.activeCount() && s.page === 1 && f.sort === 'recommended';
+		(fromPage ? Promise.resolve(initial) : UI.request(cfg.endpoint, 'shop', params, lang, t.error))
 			.then(function (data) {
 				if (self.requestKey !== key) {
 					return;

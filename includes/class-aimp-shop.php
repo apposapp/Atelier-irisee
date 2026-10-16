@@ -33,7 +33,9 @@ class AIMP_Shop {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
 		add_action( 'wc_ajax_aimp_shop', array( __CLASS__, 'ajax' ) );
 
-		foreach ( array( 'save_post_product', 'woocommerce_update_product', 'woocommerce_new_product', 'woocommerce_delete_product', 'woocommerce_trash_product' ) as $hook ) {
+		// Product, stock and settings changes start a new cache version (shop filters, the first page of products in
+		// the page, and the customizer's pattern data).
+		foreach ( array( 'save_post_product', 'woocommerce_update_product', 'woocommerce_new_product', 'woocommerce_delete_product', 'woocommerce_trash_product', 'woocommerce_product_set_stock', 'woocommerce_variation_set_stock', 'woocommerce_product_set_stock_status', 'woocommerce_variation_set_stock_status', 'update_option_' . AIMP_Settings::OPTION ) as $hook ) {
 			add_action( $hook, array( __CLASS__, 'flush_cache' ) );
 		}
 		foreach ( array( 'created_term', 'edited_term', 'delete_term' ) as $hook ) {
@@ -288,9 +290,40 @@ class AIMP_Shop {
 		}
 
 		self::enqueue();
-		return '<div class="aimp-configurator aimp-shop" data-aimp-shop data-type="' . esc_attr( $type ) . '"><noscript>' .
+		// The first page of products (with the filter options) comes with the page, so the grid shows at once; the
+		// script only asks the server again when the visitor filters, sorts or pages.
+		$initial = '';
+		if ( ! self::has_filters_in_url() ) {
+			$data            = self::query( self::default_args( $type ) );
+			$data['facets']  = self::facets( $type );
+			$data['lang']    = AIMP_I18n::current();
+			$initial         = ' data-initial="' . esc_attr( wp_json_encode( $data ) ) . '"';
+		}
+		return '<div class="aimp-configurator aimp-shop" data-aimp-shop data-type="' . esc_attr( $type ) . '"' . $initial . '><noscript>' .
 			esc_html__( 'Please enable JavaScript to browse the products.', 'atelier-irisee-master-plugin' ) .
 			'</noscript></div>';
+	}
+
+	/**
+	 * The arguments of a shop page without filters (as read_args() gives them for a first visit).
+	 *
+	 * @param string $type Page type.
+	 * @return array
+	 */
+	private static function default_args( $type ) {
+		return array(
+			'type'     => $type,
+			'category' => array(),
+			'search'   => '',
+			'min'      => null,
+			'max'      => null,
+			'in_stock' => false,
+			'sort'     => 'recommended',
+			'page'     => 1,
+			'attrs'    => array(),
+			'skills'   => array(),
+			'buttons'  => array(),
+		);
 	}
 
 	private static function has_filters_in_url() {

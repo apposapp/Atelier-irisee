@@ -43,12 +43,50 @@ class AIMP_Ajax {
 		wp_send_json_error( array( 'errors' => array( __( 'This item is not available.', 'atelier-irisee-master-plugin' ) ) ), 404 );
 	}
 
+	/**
+	 * A stored answer for the same question in the same language, made with the current catalog (AIMP_Shop's cache
+	 * version changes with every product, stock or settings change). Kept for 12 hours.
+	 *
+	 * @param string   $what  Endpoint.
+	 * @param array    $args  Its arguments.
+	 * @param callable $build Makes the answer (null = not found, not stored).
+	 * @return mixed
+	 */
+	private static function cached( $what, $args, $build ) {
+		$key  = 'aimp_cfg_' . md5( $what . wp_json_encode( $args ) . AIMP_I18n::current() . AIMP_Shop::cache_version() );
+		$data = get_transient( $key );
+		if ( false === $data ) {
+			$data = call_user_func( $build );
+			if ( null !== $data ) {
+				set_transient( $key, $data, 12 * HOUR_IN_SECONDS );
+			}
+		}
+		return $data;
+	}
+
 	public static function patterns() {
-		wp_send_json_success( AIMP_Catalog::get_patterns( self::int_list_param( 'category' ), max( 1, self::int_param( 'page' ) ) ) );
+		$category = self::int_list_param( 'category' );
+		$page     = max( 1, self::int_param( 'page' ) );
+		wp_send_json_success(
+			self::cached(
+				'patterns',
+				array( $category, $page ),
+				function () use ( $category, $page ) {
+					return AIMP_Catalog::get_patterns( $category, $page );
+				}
+			)
+		);
 	}
 
 	public static function sizes() {
-		$data = AIMP_Catalog::get_sizes( self::int_param( 'pattern' ) );
+		$id   = self::int_param( 'pattern' );
+		$data = self::cached(
+			'sizes',
+			array( $id ),
+			function () use ( $id ) {
+				return AIMP_Catalog::get_sizes( $id );
+			}
+		);
 		if ( null === $data ) {
 			self::not_found();
 		}

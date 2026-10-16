@@ -318,6 +318,36 @@
 		});
 	}
 
+	/*
+	 * The cart number: from aimpBoot() (class-aimp-boot.php) once the page is there (cached pages can show an old
+	 * number), and again after something was added to the cart.
+	 */
+	function setupCartCount() {
+		if (!window.aimpBoot) {
+			return;
+		}
+		var apply = function (data) {
+			if (!data || !data.cart || typeof data.cart.badge !== 'string') {
+				return;
+			}
+			document.querySelectorAll('span.aimp-header-cart-count').forEach(function (badge) {
+				var fresh = document.createElement('div');
+				fresh.innerHTML = data.cart.badge;
+				if (fresh.firstElementChild) {
+					badge.parentNode.replaceChild(fresh.firstElementChild, badge);
+				}
+			});
+		};
+		var refresh = function () {
+			window.aimpBoot(true).then(apply);
+		};
+		window.aimpBoot().then(apply);
+		document.body.addEventListener('wc-blocks_added_to_cart', refresh);
+		if (window.jQuery) {
+			window.jQuery(document.body).on('wc_fragment_refresh added_to_cart removed_from_cart', refresh);
+		}
+	}
+
 	function boot() {
 		document.querySelectorAll('[data-aimp-header]').forEach(function (header) {
 			if (!header.aimpReady) {
@@ -329,6 +359,10 @@
 				setupLanguages(header);
 			}
 		});
+		if (!window.aimpCartCount) {
+			window.aimpCartCount = true;
+			setupCartCount();
+		}
 	}
 
 	if (document.readyState === 'loading') {

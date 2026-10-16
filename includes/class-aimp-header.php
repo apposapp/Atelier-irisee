@@ -125,7 +125,7 @@ class AIMP_Header {
 	 * @param int $count Number.
 	 * @return string
 	 */
-	private static function cart_badge( $count ) {
+	public static function cart_badge( $count ) {
 		return '<span class="aimp-header-count aimp-header-cart-count"' . ( $count ? '' : ' hidden' ) . '>' . (int) $count . '</span>';
 	}
 
@@ -281,9 +281,8 @@ class AIMP_Header {
 		wp_enqueue_script( 'aimp-header' );
 		wp_enqueue_script( 'aimp-search' );
 		wp_localize_script( 'aimp-search', 'aimpSearch', AIMP_Search::config() );
-		if ( wp_script_is( 'wc-cart-fragments', 'registered' ) ) {
-			wp_enqueue_script( 'wc-cart-fragments' );
-		}
+		// The cart number comes from aimpBoot() (class-aimp-boot.php), not from WooCommerce's cart fragments, which
+		// cost a request on every page.
 
 		$favorites = AIMP_Settings::get( 'favorites_page' );
 		$data      = array(
