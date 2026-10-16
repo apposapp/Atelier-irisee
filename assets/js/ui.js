@@ -308,6 +308,12 @@
 					'</button>';
 			});
 			html += '</div>';
+			// Phones: dots under the picture instead of the thumbnails (configurator.css), and swipe (bindGallery).
+			html += '<div class="aimp-gallery-dots">';
+			images.forEach(function (image, i) {
+				html += '<button type="button" class="aimp-gallery-dot' + (image === current ? ' is-active' : '') + '" data-index="' + i + '" aria-label="' + esc(fmt(t.showPicture, i + 1)) + '"></button>';
+			});
+			html += '</div>';
 		}
 		return html + '</div>';
 	}
@@ -319,6 +325,12 @@
 			return function () {};
 		}
 		var main = gallery.querySelector('.aimp-gallery-main img');
+		var currentIndex = 0;
+		gallery.querySelectorAll('.aimp-thumb').forEach(function (thumb) {
+			if (thumb.classList.contains('is-active')) {
+				currentIndex = parseInt(thumb.getAttribute('data-index'), 10) || 0;
+			}
+		});
 		var show = function (i) {
 			var image = images[i];
 			if (!image) {
@@ -331,15 +343,40 @@
 				other.classList.toggle('is-active', active);
 				other.setAttribute('aria-pressed', active ? 'true' : 'false');
 			});
+			gallery.querySelectorAll('.aimp-gallery-dot').forEach(function (dot) {
+				dot.classList.toggle('is-active', parseInt(dot.getAttribute('data-index'), 10) === i);
+			});
+			currentIndex = i;
 			if (onChange) {
 				onChange(i);
 			}
 		};
-		gallery.querySelectorAll('.aimp-thumb').forEach(function (thumb) {
+		gallery.querySelectorAll('.aimp-thumb, .aimp-gallery-dot').forEach(function (thumb) {
 			thumb.addEventListener('click', function () {
 				show(parseInt(thumb.getAttribute('data-index'), 10));
 			});
 		});
+		// Swipe left or right on the picture.
+		var box = gallery.querySelector('.aimp-gallery-main');
+		if (box && images.length > 1) {
+			var startX = null;
+			var startY = 0;
+			box.addEventListener('touchstart', function (e) {
+				startX = e.touches[0].clientX;
+				startY = e.touches[0].clientY;
+			}, { passive: true });
+			box.addEventListener('touchend', function (e) {
+				if (startX === null) {
+					return;
+				}
+				var dx = e.changedTouches[0].clientX - startX;
+				var dy = e.changedTouches[0].clientY - startY;
+				startX = null;
+				if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+					show((currentIndex + (dx < 0 ? 1 : images.length - 1)) % images.length);
+				}
+			}, { passive: true });
+		}
 		return show;
 	}
 

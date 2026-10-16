@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.8.2
+Stable tag: 3.8.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.8.3 =
+* Customizer, phones: after choosing a pattern the sizes sit right under the picture; the pictures show as dots (swipe to browse) and the description is folded with "Read more".
+* Customizer, phones and tablets: a chosen fabric or haberdashery product opens in a sheet from the bottom, with "Confirm fabric" always in view.
+* Shop, phones: products show as a grid of two photos per row.
+* Tablets held upright get the tab bar and the slim header too.
+* Kit steps bar: a new fabric drawing (pinked swatch, folded fabrics, tape measure), a zip with a common pull tab, loops of different sizes and heights, and the needle now sews all the way to the button, which sparkles. The button reads "Start making your project sewing kit".
 
 = 3.8.2 =
 * Shop pages: "Add to cart" in the product details (the panel or sheet) works again. It shared its address with the customizer and was refused as an expired session.

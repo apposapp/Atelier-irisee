@@ -1419,7 +1419,6 @@ return array(
 	'Roll of %s' => 'Rouleau de %s',
 	'Shown on the product page under "Description". The pictures are set on the right: Product image and Product gallery.' => 'Affiché sur la page du produit sous « Description ». Les photos se règlent à droite : Image produit et Galerie produit.',
 	'Specifications: %s' => 'Caractéristiques : %s',
-	'Start your kit' => 'Commencez votre kit',
 	'Switch it on on the Atelier Irisee tab (Haberdashery) to fill this in.' => 'Activez-le dans l\'onglet Atelier Irisee (Mercerie) pour le remplir.',
 	'Switch on what this pattern needs, with the diameter or width that fits (empty = any size). Each size then gets an amount field for it on the Variations tab, and the configurator only offers products of that type and size. Zips are matched on the length a size needs.' => 'Activez ce dont ce patron a besoin, avec le diamètre ou la largeur qui convient (vide = toute taille). Chaque taille reçoit alors un champ dans l\'onglet Variations, et le configurateur ne propose que des produits de ce type et de cette taille. Les fermetures sont choisies selon la longueur dont une taille a besoin.',
 	'The picture of the design\'s card in the configurator, shown first.' => 'La photo de la carte du modèle dans le configurateur, affichée en premier.',
@@ -1448,4 +1447,9 @@ return array(
 
 	// 3.8.2
 	'Basket' => 'Panier',
+
+	// 3.8.3
+	'Read more' => 'Lire la suite',
+	'Read less' => 'Réduire',
+	'Start making your project sewing kit' => 'Commencez votre kit de projet couture',
 );

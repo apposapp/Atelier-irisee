@@ -854,14 +854,14 @@ body.aimp-has-header .aimp-configurator .aimp-topbar:has(> .aimp-languages:only-
 }
 
 /* ------------------------------------------------------------------
- * Phones: an app-like tab bar at the bottom (Home, Shop, Customizer, Cart, Menu). The header keeps the logo,
+ * Phones and tablets (up to 900 px): an app-like tab bar at the bottom (Home, Shop, Customizer, Cart, Menu). The header keeps the logo,
  * search, favourites, account and language; Menu, Shop and Cart move to the tab bar.
  * ------------------------------------------------------------------ */
 .aimp-tabbar {
 	display: none;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
 	body:has(.aimp-tabbar) {
 		--aimp-tabbar-h: calc(60px + env(safe-area-inset-bottom, 0px));
 		padding-bottom: var(--aimp-tabbar-h);

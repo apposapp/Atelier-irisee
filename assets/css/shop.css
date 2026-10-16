@@ -1048,3 +1048,15 @@ html.aimp-sheet-open body {
 		bottom: var(--aimp-tabbar-h, 0px);
 	}
 }
+
+/* Phones: two photos per row; names and prices a little smaller so they wrap neatly. */
+@container aimp (max-width: 560px) {
+	.aimp-configurator.aimp-shop .aimp-grid:not(.aimp-overview-grid) {
+		gap: 0.75rem;
+	}
+
+	.aimp-configurator.aimp-shop .aimp-grid:not(.aimp-overview-grid) .aimp-card {
+		padding: 0.5rem 0.5rem 0.9rem;
+		font-size: 0.88rem;
+	}
+}

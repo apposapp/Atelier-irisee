@@ -40,12 +40,11 @@
 .aimp-kit-steps-thread,
 .aimp-kit-steps-sewing {
 	position: absolute;
-	top: 34%;
+	top: 0;
 	left: 0;
 	z-index: 2;
-	width: calc(100% - 11rem);
-	height: 120px;
-	transform: translateY(-50%);
+	width: 100%;
+	height: 100%;
 	overflow: visible;
 	pointer-events: none;
 }
@@ -189,13 +188,6 @@
 	width: 10rem;
 }
 
-.aimp-kit-steps-needle {
-	width: 4.5rem;
-	height: 2.25rem;
-	overflow: visible;
-	animation: ks-bob 3s ease-in-out infinite;
-}
-
 .aimp-kit-steps .aimp-kit-steps-button {
 	display: inline-block;
 	padding: 0.7rem 1.1rem;
@@ -230,27 +222,6 @@
 	transform-box: fill-box;
 	transform-origin: center;
 	animation: ks-snip 1.2s ease-in-out infinite;
-}
-
-.ks-cloth {
-	transform-box: fill-box;
-	transform-origin: left center;
-	animation: ks-unroll 6.5s ease-in-out infinite;
-}
-
-.ks-weave {
-	stroke-width: 1;
-	opacity: 0.5;
-}
-
-.ks-swatch {
-	transform-box: fill-box;
-	transform-origin: center;
-	animation: ks-fan 6.5s ease-in-out infinite;
-}
-
-.ks-swatch--2 {
-	animation-delay: 0.4s;
 }
 
 .ks-button {
@@ -299,25 +270,17 @@
 
 @keyframes ks-cut { to { stroke-dashoffset: -64; } }
 @keyframes ks-snip { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-12deg); } }
-@keyframes ks-unroll { 0%, 100% { transform: scaleX(0.35); } 40%, 70% { transform: scaleX(1); } }
-@keyframes ks-fan { 0%, 30%, 100% { opacity: 0; transform: translateY(6px) rotate(0); } 50%, 80% { opacity: 1; transform: translateY(0) rotate(-6deg); } }
 @keyframes ks-drop { 0% { opacity: 0; transform: translateY(-24px) rotate(-90deg); } 18%, 85% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 0; transform: translateY(0) rotate(0); } }
 @keyframes ks-zip { 0%, 100% { transform: translateY(-24px); } 50% { transform: translateY(24px); } }
 @keyframes ks-lid { 0%, 15% { transform: rotate(-35deg) translateY(-6px); } 45%, 100% { transform: rotate(0) translateY(0); } }
 @keyframes ks-bow { 0%, 45% { opacity: 0; transform: scale(0.2); } 60%, 100% { opacity: 1; transform: scale(1); } }
 @keyframes ks-twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1.15); } }
-@keyframes ks-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-5px) rotate(-6deg); } }
 @keyframes ks-wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -3deg; } 75% { rotate: 3deg; } }
 
 /* ------------------------------------------------------------------ tablet: same row, smaller */
 @media (max-width: 1024px) {
 	.aimp-kit-steps-cta {
 		width: 7.5rem;
-	}
-
-	.aimp-kit-steps-thread,
-	.aimp-kit-steps-sewing {
-		width: calc(100% - 8rem);
 	}
 
 	.aimp-kit-step {
@@ -346,8 +309,7 @@
 	.aimp-kit-steps-sewing {
 		top: 0;
 		width: 100%;
-		height: 56px;
-		transform: none;
+		height: 100%;
 	}
 
 	.aimp-kit-steps-list {
@@ -372,11 +334,6 @@
 		width: auto;
 		margin-top: 0.25rem;
 	}
-
-	.aimp-kit-steps-needle {
-		width: 3.4rem;
-		height: 1.7rem;
-	}
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -384,5 +341,143 @@
 	.aimp-kit-steps *::before {
 		animation: none !important;
 		transition: none !important;
+	}
+}
+
+/* ------------------------------------------------------------------ fabric card: a pinked swatch waving like
+   cloth, a flower print, folded fabrics and a tape measure */
+.ks-swatch-wave {
+	transform-box: fill-box;
+	transform-origin: 0% 0%;
+	animation: ks-flutter 3.2s ease-in-out infinite;
+}
+
+.ks-print circle {
+	fill: currentColor;
+	stroke: none;
+	opacity: 0.75;
+}
+
+.ks-print .ks-print-heart {
+	fill: #fff;
+	opacity: 1;
+}
+
+.ks-fold-line,
+.ks-tape-ticks {
+	stroke-width: 1.2;
+	opacity: 0.7;
+}
+
+.ks-tape {
+	transform-box: fill-box;
+	transform-origin: 90% 50%;
+	animation: ks-tape 6s ease-in-out infinite;
+}
+
+/* Zip: the pull tab swings as the slider moves. */
+.ks-pull {
+	transform-box: fill-box;
+	transform-origin: 50% 0%;
+	animation: ks-swing 1.4s ease-in-out infinite;
+}
+
+@keyframes ks-flutter {
+	0%, 100% { transform: rotate(0deg) skewY(0deg); }
+	30% { transform: rotate(-2deg) skewY(2.5deg); }
+	65% { transform: rotate(1.5deg) skewY(-2deg); }
+}
+
+@keyframes ks-tape {
+	0%, 100% { transform: rotate(0deg); }
+	50% { transform: rotate(-4deg); }
+}
+
+@keyframes ks-swing {
+	0%, 100% { transform: rotate(-12deg); }
+	50% { transform: rotate(12deg); }
+}
+
+/* ------------------------------------------------------------------ the button sparks when the needle arrives
+   (kit-steps.js adds .is-sparked) */
+.aimp-kit-steps .aimp-kit-steps-button {
+	position: relative;
+	isolation: isolate;
+}
+
+.aimp-kit-steps .aimp-kit-steps-button::before,
+.aimp-kit-steps .aimp-kit-steps-button::after {
+	position: absolute;
+	inset: -18px;
+	z-index: -1;
+	opacity: 0;
+	pointer-events: none;
+	content: "";
+}
+
+/* Little gold stars all around. */
+.aimp-kit-steps .aimp-kit-steps-button::before {
+	background:
+		radial-gradient(circle, var(--ks-gold) 0 2px, transparent 2.5px) 6% 20% / 12px 12px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 1.5px, transparent 2px) 30% 0% / 10px 10px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 2px, transparent 2.5px) 70% 4% / 12px 12px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 1.5px, transparent 2px) 96% 30% / 10px 10px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 2px, transparent 2.5px) 90% 92% / 12px 12px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 1.5px, transparent 2px) 55% 100% / 10px 10px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 2px, transparent 2.5px) 14% 96% / 12px 12px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 1.5px, transparent 2px) 0% 60% / 10px 10px no-repeat;
+}
+
+/* A soft gold glow. */
+.aimp-kit-steps .aimp-kit-steps-button::after {
+	inset: -6px;
+	border-radius: 100px;
+	box-shadow: 0 0 0 0 rgba(179, 143, 79, 0.55);
+}
+
+.aimp-kit-steps .aimp-kit-steps-button.is-sparked {
+	animation: ks-pop 0.9s ease-out;
+}
+
+.aimp-kit-steps .aimp-kit-steps-button.is-sparked::before {
+	animation: ks-sparks 0.9s ease-out;
+}
+
+.aimp-kit-steps .aimp-kit-steps-button.is-sparked::after {
+	animation: ks-glow 0.9s ease-out;
+}
+
+@keyframes ks-pop {
+	0% { transform: scale(1); }
+	30% { transform: scale(1.07); }
+	100% { transform: scale(1); }
+}
+
+@keyframes ks-sparks {
+	0% { opacity: 0; transform: scale(0.6) rotate(0deg); }
+	25% { opacity: 1; }
+	100% { opacity: 0; transform: scale(1.35) rotate(18deg); }
+}
+
+@keyframes ks-glow {
+	0% { opacity: 1; box-shadow: 0 0 0 0 rgba(179, 143, 79, 0.6); }
+	100% { opacity: 0; box-shadow: 0 0 0 16px rgba(179, 143, 79, 0); }
+}
+
+/* The CTA: a little wider for the longer text. */
+.aimp-kit-steps .aimp-kit-steps-cta {
+	width: 12rem;
+}
+
+@media (max-width: 1024px) {
+	.aimp-kit-steps .aimp-kit-steps-cta {
+		width: 9.5rem;
+	}
+}
+
+@media (max-width: 700px) {
+	.aimp-kit-steps .aimp-kit-steps-cta {
+		width: auto;
+		margin-top: 1.4rem;
 	}
 }

@@ -1419,7 +1419,6 @@ return array(
 	'Roll of %s' => 'Rol van %s',
 	'Shown on the product page under "Description". The pictures are set on the right: Product image and Product gallery.' => 'Getoond op de productpagina onder "Beschrijving". De foto\'s stel je rechts in: Productafbeelding en Productgalerij.',
 	'Specifications: %s' => 'Specificaties: %s',
-	'Start your kit' => 'Start je pakket',
 	'Switch it on on the Atelier Irisee tab (Haberdashery) to fill this in.' => 'Zet het aan op het tabblad Atelier Irisee (Fournituren) om dit in te vullen.',
 	'Switch on what this pattern needs, with the diameter or width that fits (empty = any size). Each size then gets an amount field for it on the Variations tab, and the configurator only offers products of that type and size. Zips are matched on the length a size needs.' => 'Zet aan wat dit patroon nodig heeft, met de diameter of breedte die past (leeg = elke maat). Elke maat krijgt er dan een veld voor op het tabblad Variaties, en de configurator biedt alleen producten van dat soort en die maat aan. Ritsen worden gekozen op de lengte die een maat nodig heeft.',
 	'The picture of the design\'s card in the configurator, shown first.' => 'De foto van de kaart van het ontwerp in de configurator, als eerste getoond.',
@@ -1448,4 +1447,9 @@ return array(
 
 	// 3.8.2
 	'Basket' => 'Mandje',
+
+	// 3.8.3
+	'Read more' => 'Lees meer',
+	'Read less' => 'Lees minder',
+	'Start making your project sewing kit' => 'Begin aan je eigen naaiprojectpakket',
 );

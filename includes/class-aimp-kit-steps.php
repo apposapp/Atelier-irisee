@@ -52,16 +52,22 @@ class AIMP_Kit_Steps {
 			'pattern' => '<path class="ks-paper" d="M28 10h48l16 16v58H28z"/><path class="ks-paper" d="M76 10v16h16"/>' .
 				'<path class="ks-cut" d="M52 26l-6 6 4 10-10 34h40L70 42l4-10-6-6c-2 4-5 6-8 6s-6-2-8-6z"/>' .
 				'<g class="ks-scissors"><circle cx="98" cy="72" r="4"/><circle cx="98" cy="84" r="4"/><path d="M101 74l14-10M101 82l14 10"/></g>',
-			// A fabric roll that unrolls, with two swatches.
-			'fabric'  => '<g class="ks-cloth"><path d="M34 22h66v40H34"/><path d="M48 22v40M62 22v40M76 22v40M90 22v40" class="ks-weave"/></g>' .
-				'<ellipse class="ks-roll" cx="30" cy="42" rx="9" ry="22"/><ellipse class="ks-roll" cx="30" cy="42" rx="3" ry="8"/>' .
-				'<g class="ks-swatch ks-swatch--1"><rect x="62" y="68" width="18" height="14" rx="2"/></g><g class="ks-swatch ks-swatch--2"><rect x="84" y="68" width="18" height="14" rx="2"/></g>',
+			// A fabric swatch with pinked edges and a flower print, waving like cloth; a stack of folded fabrics and
+			// a tape measure in front of it.
+			'fabric'  => '<g class="ks-swatch-wave"><path class="ks-pinked" d="' . self::pinked( 40, 6, 64, 44, 4 ) . '"/>' .
+				'<g class="ks-print">' . self::flower( 54, 18 ) . self::flower( 86, 24 ) . self::flower( 68, 38 ) .
+				'<circle cx="72" cy="16" r="1"/><circle cx="58" cy="32" r="1"/><circle cx="92" cy="40" r="1"/><circle cx="80" cy="34" r="1"/><circle cx="48" cy="42" r="1"/></g></g>' .
+				'<g class="ks-folds"><path d="M8 60h40a4 4 0 0 1 0 8H8z"/><path d="M12 68h40a4 4 0 0 1 0 8H12z"/><path d="M8 76h40a4 4 0 0 1 0 8H8z"/>' .
+				'<path class="ks-fold-line" d="M14 64h22M18 72h22M14 80h22"/></g>' .
+				'<g class="ks-tape"><path d="M58 84l46-10"/><path d="M58 78l44-9.6"/><path class="ks-tape-ticks" d="M64 82.7l-1.2-5.5M71 81.2l-.8-4M78 79.7l-1.2-5.5M85 78.2l-.8-4M92 76.7l-1.2-5.5"/>' .
+				'<circle cx="108" cy="70" r="6"/><circle cx="108" cy="70" r="2"/></g>',
 			// Buttons dropping in and a zip that opens and closes.
 			'notions' => '<g class="ks-button ks-button--1"><circle cx="26" cy="30" r="11"/><circle cx="23" cy="27" r="1.4"/><circle cx="29" cy="27" r="1.4"/><circle cx="23" cy="33" r="1.4"/><circle cx="29" cy="33" r="1.4"/></g>' .
 				'<g class="ks-button ks-button--2"><circle cx="54" cy="22" r="8"/><circle cx="52" cy="22" r="1.2"/><circle cx="56" cy="22" r="1.2"/></g>' .
 				'<g class="ks-button ks-button--3"><circle cx="42" cy="58" r="9"/><circle cx="39.5" cy="55.5" r="1.3"/><circle cx="44.5" cy="55.5" r="1.3"/><circle cx="39.5" cy="60.5" r="1.3"/><circle cx="44.5" cy="60.5" r="1.3"/></g>' .
 				'<path d="M86 10v70"/><path class="ks-teeth" d="M82 14h4M86 20h4M82 26h4M86 32h4M82 38h4M86 44h4M82 50h4M86 56h4M82 62h4M86 68h4M82 74h4"/>' .
-				'<g class="ks-slider"><rect x="80" y="38" width="12" height="10" rx="2"/><path d="M86 48v8"/></g>',
+				// The slider with the usual long pull tab, swinging as it moves.
+				'<g class="ks-slider"><path d="M80 37h12l-2 9h-8z"/><g class="ks-pull"><path d="M84.2 46h3.6v15.5a1.8 1.8 0 0 1-3.6 0z"/><circle cx="86" cy="58" r="1"/></g></g>',
 			// A box whose lid closes, a bow and a sparkle.
 			'kit'     => '<path class="ks-box" d="M26 42h68v40H26z"/><path class="ks-box" d="M60 42v40"/>' .
 				'<g class="ks-lid"><path d="M22 32h76v10H22z"/></g>' .
@@ -69,6 +75,55 @@ class AIMP_Kit_Steps {
 				'<path class="ks-spark" d="M100 14l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/><path class="ks-spark ks-spark--2" d="M16 18l1.3 3.2 3.2 1.3-3.2 1.3L16 27l-1.3-3.2-3.2-1.3 3.2-1.3z"/>',
 		);
 		return '<svg class="aimp-kit-steps-drawing ks-' . esc_attr( $key ) . '" viewBox="0 0 120 90" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $parts[ $key ] . '</svg>';
+	}
+
+	/**
+	 * A rectangle with pinked (zigzag) edges, like a fabric sample.
+	 *
+	 * @param int $x     Left.
+	 * @param int $y     Top.
+	 * @param int $w     Width.
+	 * @param int $h     Height.
+	 * @param int $tooth Tooth size.
+	 * @return string Path data.
+	 */
+	private static function pinked( $x, $y, $w, $h, $tooth ) {
+		$points = array();
+		$nx     = (int) round( $w / $tooth );
+		$ny     = (int) round( $h / $tooth );
+		for ( $i = 0; $i <= $nx; $i++ ) { // Top, left to right.
+			$points[] = array( $x + $i * $w / $nx, $y + ( $i % 2 ? -$tooth / 2 : 0 ) );
+		}
+		for ( $i = 1; $i <= $ny; $i++ ) { // Right, down.
+			$points[] = array( $x + $w + ( $i % 2 ? $tooth / 2 : 0 ), $y + $i * $h / $ny );
+		}
+		for ( $i = $nx - 1; $i >= 0; $i-- ) { // Bottom, right to left.
+			$points[] = array( $x + $i * $w / $nx, $y + $h + ( $i % 2 ? $tooth / 2 : 0 ) );
+		}
+		for ( $i = $ny - 1; $i > 0; $i-- ) { // Left, up.
+			$points[] = array( $x + ( $i % 2 ? -$tooth / 2 : 0 ), $y + $i * $h / $ny );
+		}
+		$d = '';
+		foreach ( $points as $n => $point ) {
+			$d .= ( 0 === $n ? 'M' : 'L' ) . round( $point[0], 1 ) . ' ' . round( $point[1], 1 );
+		}
+		return $d . 'Z';
+	}
+
+	/**
+	 * A small five-petal flower for the fabric print.
+	 *
+	 * @param int $cx Centre x.
+	 * @param int $cy Centre y.
+	 * @return string SVG.
+	 */
+	private static function flower( $cx, $cy ) {
+		$svg = '';
+		for ( $i = 0; $i < 5; $i++ ) {
+			$a    = deg2rad( $i * 72 - 90 );
+			$svg .= '<circle cx="' . round( $cx + cos( $a ) * 2.6, 1 ) . '" cy="' . round( $cy + sin( $a ) * 2.6, 1 ) . '" r="1.6"/>';
+		}
+		return $svg . '<circle class="ks-print-heart" cx="' . $cx . '" cy="' . $cy . '" r="0.9"/>';
 	}
 
 	/**
@@ -109,7 +164,7 @@ class AIMP_Kit_Steps {
 		wp_enqueue_script( 'aimp-kit-steps' );
 
 		$title  = '' !== $atts['title'] ? $atts['title'] : __( 'Your own sewing project kit in 4 steps', 'atelier-irisee-master-plugin' );
-		$button = '' !== $atts['button'] ? $atts['button'] : __( 'Start your kit', 'atelier-irisee-master-plugin' );
+		$button = '' !== $atts['button'] ? $atts['button'] : __( 'Start making your project sewing kit', 'atelier-irisee-master-plugin' );
 
 		ob_start();
 		?>
@@ -134,7 +189,6 @@ class AIMP_Kit_Steps {
 				</ol>
 				<?php if ( '' !== $url ) : ?>
 					<div class="aimp-kit-steps-cta">
-						<svg class="aimp-kit-steps-needle" viewBox="-40 -20 80 40" aria-hidden="true" focusable="false"><g transform="rotate(-30)"><?php echo self::needle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></g></svg>
 						<a class="aimp-kit-steps-button" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $button ); ?></a>
 					</div>
 				<?php endif; ?>

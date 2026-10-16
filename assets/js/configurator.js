@@ -408,8 +408,118 @@
 		return -1;
 	};
 
+	/* ---------------------------------------------------------------
+	 * Phones and tablets: the details of a chosen fabric or haberdashery product open as a sheet from the
+	 * bottom (the shop pages' sheet, shop.css), with its button always in reach. Wider screens keep the panel.
+	 * ------------------------------------------------------------- */
+
+	// A details panel, in the step or in the sheet.
+	Configurator.prototype.findPanel = function (role) {
+		var selector = '[data-role="' + role + '"]';
+		return this.body.querySelector(selector) || (this.sheet ? this.sheet.querySelector(selector) : null);
+	};
+
+	Configurator.prototype.isSheetMode = function () {
+		return !!(window.matchMedia && window.matchMedia('(max-width: 999px)').matches);
+	};
+
+	// After choosing: the sheet on phones and tablets, otherwise scroll to the panel when needed.
+	Configurator.prototype.showPanel = function (panel) {
+		if (!panel) {
+			return;
+		}
+		if (this.isSheetMode()) {
+			this.openSheet(panel);
+		} else {
+			scrollIntoViewIfNeeded(panel);
+		}
+	};
+
+	Configurator.prototype.openSheet = function (panel) {
+		var self = this;
+		if (!this.sheet) {
+			var sheet = document.createElement('div');
+			sheet.className = 'aimp-sheet aimp-config-sheet';
+			sheet.hidden = true;
+			sheet.innerHTML =
+				'<div class="aimp-sheet-backdrop" data-sheet-close></div>' +
+				'<div class="aimp-sheet-panel aimp-configurator" role="dialog" aria-modal="true">' +
+				'<div class="aimp-sheet-head"><span class="aimp-sheet-handle" aria-hidden="true"></span>' +
+				'<button type="button" class="aimp-sheet-close" data-sheet-close aria-label="' + esc(t.close || 'Close') + '">×</button></div>' +
+				'<div class="aimp-sheet-body"></div></div>';
+			document.body.appendChild(sheet);
+			this.sheet = sheet;
+			sheet.addEventListener('click', function (e) {
+				if (e.target.closest('[data-sheet-close]')) {
+					self.closeSheet();
+				}
+			});
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape' && self.sheet && !self.sheet.hidden) {
+					self.closeSheet();
+				}
+			});
+			// Swipe down on the top of the sheet to close it.
+			var head = sheet.querySelector('.aimp-sheet-head');
+			var startY = null;
+			head.addEventListener('touchstart', function (e) {
+				startY = e.touches[0].clientY;
+			}, { passive: true });
+			head.addEventListener('touchend', function (e) {
+				if (startY !== null && e.changedTouches[0].clientY - startY > 60) {
+					self.closeSheet();
+				}
+				startY = null;
+			}, { passive: true });
+		}
+		if (this.sheetPanel && this.sheetPanel !== panel) {
+			this.restoreSheetPanel();
+		}
+		if (!this.sheetPanel) {
+			this.sheetHome = { parent: panel.parentNode, next: panel.nextSibling };
+			this.sheetPanel = panel;
+			this.sheet.querySelector('.aimp-sheet-body').appendChild(panel);
+		}
+		this.sheet.hidden = false;
+		document.documentElement.classList.add('aimp-sheet-open');
+		window.requestAnimationFrame(function () {
+			self.sheet.classList.add('is-open');
+		});
+	};
+
+	// The panel goes back to its place in the step (if that step is still on the page).
+	Configurator.prototype.restoreSheetPanel = function () {
+		var home = this.sheetHome;
+		if (this.sheetPanel && home && home.parent && document.body.contains(home.parent)) {
+			home.parent.insertBefore(this.sheetPanel, home.next && home.next.parentNode === home.parent ? home.next : null);
+		} else if (this.sheetPanel && this.sheetPanel.parentNode) {
+			this.sheetPanel.parentNode.removeChild(this.sheetPanel);
+		}
+		this.sheetPanel = null;
+		this.sheetHome = null;
+	};
+
+	Configurator.prototype.closeSheet = function (immediately) {
+		var self = this;
+		if (!this.sheet || this.sheet.hidden) {
+			return;
+		}
+		this.sheet.classList.remove('is-open');
+		document.documentElement.classList.remove('aimp-sheet-open');
+		var done = function () {
+			self.sheet.hidden = true;
+			self.restoreSheetPanel();
+		};
+		if (immediately) {
+			done();
+		} else {
+			window.setTimeout(done, 300);
+		}
+	};
+
 	// Every new step starts at the very top of the page.
 	Configurator.prototype.goTo = function (key) {
+		this.closeSheet(true);
 		this.state.step = key;
 		this.render();
 		var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -713,7 +823,9 @@
 		html += this.galleryHtml(pattern.gallery, s.patternImage, pattern.product_id || pattern.id);
 		html += detailsTitle(pattern.name);
 		if (pattern.short_description) {
-			html += '<div class="aimp-description">' + pattern.short_description + '</div>';
+			// Phones: after the sizes, folded to a few lines with "Read more" (configurator.css).
+			html += '<div class="aimp-description aimp-desc-fold">' + pattern.short_description + '</div>' +
+				'<button type="button" class="aimp-fold-toggle" data-action="fold" aria-expanded="false">' + esc(t.readMore) + '</button>';
 		}
 		html += '<h4>' + esc(t.chooseSize) + '</h4>';
 		html += '<p class="aimp-help">' + esc(t.sizeHelp) + '</p>';
@@ -751,6 +863,14 @@
 		this.bindGallery(panel, pattern.gallery, function (i) {
 			s.patternImage = i;
 		});
+		var fold = panel.querySelector('[data-action="fold"]');
+		if (fold) {
+			fold.addEventListener('click', function () {
+				var open = panel.querySelector('.aimp-desc-fold').classList.toggle('is-open');
+				fold.textContent = open ? t.readLess : t.readMore;
+				fold.setAttribute('aria-expanded', open ? 'true' : 'false');
+			});
+		}
 
 		panel.querySelectorAll('[data-size]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
@@ -1127,7 +1247,7 @@
 				}
 				self.renderFabricGrid();
 				self.renderFabricPanel();
-				scrollIntoViewIfNeeded(self.body.querySelector('[data-role="fabric-panel"]'));
+				self.showPanel(self.findPanel('fabric-panel'));
 			},
 			onPage: function (page) {
 				s.fabricPage = page;
@@ -1139,7 +1259,7 @@
 	Configurator.prototype.renderFabricPanel = function () {
 		var self = this;
 		var s = this.state;
-		var panel = this.body.querySelector('[data-role="fabric-panel"]');
+		var panel = this.findPanel('fabric-panel');
 		if (!panel) {
 			return;
 		}
@@ -1158,6 +1278,7 @@
 			s.fabricImage = i;
 		});
 		panel.querySelector('[data-action="confirm-fabric"]').addEventListener('click', function () {
+			self.closeSheet(true);
 			self.next();
 		});
 	};
@@ -1252,7 +1373,7 @@
 		var s = this.state;
 		var bucket = s.notions[type];
 		var container = this.body.querySelector('[data-role="notions-' + type + '"]');
-		var panel = this.body.querySelector('[data-role="notion-panel-' + type + '"]');
+		var panel = this.findPanel('notion-panel-' + type);
 		if (!container) {
 			return;
 		}
@@ -1266,7 +1387,9 @@
 				bucket.image = 0;
 				self.renderNotionGrid(type);
 				if (bucket.selected) {
-					scrollIntoViewIfNeeded(panel);
+					self.showPanel(panel);
+				} else {
+					self.closeSheet();
 				}
 			},
 			onPage: function (page) {

@@ -1,46 +1,94 @@
 /**
- * [atelier_irisee_kit_steps]: a small gold needle sews a looping seam through the steps, from left to right, in a
- * loop while the bar is on screen. The seam's coordinates follow the bar's real size, so nothing stretches.
+ * [atelier_irisee_kit_steps]: a small gold needle sews a looping seam through the steps to the button, which then
+ * sparkles; again and again while the bar is on screen. The seam's coordinates follow the bar's real size, so nothing stretches.
  * With reduced motion (or without this script) the seam is simply shown, the needle resting at the end.
  */
 (function () {
 	'use strict';
 
 	var DURATION = 8000; // One pass, in ms.
-	var PAUSE = 900; // Before the next pass.
+	var PAUSE = 1400; // The spark, then the next pass.
 	var SCALE = 0.8; // Needle size.
 	var uid = 0;
 
+	// Every loop its own size, height and direction, so the seam looks hand-made (the same on every visit).
+	var LOOPS = [
+		{ size: 1, dy: -0.1, dir: -1 },
+		{ size: 0.72, dy: 0.12, dir: 1 },
+		{ size: 1.28, dy: -0.04, dir: -1 },
+		{ size: 0.9, dy: 0.06, dir: 1 }
+	];
+
+	function f(n) {
+		return n.toFixed(1);
+	}
+
+	// A loop at (x, y): from (x - r, y) the thread curls above (dir -1) or below (dir 1) and comes out at (x + r, y).
+	function loop(x, y, r, dir) {
+		return ' C ' + f(x + r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x - r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x + r) + ' ' + f(y);
+	}
+
+	// A sideways loop on a line going down, at (x, y): from (x, y - r) out at (x, y + r).
+	function loopDown(x, y, r) {
+		return ' C ' + f(x + r * 2.8) + ' ' + f(y + r * 2.6) + ', ' + f(x + r * 2.8) + ' ' + f(y - r * 2.6) + ', ' + f(x) + ' ' + f(y + r);
+	}
+
 	/**
-	 * The seam: a wave that dips through the cards and makes a playful loop in each gap between them
-	 * (a loop is a cubic curve whose handles cross). On phones a gentle line with two loops above the grid.
+	 * The seam, in the coordinates of the row: through the cards at the height of their drawings with a loop in
+	 * each gap, to the button. Phones: along the top, a loop, down the gap between the two columns (one more loop)
+	 * to the button under the grid.
 	 *
-	 * @param {number}   w     Width.
-	 * @param {number}   h     Height.
-	 * @param {number[]} gaps  Centres of the gaps between the cards (x).
-	 * @param {boolean}  phone Phone layout.
+	 * @param {DOMRect}   row    The row.
+	 * @param {DOMRect[]} cards  The cards.
+	 * @param {DOMRect}   button The button.
+	 * @param {boolean}   phone  Phone layout (two columns).
 	 * @return {string} Path data.
 	 */
-	function seam(w, h, gaps, phone) {
-		var mid = h * 0.5;
-		var r = Math.max(11, Math.min(26, w * 0.022)); // Loop size.
-		var f = function (n) {
-			return n.toFixed(1);
+	function seam(row, cards, button, phone) {
+		var rel = function (r) {
+			return { left: r.left - row.left, right: r.right - row.left, top: r.top - row.top, bottom: r.bottom - row.top, width: r.width, height: r.height };
 		};
-		var points = phone ? [w * 0.33, w * 0.67] : gaps;
-		var d = 'M0 ' + f(mid);
+		var c = cards.map(rel);
+		var b = rel(button);
+		var r0 = Math.max(10, Math.min(24, row.width * 0.02));
+		var d;
+		if (phone && c.length >= 4) {
+			var band = Math.max(14, c[0].top / 2);
+			var cx = (c[0].right + c[1].left) / 2;
+			var gapY = (Math.max(c[0].bottom, c[1].bottom) + Math.min(c[2].top, c[3].top)) / 2;
+			var lx = cx * 0.55;
+			d = 'M0 ' + f(band + 6);
+			d += ' C ' + f(lx * 0.35) + ' ' + f(band - 10) + ', ' + f(lx * 0.7) + ' ' + f(band + 12) + ', ' + f(lx - r0) + ' ' + f(band);
+			d += loop(lx, band, r0, -1);
+			d += ' C ' + f(lx + r0 + (cx - lx) * 0.4) + ' ' + f(band + 10) + ', ' + f(cx + 12) + ' ' + f(band - 4) + ', ' + f(cx) + ' ' + f(band + 16);
+			d += ' C ' + f(cx - 10) + ' ' + f(band + (gapY - band) * 0.4) + ', ' + f(cx + 10) + ' ' + f(band + (gapY - band) * 0.7) + ', ' + f(cx) + ' ' + f(gapY - r0 * 0.8);
+			d += loopDown(cx, gapY, r0 * 0.8);
+			d += ' C ' + f(cx - 12) + ' ' + f(gapY + (b.top - gapY) * 0.4) + ', ' + f(cx + 12) + ' ' + f(gapY + (b.top - gapY) * 0.7) + ', ' + f(b.left + b.width / 2) + ' ' + f(b.top - 3);
+			return d;
+		}
+		// Desktop and tablet: through the drawings, a loop in each gap, then to the button's left edge.
+		var top = Math.min.apply(null, c.map(function (x) { return x.top; }));
+		var cardH = Math.max.apply(null, c.map(function (x) { return x.height; }));
+		var y0 = top + cardH * 0.32;
+		var amp = cardH * 0.16;
+		d = 'M0 ' + f(y0);
 		var x = 0;
-		points.forEach(function (gx, i) {
-			// A wave through the card, up then down (alternating), arriving at the loop.
-			var dir = i % 2 ? 1 : -1;
+		var y = y0;
+		for (var i = 0; i < c.length - 1; i++) {
+			var cfg = LOOPS[i % LOOPS.length];
+			var gx = (c[i].right + c[i + 1].left) / 2;
+			var gy = y0 + cardH * cfg.dy;
+			var r = r0 * cfg.size;
 			var span = gx - r - x;
-			d += ' C ' + f(x + span * 0.35) + ' ' + f(mid + dir * h * 0.42) + ', ' + f(x + span * 0.7) + ' ' + f(mid - dir * h * 0.42) + ', ' + f(gx - r) + ' ' + f(mid);
-			// The loop: the thread curls up and around itself.
-			d += ' C ' + f(gx + r * 2.6) + ' ' + f(mid - r * 2.8) + ', ' + f(gx - r * 2.6) + ' ' + f(mid - r * 2.8) + ', ' + f(gx + r) + ' ' + f(mid);
+			var dir = i % 2 ? 1 : -1;
+			d += ' C ' + f(x + span * 0.35) + ' ' + f(y + dir * amp) + ', ' + f(x + span * 0.7) + ' ' + f(gy - dir * amp) + ', ' + f(gx - r) + ' ' + f(gy);
+			d += loop(gx, gy, r, cfg.dir);
 			x = gx + r;
-		});
-		var last = w - x;
-		d += ' C ' + f(x + last * 0.35) + ' ' + f(mid + h * 0.42) + ', ' + f(x + last * 0.7) + ' ' + f(mid - h * 0.3) + ', ' + f(w) + ' ' + f(mid - h * 0.1);
+			y = gy;
+		}
+		var ex = b.left - 2;
+		var ey = b.top + b.height / 2;
+		d += ' C ' + f(x + (ex - x) * 0.4) + ' ' + f(y + amp) + ', ' + f(x + (ex - x) * 0.75) + ' ' + f(ey - amp) + ', ' + f(ex) + ' ' + f(ey);
 		return d;
 	}
 
@@ -48,10 +96,12 @@
 		var thread = bar.querySelector('.aimp-kit-steps-thread');
 		var sewing = bar.querySelector('.aimp-kit-steps-sewing');
 		var list = bar.querySelector('.aimp-kit-steps-list');
+		var row = bar.querySelector('.aimp-kit-steps-row');
+		var button = bar.querySelector('.aimp-kit-steps-button');
 		var guide = thread ? thread.querySelector('.ks-seam-guide') : null;
 		var sewn = thread ? thread.querySelector('.ks-seam-sewn') : null;
 		var needle = sewing ? sewing.querySelector('.ks-needle') : null;
-		if (!guide || !sewn || !needle || !list || !sewn.getTotalLength) {
+		if (!guide || !sewn || !needle || !list || !row || !button || !sewn.getTotalLength) {
 			return;
 		}
 		var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -85,18 +135,12 @@
 			mask.setAttribute('y', '-50');
 			mask.setAttribute('width', String(w + 100));
 			mask.setAttribute('height', String(h + 100));
-			// The gaps between the cards, measured, relative to the seam.
-			var cards = Array.prototype.slice.call(list.children);
-			var gaps = [];
-			for (var i = 0; i < cards.length - 1; i++) {
-				var a = cards[i].getBoundingClientRect();
-				var b = cards[i + 1].getBoundingClientRect();
-				var gx = (a.right + b.left) / 2 - box.left;
-				if (gx > 0 && gx < w) {
-					gaps.push(gx);
-				}
-			}
-			var d = seam(w, h, gaps, w < 520 || gaps.length < 3);
+			var cards = Array.prototype.slice.call(list.children).map(function (card) {
+				return card.getBoundingClientRect();
+			});
+			// Two columns: the phone layout.
+			var phone = cards.length >= 4 && Math.abs(cards[0].top - cards[1].top) < 30 && cards[2].top > cards[0].bottom - 5;
+			var d = seam(box, cards, button.getBoundingClientRect(), phone);
 			guide.setAttribute('d', d);
 			sewn.setAttribute('d', d);
 			reveal.setAttribute('d', d);
@@ -125,6 +169,16 @@
 			return;
 		}
 
+		var sparked = false;
+		function spark() {
+			button.classList.remove('is-sparked');
+			void button.offsetWidth; // Restart the animation.
+			button.classList.add('is-sparked');
+			window.setTimeout(function () {
+				button.classList.remove('is-sparked');
+			}, 950);
+		}
+
 		var start = null;
 		var running = false;
 		var frame = 0;
@@ -137,9 +191,16 @@
 			}
 			var elapsed = (now - start) % (DURATION + PAUSE);
 			var share = Math.min(1, elapsed / DURATION);
-			var opacity = share < 0.04 ? share / 0.04 : share > 0.93 ? Math.max(0, (1 - share) / 0.07) : 1;
+			// The needle stays visible up to the button, then fades during the pause.
+			var opacity = share < 0.04 ? share / 0.04 : 1;
 			if (elapsed > DURATION) {
-				opacity = 0;
+				opacity = Math.max(0, 1 - (elapsed - DURATION) / (PAUSE * 0.6));
+			}
+			if (share >= 1 && !sparked) {
+				sparked = true;
+				spark();
+			} else if (share < 1) {
+				sparked = false;
 			}
 			place(share, opacity);
 			frame = window.requestAnimationFrame(tick);
