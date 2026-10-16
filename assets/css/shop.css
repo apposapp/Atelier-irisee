@@ -947,6 +947,13 @@ html.aimp-sheet-open body {
 	gap: 0.6rem;
 }
 
+/* A select is as wide as its longest option: keep it (and the bar) within the screen on phones. */
+.aimp-shop-tools,
+.aimp-shop-sort {
+	min-width: 0;
+	max-width: 100%;
+}
+
 .aimp-configurator .aimp-shop-sort .aimp-shop-select {
 	width: auto;
 	max-width: 100%;

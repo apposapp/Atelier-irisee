@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.8.3
+Stable tag: 3.8.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.8.4 =
+* Shop, phones: the page no longer scrolls sideways (the sort menu stays within the screen).
 
 = 3.8.3 =
 * Customizer, phones: after choosing a pattern the sizes sit right under the picture; the pictures show as dots (swipe to browse) and the description is folded with "Read more".
