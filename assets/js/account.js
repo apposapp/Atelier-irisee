@@ -81,13 +81,55 @@
 })();
 
 /**
- * Phones: the open tab of the swipeable account menu is scrolled into view.
+ * Phones: the account menu is a drawer from the left. The button with the open tab's name opens it; the ×, the
+ * backdrop, Esc or choosing a tab closes it.
  */
 (function () {
 	'use strict';
 
-	var active = document.querySelector('.aimp-account-tabs .aimp-account-tab.is-active');
-	if (active && active.scrollIntoView && window.matchMedia && window.matchMedia('(max-width: 800px)').matches) {
-		active.scrollIntoView({ block: 'nearest', inline: 'center' });
+	var account = document.querySelector('.aimp-account');
+	var toggle = account ? account.querySelector('.aimp-account-menu-toggle') : null;
+	if (!toggle) {
+		return;
 	}
+	var backdrop = account.querySelector('.aimp-account-backdrop');
+	var nav = account.querySelector('.aimp-account-tabs');
+
+	function setOpen(open) {
+		account.classList.toggle('is-menu-open', open);
+		toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+		if (backdrop) {
+			backdrop.hidden = !open;
+		}
+		if (open) {
+			var active = nav.querySelector('.aimp-account-tab.is-active') || nav.querySelector('a');
+			if (active) {
+				active.focus({ preventScroll: true });
+			}
+		}
+	}
+
+	toggle.addEventListener('click', function () {
+		setOpen(!account.classList.contains('is-menu-open'));
+	});
+	account.querySelector('.aimp-account-close').addEventListener('click', function () {
+		setOpen(false);
+		toggle.focus();
+	});
+	if (backdrop) {
+		backdrop.addEventListener('click', function () {
+			setOpen(false);
+		});
+	}
+	nav.addEventListener('click', function (event) {
+		if (event.target.closest('.aimp-account-tab')) {
+			setOpen(false);
+		}
+	});
+	document.addEventListener('keydown', function (event) {
+		if ('Escape' === event.key && account.classList.contains('is-menu-open')) {
+			setOpen(false);
+			toggle.focus();
+		}
+	});
 })();

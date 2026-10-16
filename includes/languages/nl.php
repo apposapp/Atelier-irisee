@@ -1430,7 +1430,7 @@ return array(
 	'Tick every other picture of this design; they are shown after the main picture.' => 'Vink elke andere foto van dit ontwerp aan; ze worden na de hoofdfoto getoond.',
 	'Tick the fabric categories that suit this design. Give them a position to choose which customers see first: 1 is shown first, then 2, and so on.' => 'Vink de stofcategorieën aan die bij dit ontwerp passen. Geef ze een volgorde om te kiezen wat klanten eerst zien: 1 komt eerst, dan 2, enzovoort.',
 	'Up to four kinds of clothes, each shown with its own icon on the product page under "Ideal for".' => 'Tot vier soorten kledingstukken, elk met een eigen icoon op de productpagina onder "Ideaal voor".',
-	'Your own sewing project kit in 4 steps' => 'Je eigen naaiprojectpakket in 4 stappen',
+	'Your own sewing project kit in 4 steps' => 'Je eigen naaipakket in 4 stappen',
 	'Your sewing kit' => 'Jouw naaipakket',
 	'Zip' => 'Rits',
 	'e.g. 30' => 'bv. 30',
@@ -1451,7 +1451,7 @@ return array(
 	// 3.8.3
 	'Read more' => 'Lees meer',
 	'Read less' => 'Lees minder',
-	'Start making your project sewing kit' => 'Begin aan je eigen naaiprojectpakket',
+	'Start making your project sewing kit' => 'Begin aan je eigen naaipakket',
 
 	// 3.9.0 Home page hero
 	'A large landscape picture (at least 1920 px wide). Keep the subject away from the left side: the text sits there.' => 'Een grote liggende foto (minstens 1920 px breed). Houd het onderwerp weg van de linkerkant: daar staat de tekst.',

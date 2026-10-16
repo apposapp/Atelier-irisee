@@ -907,21 +907,17 @@ body.aimp-has-header .aimp-configurator .aimp-topbar:has(> .aimp-languages:only-
 		-webkit-tap-highlight-color: transparent;
 	}
 
+	/* The open page: a gold tile. */
 	.aimp-header .aimp-tabbar-item.is-current {
-		color: var(--aimp-brown, #613907);
+		margin: 4px 2px;
+		border-radius: 14px;
+		background: var(--aimp-gold, #b38f4f);
+		color: #fff;
 		font-weight: 700;
 	}
 
-	.aimp-header .aimp-tabbar-item.is-current .aimp-tabbar-icon::after {
-		position: absolute;
-		bottom: -5px;
-		left: 50%;
-		width: 4px;
-		height: 4px;
-		border-radius: 50%;
-		background: var(--aimp-gold);
-		content: "";
-		transform: translateX(-50%);
+	.aimp-header .aimp-tabbar-item.is-current .aimp-header-count {
+		box-shadow: 0 0 0 1.5px #fff;
 	}
 
 	.aimp-header .aimp-tabbar-icon {

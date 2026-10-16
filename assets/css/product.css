@@ -955,7 +955,57 @@ html:has(.aimp-product-reviews) {
 		order: 1;
 		margin-top: 0.5rem;
 	}
+
+	/* The page in this order: picture and buy bar; description with specifications and washing; the recommended
+	   pattern (moved here by product.js); the inspiration cards; the rest. */
+	.aimp-configurator.aimp-product {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.aimp-configurator.aimp-product > * {
+		order: 9;
+	}
+
+	.aimp-configurator.aimp-product > .aimp-product-topbar {
+		order: 0;
+	}
+
+	.aimp-configurator.aimp-product > .aimp-product-main {
+		order: 1;
+	}
+
+	.aimp-configurator.aimp-product > :is(.aimp-product-row, .aimp-product-desc) {
+		order: 2;
+	}
+
+	.aimp-configurator.aimp-product > .aimp-recommend-section {
+		order: 3;
+	}
+
+	.aimp-configurator.aimp-product > .aimp-inspiration {
+		order: 4;
+	}
+
+	.aimp-configurator .aimp-recommend-section .aimp-recommend-box {
+		margin: 0;
+	}
+
+	/* Smaller inspiration cards. */
+	.aimp-configurator .aimp-inspiration-grid {
+		gap: 0.6rem;
+	}
+
+	.aimp-configurator .aimp-inspiration-card {
+		padding: 0.85rem 1rem;
+		font-size: 0.9em;
+	}
+
+	.aimp-configurator .aimp-inspiration-card .aimp-product-subtitle {
+		font-size: 1.05em;
+	}
 }
+
 
 /* The delivery line and "Only … left" keep their own size and colour (the general text rule above has the
  * weight of an ID, so these do too). On product pages the delivery line is one line, a bit smaller. */

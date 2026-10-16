@@ -363,7 +363,9 @@
 		position: sticky;
 		bottom: 0;
 		padding-top: 0.75rem;
-		background: transparent;
+		padding-bottom: 0.25rem;
+		/* Solid gold, so the filter list never shows through behind the button. */
+		background: rgb(179, 143, 79);
 	}
 }
 
@@ -376,7 +378,14 @@
 
 :is(.aimp-configurator, #aimp-specificity) .aimp-shop-sidebar .aimp-shop-sidebar-foot .aimp-button {
 	border-color: #fff;
-	color: #fff;
+	background: #fff;
+	color: var(--aimp-body-text);
+}
+
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-sidebar .aimp-shop-sidebar-foot .aimp-button:hover,
+:is(.aimp-configurator, #aimp-specificity) .aimp-shop-sidebar .aimp-shop-sidebar-foot .aimp-button:focus-visible {
+	background: var(--aimp-gold-tint);
+	color: var(--aimp-body-text);
 }
 
 /* ------------------------------------------------------------------

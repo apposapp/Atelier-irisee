@@ -85,6 +85,9 @@ class AIMP_Hero {
 		$title = '' !== $atts['title'] ? $atts['title'] : self::text( 'hero_title', __( 'Sew something truly yours', 'atelier-irisee-master-plugin' ) );
 		$text  = '' !== $atts['text'] ? $atts['text'] : self::text( 'hero_text', __( 'Pattern, fabric and haberdashery that match, in one kit.', 'atelier-irisee-master-plugin' ) );
 
+		$brand = trim( html_entity_decode( wp_strip_all_tags( get_bloginfo( 'name' ) ), ENT_QUOTES, 'UTF-8' ) );
+		$brand = '' !== $brand ? $brand : 'Atelier Irisée';
+
 		$kit_page  = AIMP_Settings::get( 'configurator_page' );
 		$shop_page = AIMP_Settings::get( 'page_all' );
 		$kit_url   = $kit_page && 'publish' === get_post_status( $kit_page ) ? get_permalink( $kit_page ) : '';
@@ -106,6 +109,7 @@ class AIMP_Hero {
 					<?php if ( $logo ) : ?>
 						<img class="aimp-hero-seal" src="<?php echo esc_url( $logo ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
 					<?php endif; ?>
+					<span class="aimp-hero-brand"><?php echo esc_html( $brand ); ?></span>
 					<h1 class="aimp-hero-title"><?php echo esc_html( $title ); ?></h1>
 					<?php if ( '' !== $text ) : ?>
 						<p class="aimp-hero-text"><?php echo esc_html( $text ); ?></p>

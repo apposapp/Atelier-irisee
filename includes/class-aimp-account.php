@@ -136,11 +136,21 @@ class AIMP_Account {
 				?>
 			</p>
 			<div class="aimp-account-layout">
-				<?php // The tabs in a gold side panel, like the shop filters (always open). ?>
-				<nav class="aimp-account-tabs" aria-label="<?php esc_attr_e( 'My account', 'atelier-irisee-master-plugin' ); ?>">
+				<?php
+				// The tabs in a gold side panel, like the shop filters (always open). Phones: a button with the open
+				// tab's name opens the panel as a drawer from the left (account.js).
+				$tabs = self::tabs();
+				?>
+				<button type="button" class="aimp-account-menu-toggle" aria-expanded="false" aria-controls="aimp-account-tabs">
+					<?php echo AIMP_Header::icon( 'menu' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?>
+					<span><?php esc_html_e( 'Menu', 'atelier-irisee-master-plugin' ); ?>: <strong><?php echo esc_html( isset( $tabs[ $tab ] ) ? $tabs[ $tab ] : '' ); ?></strong></span>
+				</button>
+				<div class="aimp-account-backdrop" hidden></div>
+				<nav class="aimp-account-tabs" id="aimp-account-tabs" aria-label="<?php esc_attr_e( 'My account', 'atelier-irisee-master-plugin' ); ?>">
+					<button type="button" class="aimp-account-close" aria-label="<?php esc_attr_e( 'Close menu', 'atelier-irisee-master-plugin' ); ?>"><?php echo AIMP_Header::icon( 'close' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></button>
 					<h3 class="aimp-account-tabs-title"><?php esc_html_e( 'My account', 'atelier-irisee-master-plugin' ); ?></h3>
 					<ul>
-						<?php foreach ( self::tabs() as $key => $label ) : ?>
+						<?php foreach ( $tabs as $key => $label ) : ?>
 							<li><a href="<?php echo esc_url( self::page_url( $key ) ); ?>" class="aimp-account-tab<?php echo $key === $tab ? ' is-active' : ''; ?>"<?php echo $key === $tab ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a></li>
 						<?php endforeach; ?>
 					</ul>

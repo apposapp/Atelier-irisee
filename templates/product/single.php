@@ -412,7 +412,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 			<?php endif; ?>
 		</section>
 	<?php elseif ( ! $aimp_own_specs && ! $aimp_pattern && $aimp_has_desc ) : ?>
-		<section class="aimp-product-section">
+		<section class="aimp-product-section aimp-product-desc">
 			<h3><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h3>
 			<div class="aimp-description aimp-product-description"><?php echo wc_format_content( $aimp_description ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- product content, filtered like the WooCommerce description tab. ?></div>
 		</section>
@@ -426,7 +426,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 	<?php endif; ?>
 
 	<?php if ( $data['fitting'] ) : ?>
-		<section class="aimp-product-section">
+		<section class="aimp-product-section aimp-product-suggested">
 			<h3><?php echo esc_html( $aimp_notion ? __( 'Fits these patterns', 'atelier-irisee-master-plugin' ) : __( 'Suggested patterns', 'atelier-irisee-master-plugin' ) ); ?></h3>
 			<ul class="aimp-grid aimp-product-cards">
 				<?php

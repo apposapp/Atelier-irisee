@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.9.1
+Stable tag: 3.10.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,14 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.10.0 =
+* Phones: the "Show results" button in the filters is white on a solid gold strip, so the filter list no longer shows through it.
+* Tab bar: the open page is a gold tile instead of a small dot.
+* Product pages on phones: description and specifications / washing first, then the recommended pattern, then the (smaller) inspiration cards, then the rest.
+* My account on phones: the tabs open as a menu from the left (like the shop filters) instead of a swipeable row.
+* Home page hero: "Atelier Irisée" in the arch under the logo; the arrow is white.
+* Kit steps bar: bigger sparkles that fade out more slowly; on phones the seam winds through the cards; NL "naaipakket".
 
 = 3.9.1 =
 * Home page hero: the arch with the tagline and buttons is bigger and scales with the screen (width and height); no more white band between the header and the picture.

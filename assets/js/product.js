@@ -448,3 +448,43 @@
 		boot();
 	}
 })();
+
+/**
+ * Phones: the recommendation box ("Recommended pattern" and the sewing kit buttons) moves from under the buy bar
+ * to its own section after the description (product.css puts that section in place); back on wider screens.
+ */
+(function () {
+	'use strict';
+
+	function boot() {
+		var page = document.querySelector('.aimp-configurator.aimp-product');
+		var box = page ? page.querySelector('.aimp-product-summary .aimp-recommend-box') : null;
+		if (!box || !window.matchMedia) {
+			return;
+		}
+		var home = document.createComment('aimp-recommend-box');
+		box.parentNode.insertBefore(home, box);
+		var section = document.createElement('section');
+		section.className = 'aimp-product-section aimp-recommend-section';
+		page.appendChild(section);
+		var phone = window.matchMedia('(max-width: 700px)');
+		function place() {
+			if (phone.matches) {
+				section.appendChild(box);
+			} else if (home.parentNode) {
+				home.parentNode.insertBefore(box, home.nextSibling);
+			}
+			section.style.display = phone.matches ? '' : 'none';
+		}
+		if (phone.addEventListener) {
+			phone.addEventListener('change', place);
+		}
+		place();
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', boot);
+	} else {
+		boot();
+	}
+})();

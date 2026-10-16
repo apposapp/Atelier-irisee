@@ -12,6 +12,8 @@
 	padding: clamp(2.5rem, 6vw, 5.5rem) clamp(1rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem);
 	color: var(--ks-gold-text);
 	text-align: center;
+	/* The button's sparkles may reach past the sides of the screen: never a sideways scroll. */
+	overflow-x: clip;
 }
 
 .aimp-kit-steps *,
@@ -422,7 +424,7 @@
 .aimp-kit-steps .aimp-kit-steps-button::before,
 .aimp-kit-steps .aimp-kit-steps-button::after {
 	position: absolute;
-	inset: -18px;
+	inset: -34px;
 	z-index: -1;
 	opacity: 0;
 	pointer-events: none;
@@ -432,14 +434,18 @@
 /* Little gold stars all around. */
 .aimp-kit-steps .aimp-kit-steps-button::before {
 	background:
-		radial-gradient(circle, var(--ks-gold) 0 2px, transparent 2.5px) 6% 20% / 12px 12px no-repeat,
-		radial-gradient(circle, var(--ks-gold) 0 1.5px, transparent 2px) 30% 0% / 10px 10px no-repeat,
-		radial-gradient(circle, var(--ks-gold) 0 2px, transparent 2.5px) 70% 4% / 12px 12px no-repeat,
-		radial-gradient(circle, var(--ks-gold) 0 1.5px, transparent 2px) 96% 30% / 10px 10px no-repeat,
-		radial-gradient(circle, var(--ks-gold) 0 2px, transparent 2.5px) 90% 92% / 12px 12px no-repeat,
-		radial-gradient(circle, var(--ks-gold) 0 1.5px, transparent 2px) 55% 100% / 10px 10px no-repeat,
-		radial-gradient(circle, var(--ks-gold) 0 2px, transparent 2.5px) 14% 96% / 12px 12px no-repeat,
-		radial-gradient(circle, var(--ks-gold) 0 1.5px, transparent 2px) 0% 60% / 10px 10px no-repeat;
+		radial-gradient(circle, var(--ks-gold) 0 3.5px, transparent 4px) 4% 22% / 18px 18px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 2.5px, transparent 3px) 24% 0% / 14px 14px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 3px, transparent 3.5px) 48% 2% / 16px 16px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 3.5px, transparent 4px) 74% 0% / 18px 18px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 2.5px, transparent 3px) 98% 26% / 14px 14px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 3px, transparent 3.5px) 100% 62% / 16px 16px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 3.5px, transparent 4px) 88% 96% / 18px 18px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 2.5px, transparent 3px) 60% 100% / 14px 14px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 3px, transparent 3.5px) 34% 98% / 16px 16px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 3.5px, transparent 4px) 10% 92% / 18px 18px no-repeat,
+		radial-gradient(circle, var(--ks-gold) 0 2.5px, transparent 3px) 0% 58% / 14px 14px no-repeat,
+		radial-gradient(circle, rgba(179, 143, 79, 0.6) 0 2px, transparent 2.5px) 62% 30% / 10px 10px no-repeat;
 }
 
 /* A soft gold glow. */
@@ -450,15 +456,15 @@
 }
 
 .aimp-kit-steps .aimp-kit-steps-button.is-sparked {
-	animation: ks-pop 0.9s ease-out;
+	animation: ks-pop 1s ease-out;
 }
 
 .aimp-kit-steps .aimp-kit-steps-button.is-sparked::before {
-	animation: ks-sparks 0.9s ease-out;
+	animation: ks-sparks 1.9s cubic-bezier(0.2, 0.6, 0.3, 1);
 }
 
 .aimp-kit-steps .aimp-kit-steps-button.is-sparked::after {
-	animation: ks-glow 0.9s ease-out;
+	animation: ks-glow 1.9s cubic-bezier(0.2, 0.6, 0.3, 1);
 }
 
 @keyframes ks-pop {
@@ -468,14 +474,15 @@
 }
 
 @keyframes ks-sparks {
-	0% { opacity: 0; transform: scale(0.6) rotate(0deg); }
-	25% { opacity: 1; }
-	100% { opacity: 0; transform: scale(1.35) rotate(18deg); }
+	0% { opacity: 0; transform: scale(0.55) rotate(0deg); }
+	15%, 35% { opacity: 1; }
+	100% { opacity: 0; transform: scale(1.45) rotate(24deg); }
 }
 
 @keyframes ks-glow {
-	0% { opacity: 1; box-shadow: 0 0 0 0 rgba(179, 143, 79, 0.6); }
-	100% { opacity: 0; box-shadow: 0 0 0 16px rgba(179, 143, 79, 0); }
+	0% { opacity: 1; box-shadow: 0 0 0 0 rgba(179, 143, 79, 0.65); }
+	35% { opacity: 1; }
+	100% { opacity: 0; box-shadow: 0 0 0 26px rgba(179, 143, 79, 0); }
 }
 
 /* The CTA: a little wider for the longer text. */

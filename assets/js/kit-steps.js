@@ -7,7 +7,7 @@
 	'use strict';
 
 	var DURATION = 8000; // One pass, in ms.
-	var PAUSE = 1400; // The spark, then the next pass.
+	var PAUSE = 2300; // The spark, then the next pass.
 	var SCALE = 0.8; // Needle size.
 	var uid = 0;
 
@@ -35,8 +35,8 @@
 
 	/**
 	 * The seam, in the coordinates of the row: through the cards at the height of their drawings with a loop in
-	 * each gap, to the button. Phones: along the top, a loop, down the gap between the two columns (one more loop)
-	 * to the button under the grid.
+	 * each gap, to the button. Phones: an S through the four cards (with loops between them) to the button under
+	 * the grid.
 	 *
 	 * @param {DOMRect}   row    The row.
 	 * @param {DOMRect[]} cards  The cards.
@@ -53,17 +53,29 @@
 		var r0 = Math.max(10, Math.min(24, row.width * 0.02));
 		var d;
 		if (phone && c.length >= 4) {
-			var band = Math.max(14, c[0].top / 2);
+			// Phones: through the drawings of the top two cards (a loop between them), out at the right and back
+			// left through the gap between the rows (a sideways loop), then in an S through the bottom two cards
+			// (another loop between them) and down to the button.
 			var cx = (c[0].right + c[1].left) / 2;
+			var y1 = (c[0].top + c[0].height * 0.4 + c[1].top + c[1].height * 0.4) / 2;
+			var y2 = (c[2].top + c[2].height * 0.4 + c[3].top + c[3].height * 0.4) / 2;
 			var gapY = (Math.max(c[0].bottom, c[1].bottom) + Math.min(c[2].top, c[3].top)) / 2;
-			var lx = cx * 0.55;
-			d = 'M0 ' + f(band + 6);
-			d += ' C ' + f(lx * 0.35) + ' ' + f(band - 10) + ', ' + f(lx * 0.7) + ' ' + f(band + 12) + ', ' + f(lx - r0) + ' ' + f(band);
-			d += loop(lx, band, r0, -1);
-			d += ' C ' + f(lx + r0 + (cx - lx) * 0.4) + ' ' + f(band + 10) + ', ' + f(cx + 12) + ' ' + f(band - 4) + ', ' + f(cx) + ' ' + f(band + 16);
-			d += ' C ' + f(cx - 10) + ' ' + f(band + (gapY - band) * 0.4) + ', ' + f(cx + 10) + ' ' + f(band + (gapY - band) * 0.7) + ', ' + f(cx) + ' ' + f(gapY - r0 * 0.8);
+			var right1 = Math.min(row.width - 4, c[1].right + 6);
+			var right2 = Math.min(row.width - 4, c[3].right + 6);
+			var ra = r0 * LOOPS[0].size;
+			var rb = r0 * LOOPS[1].size;
+			var bx = b.left + b.width / 2;
+			d = 'M0 ' + f(y1 + 8);
+			d += ' C ' + f(c[0].left + c[0].width * 0.3) + ' ' + f(y1 - 14) + ', ' + f(c[0].left + c[0].width * 0.75) + ' ' + f(y1 + 12) + ', ' + f(cx - ra) + ' ' + f(y1);
+			d += loop(cx, y1, ra, -1);
+			d += ' C ' + f(c[1].left + c[1].width * 0.35) + ' ' + f(y1 + 14) + ', ' + f(c[1].left + c[1].width * 0.8) + ' ' + f(y1 - 12) + ', ' + f(right1) + ' ' + f(y1 + c[1].height * 0.25);
+			d += ' C ' + f(right1 + 8) + ' ' + f(gapY - 10) + ', ' + f(cx + 40) + ' ' + f(gapY - 18) + ', ' + f(cx) + ' ' + f(gapY - r0 * 0.8);
 			d += loopDown(cx, gapY, r0 * 0.8);
-			d += ' C ' + f(cx - 12) + ' ' + f(gapY + (b.top - gapY) * 0.4) + ', ' + f(cx + 12) + ' ' + f(gapY + (b.top - gapY) * 0.7) + ', ' + f(b.left + b.width / 2) + ' ' + f(b.top - 3);
+			d += ' C ' + f(cx - 20) + ' ' + f(gapY + 24) + ', ' + f(c[2].left + c[2].width * 0.1) + ' ' + f(y2 - 24) + ', ' + f(c[2].left + c[2].width * 0.25) + ' ' + f(y2);
+			d += ' C ' + f(c[2].left + c[2].width * 0.4) + ' ' + f(y2 + 16) + ', ' + f(c[2].left + c[2].width * 0.8) + ' ' + f(y2 - 10) + ', ' + f(cx - rb) + ' ' + f(y2);
+			d += loop(cx, y2, rb, 1);
+			d += ' C ' + f(c[3].left + c[3].width * 0.4) + ' ' + f(y2 + 14) + ', ' + f(c[3].left + c[3].width * 0.85) + ' ' + f(y2 + 10) + ', ' + f(right2) + ' ' + f(y2 + c[3].height * 0.3);
+			d += ' C ' + f(right2 + 6) + ' ' + f(b.top - 30) + ', ' + f(bx + 30) + ' ' + f(b.top - 24) + ', ' + f(bx) + ' ' + f(b.top - 3);
 			return d;
 		}
 		// Desktop and tablet: through the drawings, a loop in each gap, then to the button's left edge.
@@ -176,7 +188,7 @@
 			button.classList.add('is-sparked');
 			window.setTimeout(function () {
 				button.classList.remove('is-sparked');
-			}, 950);
+			}, 1950);
 		}
 
 		var start = null;
