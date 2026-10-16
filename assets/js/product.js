@@ -242,6 +242,58 @@
 		});
 	}
 
+	/**
+	 * Phones: once the buy bar has scrolled away, a slim bar at the bottom keeps the price and "Add to cart" in
+	 * reach (above the tab bar). Its button presses the buy bar's own button, so the chosen amount is used.
+	 */
+	function setupStickyBuy(root) {
+		var bar = root.querySelector('[data-aimp-buy]');
+		var add = bar ? bar.querySelector('.aimp-add-to-cart:not([disabled])') : null;
+		if (!add || bar.hasAttribute('data-giftcard') || !('IntersectionObserver' in window) || !window.matchMedia) {
+			return;
+		}
+		var phone = window.matchMedia('(max-width: 700px)');
+		var price = bar.querySelector('[data-aimp-price]');
+		var title = root.querySelector('.aimp-product-title');
+		var sticky = document.createElement('div');
+		sticky.className = 'aimp-sticky-buy';
+		sticky.setAttribute('aria-hidden', 'true');
+		sticky.innerHTML =
+			'<div class="aimp-sticky-buy-text"><span class="aimp-sticky-buy-name"></span><span class="aimp-sticky-buy-price"></span></div>' +
+			'<button type="button" class="aimp-sticky-buy-button" tabindex="-1"></button>';
+		sticky.querySelector('.aimp-sticky-buy-name').textContent = title ? title.textContent : '';
+		sticky.querySelector('.aimp-sticky-buy-button').textContent = add.textContent;
+		document.body.appendChild(sticky);
+
+		var syncPrice = function () {
+			sticky.querySelector('.aimp-sticky-buy-price').innerHTML = price ? price.innerHTML : '';
+		};
+		syncPrice();
+		if (price && window.MutationObserver) {
+			new MutationObserver(syncPrice).observe(price, { childList: true, subtree: true, characterData: true });
+		}
+		sticky.querySelector('button').addEventListener('click', function () {
+			add.click();
+		});
+
+		var passed = false;
+		var update = function () {
+			var show = phone.matches && passed;
+			sticky.classList.toggle('is-visible', show);
+			sticky.setAttribute('aria-hidden', show ? 'false' : 'true');
+		};
+		new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				// Only once the buy bar is above the screen (scrolled past), not before it is reached.
+				passed = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+				update();
+			});
+		}).observe(bar);
+		if (phone.addEventListener) {
+			phone.addEventListener('change', update);
+		}
+	}
+
 	function boot() {
 		document.querySelectorAll('[data-aimp-product]').forEach(function (root) {
 			if (root.aimpProductReady) {
@@ -250,6 +302,7 @@
 			root.aimpProductReady = true;
 			setupGallery(root);
 			setupBuyBar(root);
+			setupStickyBuy(root);
 			setupMeasureGuide(root);
 			setupGiftcardDesign(root);
 			setupLanguages(root);

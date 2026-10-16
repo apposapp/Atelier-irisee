@@ -846,7 +846,7 @@ html.aimp-sheet-open body {
 @media (max-width: 700px) {
 	.aimp-configurator.aimp-shop .aimp-shop-toggle {
 		position: fixed;
-		bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+		bottom: calc(var(--aimp-tabbar-h, env(safe-area-inset-bottom, 0px)) + 1rem);
 		left: 50%;
 		z-index: 900;
 		background: #fff;
@@ -1008,4 +1008,35 @@ html.aimp-sheet-open body {
 	border-color: transparent;
 	background: transparent;
 	text-decoration: underline;
+}
+
+/* Phones and tablets: the products use the full width; the details open as a sheet from the bottom (shop.js).
+ * (.aimp-shop-content is the size container itself, so this can't be a container query.) */
+@media (max-width: 999px) {
+	.aimp-configurator .aimp-shop-content.aimp-split {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-configurator .aimp-shop-content > .aimp-split-side {
+		display: none;
+	}
+
+	/* Room for the Filters button at the bottom. */
+	.aimp-configurator.aimp-shop .aimp-shop-content {
+		padding-bottom: 4rem;
+	}
+}
+
+/* Tablets: the sheet is a centred card. */
+@media (min-width: 701px) and (max-width: 999px) {
+	.aimp-configurator.aimp-sheet-panel {
+		right: 50%;
+		left: auto;
+		width: min(640px, calc(100% - 2rem));
+		transform: translate(50%, 100%);
+	}
+
+	.aimp-sheet.is-open .aimp-configurator.aimp-sheet-panel {
+		transform: translate(50%, 0);
+	}
 }

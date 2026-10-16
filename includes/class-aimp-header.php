@@ -219,8 +219,34 @@ class AIMP_Header {
 			'close' => '<path d="M6 6l12 12M18 6L6 18"/>',
 			'search' => '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/>',
 			'shop'   => '<path d="M4 9.5h16l-1.2 10.5H5.2z"/><path d="M3.5 9.5l2.2-5h12.6l2.2 5"/><path d="M9.5 13.5a2.5 2.5 0 0 0 5 0"/>',
+			'home'   => '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>',
+			// The customizer: a needle with thread.
+			'kit'    => '<path d="M5 19L18.5 5.5"/><ellipse cx="17.6" cy="6.4" rx=".8" ry="2" transform="rotate(45 17.6 6.4)"/><path d="M5 19c-1.5 1.5-3 .5-2.5-1 .6-1.8 3.5-1.3 5-3.5S9 9 12 9.5"/>',
 		);
 		return '<svg class="aimp-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . ( isset( $paths[ $name ] ) ? $paths[ $name ] : '' ) . '</svg>';
+	}
+
+	/**
+	 * The address of the page being shown (without query), to mark the current tab.
+	 *
+	 * @return string
+	 */
+	private static function current_url() {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- only compared with links.
+		$path = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH ) : '/';
+		return trailingslashit( home_url( $path ) );
+	}
+
+	/**
+	 * Whether a tab's link is the page being shown.
+	 *
+	 * @param string $url     Tab link.
+	 * @param string $current Current page.
+	 * @return bool
+	 */
+	public static function is_current( $url, $current ) {
+		$path = wp_parse_url( (string) $url, PHP_URL_PATH );
+		return '' !== (string) $url && trailingslashit( home_url( $path ? $path : '/' ) ) === $current;
 	}
 
 	/**
@@ -250,6 +276,10 @@ class AIMP_Header {
 			'shop_url'      => AIMP_Search::results_url(),
 			'info_bar'      => self::info_bar_items(),
 			'cart_badge'    => self::cart_badge( self::cart_count() ),
+			// Phones: the tab bar at the bottom (Home, Shop, Customizer, Cart, Menu).
+			'home_url'      => home_url( '/' ),
+			'kit_url'       => ( AIMP_Settings::get( 'configurator_page' ) && 'publish' === get_post_status( AIMP_Settings::get( 'configurator_page' ) ) ) ? get_permalink( AIMP_Settings::get( 'configurator_page' ) ) : '',
+			'current_url'   => self::current_url(),
 			'menu'          => has_nav_menu( self::LOCATION )
 				? wp_nav_menu(
 					array(

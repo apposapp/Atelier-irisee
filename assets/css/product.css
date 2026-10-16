@@ -1095,3 +1095,118 @@ html:has(.aimp-product-reviews) {
 .aimp-configurator .aimp-ideal-card .aimp-product-subtitle {
 	margin: 0;
 }
+
+/* ------------------------------------------------------------------
+ * Phones: the slim buy bar at the bottom once the buy bar has scrolled away (product.js), above the tab bar.
+ * ------------------------------------------------------------------ */
+.aimp-sticky-buy {
+	display: none;
+}
+
+@media (max-width: 700px) {
+	.aimp-sticky-buy {
+		position: fixed;
+		right: 0;
+		bottom: var(--aimp-tabbar-h, env(safe-area-inset-bottom, 0px));
+		left: 0;
+		z-index: 990;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.55rem 1rem;
+		border-top: 1px solid var(--aimp-gold, #b38f4f);
+		background: rgba(255, 255, 255, 0.97);
+		box-shadow: 0 -6px 18px rgba(97, 57, 7, 0.1);
+		color: var(--aimp-gold-text, #8a6a33);
+		transform: translateY(110%);
+		visibility: hidden;
+		transition: transform 0.25s ease, visibility 0s linear 0.25s;
+	}
+
+	.aimp-sticky-buy.is-visible {
+		transform: translateY(0);
+		visibility: visible;
+		transition: transform 0.25s ease;
+	}
+
+	.aimp-sticky-buy-text {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		min-width: 0;
+		line-height: 1.25;
+	}
+
+	.aimp-sticky-buy-name {
+		overflow: hidden;
+		font-size: 12px;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.aimp-sticky-buy-price {
+		color: var(--aimp-brown, #613907);
+		font-weight: 700;
+	}
+
+	.aimp-sticky-buy-price del {
+		opacity: 0.6;
+		font-weight: 400;
+	}
+
+	.aimp-sticky-buy-button {
+		flex: 0 0 auto;
+		min-height: 44px;
+		padding: 0.55rem 1.1rem;
+		border: 1px solid var(--aimp-gold, #b38f4f);
+		border-radius: 100px;
+		background: var(--aimp-gold, #b38f4f);
+		color: #fff;
+		font: inherit;
+		font-weight: 700;
+		cursor: pointer;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-sticky-buy,
+	.aimp-sticky-buy.is-visible {
+		transition: none;
+	}
+}
+
+/* Tablets: picture and information side by side again (the product area is about 650px wide there). */
+@container aimp (min-width: 600px) and (max-width: 820px) {
+	.aimp-product-main {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	}
+
+	.aimp-product-media {
+		position: sticky;
+		max-width: none;
+	}
+}
+
+/* Ideal for: two per row on phones, smaller. */
+@container aimp (max-width: 560px) {
+	.aimp-ideal-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.aimp-configurator .aimp-ideal-card {
+		padding: 0.9rem 0.6rem;
+	}
+
+	.aimp-ideal-icon {
+		width: 2.6rem;
+		height: 2.6rem;
+	}
+}
+
+/* Tablets (picture and information side by side): the delivery line wraps instead of being cut off. */
+@container aimp (max-width: 820px) {
+	.aimp-configurator:is(.aimp-product, #aimp-specificity) .aimp-delivery-line {
+		flex-wrap: wrap;
+		overflow-x: visible;
+	}
+}

@@ -288,6 +288,16 @@ class AIMP_Login {
 	 * ------------------------------------------------------------------ */
 
 	/**
+	 * The cart, the checkout or the configurator page.
+	 *
+	 * @return bool
+	 */
+	private static function is_shopping_page() {
+		$configurator = class_exists( 'AIMP_Settings' ) ? (int) AIMP_Settings::get( 'configurator_page' ) : 0;
+		return ( function_exists( 'is_cart' ) && is_cart() ) || ( function_exists( 'is_checkout' ) && is_checkout() ) || ( $configurator && is_page( $configurator ) );
+	}
+
+	/**
 	 * Whether the popup is printed: for logged-out visitors, or when a link from an email needs it.
 	 *
 	 * @return bool
@@ -421,7 +431,8 @@ class AIMP_Login {
 			'i18n'            => $i18n,
 			'singleField'     => (bool) self::opt( 'single_field' ),
 			'strengthMin'     => (int) self::opt( 'strength_min' ),
-			'autoOpen'        => self::opt( 'auto_open' ) && ! is_user_logged_in() && ( ! $auto_pages || is_page( $auto_pages ) ),
+			// Never on the cart, the checkout or the configurator, where it would interrupt a purchase.
+			'autoOpen'        => self::opt( 'auto_open' ) && ! is_user_logged_in() && ( ! $auto_pages || is_page( $auto_pages ) ) && ! self::is_shopping_page(),
 			'autoOpenForm'    => self::opt( 'auto_open_form' ),
 			'autoOpenDelay'   => (int) self::opt( 'auto_open_delay' ),
 			'checkoutPopup'   => (bool) self::opt( 'checkout_popup' ),

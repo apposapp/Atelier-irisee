@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.7.0
+Stable tag: 3.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,17 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.8.0 =
+* Phones: an app-like tab bar at the bottom (Home, Shop, Customizer, Cart with count, Menu). The header gets slimmer: logo, search, favourites, account and language.
+* Phones: on product pages a slim bar with the price and "Add to cart" appears at the bottom once the buy bar has scrolled away.
+* Phones: in the customizer, Back and Continue stay at the bottom of the screen; form fields are 16 px, so phones no longer zoom in.
+* Shop pages on phones and tablets: the products use the full width, and the details open as a sheet from the bottom (on tablets a centred card). Before, an empty details column took a third of the width.
+* Tablets: product pages show the picture and the information side by side.
+* Pattern page on phones: the size chart cards name every value (Bust, Waist, …).
+* "Ideal for" shows two per row on phones.
+* Info bar: the texts no longer overlap while they take turns.
+* The automatic login/register popup never opens on the cart, the checkout or the customizer.
 
 = 3.7.0 =
 * Haberdashery like buttons: zips, interfacing, elastic, ribbons & cords and bias tape each get Products → "All …" and "Add …", the Atelier Irisee workspace, a Haberdashery details box (order information, specifications, sold per, Ideal for), a product page with the buy bar, Ideal for, specification tiles and "Fits these patterns", and the Type and size columns.

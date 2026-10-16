@@ -1440,4 +1440,9 @@ return array(
 	'per roll of %s' => 'per rol van %s',
 	'pieces' => 'stuks',
 	'up to %s cm' => 'tot %s cm',
+
+	// 3.8.0: phones
+	'Customizer' => 'Customizer',
+	'Home' => 'Home',
+	'Quick navigation' => 'Snelle navigatie',
 );

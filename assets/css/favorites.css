@@ -70,7 +70,7 @@
 .aimp-fav-toast {
 	position: fixed;
 	left: 50%;
-	bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+	bottom: calc(var(--aimp-tabbar-h, env(safe-area-inset-bottom, 0px)) + 1.5rem);
 	z-index: 99999;
 	display: flex;
 	flex-wrap: wrap;

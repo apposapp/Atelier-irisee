@@ -819,7 +819,7 @@
 	 * ------------------------------------------------------------- */
 
 	Shop.prototype.isPhone = function () {
-		return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
+		return !!(window.matchMedia && window.matchMedia('(max-width: 999px)').matches);
 	};
 
 	Shop.prototype.openSheet = function () {
@@ -861,7 +861,7 @@
 			});
 			// Back to a normal column on wider screens.
 			if (window.matchMedia) {
-				var mq = window.matchMedia('(max-width: 700px)');
+				var mq = window.matchMedia('(max-width: 999px)');
 				var onChange = function () {
 					if (!mq.matches) {
 						self.closeSheet(true);

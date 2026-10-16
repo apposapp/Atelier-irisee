@@ -9,10 +9,16 @@
 	function setup(header) {
 		var panel = header.querySelector('.aimp-side-menu');
 		var backdrop = header.querySelector('.aimp-side-menu-backdrop');
-		var toggle = header.querySelector('[data-aimp-menu-open]');
-		if (!panel || !toggle) {
+		// "Menu" in the header and in the phone tab bar.
+		var toggles = Array.prototype.slice.call(header.querySelectorAll('[data-aimp-menu-open]'));
+		if (!panel || !toggles.length) {
 			return;
 		}
+		var expanded = function (value) {
+			toggles.forEach(function (el) {
+				el.setAttribute('aria-expanded', value);
+			});
+		};
 		var lastFocus = null;
 
 		panel.inert = true;
@@ -32,7 +38,7 @@
 			window.requestAnimationFrame(function () {
 				header.classList.add('is-menu-open');
 			});
-			toggle.setAttribute('aria-expanded', 'true');
+			expanded('true');
 			document.documentElement.classList.add('aimp-menu-open');
 			var first = focusables()[0];
 			if (first) {
@@ -42,7 +48,7 @@
 
 		function close() {
 			header.classList.remove('is-menu-open');
-			toggle.setAttribute('aria-expanded', 'false');
+			expanded('false');
 			panel.setAttribute('aria-hidden', 'true');
 			panel.inert = true;
 			document.documentElement.classList.remove('aimp-menu-open');
@@ -56,7 +62,9 @@
 			}
 		}
 
-		toggle.addEventListener('click', open);
+		toggles.forEach(function (el) {
+			el.addEventListener('click', open);
+		});
 		header.querySelectorAll('[data-aimp-menu-close]').forEach(function (el) {
 			el.addEventListener('click', close);
 		});

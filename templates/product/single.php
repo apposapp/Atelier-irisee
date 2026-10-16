@@ -479,7 +479,8 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 												<?php if ( 0 === $aimp_index ) : ?>
 													<th scope="row"><?php echo esc_html( $aimp_cell ); ?></th>
 												<?php else : ?>
-													<td><?php echo esc_html( $aimp_cell ); ?></td>
+													<?php // Phones show the chart as cards: each value with its column name. ?>
+													<td data-label="<?php echo esc_attr( isset( $aimp_group['columns'][ $aimp_index ] ) ? $aimp_group['columns'][ $aimp_index ] : '' ); ?>"><?php echo esc_html( $aimp_cell ); ?></td>
 												<?php endif; ?>
 											<?php endforeach; ?>
 										</tr>

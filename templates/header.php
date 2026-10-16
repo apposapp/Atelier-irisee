@@ -35,7 +35,7 @@ defined( 'ABSPATH' ) || exit;
 				<span class="aimp-header-label"><?php esc_html_e( 'Search', 'atelier-irisee-master-plugin' ); ?></span>
 			</button>
 			<?php if ( $data['shop_url'] ) : ?>
-				<a class="aimp-header-link" href="<?php echo esc_url( $data['shop_url'] ); ?>">
+				<a class="aimp-header-link aimp-header-link--shop" href="<?php echo esc_url( $data['shop_url'] ); ?>">
 					<span class="aimp-header-icon-wrap"><?php echo AIMP_Header::icon( 'shop' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
 					<span class="aimp-header-label"><?php esc_html_e( 'Shop', 'atelier-irisee-master-plugin' ); ?></span>
 				</a>
@@ -46,7 +46,7 @@ defined( 'ABSPATH' ) || exit;
 					<span class="aimp-header-label"><?php esc_html_e( 'Favourites', 'atelier-irisee-master-plugin' ); ?></span>
 				</a>
 			<?php endif; ?>
-			<a class="aimp-header-link" href="<?php echo esc_url( $data['cart_url'] ); ?>">
+			<a class="aimp-header-link aimp-header-link--cart" href="<?php echo esc_url( $data['cart_url'] ); ?>">
 				<span class="aimp-header-icon-wrap"><?php echo AIMP_Header::icon( 'bag' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><?php echo $data['cart_badge']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from an integer. ?></span>
 				<span class="aimp-header-label"><?php esc_html_e( 'Cart', 'atelier-irisee-master-plugin' ); ?></span>
 			</a>
@@ -105,6 +105,32 @@ defined( 'ABSPATH' ) || exit;
 			</ul>
 		</div>
 	<?php endif; ?>
+
+	<?php // Phones: an app-like tab bar at the bottom of the screen (header.css). ?>
+	<nav class="aimp-tabbar" aria-label="<?php esc_attr_e( 'Quick navigation', 'atelier-irisee-master-plugin' ); ?>">
+		<?php
+		$aimp_tabs = array(
+			array( $data['home_url'], 'home', __( 'Home', 'atelier-irisee-master-plugin' ) ),
+			array( $data['shop_url'], 'shop', __( 'Shop', 'atelier-irisee-master-plugin' ) ),
+			array( isset( $data['kit_url'] ) ? $data['kit_url'] : '', 'kit', __( 'Customizer', 'atelier-irisee-master-plugin' ) ),
+			array( $data['cart_url'], 'bag', __( 'Cart', 'atelier-irisee-master-plugin' ) ),
+		);
+		foreach ( $aimp_tabs as $aimp_tab ) :
+			if ( '' === (string) $aimp_tab[0] ) {
+				continue;
+			}
+			$aimp_now = AIMP_Header::is_current( $aimp_tab[0], isset( $data['current_url'] ) ? $data['current_url'] : '' );
+			?>
+			<a class="aimp-tabbar-item<?php echo $aimp_now ? ' is-current' : ''; ?>" href="<?php echo esc_url( $aimp_tab[0] ); ?>"<?php echo $aimp_now ? ' aria-current="page"' : ''; ?>>
+				<span class="aimp-tabbar-icon"><?php echo AIMP_Header::icon( $aimp_tab[1] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><?php echo 'bag' === $aimp_tab[1] ? $data['cart_badge'] : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from an integer. ?></span>
+				<span class="aimp-tabbar-label"><?php echo esc_html( $aimp_tab[2] ); ?></span>
+			</a>
+		<?php endforeach; ?>
+		<button type="button" class="aimp-tabbar-item" data-aimp-menu-open aria-expanded="false" aria-controls="aimp-side-menu">
+			<span class="aimp-tabbar-icon"><?php echo AIMP_Header::icon( 'menu' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
+			<span class="aimp-tabbar-label"><?php esc_html_e( 'Menu', 'atelier-irisee-master-plugin' ); ?></span>
+		</button>
+	</nav>
 
 	<div class="aimp-side-menu-backdrop" data-aimp-menu-close hidden></div>
 	<nav class="aimp-side-menu" id="aimp-side-menu" data-all-url="<?php echo esc_url( $data['shop_url'] ); ?>" aria-label="<?php esc_attr_e( 'Menu', 'atelier-irisee-master-plugin' ); ?>" aria-hidden="true">

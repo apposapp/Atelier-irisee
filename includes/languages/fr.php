@@ -1440,4 +1440,9 @@ return array(
 	'per roll of %s' => 'le rouleau de %s',
 	'pieces' => 'pièces',
 	'up to %s cm' => 'jusqu\'à %s cm',
+
+	// 3.8.0: phones
+	'Customizer' => 'Configurateur',
+	'Home' => 'Accueil',
+	'Quick navigation' => 'Navigation rapide',
 );
