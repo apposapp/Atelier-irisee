@@ -920,7 +920,7 @@
 		// and its picture loads, and put the scroll position back.
 		var y = window.pageYOffset;
 		var panel = this.findPanel('size-panel');
-		var sheetBody = this.sheet && !this.sheet.hidden ? this.sheet.querySelector('.aimp-sheet-body') : null;
+		var sheetBody = this.sheet && !this.sheet.hidden ? this.sheet.querySelector('.aimp-sheet-panel') : null;
 		var sheetY = sheetBody ? sheetBody.scrollTop : 0;
 		if (panel) {
 			panel.style.minHeight = panel.offsetHeight + 'px';
