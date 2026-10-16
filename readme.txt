@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.10.2
+Stable tag: 3.11.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,16 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.11.0 =
+* Product pages on phones: the new order now really applies (description and specifications, recommended pattern, inspiration, the rest).
+* Cart: a × in the corner of a sewing kit set ("Remove set" stays).
+* Customizer on phones: the button bars are full width on white with single-line buttons (smaller on the overview); in the pattern sheet "Confirm" appears at the bottom once a size is chosen; the haberdashery sheet has a "Choose this" button.
+* All pop-up sheets: a bigger round × with a double gold line.
+* Customizer: on the first visit a pop-up shows the 4 steps (a sheet on phones); the "How it works" button opens it again.
+* Kit steps bar: tailor's shears on the first card, a faster needle, and all texts editable per language (new settings tab "Kit steps bar").
+* Tab bar: a dress form as the Customizer icon.
+* My orders on phones: every order is a card; "View" opens the details in a sheet.
 
 = 3.10.2 =
 * Customizer on phones and tablets: a chosen pattern opens in a sheet from the bottom (like the fabrics) with its picture, sizes, needs, price, size chart and "Confirm"; tapping the pattern again reopens it.

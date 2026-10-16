@@ -1650,10 +1650,15 @@
 
 /* Phones: the overview's bar ("Save this kit", "Add to cart") with smaller buttons side by side. */
 @media (max-width: 700px) {
+	/* The full-width button bars never make the page scroll sideways (a desktop scrollbar counts in 100vw). */
+	body:has(.aimp-configurator) {
+		overflow-x: clip;
+	}
+
 	:is(.aimp-configurator, #aimp-specificity#aimp-specificity) .aimp-step--summary > .aimp-actions .aimp-button {
 		min-height: 40px;
 		padding: 0.5rem 0.75rem;
-		font-size: 0.85em;
+		font-size: 14px;
 		line-height: 1.2;
 	}
 }
