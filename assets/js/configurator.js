@@ -482,7 +482,8 @@
 		}
 		this.sheet.hidden = false;
 		document.documentElement.classList.add('aimp-sheet-open');
-		window.requestAnimationFrame(function () {
+		window.cancelAnimationFrame(this.sheetFrame);
+		this.sheetFrame = window.requestAnimationFrame(function () {
 			self.sheet.classList.add('is-open');
 		});
 	};
@@ -504,6 +505,8 @@
 		if (!this.sheet || this.sheet.hidden) {
 			return;
 		}
+		// A slide-in that has not started yet must not open the sheet after this.
+		window.cancelAnimationFrame(this.sheetFrame);
 		this.sheet.classList.remove('is-open');
 		document.documentElement.classList.remove('aimp-sheet-open');
 		var done = function () {
