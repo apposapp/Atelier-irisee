@@ -950,7 +950,7 @@ class AIMP_Settings {
 	private static function tab_sections() {
 		global $wp_settings_sections;
 		$registered = isset( $wp_settings_sections[ self::PAGE ] ) ? (array) $wp_settings_sections[ self::PAGE ] : array();
-		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_site', 'aimp_home', 'aimp_kit_steps', 'aimp_footer', 'aimp_mosaic', 'aimp_admin_menu' );
+		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_site', 'aimp_home', 'aimp_kit_steps', 'aimp_images', 'aimp_footer', 'aimp_mosaic', 'aimp_admin_menu' );
 		$sections   = array();
 		foreach ( $order as $id ) {
 			if ( isset( $registered[ $id ] ) ) {

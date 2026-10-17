@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.13.0
+Stable tag: 3.14.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.14.0 =
+* New settings tab "Images" with one button: "Optimize all images" makes a light WebP copy of every picture in all its sizes (with a progress bar) and the site shows those copies. The originals stay as they are; new uploads are optimized automatically; deleting a picture removes its copies. This replaces Imagify, which can be deactivated.
 
 = 3.13.0 =
 * Speed: shop pages bring their first products along (no wait for a second request); visitors without an account, cart or newsletter subscription start without any extra request (favourites from their cookie); logged-in customers and visitors with a cart get cart number, favourites and newsletter state in one request instead of three; WooCommerce's cart fragments request is no longer loaded on every page.

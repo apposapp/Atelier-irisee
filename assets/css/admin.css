@@ -1198,3 +1198,28 @@ table.aimp-design-fabrics {
 	padding-top: 6px;
 	border-top: 2px solid #b38f4f;
 }
+
+/* Settings → Images: the progress bar of "Optimize all images". */
+.aimp-images-bar {
+	max-width: 520px;
+	height: 10px;
+	margin: 0.5em 0;
+	overflow: hidden;
+	border-radius: 5px;
+	background: #f0e6d2;
+}
+
+.aimp-images-bar span {
+	display: block;
+	height: 100%;
+	background: #b38f4f;
+	transition: width 0.3s ease;
+}
+
+.aimp-images-status {
+	font-weight: 600;
+}
+
+.aimp-images .aimp-images-restart {
+	margin-left: 1em;
+}

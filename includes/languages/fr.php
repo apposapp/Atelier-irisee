@@ -1510,4 +1510,15 @@ return array(
 	// 3.12.1
 	'Go to shopping cart' => 'Voir le panier',
 	'Make another' => 'En créer un autre',
+
+	// 3.14.0 Images
+	'%1$s of %2$s images optimized · %3$s → %4$s (−%5$s%%)' => '%1$s images sur %2$s optimisées · %3$s → %4$s (−%5$s%%)',
+	'All images are optimized.' => 'Toutes les images sont optimisées.',
+	'Images' => 'Images',
+	'Makes a light WebP copy of every picture (in all sizes) and shows those copies on the site. Your original pictures stay as they are. New uploads are optimized automatically.' => 'Crée une copie WebP légère de chaque image (dans toutes les tailles) et affiche ces copies sur le site. Vos images originales restent telles quelles. Les nouveaux téléversements sont optimisés automatiquement.',
+	'Optimize again from the start' => 'Tout réoptimiser depuis le début',
+	'Optimize all images' => 'Optimiser toutes les images',
+	'Optimizing: %1$s / %2$s…' => 'Optimisation en cours : %1$s / %2$s…',
+	'Some images could not be optimized (IDs: %s). They are skipped; the others are done.' => 'Certaines images n\'ont pas pu être optimisées (ID : %s). Elles sont ignorées ; les autres sont terminées.',
+	'The connection was interrupted. Press the button again to continue.' => 'La connexion a été interrompue. Appuyez à nouveau sur le bouton pour continuer.',
 );

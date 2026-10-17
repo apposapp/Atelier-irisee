@@ -1510,4 +1510,15 @@ return array(
 	// 3.12.1
 	'Go to shopping cart' => 'Naar winkelmandje',
 	'Make another' => 'Nog een maken',
+
+	// 3.14.0 Images
+	'%1$s of %2$s images optimized · %3$s → %4$s (−%5$s%%)' => '%1$s van %2$s afbeeldingen geoptimaliseerd · %3$s → %4$s (−%5$s%%)',
+	'All images are optimized.' => 'Alle afbeeldingen zijn geoptimaliseerd.',
+	'Images' => 'Afbeeldingen',
+	'Makes a light WebP copy of every picture (in all sizes) and shows those copies on the site. Your original pictures stay as they are. New uploads are optimized automatically.' => 'Maakt een lichte WebP-kopie van elke afbeelding (in alle formaten) en toont die kopieën op de site. Je originele afbeeldingen blijven zoals ze zijn. Nieuwe uploads worden automatisch geoptimaliseerd.',
+	'Optimize again from the start' => 'Opnieuw optimaliseren vanaf het begin',
+	'Optimize all images' => 'Alle afbeeldingen optimaliseren',
+	'Optimizing: %1$s / %2$s…' => 'Bezig met optimaliseren: %1$s / %2$s…',
+	'Some images could not be optimized (IDs: %s). They are skipped; the others are done.' => 'Sommige afbeeldingen konden niet geoptimaliseerd worden (ID\'s: %s). Die worden overgeslagen; de andere zijn klaar.',
+	'The connection was interrupted. Press the button again to continue.' => 'De verbinding werd onderbroken. Druk opnieuw op de knop om verder te gaan.',
 );
