@@ -37,6 +37,8 @@ class AIMP_AI_Looks {
 
 	const MAX_PEOPLE = 4;
 
+	const MAX_FACES = 3;
+
 	public static function init() {
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ), 20 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
@@ -63,18 +65,22 @@ class AIMP_AI_Looks {
 	/** The standard prompt of 3.16 (saved with the settings): read as today's standard prompt. */
 	const OLD_PROMPT = 'Create a realistic fashion photo of the person from the reference photos wearing the garment from the sewing pattern picture, sewn from the fabric. Keep the person\'s face, hair and body the same. Keep the garment\'s cut, length, neckline and details as in the pattern picture. Use the fabric\'s colour, texture and print at a realistic scale. Full body, natural pose, soft daylight studio light, plain light background, portrait format. No text, no logos.';
 
+	/** The standard prompt of 3.17: read as today's standard prompt. */
+	const OLD_PROMPT_2 = 'Create a realistic fashion photo of the reference person wearing the garment. Keep the person\'s face, hair and body the same. Full body, natural pose, soft daylight studio light, plain light background, portrait format. No text, no logos.';
+
 	/**
-	 * What the picture should look like (editable). Which picture is what, and that the fabric must be used, is
-	 * always added by prompt().
+	 * What the picture should look like (editable). Which picture is what, that the fabric must be used and that only
+	 * the clothes of the model photo change, is always added by prompt().
 	 */
 	public static function default_prompt() {
-		return 'Create a realistic fashion photo of the reference person wearing the garment. Keep the person\'s face, hair and body the same. Full body, natural pose, soft daylight studio light, plain light background, portrait format. No text, no logos.';
+		return 'Photorealistic, natural fit and drape of the fabric, realistic folds and shadows. No text, no logos.';
 	}
 
 	/**
 	 * A setting.
 	 *
-	 * @param string $key service, model_{service}, people, prompt, monthly_max, two_steps, pattern_pics.
+	 * @param string $key service, model_{service}, model_step2_{service}, people, faces, prompt, monthly_max, two_steps,
+	 *                    pattern_pics.
 	 * @return mixed
 	 */
 	public static function opt( $key ) {
@@ -83,6 +89,7 @@ class AIMP_AI_Looks {
 		$defaults = array(
 			'service'      => 'leonardo',
 			'people'       => array(),
+			'faces'        => array(),
 			'prompt'       => self::default_prompt(),
 			'monthly_max'  => 100,
 			'two_steps'    => 1,
@@ -95,7 +102,7 @@ class AIMP_AI_Looks {
 		if ( 0 === strpos( $key, 'model_' ) && '' === trim( (string) $value ) ) {
 			$value = isset( $defaults[ $key ] ) ? $defaults[ $key ] : '';
 		}
-		if ( 'prompt' === $key && self::OLD_PROMPT === $value ) {
+		if ( 'prompt' === $key && in_array( $value, array( self::OLD_PROMPT, self::OLD_PROMPT_2 ), true ) ) {
 			$value = self::default_prompt();
 		}
 		return $value;
@@ -193,6 +200,7 @@ class AIMP_AI_Looks {
 		}
 		foreach ( array_keys( $services ) as $service ) {
 			$clean[ 'model_' . $service ] = isset( $input[ 'model_' . $service ] ) ? sanitize_text_field( wp_unslash( $input[ 'model_' . $service ] ) ) : '';
+			$clean[ 'model_step2_' . $service ] = isset( $input[ 'model_step2_' . $service ] ) ? sanitize_text_field( wp_unslash( $input[ 'model_step2_' . $service ] ) ) : '';
 			// An empty key field keeps the saved key; "Remove" deletes it.
 			$new = isset( $input['key_new'][ $service ] ) ? trim( sanitize_text_field( wp_unslash( $input['key_new'][ $service ] ) ) ) : '';
 			if ( '' !== $new ) {
@@ -203,7 +211,30 @@ class AIMP_AI_Looks {
 		}
 		$people = isset( $input['people'] ) ? array_filter( array_map( 'absint', explode( ',', (string) $input['people'] ) ) ) : array();
 		$clean['people'] = array_slice( array_values( array_unique( $people ) ), 0, self::MAX_PEOPLE );
+		$faces           = isset( $input['faces'] ) ? array_filter( array_map( 'absint', explode( ',', (string) $input['faces'] ) ) ) : array();
+		$clean['faces']  = array_slice( array_values( array_unique( $faces ) ), 0, self::MAX_FACES );
 		return $clean;
+	}
+
+	/**
+	 * A picker for several photos from the media library (admin-settings.js, type "images").
+	 *
+	 * @param string $field people or faces.
+	 * @param int[]  $ids   Chosen photos.
+	 */
+	private static function render_photos( $field, $ids ) {
+		?>
+		<div class="aimp-media-field" data-type="images">
+			<input type="hidden" name="<?php echo esc_attr( self::OPTION . '[' . $field . ']' ); ?>" value="<?php echo esc_attr( implode( ',', array_map( 'absint', $ids ) ) ); ?>">
+			<span class="aimp-media-list">
+				<?php foreach ( $ids as $id ) : ?>
+					<img src="<?php echo esc_url( (string) wp_get_attachment_image_url( $id, 'thumbnail' ) ); ?>" alt="" style="height:36px;width:auto;margin-right:6px;vertical-align:middle;">
+				<?php endforeach; ?>
+			</span>
+			<button type="button" class="button aimp-media-choose"><?php esc_html_e( 'Choose pictures', 'atelier-irisee-master-plugin' ); ?></button>
+			<button type="button" class="button-link aimp-media-remove"<?php echo $ids ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Remove', 'atelier-irisee-master-plugin' ); ?></button>
+		</div>
+		<?php
 	}
 
 	public static function render_section() {
@@ -240,26 +271,36 @@ class AIMP_AI_Looks {
 							<label><?php esc_html_e( 'Model', 'atelier-irisee-master-plugin' ); ?><br>
 							<input type="text" class="regular-text code" name="<?php echo esc_attr( $name ); ?>[model_<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( self::opt( 'model_' . $key ) ); ?>" placeholder="<?php echo esc_attr( $info[1] ); ?>"></label>
 						</p>
+						<p>
+							<label><?php esc_html_e( 'Model for step 2 (the person)', 'atelier-irisee-master-plugin' ); ?><br>
+							<input type="text" class="regular-text code" name="<?php echo esc_attr( $name ); ?>[model_step2_<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( (string) self::opt( 'model_step2_' . $key ) ); ?>" placeholder="<?php esc_attr_e( 'The same model', 'atelier-irisee-master-plugin' ); ?>"></label>
+						</p>
+						<?php if ( 'gemini' === $key ) : ?>
+							<p class="description"><?php esc_html_e( 'For the most faithful person: gemini-3-pro-image-preview (Nano Banana Pro) as the model for step 2; it costs more per picture.', 'atelier-irisee-master-plugin' ); ?></p>
+						<?php endif; ?>
 					</td>
 				</tr>
 			<?php endforeach; ?>
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Reference person', 'atelier-irisee-master-plugin' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Model photos to dress (full body)', 'atelier-irisee-master-plugin' ); ?></th>
 				<td>
-					<div class="aimp-media-field" data-type="images">
-						<input type="hidden" name="<?php echo esc_attr( $name ); ?>[people]" value="<?php echo esc_attr( implode( ',', array_map( 'absint', $people ) ) ); ?>">
-						<span class="aimp-media-list">
-							<?php foreach ( $people as $id ) : ?>
-								<img src="<?php echo esc_url( (string) wp_get_attachment_image_url( $id, 'thumbnail' ) ); ?>" alt="" style="height:36px;width:auto;margin-right:6px;vertical-align:middle;">
-							<?php endforeach; ?>
-						</span>
-						<button type="button" class="button aimp-media-choose"><?php esc_html_e( 'Choose pictures', 'atelier-irisee-master-plugin' ); ?></button>
-						<button type="button" class="button-link aimp-media-remove"<?php echo $people ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Remove', 'atelier-irisee-master-plugin' ); ?></button>
-					</div>
+					<?php self::render_photos( 'people', $people ); ?>
 					<p class="description">
 						<?php
 						/* translators: %d: maximum number of photos */
-						echo esc_html( sprintf( __( 'Up to %d photos of the same person: face and full body, good light. Only use photos of someone who agreed to this.', 'atelier-irisee-master-plugin' ), self::MAX_PEOPLE ) );
+						echo esc_html( sprintf( __( 'Up to %d photos. The AI dresses her in one of these photos (her face, hair, body and pose stay exactly as they are; only the clothes change), so: full body, front-facing, plain background, sharp (at least 1024 px), in simple fitted clothes such as a plain top and leggings. Several poses give variety. Only use photos of someone who agreed to this.', 'atelier-irisee-master-plugin' ), self::MAX_PEOPLE ) );
+						?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Face close-ups (for likeness)', 'atelier-irisee-master-plugin' ); ?></th>
+				<td>
+					<?php self::render_photos( 'faces', (array) self::opt( 'faces' ) ); ?>
+					<p class="description">
+						<?php
+						/* translators: %d: maximum number of photos */
+						echo esc_html( sprintf( __( 'Up to %d sharp close-ups of her face (from the front and slightly from the side), so the AI keeps her face exactly the same.', 'atelier-irisee-master-plugin' ), self::MAX_FACES ) );
 						?>
 					</p>
 				</td>
@@ -622,7 +663,8 @@ class AIMP_AI_Looks {
 	 */
 	private static function role_text( $role ) {
 		$roles = array(
-			'person'  => 'the reference person',
+			'base'    => 'the photo to edit: keep this person, her face, hair, skin, body, pose, hands, background and light exactly as they are',
+			'face'    => 'a close-up of the same person, only to keep her face exactly the same',
 			'garment' => 'the garment (sewing pattern): use only its shape, cut, length, neckline, sleeves and details, NOT its colour, print or fabric',
 			'fabric'  => 'the fabric swatch: the garment must be made from exactly this fabric (same colour, print and texture)',
 			'made'    => 'the finished garment: copy it exactly, including its fabric, colour and print',
@@ -631,26 +673,44 @@ class AIMP_AI_Looks {
 	}
 
 	/**
-	 * The text for the AI: which picture is what, what to do with the fabric, then (except for step 1) the prompt
-	 * from the settings.
+	 * The text for the AI: which picture is what, what to do, then (except for step 1) the prompt from the settings.
 	 *
 	 * @param array $images Pictures (picture()).
 	 * @param int   $step   0 = one step, 1 = the garment in the fabric, 2 = that garment on the person.
 	 * @return string
 	 */
 	private static function prompt( $images, $step ) {
-		$lines = array();
+		$lines   = array();
+		$garment = 0;
 		foreach ( $images as $i => $image ) {
 			$lines[] = 'Image ' . ( $i + 1 ) . ': ' . self::role_text( $image[4] ) . '.';
+			if ( in_array( $image[4], array( 'garment', 'made' ), true ) ) {
+				$garment = $i + 1;
+			}
 		}
 		$text = implode( "\n", $lines ) . "\n\n";
 		if ( 1 === $step ) {
 			return $text . 'Make a product photo of the garment, sewn entirely from the fabric of the fabric swatch. Keep the garment\'s exact shape, cut, length, neckline, sleeves and details. Replace its colour, print and texture completely with the fabric: the same colour, print and texture, with the print at a realistic scale for clothing. Ignore the colour and fabric shown in the garment picture. Show the whole garment on an invisible mannequin, front view, plain white background, soft even light. No person, no text.';
 		}
-		$rule = 1 > $step
-			? 'Important: the garment must be made entirely from the fabric of the fabric swatch. Its colour, print and texture replace the colour and fabric shown in the garment picture, which only shows the shape.'
-			: 'Dress the reference person in exactly this garment: keep its shape, details, fabric, colour and print unchanged.';
+		// The person is not drawn again: her own photo is edited, only the clothes change.
+		$rule = sprintf( 'Edit image 1. Replace only her clothes with exactly the garment from image %d', $garment );
+		$rule .= 2 === $step
+			? ' (the same shape, details, fabric, colour and print)'
+			: ', made entirely from the fabric of the fabric swatch (its colour, print and texture replace the colour and fabric shown in the garment picture, which only shows the shape)';
+		$rule .= ', fitted naturally to her body and pose. Change nothing else: the same face, hair, expression, skin, body, hands, pose, background and light.';
 		return $text . $rule . "\n\n" . (string) self::opt( 'prompt' );
+	}
+
+	/**
+	 * The model photo a combination is made with: always the same one for a combination, different poses across
+	 * combinations.
+	 *
+	 * @param string $key Combination.
+	 * @return int Attachment, or 0.
+	 */
+	private static function base_photo( $key ) {
+		$people = array_values( array_filter( array_map( 'absint', (array) self::opt( 'people' ) ) ) );
+		return $people ? $people[ abs( crc32( $key ) ) % count( $people ) ] : 0;
 	}
 
 	/**
@@ -680,14 +740,17 @@ class AIMP_AI_Looks {
 		}
 		$images = array();
 		if ( 1 !== $step ) {
-			foreach ( (array) self::opt( 'people' ) as $id ) {
-				$picture = self::picture( absint( $id ), 'person' );
-				if ( $picture ) {
-					$images[] = $picture;
-				}
+			// Her own photo to dress first, then the face close-ups.
+			$base = self::picture( self::base_photo( $key ), 'base' );
+			if ( ! $base ) {
+				return new WP_Error( 'aimp_ai', __( 'Choose at least one model photo to dress (and save).', 'atelier-irisee-master-plugin' ) );
 			}
-			if ( ! $images ) {
-				return new WP_Error( 'aimp_ai', __( 'Choose at least one photo of the reference person (and save).', 'atelier-irisee-master-plugin' ) );
+			$images[] = $base;
+			foreach ( (array) self::opt( 'faces' ) as $id ) {
+				$face = self::picture( absint( $id ), 'face' );
+				if ( $face ) {
+					$images[] = $face;
+				}
 			}
 		}
 		if ( 2 === $step ) {
@@ -709,6 +772,11 @@ class AIMP_AI_Looks {
 		}
 		$prompt = self::prompt( $images, $step );
 		$model  = (string) self::opt( 'model_' . $service );
+		// Step 2 (the person) can use a better model than step 1.
+		$model2 = trim( (string) self::opt( 'model_step2_' . $service ) );
+		if ( 1 !== $step && '' !== $model2 ) {
+			$model = $model2;
+		}
 
 		if ( function_exists( 'set_time_limit' ) ) {
 			@set_time_limit( 180 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged

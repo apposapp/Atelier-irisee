@@ -1541,7 +1541,6 @@ return array(
 	'API key' => 'Clé API',
 	'An image AI makes a picture of a pattern design sewn from a fabric, worn by your reference person. Pictures are only made when you ask for it here, and only the pictures you approve are shown: in the customizer, first among the fabric\'s pictures for that design.' => 'Une IA d\'image crée une photo d\'un modèle de patron cousu dans un tissu et porté par votre personne de référence. Les photos ne sont créées que lorsque vous le demandez ici, et seules les photos que vous approuvez sont affichées : dans le configurateur, en premier parmi les photos du tissu pour ce modèle.',
 	'Being made' => 'En cours de création',
-	'Choose at least one photo of the reference person (and save).' => 'Choisissez au moins une photo de la personne de référence (et enregistrez).',
 	'Count missing pictures' => 'Compter les photos manquantes',
 	'Done. The picture is waiting for your approval below.' => 'Terminé. La photo attend votre approbation ci-dessous.',
 	'Every combination has a picture.' => 'Chaque combinaison a une photo.',
@@ -1563,7 +1562,6 @@ return array(
 	'Not set' => 'Non défini',
 	'Pictures' => 'Photos',
 	'Prompt' => 'Prompt',
-	'Reference person' => 'Personne de référence',
 	'Save the settings above before generating.' => 'Enregistrez les réglages ci-dessus avant de générer.',
 	'Saved – type a new key to replace it' => 'Enregistrée – saisissez une nouvelle clé pour la remplacer',
 	'Service' => 'Service',
@@ -1578,7 +1576,6 @@ return array(
 	'There is no API key for this service yet (save it first).' => 'Il n\'y a pas encore de clé API pour ce service (enregistrez-la d\'abord).',
 	'This combination no longer exists.' => 'Cette combinaison n\'existe plus.',
 	'This picture no longer exists.' => 'Cette photo n\'existe plus.',
-	'Up to %d photos of the same person: face and full body, good light. Only use photos of someone who agreed to this.' => 'Jusqu\'à %d photos de la même personne : visage et corps entier, bonne lumière. N\'utilisez que des photos d\'une personne qui a donné son accord.',
 	'Waiting for approval' => 'En attente d\'approbation',
 	'— Fabric —' => '— Tissu —',
 	'— Pattern design —' => '— Modèle de patron —',
@@ -1590,4 +1587,14 @@ return array(
 	'The picture of the first step is missing. Generate again.' => 'La photo de la première étape manque. Générez à nouveau.',
 	'Two steps' => 'Deux étapes',
 	'Which picture of the pattern the AI gets. The AI copies the fabric it sees, so choose the technical drawing or a photo in a plain fabric.' => 'La photo du patron que reçoit l\'IA. L\'IA reprend le tissu qu\'elle voit : choisissez donc le dessin technique ou une photo dans un tissu uni.',
+
+	// 3.18.0
+	'Choose at least one model photo to dress (and save).' => 'Choisissez au moins une photo de mannequin à habiller (et enregistrez).',
+	'Face close-ups (for likeness)' => 'Gros plans du visage (pour la ressemblance)',
+	'For the most faithful person: gemini-3-pro-image-preview (Nano Banana Pro) as the model for step 2; it costs more per picture.' => 'Pour une personne la plus fidèle possible : gemini-3-pro-image-preview (Nano Banana Pro) comme modèle pour l\'étape 2 ; cela coûte plus cher par photo.',
+	'Model for step 2 (the person)' => 'Modèle pour l\'étape 2 (la personne)',
+	'Model photos to dress (full body)' => 'Photos de mannequin à habiller (corps entier)',
+	'The same model' => 'Le même modèle',
+	'Up to %d photos. The AI dresses her in one of these photos (her face, hair, body and pose stay exactly as they are; only the clothes change), so: full body, front-facing, plain background, sharp (at least 1024 px), in simple fitted clothes such as a plain top and leggings. Several poses give variety. Only use photos of someone who agreed to this.' => 'Jusqu\'à %d photos. L\'IA l\'habille sur l\'une de ces photos (son visage, ses cheveux, son corps et sa pose restent exactement tels quels ; seuls les vêtements changent), donc : corps entier, de face, fond uni, nette (au moins 1024 px), en vêtements simples et ajustés comme un haut uni et un legging. Plusieurs poses apportent de la variété. N\'utilisez que des photos d\'une personne qui a donné son accord.',
+	'Up to %d sharp close-ups of her face (from the front and slightly from the side), so the AI keeps her face exactly the same.' => 'Jusqu\'à %d gros plans nets de son visage (de face et légèrement de côté), pour que l\'IA garde son visage exactement identique.',
 );
