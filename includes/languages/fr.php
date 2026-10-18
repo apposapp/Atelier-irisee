@@ -1582,19 +1582,28 @@ return array(
 
 	// 3.17.0
 	'First the garment in the fabric, then on the person (the fabric comes out much better; each picture costs 2 generations)' => 'D\'abord le vêtement dans le tissu, puis sur la personne (le tissu est bien mieux rendu ; chaque photo coûte 2 générations)',
-	'Pattern picture per design' => 'Photo du patron par modèle',
 	'Sure? This makes %1$d pictures: %2$d generations, each one is charged by the service. Click again to start.' => 'Vous êtes sûr ? Cela crée %1$d photos : %2$d générations, chacune est facturée par le service. Cliquez à nouveau pour démarrer.',
 	'The picture of the first step is missing. Generate again.' => 'La photo de la première étape manque. Générez à nouveau.',
 	'Two steps' => 'Deux étapes',
-	'Which picture of the pattern the AI gets. The AI copies the fabric it sees, so choose the technical drawing or a photo in a plain fabric.' => 'La photo du patron que reçoit l\'IA. L\'IA reprend le tissu qu\'elle voit : choisissez donc le dessin technique ou une photo dans un tissu uni.',
 
 	// 3.18.0
 	'Choose at least one model photo to dress (and save).' => 'Choisissez au moins une photo de mannequin à habiller (et enregistrez).',
 	'Face close-ups (for likeness)' => 'Gros plans du visage (pour la ressemblance)',
 	'For the most faithful person: gemini-3-pro-image-preview (Nano Banana Pro) as the model for step 2; it costs more per picture.' => 'Pour une personne la plus fidèle possible : gemini-3-pro-image-preview (Nano Banana Pro) comme modèle pour l\'étape 2 ; cela coûte plus cher par photo.',
 	'Model for step 2 (the person)' => 'Modèle pour l\'étape 2 (la personne)',
-	'Model photos to dress (full body)' => 'Photos de mannequin à habiller (corps entier)',
 	'The same model' => 'Le même modèle',
 	'Up to %d photos. The AI dresses her in one of these photos (her face, hair, body and pose stay exactly as they are; only the clothes change), so: full body, front-facing, plain background, sharp (at least 1024 px), in simple fitted clothes such as a plain top and leggings. Several poses give variety. Only use photos of someone who agreed to this.' => 'Jusqu\'à %d photos. L\'IA l\'habille sur l\'une de ces photos (son visage, ses cheveux, son corps et sa pose restent exactement tels quels ; seuls les vêtements changent), donc : corps entier, de face, fond uni, nette (au moins 1024 px), en vêtements simples et ajustés comme un haut uni et un legging. Plusieurs poses apportent de la variété. N\'utilisez que des photos d\'une personne qui a donné son accord.',
 	'Up to %d sharp close-ups of her face (from the front and slightly from the side), so the AI keeps her face exactly the same.' => 'Jusqu\'à %d gros plans nets de son visage (de face et légèrement de côté), pour que l\'IA garde son visage exactement identique.',
+
+	// 3.19.0
+	'%1$d pattern pictures · %2$s' => '%1$d photos du patron · %2$s',
+	'General model photos to dress (full body)' => 'Photos de mannequin générales à habiller (corps entier)',
+	'Model photo to dress' => 'Photo de mannequin à habiller',
+	'Other pictures of this garment (from the media library):' => 'Autres photos de ce vêtement (de la médiathèque) :',
+	'Per design: the model photo she is dressed in, and the pictures of the pattern the AI gets to see what the garment is (front, back, technical drawing, a photo in a plain fabric). The AI copies the fabric it sees, so avoid photos in a busy print. Without its own model photo, one of the general model photos is used.' => 'Par modèle : la photo de mannequin sur laquelle elle est habillée, et les photos du patron que reçoit l\'IA pour voir le vêtement (devant, dos, dessin technique, une photo dans un tissu uni). L\'IA reprend le tissu qu\'elle voit : évitez donc les photos avec un imprimé chargé. Sans photo propre, une des photos de mannequin générales est utilisée.',
+	'Per pattern design' => 'Par modèle de patron',
+	'Pictures of the pattern' => 'Photos du patron',
+	'Up to %1$d ticked and up to %2$d other pictures.' => 'Jusqu\'à %1$d photos cochées et jusqu\'à %2$d autres photos.',
+	'general model photos' => 'photos de mannequin générales',
+	'own model photo' => 'photo de mannequin propre',
 );

@@ -1392,3 +1392,28 @@ table.aimp-design-fabrics {
 	outline: 2px solid #2271b1;
 	outline-offset: 2px;
 }
+
+/* AI pictures: one box per pattern design (model photo and pictures of the pattern). */
+.aimp-ai-design-box {
+	margin: 0 0 8px;
+	padding: 8px 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.aimp-ai-design-box[open] {
+	padding-bottom: 12px;
+}
+
+.aimp-ai-design-box summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 12px;
+	align-items: baseline;
+	cursor: pointer;
+}
+
+.aimp-ai-design-state {
+	color: #646970;
+}

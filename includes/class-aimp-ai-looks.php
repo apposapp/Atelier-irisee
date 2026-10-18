@@ -39,6 +39,9 @@ class AIMP_AI_Looks {
 
 	const MAX_FACES = 3;
 
+	/** Pictures of a garment per design (ticked + other). */
+	const MAX_PATTERN_PICS = 4;
+
 	public static function init() {
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ), 20 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
@@ -80,20 +83,23 @@ class AIMP_AI_Looks {
 	 * A setting.
 	 *
 	 * @param string $key service, model_{service}, model_step2_{service}, people, faces, prompt, monthly_max, two_steps,
-	 *                    pattern_pics.
+	 *                    pattern_pics, pattern_extra, design_model.
 	 * @return mixed
 	 */
 	public static function opt( $key ) {
 		$options  = (array) get_option( self::OPTION, array() );
 		$services = self::services();
 		$defaults = array(
-			'service'      => 'leonardo',
-			'people'       => array(),
-			'faces'        => array(),
-			'prompt'       => self::default_prompt(),
-			'monthly_max'  => 100,
-			'two_steps'    => 1,
-			'pattern_pics' => array(),
+			'service'       => 'leonardo',
+			'people'        => array(),
+			'faces'         => array(),
+			'prompt'        => self::default_prompt(),
+			'monthly_max'   => 100,
+			'two_steps'     => 1,
+			// Per design: the pattern's pictures for the AI, other pictures of the garment, the model photo to dress.
+			'pattern_pics'  => array(),
+			'pattern_extra' => array(),
+			'design_model'  => array(),
 		);
 		foreach ( $services as $service => $info ) {
 			$defaults[ 'model_' . $service ] = $info[1];
@@ -186,13 +192,26 @@ class AIMP_AI_Looks {
 			'two_steps'    => empty( $input['two_steps'] ) ? 0 : 1,
 			'pattern_pics' => array(),
 		);
-		// The picture of each design the AI gets: only a picture of that pattern.
-		foreach ( isset( $input['pattern_pics'] ) && is_array( $input['pattern_pics'] ) ? $input['pattern_pics'] : array() as $design => $id ) {
-			$parts = explode( '|', sanitize_text_field( (string) $design ) );
-			$slug  = isset( $parts[1] ) ? sanitize_title( $parts[1] ) : '';
-			$id    = absint( $id );
-			if ( absint( $parts[0] ) && $id && in_array( $id, self::pattern_images( absint( $parts[0] ), $slug ), true ) ) {
-				$clean['pattern_pics'][ absint( $parts[0] ) . '|' . $slug ] = $id;
+		// Per design: the pictures of the pattern the AI gets (only pictures of that pattern), other pictures of the
+		// garment from the media library, and the model photo to dress.
+		$clean['pattern_extra'] = array();
+		$clean['design_model']  = array();
+		foreach ( array( 'pattern_pics', 'pattern_extra', 'design_model' ) as $field ) {
+			foreach ( isset( $input[ $field ] ) && is_array( $input[ $field ] ) ? $input[ $field ] : array() as $design => $ids ) {
+				$parts = explode( '|', sanitize_text_field( (string) $design ) );
+				$id    = absint( $parts[0] );
+				if ( ! $id ) {
+					continue;
+				}
+				$design = $id . '|' . ( isset( $parts[1] ) ? sanitize_title( $parts[1] ) : '' );
+				$ids    = array_values( array_unique( array_filter( array_map( 'absint', is_array( $ids ) ? $ids : explode( ',', (string) $ids ) ) ) ) );
+				if ( 'pattern_pics' === $field ) {
+					$ids = array_values( array_intersect( $ids, self::pattern_images( $id, isset( $parts[1] ) ? sanitize_title( $parts[1] ) : '' ) ) );
+				}
+				$ids = array_slice( $ids, 0, 'design_model' === $field ? 1 : self::MAX_PATTERN_PICS );
+				if ( $ids ) {
+					$clean[ $field ][ $design ] = 'design_model' === $field ? $ids[0] : $ids;
+				}
 			}
 		}
 		if ( '' === trim( $clean['prompt'] ) ) {
@@ -219,13 +238,13 @@ class AIMP_AI_Looks {
 	/**
 	 * A picker for several photos from the media library (admin-settings.js, type "images").
 	 *
-	 * @param string $field people or faces.
+	 * @param string $input Field name, e.g. aimp_ai[faces].
 	 * @param int[]  $ids   Chosen photos.
 	 */
-	private static function render_photos( $field, $ids ) {
+	private static function render_photos( $input, $ids ) {
 		?>
 		<div class="aimp-media-field" data-type="images">
-			<input type="hidden" name="<?php echo esc_attr( self::OPTION . '[' . $field . ']' ); ?>" value="<?php echo esc_attr( implode( ',', array_map( 'absint', $ids ) ) ); ?>">
+			<input type="hidden" name="<?php echo esc_attr( $input ); ?>" value="<?php echo esc_attr( implode( ',', array_map( 'absint', $ids ) ) ); ?>">
 			<span class="aimp-media-list">
 				<?php foreach ( $ids as $id ) : ?>
 					<img src="<?php echo esc_url( (string) wp_get_attachment_image_url( $id, 'thumbnail' ) ); ?>" alt="" style="height:36px;width:auto;margin-right:6px;vertical-align:middle;">
@@ -282,9 +301,9 @@ class AIMP_AI_Looks {
 				</tr>
 			<?php endforeach; ?>
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Model photos to dress (full body)', 'atelier-irisee-master-plugin' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'General model photos to dress (full body)', 'atelier-irisee-master-plugin' ); ?></th>
 				<td>
-					<?php self::render_photos( 'people', $people ); ?>
+					<?php self::render_photos( $name . '[people]', $people ); ?>
 					<p class="description">
 						<?php
 						/* translators: %d: maximum number of photos */
@@ -296,7 +315,7 @@ class AIMP_AI_Looks {
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Face close-ups (for likeness)', 'atelier-irisee-master-plugin' ); ?></th>
 				<td>
-					<?php self::render_photos( 'faces', (array) self::opt( 'faces' ) ); ?>
+					<?php self::render_photos( $name . '[faces]', (array) self::opt( 'faces' ) ); ?>
 					<p class="description">
 						<?php
 						/* translators: %d: maximum number of photos */
@@ -319,28 +338,62 @@ class AIMP_AI_Looks {
 				</td>
 			</tr>
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Pattern picture per design', 'atelier-irisee-master-plugin' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Per pattern design', 'atelier-irisee-master-plugin' ); ?></th>
 				<td>
-					<p class="description"><?php esc_html_e( 'Which picture of the pattern the AI gets. The AI copies the fabric it sees, so choose the technical drawing or a photo in a plain fabric.', 'atelier-irisee-master-plugin' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Per design: the model photo she is dressed in, and the pictures of the pattern the AI gets to see what the garment is (front, back, technical drawing, a photo in a plain fabric). The AI copies the fabric it sees, so avoid photos in a busy print. Without its own model photo, one of the general model photos is used.', 'atelier-irisee-master-plugin' ); ?></p>
+					<?php
+					$models = (array) self::opt( 'design_model' );
+					$extra  = (array) self::opt( 'pattern_extra' );
+					?>
 					<?php foreach ( self::designs() as $design_key => $design ) : ?>
 						<?php
 						$parts = explode( '|', $design_key );
 						$pics  = self::pattern_images( (int) $parts[0], $parts[1] );
-						if ( count( $pics ) < 2 ) {
-							continue;
-						}
+						$model = isset( $models[ $design_key ] ) ? (int) $models[ $design_key ] : 0;
+						$more  = isset( $extra[ $design_key ] ) ? array_map( 'absint', (array) $extra[ $design_key ] ) : array();
 						?>
-						<div class="aimp-ai-pics">
-							<strong><?php echo esc_html( $design['name'] ); ?></strong>
+						<details class="aimp-ai-design-box">
+							<summary>
+								<strong><?php echo esc_html( $design['name'] ); ?></strong>
+								<span class="aimp-ai-design-state">
+									<?php
+									echo esc_html(
+										sprintf(
+											/* translators: 1: number of pattern pictures, 2: "own model photo" or "general model photos" */
+											__( '%1$d pattern pictures · %2$s', 'atelier-irisee-master-plugin' ),
+											count( $design['images'] ),
+											$model ? __( 'own model photo', 'atelier-irisee-master-plugin' ) : __( 'general model photos', 'atelier-irisee-master-plugin' )
+										)
+									);
+									?>
+								</span>
+							</summary>
+							<p><strong><?php esc_html_e( 'Model photo to dress', 'atelier-irisee-master-plugin' ); ?></strong></p>
+							<div class="aimp-media-field" data-type="image">
+								<input type="hidden" name="<?php echo esc_attr( $name . '[design_model][' . $design_key . ']' ); ?>" value="<?php echo esc_attr( (string) $model ); ?>">
+								<?php $url = $model ? wp_get_attachment_image_url( $model, 'thumbnail' ) : ''; ?>
+								<img class="aimp-media-preview" src="<?php echo esc_url( (string) $url ); ?>" alt="" width="80" height="80" style="object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px;<?php echo $url ? '' : 'display:none;'; ?>">
+								<button type="button" class="button aimp-media-choose"><?php esc_html_e( 'Choose a picture', 'atelier-irisee-master-plugin' ); ?></button>
+								<button type="button" class="button-link aimp-media-remove"<?php echo $model ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Remove', 'atelier-irisee-master-plugin' ); ?></button>
+							</div>
+							<p><strong><?php esc_html_e( 'Pictures of the pattern', 'atelier-irisee-master-plugin' ); ?></strong></p>
 							<div class="aimp-ai-pics-row">
 								<?php foreach ( $pics as $pic ) : ?>
 									<label class="aimp-ai-pic">
-										<input type="radio" name="<?php echo esc_attr( $name . '[pattern_pics][' . $design_key . ']' ); ?>" value="<?php echo esc_attr( (string) $pic ); ?>"<?php checked( $design['image'], $pic ); ?>>
+										<input type="checkbox" name="<?php echo esc_attr( $name . '[pattern_pics][' . $design_key . '][]' ); ?>" value="<?php echo esc_attr( (string) $pic ); ?>"<?php checked( in_array( $pic, $design['images'], true ) ); ?>>
 										<img src="<?php echo esc_url( (string) wp_get_attachment_image_url( $pic, 'thumbnail' ) ); ?>" alt="" loading="lazy">
 									</label>
 								<?php endforeach; ?>
 							</div>
-						</div>
+							<p><?php esc_html_e( 'Other pictures of this garment (from the media library):', 'atelier-irisee-master-plugin' ); ?></p>
+							<?php self::render_photos( $name . '[pattern_extra][' . $design_key . ']', $more ); ?>
+							<p class="description">
+								<?php
+								/* translators: 1: maximum ticked pictures, 2: maximum other pictures */
+								echo esc_html( sprintf( __( 'Up to %1$d ticked and up to %2$d other pictures.', 'atelier-irisee-master-plugin' ), self::MAX_PATTERN_PICS, self::MAX_PATTERN_PICS ) );
+								?>
+							</p>
+						</details>
 					<?php endforeach; ?>
 				</td>
 			</tr>
@@ -489,11 +542,17 @@ class AIMP_AI_Looks {
 				);
 			}
 		}
-		// The picture chosen under "Pattern picture per design".
-		foreach ( (array) self::opt( 'pattern_pics' ) as $design => $id ) {
-			if ( isset( $list[ $design ] ) && $id ) {
-				$list[ $design ]['image'] = (int) $id;
+		// The pictures the AI gets (Per pattern design): the ticked pictures of the pattern (else its first picture),
+		// then the other pictures of the garment. 3.17 kept one picture per design.
+		$ticked = (array) self::opt( 'pattern_pics' );
+		$extra  = (array) self::opt( 'pattern_extra' );
+		foreach ( $list as $design => $item ) {
+			$images = isset( $ticked[ $design ] ) ? array_map( 'absint', (array) $ticked[ $design ] ) : array();
+			if ( ! $images ) {
+				$images = array( $item['image'] );
 			}
+			$more = isset( $extra[ $design ] ) ? array_map( 'absint', (array) $extra[ $design ] ) : array();
+			$list[ $design ]['images'] = array_values( array_unique( array_filter( array_merge( $images, $more ) ) ) );
 		}
 		return $list;
 	}
@@ -665,7 +724,7 @@ class AIMP_AI_Looks {
 		$roles = array(
 			'base'    => 'the photo to edit: keep this person, her face, hair, skin, body, pose, hands, background and light exactly as they are',
 			'face'    => 'a close-up of the same person, only to keep her face exactly the same',
-			'garment' => 'the garment (sewing pattern): use only its shape, cut, length, neckline, sleeves and details, NOT its colour, print or fabric',
+			'garment' => 'a picture of the garment (sewing pattern): use only its shape, cut, length, neckline, sleeves and details, NOT its colour, print or fabric',
 			'fabric'  => 'the fabric swatch: the garment must be made from exactly this fabric (same colour, print and texture)',
 			'made'    => 'the finished garment: copy it exactly, including its fabric, colour and print',
 		);
@@ -681,11 +740,11 @@ class AIMP_AI_Looks {
 	 */
 	private static function prompt( $images, $step ) {
 		$lines   = array();
-		$garment = 0;
+		$garment = array();
 		foreach ( $images as $i => $image ) {
 			$lines[] = 'Image ' . ( $i + 1 ) . ': ' . self::role_text( $image[4] ) . '.';
 			if ( in_array( $image[4], array( 'garment', 'made' ), true ) ) {
-				$garment = $i + 1;
+				$garment[] = $i + 1;
 			}
 		}
 		$text = implode( "\n", $lines ) . "\n\n";
@@ -693,7 +752,8 @@ class AIMP_AI_Looks {
 			return $text . 'Make a product photo of the garment, sewn entirely from the fabric of the fabric swatch. Keep the garment\'s exact shape, cut, length, neckline, sleeves and details. Replace its colour, print and texture completely with the fabric: the same colour, print and texture, with the print at a realistic scale for clothing. Ignore the colour and fabric shown in the garment picture. Show the whole garment on an invisible mannequin, front view, plain white background, soft even light. No person, no text.';
 		}
 		// The person is not drawn again: her own photo is edited, only the clothes change.
-		$rule = sprintf( 'Edit image 1. Replace only her clothes with exactly the garment from image %d', $garment );
+		$from = count( $garment ) > 1 ? 'images ' . reset( $garment ) . ' to ' . end( $garment ) : 'image ' . reset( $garment );
+		$rule = 'Edit image 1. Replace only her clothes with exactly the garment from ' . $from;
 		$rule .= 2 === $step
 			? ' (the same shape, details, fabric, colour and print)'
 			: ', made entirely from the fabric of the fabric swatch (its colour, print and texture replace the colour and fabric shown in the garment picture, which only shows the shape)';
@@ -709,6 +769,13 @@ class AIMP_AI_Looks {
 	 * @return int Attachment, or 0.
 	 */
 	private static function base_photo( $key ) {
+		// The design's own model photo (Per pattern design), else one of the general model photos.
+		$parts  = explode( '|', $key );
+		$models = (array) self::opt( 'design_model' );
+		$design = $parts[0] . '|' . ( isset( $parts[1] ) ? $parts[1] : '' );
+		if ( ! empty( $models[ $design ] ) && wp_attachment_is_image( (int) $models[ $design ] ) ) {
+			return (int) $models[ $design ];
+		}
 		$people = array_values( array_filter( array_map( 'absint', (array) self::opt( 'people' ) ) ) );
 		return $people ? $people[ abs( crc32( $key ) ) % count( $people ) ] : 0;
 	}
@@ -762,12 +829,18 @@ class AIMP_AI_Looks {
 		} else {
 			$designs = self::designs();
 			$fabric  = wc_get_product( $fabric_id );
-			$pattern = self::picture( $designs[ $design ]['image'], 'garment' );
 			$cloth   = $fabric ? self::swatch( $fabric ) : null;
+			$pattern = array();
+			foreach ( $designs[ $design ]['images'] as $id ) {
+				$picture = self::picture( $id, 'garment' );
+				if ( $picture ) {
+					$pattern[] = $picture;
+				}
+			}
 			if ( ! $pattern || ! $cloth ) {
 				return new WP_Error( 'aimp_ai', __( 'The pattern or the fabric has no picture.', 'atelier-irisee-master-plugin' ) );
 			}
-			$images[] = $pattern;
+			$images   = array_merge( $images, $pattern );
 			$images[] = $cloth;
 		}
 		$prompt = self::prompt( $images, $step );
@@ -954,6 +1027,19 @@ class AIMP_AI_Looks {
 			'Content-Type'  => 'application/json',
 		);
 		$refs = array();
+		// Leonardo takes up to 6 reference pictures: leave out face close-ups first, then extra garment pictures (one
+		// garment picture always stays).
+		foreach ( array( 'face' => 0, 'garment' => 1 ) as $role => $keep ) {
+			for ( $i = count( $images ) - 1; $i >= 0 && count( $images ) > 6; $i-- ) {
+				$same = 0;
+				foreach ( $images as $image ) {
+					$same += $role === $image[4] ? 1 : 0;
+				}
+				if ( $role === $images[ $i ][4] && $same > $keep ) {
+					array_splice( $images, $i, 1 );
+				}
+			}
+		}
 		foreach ( array_slice( $images, 0, 6 ) as $image ) {
 			$id = self::leonardo_upload( $headers, $image );
 			if ( is_wp_error( $id ) ) {

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.18.0
+Stable tag: 3.19.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.19.0 =
+* AI pictures, new "Per pattern design" block (one box per design): its own model photo to dress, and several pictures of the pattern for the AI (tick up to 4 of the pattern's pictures and add up to 4 other pictures from the media library, e.g. front, back and technical drawing).
+* The general model photos are used for designs without their own model photo. The face close-ups stay the same for all designs.
+* Leonardo (max. 6 reference pictures): face close-ups and extra pattern pictures are left out first when there are too many.
 
 = 3.18.0 =
 * AI pictures keep the person exactly the same: instead of drawing her again, the AI now dresses her in one of her own full-body photos (only the clothes change; face, hair, body, pose and background stay her real photo). Each combination always uses the same photo; different combinations rotate through the photos.

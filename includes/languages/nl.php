@@ -1582,19 +1582,28 @@ return array(
 
 	// 3.17.0
 	'First the garment in the fabric, then on the person (the fabric comes out much better; each picture costs 2 generations)' => 'Eerst het kledingstuk in de stof, dan op de persoon (de stof komt veel beter uit; elke foto kost 2 generaties)',
-	'Pattern picture per design' => 'Patroonfoto per ontwerp',
 	'Sure? This makes %1$d pictures: %2$d generations, each one is charged by the service. Click again to start.' => 'Zeker? Dit maakt %1$d foto\'s: %2$d generaties, de dienst rekent elke generatie aan. Klik nogmaals om te starten.',
 	'The picture of the first step is missing. Generate again.' => 'De foto van de eerste stap ontbreekt. Genereer opnieuw.',
 	'Two steps' => 'Twee stappen',
-	'Which picture of the pattern the AI gets. The AI copies the fabric it sees, so choose the technical drawing or a photo in a plain fabric.' => 'Welke foto van het patroon de AI krijgt. De AI neemt de stof over die hij ziet, kies dus de technische tekening of een foto in een effen stof.',
 
 	// 3.18.0
 	'Choose at least one model photo to dress (and save).' => 'Kies minstens één modelfoto om aan te kleden (en sla op).',
 	'Face close-ups (for likeness)' => 'Close-ups van het gezicht (voor de gelijkenis)',
 	'For the most faithful person: gemini-3-pro-image-preview (Nano Banana Pro) as the model for step 2; it costs more per picture.' => 'Voor de meest getrouwe persoon: gemini-3-pro-image-preview (Nano Banana Pro) als model voor stap 2; dat kost meer per foto.',
 	'Model for step 2 (the person)' => 'Model voor stap 2 (de persoon)',
-	'Model photos to dress (full body)' => 'Modelfoto\'s om aan te kleden (volledig lichaam)',
 	'The same model' => 'Hetzelfde model',
 	'Up to %d photos. The AI dresses her in one of these photos (her face, hair, body and pose stay exactly as they are; only the clothes change), so: full body, front-facing, plain background, sharp (at least 1024 px), in simple fitted clothes such as a plain top and leggings. Several poses give variety. Only use photos of someone who agreed to this.' => 'Tot %d foto\'s. De AI kleedt haar aan in een van deze foto\'s (haar gezicht, haar, lichaam en houding blijven precies zoals ze zijn; alleen de kleding verandert), dus: volledig lichaam, vooraanzicht, effen achtergrond, scherp (minstens 1024 px), in eenvoudige aansluitende kleding zoals een effen topje en legging. Meerdere houdingen geven afwisseling. Gebruik alleen foto\'s van iemand die hiermee akkoord ging.',
 	'Up to %d sharp close-ups of her face (from the front and slightly from the side), so the AI keeps her face exactly the same.' => 'Tot %d scherpe close-ups van haar gezicht (van voren en licht van opzij), zodat de AI haar gezicht precies hetzelfde houdt.',
+
+	// 3.19.0
+	'%1$d pattern pictures · %2$s' => '%1$d patroonfoto\'s · %2$s',
+	'General model photos to dress (full body)' => 'Algemene modelfoto\'s om aan te kleden (volledig lichaam)',
+	'Model photo to dress' => 'Modelfoto om aan te kleden',
+	'Other pictures of this garment (from the media library):' => 'Andere foto\'s van dit kledingstuk (uit de mediabibliotheek):',
+	'Per design: the model photo she is dressed in, and the pictures of the pattern the AI gets to see what the garment is (front, back, technical drawing, a photo in a plain fabric). The AI copies the fabric it sees, so avoid photos in a busy print. Without its own model photo, one of the general model photos is used.' => 'Per ontwerp: de modelfoto waarin ze aangekleed wordt, en de foto\'s van het patroon die de AI krijgt om te zien wat het kledingstuk is (voorkant, achterkant, technische tekening, een foto in een effen stof). De AI neemt de stof over die hij ziet, vermijd dus foto\'s met een drukke print. Zonder eigen modelfoto wordt een van de algemene modelfoto\'s gebruikt.',
+	'Per pattern design' => 'Per patroonontwerp',
+	'Pictures of the pattern' => 'Foto\'s van het patroon',
+	'Up to %1$d ticked and up to %2$d other pictures.' => 'Tot %1$d aangevinkte en tot %2$d andere foto\'s.',
+	'general model photos' => 'algemene modelfoto\'s',
+	'own model photo' => 'eigen modelfoto',
 );
