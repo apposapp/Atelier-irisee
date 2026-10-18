@@ -321,7 +321,7 @@ class AIMP_Images {
 	 * @param string $hook_suffix Admin page.
 	 */
 	public static function enqueue( $hook_suffix ) {
-		if ( 'woocommerce_page_' . AIMP_Settings::PAGE !== $hook_suffix ) {
+		if ( ! AIMP_Settings::is_settings_screen( $hook_suffix ) ) {
 			return;
 		}
 		wp_enqueue_script( 'aimp-admin-images', AIMP_PLUGIN_URL . 'assets/js/admin-images.js', array(), AIMP_VERSION, true );

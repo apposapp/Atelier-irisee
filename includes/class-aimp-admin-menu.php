@@ -117,7 +117,7 @@ class AIMP_Admin_Menu {
 	 * @return string[]
 	 */
 	private static function locked() {
-		return array( 'woocommerce', 'woocommerce>' . AIMP_Settings::PAGE );
+		return array( 'woocommerce', AIMP_Settings::PAGE, 'woocommerce>' . AIMP_Settings::PAGE );
 	}
 
 	private static function is_locked( $key ) {
@@ -214,7 +214,7 @@ class AIMP_Admin_Menu {
 	}
 
 	public static function enqueue( $hook_suffix ) {
-		if ( 'woocommerce_page_' . AIMP_Settings::PAGE !== $hook_suffix ) {
+		if ( ! AIMP_Settings::is_settings_screen( $hook_suffix ) ) {
 			return;
 		}
 		wp_enqueue_script( 'jquery-ui-sortable' );

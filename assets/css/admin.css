@@ -1223,3 +1223,46 @@ table.aimp-design-fabrics {
 .aimp-images .aimp-images-restart {
 	margin-left: 1em;
 }
+
+/* Settings → Ideal for icons: six icons per kind of clothing to choose from. */
+.aimp-icon-choice-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.aimp-icon-choice-tile {
+	position: relative;
+	cursor: pointer;
+}
+
+.aimp-icon-choice-tile input {
+	position: absolute;
+	opacity: 0;
+}
+
+.aimp-icon-choice-tile span {
+	display: grid;
+	place-items: center;
+	width: 56px;
+	height: 56px;
+	border: 1px solid #dcdcde;
+	border-radius: 10px;
+	background: #fff;
+	color: #b38f4f;
+}
+
+.aimp-icon-choice-tile svg {
+	width: 36px;
+	height: 36px;
+}
+
+.aimp-icon-choice-tile input:checked + span {
+	border: 2px solid #b38f4f;
+	background: #fbf6ec;
+}
+
+.aimp-icon-choice-tile input:focus-visible + span {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}

@@ -280,10 +280,16 @@ class AIMP_Shop {
 		$atts = shortcode_atts( array( 'type' => 'all' ), $atts, self::TAG );
 		$type = in_array( $atts['type'], self::TYPES, true ) ? $atts['type'] : 'all';
 
-		// The All products page is an overview of the shop sections, unless a category link or
-		// filter brought the visitor here: then it lists the products.
-		if ( 'all' === $type && ! self::has_filters_in_url() ) {
-			$overview = self::overview_html();
+		// The All products page is an overview of the shop sections, and the Haberdashery page one of its kinds,
+		// unless a category link or filter (or "All haberdashery": aimp_all) brought the visitor here: then it
+		// lists the products.
+		if ( ! self::has_filters_in_url() ) {
+			$overview = '';
+			if ( 'all' === $type ) {
+				$overview = self::overview_html();
+			} elseif ( 'haberdashery' === $type ) {
+				$overview = self::haberdashery_overview_html();
+			}
 			if ( '' !== $overview ) {
 				return $overview;
 			}
@@ -293,7 +299,7 @@ class AIMP_Shop {
 		// The first page of products (with the filter options) comes with the page, so the grid shows at once; the
 		// script only asks the server again when the visitor filters, sorts or pages.
 		$initial = '';
-		if ( ! self::has_filters_in_url() ) {
+		if ( ! self::has_filters_in_url( true ) ) {
 			$data            = self::query( self::default_args( $type ) );
 			$data['facets']  = self::facets( $type );
 			$data['lang']    = AIMP_I18n::current();
@@ -326,10 +332,16 @@ class AIMP_Shop {
 		);
 	}
 
-	private static function has_filters_in_url() {
+	/**
+	 * Whether the address has shop filters (aimp_*, not the language).
+	 *
+	 * @param bool $ignore_all Leave out aimp_all ("show the list, not the overview"), which filters nothing.
+	 * @return bool
+	 */
+	private static function has_filters_in_url( $ignore_all = false ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only reads which filters are in the address.
 		foreach ( array_keys( $_GET ) as $key ) {
-			if ( 0 === strpos( (string) $key, 'aimp_' ) && 'aimp_lang' !== $key ) {
+			if ( 0 === strpos( (string) $key, 'aimp_' ) && 'aimp_lang' !== $key && ! ( $ignore_all && 'aimp_all' === $key ) ) {
 				return true;
 			}
 		}
@@ -426,6 +438,17 @@ class AIMP_Shop {
 				esc_html( $label )
 			);
 		}
+		return self::overview_wrap( $hero, $cards );
+	}
+
+	/**
+	 * The overview grid around the cards, with the shop styles.
+	 *
+	 * @param string $hero  The large card ('' for none).
+	 * @param string $cards The other cards.
+	 * @return string Empty without cards.
+	 */
+	private static function overview_wrap( $hero, $cards ) {
 		$cards = $hero . $cards;
 		if ( '' === $cards ) {
 			return '';
@@ -437,6 +460,94 @@ class AIMP_Shop {
 		wp_enqueue_style( 'aimp-shop' );
 		return '<div class="aimp-configurator aimp-shop aimp-overview"><div class="aimp-topbar">' . AIMP_Product_Page::languages_html() . '</div>' .
 			'<ul class="aimp-grid aimp-overview-grid' . ( $hero ? ' has-hero' : '' ) . '">' . $cards . '</ul></div>';
+	}
+
+	/**
+	 * The kinds of haberdashery that have a category with products: kind => [ name, category ].
+	 *
+	 * @return array
+	 */
+	public static function haberdashery_kinds() {
+		// Which categories have products is kept until the shop changes (the menu asks on every page).
+		$key    = 'aimp_shop_habkinds_' . self::cache_version();
+		$filled = get_transient( $key );
+		if ( ! is_array( $filled ) ) {
+			$filled = array();
+			foreach ( AIMP_Notions::kinds() as $info ) {
+				$cat = AIMP_Settings::get( $info['setting'] );
+				if ( $cat && ! in_array( $cat, $filled, true ) && self::category_has_products( $cat ) ) {
+					$filled[] = $cat;
+				}
+			}
+			set_transient( $key, $filled, DAY_IN_SECONDS );
+		}
+		$list = array();
+		foreach ( AIMP_Notions::kinds() as $kind => $info ) {
+			$cat = AIMP_Settings::get( $info['setting'] );
+			if ( $cat && ! isset( $list[ $cat ] ) && in_array( $cat, $filled, true ) ) {
+				$list[ $cat ] = array( $kind, $info['name'], $info['setting'] );
+			}
+		}
+		$kinds = array();
+		foreach ( $list as $cat => $item ) {
+			$kinds[ $item[0] ] = array( $item[1], $cat, $item[2] );
+		}
+		return $kinds;
+	}
+
+	/**
+	 * Whether a category (or one below it) has a visible product.
+	 *
+	 * @param int $cat Product category.
+	 * @return bool
+	 */
+	private static function category_has_products( $cat ) {
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'product',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'tax_query'      => self::scope_tax_query( array( $cat ) ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+			)
+		);
+		return (bool) $query->posts;
+	}
+
+	/**
+	 * The Haberdashery page without filters: "All haberdashery" as the large card, then one card per kind
+	 * (Buttons, Zips, …) that opens the list with that category chosen.
+	 *
+	 * @return string Empty when there is no haberdashery page or no kind with products.
+	 */
+	public static function haberdashery_overview_html() {
+		$page  = self::page_for_type( 'haberdashery' );
+		$kinds = $page ? self::haberdashery_kinds() : array();
+		if ( ! $kinds ) {
+			return '';
+		}
+		$url   = get_permalink( $page );
+		$cards = '';
+		foreach ( $kinds as $kind => $item ) {
+			$cards .= sprintf(
+				'<li class="aimp-overview-card"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
+				esc_url( add_query_arg( 'aimp_cat', $item[1], $url ) ),
+				esc_url( self::overview_image( 'overview_img_hab_' . $kind, array( $item[2] ), $page ) ),
+				esc_html( $item[0] )
+			);
+		}
+		// The large card is as high as the rows of kinds next to it (two per row).
+		$hero = sprintf(
+			'<li class="aimp-overview-card aimp-overview-hero" style="--aimp-hero-rows:%6$d"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-overview-hero-text"><span class="aimp-card-name">%3$s</span><span class="aimp-overview-hero-line">%4$s</span><span class="aimp-button aimp-overview-hero-button">%5$s</span></span></a></li>',
+			esc_url( add_query_arg( 'aimp_all', 1, $url ) ),
+			esc_url( self::overview_image( 'overview_img_hab_all', array_column( $kinds, 2 ), $page ) ),
+			esc_html__( 'All haberdashery', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Buttons, zips, ribbons and more for your sewing project', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Show everything', 'atelier-irisee-master-plugin' ),
+			max( 1, (int) ceil( count( $kinds ) / 2 ) )
+		);
+		return self::overview_wrap( $hero, $cards );
 	}
 
 	/* ------------------------------------------------------------------
@@ -718,7 +829,9 @@ class AIMP_Shop {
 		foreach ( array( 'hcol' => 'colour', 'hmat' => 'material' ) as $key => $field ) {
 			$text = in_array( $field, $info['specs'], true ) ? AIMP_Notions::field_text( $product, $field, $kind ) : '';
 			if ( '' !== $text ) {
-				$values[ $key ] = array( strtolower( $text ), $text, strtolower( $text ) );
+				// The filter key is the stored value (the same in every language); the label is in the visitor's language.
+				$raw            = strtolower( trim( (string) $product->get_meta( AIMP_Notions::fields()[ $field ][0] ) ) );
+				$values[ $key ] = array( $raw, $text, strtolower( $text ) );
 			}
 		}
 		foreach ( array( 'hdia' => 'diameter', 'hwid' => 'width', 'hlen' => 'length' ) as $key => $field ) {

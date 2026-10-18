@@ -168,6 +168,13 @@
 		if (this.state.page > 1) {
 			params.set('aimp_page', this.state.page);
 		}
+		// All products and Haberdashery show an overview without filters in the address: aimp_all keeps the
+		// list when the visitor clears every filter and reloads.
+		if ((this.type === 'all' || this.type === 'haberdashery') && !Array.from(params.keys()).some(function (key) {
+			return key.indexOf('aimp_') === 0 && key !== 'aimp_lang';
+		})) {
+			params.set('aimp_all', '1');
+		}
 		var query = params.toString();
 		window.history.replaceState(null, '', window.location.pathname + (query ? '?' + query : '') + window.location.hash);
 		rememberShop();

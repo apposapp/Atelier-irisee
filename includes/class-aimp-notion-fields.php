@@ -38,25 +38,8 @@ class AIMP_Notion_Fields {
 	 * @return array field => [ suggestion ]
 	 */
 	private static function suggestions() {
+		// Material and finish are chosen from the lists in the settings (AIMP_Notions::options()).
 		return array(
-			'material' => array(
-				__( 'Wood', 'atelier-irisee-master-plugin' ),
-				__( 'Mother-of-pearl', 'atelier-irisee-master-plugin' ),
-				__( 'Metal', 'atelier-irisee-master-plugin' ),
-				__( 'Plastic', 'atelier-irisee-master-plugin' ),
-				__( 'Coconut', 'atelier-irisee-master-plugin' ),
-				__( 'Horn', 'atelier-irisee-master-plugin' ),
-				__( 'Corozo', 'atelier-irisee-master-plugin' ),
-				__( 'Leather', 'atelier-irisee-master-plugin' ),
-			),
-			'finish'   => array(
-				__( 'Glossy', 'atelier-irisee-master-plugin' ),
-				__( 'Matt', 'atelier-irisee-master-plugin' ),
-				__( 'Satin', 'atelier-irisee-master-plugin' ),
-				__( 'Brushed', 'atelier-irisee-master-plugin' ),
-				__( 'Polished', 'atelier-irisee-master-plugin' ),
-				__( 'Natural', 'atelier-irisee-master-plugin' ),
-			),
 			'mounting' => array(
 				__( '2 holes', 'atelier-irisee-master-plugin' ),
 				__( '4 holes', 'atelier-irisee-master-plugin' ),
@@ -185,6 +168,23 @@ class AIMP_Notion_Fields {
 									</select>
 								<?php elseif ( in_array( $field, array( 'diameter', 'width', 'length' ), true ) ) : ?>
 									<input type="number" id="<?php echo esc_attr( $id . $field ); ?>" name="<?php echo esc_attr( $base . '[' . $field . ']' ); ?>" min="0" step="<?php echo 'mm' === AIMP_Notions::unit( $kind, $field ) ? '0.5' : '0.1'; ?>" value="<?php echo esc_attr( $is_current ? $get( $fields[ $field ][0] ) : '' ); ?>" placeholder="<?php echo esc_attr( self::example( $kind, $field ) ); ?>">
+								<?php elseif ( in_array( $field, array( 'material', 'finish' ), true ) ) : ?>
+									<?php
+									// The choices from the settings (Atelier Irisee → Haberdashery options); a value that is not in the
+									// list (any more) stays selectable.
+									$current_value = $is_current ? trim( (string) $get( $fields[ $field ][0] ) ) : '';
+									$in_list       = false;
+									?>
+									<select id="<?php echo esc_attr( $id . $field ); ?>" name="<?php echo esc_attr( $base . '[' . $field . ']' ); ?>">
+										<option value=""><?php esc_html_e( '— Choose —', 'atelier-irisee-master-plugin' ); ?></option>
+										<?php foreach ( AIMP_Notions::options( $field ) as $parts ) : ?>
+											<?php $in_list = $in_list || 0 === strcasecmp( $parts[0], $current_value ); ?>
+											<option value="<?php echo esc_attr( $parts[0] ); ?>"<?php selected( 0 === strcasecmp( $parts[0], $current_value ) ); ?>><?php echo esc_html( $parts[0] ); ?></option>
+										<?php endforeach; ?>
+										<?php if ( '' !== $current_value && ! $in_list ) : ?>
+											<option value="<?php echo esc_attr( $current_value ); ?>" selected><?php echo esc_html( $current_value . ' ' . __( '(not in the list)', 'atelier-irisee-master-plugin' ) ); ?></option>
+										<?php endif; ?>
+									</select>
 								<?php else : ?>
 									<input type="text" id="<?php echo esc_attr( $id . $field ); ?>" name="<?php echo esc_attr( $base . '[' . $field . ']' ); ?>"<?php echo isset( $hints[ $field ] ) ? ' list="' . esc_attr( 'aimp_hab_' . $field . '_list' ) . '"' : ''; ?> value="<?php echo esc_attr( $is_current ? $get( $fields[ $field ][0] ) : '' ); ?>" placeholder="<?php echo esc_attr( self::example( $kind, $field ) ); ?>">
 								<?php endif; ?>

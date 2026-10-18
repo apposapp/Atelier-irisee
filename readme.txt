@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.14.0
+Stable tag: 3.15.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.15.0 =
+* "Atelier Irisee" is now its own item in the dashboard menu (under Products) instead of under WooCommerce. Existing links keep working.
+* New settings tab "Haberdashery options": the button materials and surface finishes, one per line as Dutch | French | English. In the product editor these are now choice lists; the shop and product pages show them in the visitor's language. A value that is not in the list stays on the product.
+* New settings tab "Ideal for icons": per kind of clothing a choice of 6 icons for the "Ideal for" cards on the product pages.
+* Haberdashery page: without filters it now shows an overview, like All products: a large "All haberdashery" card and a card per kind (Buttons, Zips, …). The pictures are set under Shop pages.
+* Side menu: the Haberdashery item gets "All haberdashery" and the kinds as sub-items by itself; every dropdown starts closed when the menu opens; the whole row next to the text opens or closes a dropdown (the text itself follows the link).
 
 = 3.14.0 =
 * New settings tab "Images" with one button: "Optimize all images" makes a light WebP copy of every picture in all its sizes (with a progress bar) and the site shows those copies. The originals stay as they are; new uploads are optimized automatically; deleting a picture removes its copies. This replaces Imagify, which can be deactivated.

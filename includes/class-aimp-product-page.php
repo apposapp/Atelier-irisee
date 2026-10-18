@@ -922,9 +922,13 @@ class AIMP_Product_Page {
 	 * Gold line icon for an "Ideal for" kind of clothes.
 	 *
 	 * @param string $key A key of AIMP_Notions::ideal_for_options().
+	 * @param int|null $variant 0 = the standard icon, 1–5 an alternative; null = the one chosen in the settings.
 	 * @return string SVG.
 	 */
-	public static function clothing_icon( $key ) {
+	public static function clothing_icon( $key, $variant = null ) {
+		// The icon chosen under Atelier Irisee → Ideal for icons (0 = the standard one below).
+		$variant     = null === $variant ? AIMP_Clothing_Icons::chosen( $key ) : (int) $variant;
+		$alternative = AIMP_Clothing_Icons::variant( $key, $variant );
 		$paths = array(
 			// A shirt with a collar and a button placket.
 			'shirt'    => '<path d="M9 3.5 5 5.5 2.5 10l3 1.5 1-2V20.5h11V9.5l1 2 3-1.5L19 5.5l-4-2"/><path d="M9 3.5 12 7l3-3.5"/><path d="M12 7v13.5"/><path d="M12 10.5h.01M12 14h.01M12 17.5h.01"/>',
@@ -957,7 +961,7 @@ class AIMP_Product_Page {
 			// A cushion.
 			'home'     => '<path d="M5 5c2.3.8 4.7 1.2 7 1.2S16.7 5.8 19 5c-.8 2.3-1.2 4.7-1.2 7s.4 4.7 1.2 7c-2.3-.8-4.7-1.2-7-1.2S7.3 18.2 5 19c.8-2.3 1.2-4.7 1.2-7S5.8 7.3 5 5z"/><circle cx="12" cy="12" r="1"/>',
 		);
-		$path  = isset( $paths[ $key ] ) ? $paths[ $key ] : $paths['shirt'];
+		$path  = '' !== $alternative ? $alternative : ( isset( $paths[ $key ] ) ? $paths[ $key ] : $paths['shirt'] );
 		return '<svg class="aimp-ideal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';
 	}
 

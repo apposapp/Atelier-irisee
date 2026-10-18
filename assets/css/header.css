@@ -337,12 +337,27 @@
 	cursor: pointer;
 }
 
+/* An item with sub-items: the link is only as wide as its text, the toggle fills the rest of the row (arrow
+ * on the right), so a tap next to the text opens the sub-items. */
+.aimp-header .aimp-side-menu-list .menu-item-has-children > a {
+	flex: 0 1 auto;
+}
+
+.aimp-header .aimp-side-menu-list .menu-item-has-children > .aimp-side-menu-sub-toggle {
+	flex: 1 1 auto;
+	align-self: stretch;
+	width: auto;
+	min-width: 2.25rem;
+	height: auto;
+	min-height: 2.25rem;
+}
+
 .aimp-side-menu-sub-toggle::before {
 	content: "";
 	display: block;
 	width: 0.55rem;
 	height: 0.55rem;
-	margin: 0 auto;
+	margin: 0 0.85rem 0 auto;
 	border-right: 2px solid #fff;
 	border-bottom: 2px solid #fff;
 	transform: rotate(45deg);

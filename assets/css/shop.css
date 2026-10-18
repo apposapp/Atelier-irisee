@@ -710,8 +710,9 @@
 	gap: var(--aimp-gap);
 }
 
+/* Haberdashery: "All haberdashery" is as high as the rows of kinds next to it (--aimp-hero-rows). */
 .aimp-configurator .aimp-overview-grid.has-hero .aimp-overview-hero {
-	grid-row: span 2;
+	grid-row: span var(--aimp-hero-rows, 2);
 }
 
 .aimp-configurator .aimp-overview-hero a.aimp-card {

@@ -141,7 +141,7 @@ class AIMP_Mosaic {
 	 * @param string $hook_suffix Admin page.
 	 */
 	public static function admin_enqueue( $hook_suffix ) {
-		if ( 'woocommerce_page_' . AIMP_Settings::PAGE !== $hook_suffix ) {
+		if ( ! AIMP_Settings::is_settings_screen( $hook_suffix ) ) {
 			return;
 		}
 		wp_enqueue_script( 'wc-enhanced-select' );

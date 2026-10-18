@@ -87,6 +87,13 @@ class AIMP_Settings {
 			'overview_img_haberdashery' => 0,
 			'overview_img_giftcards'    => 0,
 			'overview_img_configurator' => 0,
+			'overview_img_hab_all'         => 0,
+			'overview_img_hab_button'      => 0,
+			'overview_img_hab_zip'         => 0,
+			'overview_img_hab_interfacing' => 0,
+			'overview_img_hab_elastic'     => 0,
+			'overview_img_hab_ribbon'      => 0,
+			'overview_img_hab_bias'        => 0,
 			'hero_image'                => 0,
 			'hero_image_phone'          => 0,
 			'hero_logo'                 => 0,
@@ -96,15 +103,30 @@ class AIMP_Settings {
 		return isset( $options[ $key ] ) ? absint( $options[ $key ] ) : 0;
 	}
 
+	/**
+	 * Its own main item in the dashboard menu, right under WooCommerce and Products, with a dress form icon.
+	 */
 	public static function add_menu() {
-		add_submenu_page(
-			'woocommerce',
+		$icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#a7aaad" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8v2"/><path d="M8.3 4.8h7.4c.4 3.3-1 5.6-1.9 6.8 1.7 1 3 2.8 3 5H7.2c0-2.2 1.3-4 3-5-.9-1.2-2.3-3.5-1.9-6.8z"/><path d="M12 16.6v3M12 19.6l-3.5 2M12 19.6l3.5 2"/></svg>';
+		add_menu_page(
 			__( 'Atelier Irisee', 'atelier-irisee-master-plugin' ),
 			__( 'Atelier Irisee', 'atelier-irisee-master-plugin' ),
 			'manage_woocommerce',
 			self::PAGE,
-			array( __CLASS__, 'render_page' )
+			array( __CLASS__, 'render_page' ),
+			'data:image/svg+xml;base64,' . base64_encode( $icon ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- the menu icon.
+			56
 		);
+	}
+
+	/**
+	 * Whether an admin screen is this settings page (a main menu item since 3.15, a WooCommerce subitem before).
+	 *
+	 * @param string $hook_suffix Admin page.
+	 * @return bool
+	 */
+	public static function is_settings_screen( $hook_suffix ) {
+		return in_array( $hook_suffix, array( 'toplevel_page_' . self::PAGE, 'woocommerce_page_' . self::PAGE ), true );
 	}
 
 	public static function action_links( $links ) {
@@ -490,7 +512,7 @@ class AIMP_Settings {
 	 * @param string $hook_suffix Admin page.
 	 */
 	public static function enqueue( $hook_suffix ) {
-		if ( 'woocommerce_page_' . self::PAGE !== $hook_suffix ) {
+		if ( ! self::is_settings_screen( $hook_suffix ) ) {
 			return;
 		}
 		wp_enqueue_media();
@@ -508,18 +530,24 @@ class AIMP_Settings {
 	}
 
 	/**
-	 * Pictures of the overview cards on the All products page: key => label.
+	 * Pictures of the overview cards on the All products page and the Haberdashery page: key => label.
 	 *
 	 * @return array
 	 */
 	public static function overview_image_fields() {
-		return array(
+		$fields = array(
 			'overview_img_fabrics'      => __( 'Overview picture: Fabrics', 'atelier-irisee-master-plugin' ),
 			'overview_img_patterns'     => __( 'Overview picture: Patterns', 'atelier-irisee-master-plugin' ),
 			'overview_img_haberdashery' => __( 'Overview picture: Haberdashery', 'atelier-irisee-master-plugin' ),
 			'overview_img_giftcards'    => __( 'Overview picture: Gift cards', 'atelier-irisee-master-plugin' ),
 			'overview_img_configurator' => __( 'Overview picture: Sewing project kits', 'atelier-irisee-master-plugin' ),
 		);
+		$fields['overview_img_hab_all'] = __( 'Haberdashery overview picture: All haberdashery', 'atelier-irisee-master-plugin' );
+		foreach ( AIMP_Notions::kinds() as $kind => $info ) {
+			/* translators: %s: kind of haberdashery, e.g. Buttons. */
+			$fields[ 'overview_img_hab_' . $kind ] = sprintf( __( 'Haberdashery overview picture: %s', 'atelier-irisee-master-plugin' ), $info['name'] );
+		}
+		return $fields;
 	}
 
 	/**
@@ -761,6 +789,8 @@ class AIMP_Settings {
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;
 		$sanitized             = array_merge( $sanitized, AIMP_Hero::sanitize( $input ) );
 		$sanitized             = array_merge( $sanitized, AIMP_Kit_Steps::sanitize( $input ) );
+		$sanitized             = array_merge( $sanitized, AIMP_Notions::sanitize_options( $input ) );
+		$sanitized             = array_merge( $sanitized, AIMP_Clothing_Icons::sanitize( $input ) );
 		return $sanitized;
 	}
 
@@ -950,7 +980,7 @@ class AIMP_Settings {
 	private static function tab_sections() {
 		global $wp_settings_sections;
 		$registered = isset( $wp_settings_sections[ self::PAGE ] ) ? (array) $wp_settings_sections[ self::PAGE ] : array();
-		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_site', 'aimp_home', 'aimp_kit_steps', 'aimp_images', 'aimp_footer', 'aimp_mosaic', 'aimp_admin_menu' );
+		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_notion_options', 'aimp_ideal_icons', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_site', 'aimp_home', 'aimp_kit_steps', 'aimp_images', 'aimp_footer', 'aimp_mosaic', 'aimp_admin_menu' );
 		$sections   = array();
 		foreach ( $order as $id ) {
 			if ( isset( $registered[ $id ] ) ) {

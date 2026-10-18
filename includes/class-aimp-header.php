@@ -27,6 +27,7 @@ class AIMP_Header {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
 		add_filter( 'woocommerce_add_to_cart_fragments', array( __CLASS__, 'cart_fragment' ) );
+		add_filter( 'wp_nav_menu_objects', array( __CLASS__, 'haberdashery_items' ), 10, 2 );
 
 		if ( ! AIMP_Settings::get( 'header_enabled' ) || is_admin() ) {
 			return;
@@ -34,6 +35,80 @@ class AIMP_Header {
 		add_filter( 'render_block_core/template-part', array( __CLASS__, 'replace_block_header' ), 20, 2 );
 		add_action( 'wp_body_open', array( __CLASS__, 'classic_header' ), 5 );
 		add_filter( 'body_class', array( __CLASS__, 'body_class' ) );
+	}
+
+	/**
+	 * Side menu: the item that links to the Haberdashery page gets "All haberdashery" and the kinds (Buttons,
+	 * Zips, …) as sub-items by itself, unless sub-items were added to it in Appearance → Menus.
+	 *
+	 * @param array    $items Menu items (sorted).
+	 * @param stdClass $args  wp_nav_menu() arguments.
+	 * @return array
+	 */
+	public static function haberdashery_items( $items, $args ) {
+		$page = AIMP_Shop::page_for_type( 'haberdashery' );
+		if ( ! $page || ! isset( $args->theme_location ) || self::LOCATION !== $args->theme_location ) {
+			return $items;
+		}
+		$parent = null;
+		$at     = 0;
+		foreach ( array_values( $items ) as $i => $item ) {
+			if ( 'post_type' === $item->type && (int) $item->object_id === $page ) {
+				$parent = $item;
+				$at     = $i;
+				break;
+			}
+		}
+		if ( ! $parent ) {
+			return $items;
+		}
+		foreach ( $items as $item ) {
+			if ( (int) $item->menu_item_parent === (int) $parent->db_id ) {
+				return $items;
+			}
+		}
+		$kinds = AIMP_Shop::haberdashery_kinds();
+		if ( ! $kinds ) {
+			return $items;
+		}
+		$url   = get_permalink( $page );
+		$links = array( array( 'all', __( 'All haberdashery', 'atelier-irisee-master-plugin' ), add_query_arg( 'aimp_all', 1, $url ) ) );
+		foreach ( $kinds as $kind => $item ) {
+			$links[] = array( $kind, $item[0], add_query_arg( 'aimp_cat', $item[1], $url ) );
+		}
+		$children = array();
+		foreach ( $links as $n => $link ) {
+			// Negative ids cannot clash with real menu items.
+			$id         = -1 * ( 1000 + $n );
+			$children[] = new WP_Post(
+				(object) array(
+					'ID'               => $id,
+					'db_id'            => $id,
+					'menu_item_parent' => (string) $parent->db_id,
+					'object_id'        => $id,
+					'object'           => 'custom',
+					'type'             => 'custom',
+					'type_label'       => '',
+					'title'            => $link[1],
+					'url'              => $link[2],
+					'target'           => '',
+					'attr_title'       => '',
+					'description'      => '',
+					'xfn'              => '',
+					'classes'          => array( 'menu-item', 'menu-item-type-custom', 'aimp-menu-hab-' . $link[0] ),
+					'current'          => false,
+					'post_type'        => 'nav_menu_item',
+					'post_status'      => 'publish',
+					'menu_order'       => 0,
+				)
+			);
+		}
+		if ( ! in_array( 'menu-item-has-children', (array) $parent->classes, true ) ) {
+			$parent->classes[] = 'menu-item-has-children';
+		}
+		$items = array_values( $items );
+		array_splice( $items, $at + 1, 0, $children );
+		return $items;
 	}
 
 	public static function register_menu() {

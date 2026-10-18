@@ -1521,4 +1521,18 @@ return array(
 	'Optimizing: %1$s / %2$s…' => 'Bezig met optimaliseren: %1$s / %2$s…',
 	'Some images could not be optimized (IDs: %s). They are skipped; the others are done.' => 'Sommige afbeeldingen konden niet geoptimaliseerd worden (ID\'s: %s). Die worden overgeslagen; de andere zijn klaar.',
 	'The connection was interrupted. Press the button again to continue.' => 'De verbinding werd onderbroken. Druk opnieuw op de knop om verder te gaan.',
+
+	// 3.15.0
+	'(not in the list)' => '(niet in de lijst)',
+	'All haberdashery' => 'Alle fournituren',
+	'Button materials' => 'Knoopmaterialen',
+	'Buttons, zips, ribbons and more for your sewing project' => 'Knopen, ritsen, linten en meer voor je naaiproject',
+	'Choose per kind of clothing which icon the "Ideal for" cards show on the product pages.' => 'Kies per soort kledingstuk welk icoon de "Ideaal voor"-kaartjes op de productpagina\'s tonen.',
+	'Haberdashery options' => 'Fournituren-opties',
+	'Haberdashery overview picture: %s' => 'Overzichtsafbeelding fournituren: %s',
+	'Haberdashery overview picture: All haberdashery' => 'Overzichtsafbeelding fournituren: Alle fournituren',
+	'Ideal for icons' => 'Iconen "Ideaal voor"',
+	'Show everything' => 'Toon alles',
+	'Surface finishes' => 'Afwerkingen',
+	'The choices for buttons in the product editor (Haberdashery details). One option per line, written as Dutch | French | English, for example "Hout | Bois | Wood". The Dutch name is what a product keeps: changing it later does not change products that already have it.' => 'De keuzes voor knopen in de producteditor (Fournituurgegevens). Eén optie per regel, geschreven als Nederlands | Frans | Engels, bijvoorbeeld "Hout | Bois | Wood". Een product bewaart de Nederlandse naam: die later wijzigen verandert niets aan producten die hem al hebben.',
 );

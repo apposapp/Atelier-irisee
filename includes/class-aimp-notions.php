@@ -40,6 +40,7 @@ class AIMP_Notions {
 
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'migrate' ), 5 );
+		add_action( 'admin_init', array( __CLASS__, 'register_settings' ), 20 );
 	}
 
 	/* ------------------------------------------------------------------
@@ -451,7 +452,110 @@ class AIMP_Notions {
 			return 'length' === $field ? self::length_text( $value ) : self::measure_text( $value, self::unit( $kind, $field ) );
 		}
 		$fields = self::fields();
-		return trim( (string) $product->get_meta( $fields[ $field ][0] ) );
+		$value  = trim( (string) $product->get_meta( $fields[ $field ][0] ) );
+		return in_array( $field, array( 'material', 'finish' ), true ) ? self::option_label( $field, $value ) : $value;
+	}
+
+	/* ------------------------------------------------------------------
+	 * Button materials and surface finishes: lists from the settings (Atelier Irisee → Haberdashery options)
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * The standard list of a field, one option per line as "NL | FR | EN".
+	 *
+	 * @param string $field material or finish.
+	 * @return string
+	 */
+	public static function default_options( $field ) {
+		$lists = array(
+			'material' => array( 'Hout | Bois | Wood', 'Parelmoer | Nacre | Mother-of-pearl', 'Metaal | Métal | Metal', 'Kunststof | Plastique | Plastic', 'Kokosnoot | Noix de coco | Coconut', 'Hoorn | Corne | Horn', 'Corozo | Corozo | Corozo', 'Leder | Cuir | Leather' ),
+			'finish'   => array( 'Glanzend | Brillant | Glossy', 'Mat | Mat | Matt', 'Satijn | Satiné | Satin', 'Geborsteld | Brossé | Brushed', 'Gepolijst | Poli | Polished', 'Natuurlijk | Naturel | Natural' ),
+		);
+		return isset( $lists[ $field ] ) ? implode( "\n", $lists[ $field ] ) : '';
+	}
+
+	/**
+	 * The options of a field: [ [ NL, FR, EN ], … ]. The first part (NL) is what a product stores.
+	 *
+	 * @param string $field material or finish.
+	 * @return array
+	 */
+	public static function options( $field ) {
+		$key  = 'material' === $field ? 'button_materials' : 'button_finishes';
+		$text = AIMP_Settings::get_text( $key, self::default_options( $field ) );
+		$list = array();
+		foreach ( preg_split( '/\r\n|\r|\n/', (string) $text ) as $line ) {
+			$parts = array_map( 'trim', explode( '|', $line ) );
+			if ( '' !== $parts[0] ) {
+				$list[] = $parts;
+			}
+		}
+		return $list;
+	}
+
+	/**
+	 * A stored material or finish in the visitor's language (as stored when it is not in the list).
+	 *
+	 * @param string $field material or finish.
+	 * @param string $value Stored value.
+	 * @return string
+	 */
+	public static function option_label( $field, $value ) {
+		if ( '' === $value ) {
+			return '';
+		}
+		foreach ( self::options( $field ) as $parts ) {
+			if ( 0 === strcasecmp( $parts[0], $value ) ) {
+				return AIMP_Settings::localized( implode( ' | ', $parts ) );
+			}
+		}
+		return $value;
+	}
+
+	public static function register_settings() {
+		add_settings_section(
+			'aimp_notion_options',
+			__( 'Haberdashery options', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_options' ),
+			AIMP_Settings::PAGE
+		);
+	}
+
+	public static function render_options() {
+		echo '<p>' . esc_html__( 'The choices for buttons in the product editor (Haberdashery details). One option per line, written as Dutch | French | English, for example "Hout | Bois | Wood". The Dutch name is what a product keeps: changing it later does not change products that already have it.', 'atelier-irisee-master-plugin' ) . '</p>';
+		$fields = array(
+			'button_materials' => array( 'material', __( 'Button materials', 'atelier-irisee-master-plugin' ) ),
+			'button_finishes'  => array( 'finish', __( 'Surface finishes', 'atelier-irisee-master-plugin' ) ),
+		);
+		echo '<table class="form-table" role="presentation"><tbody>';
+		foreach ( $fields as $key => $field ) {
+			printf(
+				'<tr><th scope="row"><label for="aimp_%1$s">%2$s</label></th><td><textarea id="aimp_%1$s" name="%3$s[%1$s]" rows="9" class="large-text code">%4$s</textarea></td></tr>',
+				esc_attr( $key ),
+				esc_html( $field[1] ),
+				esc_attr( AIMP_Settings::OPTION ),
+				esc_textarea( AIMP_Settings::get_text( $key, self::default_options( $field[0] ) ) )
+			);
+		}
+		echo '</tbody></table>';
+	}
+
+	/**
+	 * The lists from the settings form (called from AIMP_Settings::sanitize()).
+	 *
+	 * @param array $input Submitted values.
+	 * @return array
+	 */
+	public static function sanitize_options( $input ) {
+		$clean = array();
+		foreach ( array( 'button_materials' => 'material', 'button_finishes' => 'finish' ) as $key => $field ) {
+			if ( ! isset( $input[ $key ] ) ) {
+				continue;
+			}
+			$lines = array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', sanitize_textarea_field( wp_unslash( $input[ $key ] ) ) ) ), 'strlen' );
+			$clean[ $key ] = implode( "\n", array_slice( array_values( $lines ), 0, 60 ) );
+		}
+		return $clean;
 	}
 
 	/**

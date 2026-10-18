@@ -1521,4 +1521,18 @@ return array(
 	'Optimizing: %1$s / %2$s…' => 'Optimisation en cours : %1$s / %2$s…',
 	'Some images could not be optimized (IDs: %s). They are skipped; the others are done.' => 'Certaines images n\'ont pas pu être optimisées (ID : %s). Elles sont ignorées ; les autres sont terminées.',
 	'The connection was interrupted. Press the button again to continue.' => 'La connexion a été interrompue. Appuyez à nouveau sur le bouton pour continuer.',
+
+	// 3.15.0
+	'(not in the list)' => '(pas dans la liste)',
+	'All haberdashery' => 'Toute la mercerie',
+	'Button materials' => 'Matières des boutons',
+	'Buttons, zips, ribbons and more for your sewing project' => 'Boutons, fermetures éclair, rubans et plus pour votre projet de couture',
+	'Choose per kind of clothing which icon the "Ideal for" cards show on the product pages.' => 'Choisissez par type de vêtement l\'icône que les cartes « Idéal pour » affichent sur les pages produit.',
+	'Haberdashery options' => 'Options de mercerie',
+	'Haberdashery overview picture: %s' => 'Image de l\'aperçu mercerie : %s',
+	'Haberdashery overview picture: All haberdashery' => 'Image de l\'aperçu mercerie : Toute la mercerie',
+	'Ideal for icons' => 'Icônes « Idéal pour »',
+	'Show everything' => 'Tout afficher',
+	'Surface finishes' => 'Finitions',
+	'The choices for buttons in the product editor (Haberdashery details). One option per line, written as Dutch | French | English, for example "Hout | Bois | Wood". The Dutch name is what a product keeps: changing it later does not change products that already have it.' => 'Les choix pour les boutons dans l\'éditeur de produit (détails de la mercerie). Une option par ligne, écrite comme néerlandais | français | anglais, par exemple « Hout | Bois | Wood ». Un produit garde le nom néerlandais : le modifier plus tard ne change pas les produits qui l\'ont déjà.',
 );

@@ -1030,7 +1030,7 @@ class AIMP_PostNL {
 	 * @param string $hook_suffix Admin page.
 	 */
 	public static function enqueue( $hook_suffix ) {
-		if ( 'woocommerce_page_' . AIMP_Settings::PAGE !== $hook_suffix || ! self::active() ) {
+		if ( ! AIMP_Settings::is_settings_screen( $hook_suffix ) || ! self::active() ) {
 			return;
 		}
 		wp_enqueue_style( 'woocommerce_admin_styles' );

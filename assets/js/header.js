@@ -1,7 +1,8 @@
 /**
  * Atelier Irisee header: the side menu that slides in from the left.
  * Opens with "Menu", closes with ×, Esc or a click next to it. Focus stays in the menu while it is open,
- * and items with sub-items get a small arrow to open them.
+ * and items with sub-items get an arrow to open them: the text follows the link, the rest of the row (with the
+ * arrow) opens or closes the sub-items. Every time the menu opens, all sub-items start closed.
  */
 (function () {
 	'use strict';
@@ -20,6 +21,7 @@
 			});
 		};
 		var lastFocus = null;
+		var closers = [];
 
 		panel.inert = true;
 
@@ -31,6 +33,9 @@
 
 		function open() {
 			lastFocus = document.activeElement;
+			closers.forEach(function (fn) {
+				fn(false);
+			});
 			panel.inert = false;
 			panel.setAttribute('aria-hidden', 'false');
 			backdrop.hidden = false;
@@ -92,22 +97,8 @@
 			}
 		});
 
-		// "All products" (the All products page, or else the first item with sub-items) starts unfolded.
-		var clean = function (url) {
-			return String(url || '').replace(/[?#].*$/, '').replace(/\/+$/, '');
-		};
-		var allUrl = clean(panel.getAttribute('data-all-url'));
-		var parents = panel.querySelectorAll('.menu-item-has-children');
-		var startOpen = null;
-		parents.forEach(function (item) {
-			var a = item.querySelector(':scope > a');
-			if (!startOpen && a && allUrl && clean(a.href) === allUrl) {
-				startOpen = item;
-			}
-		});
-		startOpen = startOpen || parents[0] || null;
-
-		// Sub-items: an arrow button next to the item opens them; they fade and unfold (see header.css).
+		// Sub-items: a button next to the item (the rest of its row, with the arrow) opens them; they fade and
+		// unfold (see header.css).
 		panel.querySelectorAll('.menu-item-has-children').forEach(function (item, i) {
 			var sub = item.querySelector(':scope > .sub-menu');
 			var link = item.querySelector(':scope > a');
@@ -132,7 +123,8 @@
 				btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 				wrap.inert = !open; // Closed sub-items can't be reached with Tab.
 			};
-			setOpen(item === startOpen || item.classList.contains('current-menu-ancestor'));
+			setOpen(false);
+			closers.push(setOpen);
 			btn.addEventListener('click', function () {
 				setOpen(!item.classList.contains('is-open'));
 			});
