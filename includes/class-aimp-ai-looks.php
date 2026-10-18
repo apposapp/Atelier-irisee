@@ -301,8 +301,9 @@ class AIMP_AI_Looks {
 	/* ------------------------------------------------------------------ combinations */
 
 	/**
-	 * The pattern designs: "pattern|design" => [ name, image, fabric_cats ]. A pattern without designs has one, with
-	 * design ''.
+	 * The pattern designs as the customizer shows them: "pattern|design" => [ name, image, fabric_cats ]. A pattern
+	 * without designs has one, with design ''. The fabric categories are the ones the customizer allows for the
+	 * design's sizes; a design without any is left out (the customizer shows no fabrics for it).
 	 *
 	 * @return array
 	 */
@@ -321,31 +322,41 @@ class AIMP_AI_Looks {
 		$args['no_found_rows']  = true;
 		foreach ( ( new WP_Query( $args ) )->posts as $pattern_id ) {
 			$pattern = wc_get_product( $pattern_id );
-			if ( ! $pattern ) {
+			if ( ! $pattern || ! $pattern->is_visible() ) {
 				continue;
 			}
 			$name    = wp_strip_all_tags( $pattern->get_name() );
 			$designs = AIMP_Catalog::designs( $pattern );
-			if ( ! $designs ) {
-				$list[ $pattern_id . '|' ] = array(
-					'name'        => $name,
-					'image'       => (int) $pattern->get_image_id(),
-					'fabric_cats' => AIMP_Catalog::pattern_fabric_cats( $pattern_id ),
-				);
-				continue;
-			}
-			$data  = AIMP_Catalog::design_data( $pattern_id );
-			$first = AIMP_Catalog::design_first_sizes( $pattern );
-			foreach ( $designs as $slug => $label ) {
-				if ( ! isset( $first[ $slug ] ) ) {
+			// The allowed fabric categories of every size the customizer can open, per design.
+			$cats = array();
+			foreach ( $pattern->get_children() as $size_id ) {
+				$req = AIMP_Catalog::get_requirements( $size_id );
+				if ( ! $req || ! $req['fabric_cats'] ) {
 					continue;
 				}
-				$row  = isset( $data[ $slug ] ) ? $data[ $slug ] : array();
-				$cats = ! empty( $row['fabric_cats'] ) ? $row['fabric_cats'] : AIMP_Catalog::pattern_fabric_cats( $pattern_id );
+				$slug          = $designs ? AIMP_Catalog::variation_design( $size_id ) : '';
+				$cats[ $slug ] = array_values( array_unique( array_merge( isset( $cats[ $slug ] ) ? $cats[ $slug ] : array(), $req['fabric_cats'] ) ) );
+			}
+			if ( ! $designs ) {
+				if ( isset( $cats[''] ) ) {
+					$list[ $pattern_id . '|' ] = array(
+						'name'        => $name,
+						'image'       => (int) $pattern->get_image_id(),
+						'fabric_cats' => $cats[''],
+					);
+				}
+				continue;
+			}
+			$data = AIMP_Catalog::design_data( $pattern_id );
+			foreach ( $designs as $slug => $label ) {
+				if ( ! isset( $cats[ $slug ] ) ) {
+					continue;
+				}
+				$row = isset( $data[ $slug ] ) ? $data[ $slug ] : array();
 				$list[ $pattern_id . '|' . $slug ] = array(
 					'name'        => $name . ' – ' . $label,
 					'image'       => ! empty( $row['image_ids'] ) ? (int) $row['image_ids'][0] : (int) $pattern->get_image_id(),
-					'fabric_cats' => $cats,
+					'fabric_cats' => $cats[ $slug ],
 				);
 			}
 		}
@@ -353,20 +364,27 @@ class AIMP_AI_Looks {
 	}
 
 	/**
-	 * The fabrics that fit a design (published, visible).
+	 * The fabrics of a design as the customizer lists them (published and visible, in the allowed categories).
 	 *
 	 * @param string $design "pattern|design".
 	 * @return int[]
 	 */
 	public static function fabrics( $design ) {
 		$designs = self::designs();
-		if ( ! isset( $designs[ $design ] ) || ! $designs[ $design ]['fabric_cats'] ) {
+		if ( ! isset( $designs[ $design ] ) ) {
 			return array();
 		}
 		$args                   = AIMP_Catalog::base_query_args( $designs[ $design ]['fabric_cats'], 'simple' );
 		$args['posts_per_page'] = -1;
 		$args['no_found_rows']  = true;
-		return array_map( 'absint', ( new WP_Query( $args ) )->posts );
+		$ids                    = array();
+		foreach ( ( new WP_Query( $args ) )->posts as $id ) {
+			$product = wc_get_product( $id );
+			if ( $product && $product->is_visible() ) {
+				$ids[] = (int) $id;
+			}
+		}
+		return $ids;
 	}
 
 	/**
@@ -932,8 +950,10 @@ class AIMP_AI_Looks {
 	/** Makes the picture of one combination (Leonardo: starts it; the browser then asks poll). */
 	public static function ajax_generate() {
 		self::check();
-		$key = self::posted_key();
-		if ( ! self::parse( $key ) ) {
+		$key    = self::posted_key();
+		$parsed = self::parse( $key );
+		// Only combinations the customizer shows: the fabric must be allowed for the design.
+		if ( ! $parsed || ! in_array( $parsed[1], self::fabrics( $parsed[0] ), true ) ) {
 			wp_send_json_error( array( 'message' => __( 'This combination no longer exists.', 'atelier-irisee-master-plugin' ) ) );
 		}
 		// A new picture replaces the old one.

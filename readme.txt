@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.16.1
+Stable tag: 3.16.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.16.2 =
+* AI pictures: only the combinations the customizer shows: each pattern design with the fabrics allowed for its sizes (in the Fabrics category, visible). The single-picture choice lists only these, and a design without allowed fabrics is left out.
+* Side menu: "All products" starts open each time the menu opens; the other dropdowns start closed.
 
 = 3.16.1 =
 * AI pictures: the "Generate missing pictures" start button and the Stop button only show when they can be used (before, an empty button showed).

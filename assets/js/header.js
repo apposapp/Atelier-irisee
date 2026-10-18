@@ -2,7 +2,8 @@
  * Atelier Irisee header: the side menu that slides in from the left.
  * Opens with "Menu", closes with ×, Esc or a click next to it. Focus stays in the menu while it is open,
  * and items with sub-items get an arrow to open them: the text follows the link, the rest of the row (with the
- * arrow) opens or closes the sub-items. Every time the menu opens, all sub-items start closed.
+ * arrow) opens or closes the sub-items. Every time the menu opens, "All products" starts open and the other
+ * sub-items closed.
  */
 (function () {
 	'use strict';
@@ -22,6 +23,7 @@
 		};
 		var lastFocus = null;
 		var closers = [];
+		var startOpen = null;
 
 		panel.inert = true;
 
@@ -33,8 +35,8 @@
 
 		function open() {
 			lastFocus = document.activeElement;
-			closers.forEach(function (fn) {
-				fn(false);
+			closers.forEach(function (entry) {
+				entry.set(entry.item === startOpen);
 			});
 			panel.inert = false;
 			panel.setAttribute('aria-hidden', 'false');
@@ -97,6 +99,20 @@
 			}
 		});
 
+		// "All products" (the item that links to the All products page, or else the first item with sub-items).
+		var clean = function (url) {
+			return String(url || '').replace(/[?#].*$/, '').replace(/\/+$/, '');
+		};
+		var allUrl = clean(panel.getAttribute('data-all-url'));
+		var parents = panel.querySelectorAll('.menu-item-has-children');
+		Array.prototype.forEach.call(parents, function (item) {
+			var a = item.querySelector(':scope > a');
+			if (!startOpen && a && allUrl && clean(a.href) === allUrl) {
+				startOpen = item;
+			}
+		});
+		startOpen = startOpen || parents[0] || null;
+
 		// Sub-items: a button next to the item (the rest of its row, with the arrow) opens them; they fade and
 		// unfold (see header.css).
 		panel.querySelectorAll('.menu-item-has-children').forEach(function (item, i) {
@@ -123,8 +139,8 @@
 				btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 				wrap.inert = !open; // Closed sub-items can't be reached with Tab.
 			};
-			setOpen(false);
-			closers.push(setOpen);
+			setOpen(item === startOpen);
+			closers.push({ item: item, set: setOpen });
 			btn.addEventListener('click', function () {
 				setOpen(!item.classList.contains('is-open'));
 			});
