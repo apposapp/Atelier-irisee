@@ -1328,3 +1328,8 @@ table.aimp-design-fabrics {
 .aimp-ai .aimp-ai-fabric {
 	max-width: 100%;
 }
+
+/* WordPress's .button display would show hidden buttons (start before counting, stop while idle). */
+.aimp-ai [hidden] {
+	display: none !important;
+}

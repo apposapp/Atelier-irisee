@@ -248,7 +248,7 @@ class AIMP_AI_Looks {
 			<p><?php esc_html_e( 'Every published pattern design with every fabric that fits it, except the combinations that already have a picture (or that you rejected). Keep this page open while it runs.', 'atelier-irisee-master-plugin' ); ?></p>
 			<p>
 				<button type="button" class="button aimp-ai-count"><?php esc_html_e( 'Count missing pictures', 'atelier-irisee-master-plugin' ); ?></button>
-				<button type="button" class="button button-primary aimp-ai-start" hidden></button>
+				<button type="button" class="button button-primary aimp-ai-start" hidden><?php esc_html_e( 'Generate missing pictures', 'atelier-irisee-master-plugin' ); ?></button>
 				<button type="button" class="button aimp-ai-stop" hidden><?php esc_html_e( 'Stop', 'atelier-irisee-master-plugin' ); ?></button>
 			</p>
 			<p class="aimp-ai-message" role="status" hidden></p>
