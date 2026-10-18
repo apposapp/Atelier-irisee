@@ -24,6 +24,7 @@
 	var stopped = false;
 	var missing = [];
 	var armed = false;
+	var steps = 1;
 
 	function fmt(text, values) {
 		var i = 0;
@@ -145,6 +146,7 @@
 		armed = false;
 		post('missing').then(function (data) {
 			missing = data.keys.slice(0, data.left);
+			steps = data.steps || 1;
 			if (!data.keys.length) {
 				start.hidden = true;
 				say(t.none);
@@ -165,7 +167,7 @@
 		// First click: say what it costs; the second click starts.
 		if (!armed) {
 			armed = true;
-			say(fmt(t.confirm, [missing.length]));
+			say(fmt(t.confirm, [missing.length, missing.length * steps]));
 			return;
 		}
 		armed = false;
@@ -260,6 +262,14 @@
 					img.loading = 'lazy';
 					link.appendChild(img);
 					li.appendChild(link);
+					// The fabric in the corner, to compare.
+					if (item.swatch) {
+						var swatch = document.createElement('img');
+						swatch.className = 'aimp-ai-swatch';
+						swatch.src = item.swatch;
+						swatch.alt = '';
+						link.appendChild(swatch);
+					}
 				} else {
 					var blank = document.createElement('span');
 					blank.className = 'aimp-ai-blank';

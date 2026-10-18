@@ -1570,7 +1570,6 @@ return array(
 	'Something went wrong:' => 'Une erreur s\'est produite :',
 	'Stop' => 'Arrêter',
 	'Stopped.' => 'Arrêté.',
-	'Sure? This makes %d pictures, each one is charged by the service. Click again to start.' => 'Vous êtes sûr ? Cela crée %d photos, chacune est facturée par le service. Cliquez à nouveau pour démarrer.',
 	'The AI is told which picture is the person, the pattern and the fabric; this text says what the picture should look like. Leave it empty for the standard text.' => 'L\'IA apprend quelle image est la personne, le patron et le tissu ; ce texte décrit à quoi la photo doit ressembler. Laissez vide pour le texte standard.',
 	'The maximum number of pictures for this month is reached (see Maximum per month).' => 'Le nombre maximum de photos pour ce mois est atteint (voir Maximum par mois).',
 	'The pattern or the fabric has no picture.' => 'Le patron ou le tissu n\'a pas de photo.',
@@ -1583,4 +1582,12 @@ return array(
 	'Waiting for approval' => 'En attente d\'approbation',
 	'— Fabric —' => '— Tissu —',
 	'— Pattern design —' => '— Modèle de patron —',
+
+	// 3.17.0
+	'First the garment in the fabric, then on the person (the fabric comes out much better; each picture costs 2 generations)' => 'D\'abord le vêtement dans le tissu, puis sur la personne (le tissu est bien mieux rendu ; chaque photo coûte 2 générations)',
+	'Pattern picture per design' => 'Photo du patron par modèle',
+	'Sure? This makes %1$d pictures: %2$d generations, each one is charged by the service. Click again to start.' => 'Vous êtes sûr ? Cela crée %1$d photos : %2$d générations, chacune est facturée par le service. Cliquez à nouveau pour démarrer.',
+	'The picture of the first step is missing. Generate again.' => 'La photo de la première étape manque. Générez à nouveau.',
+	'Two steps' => 'Deux étapes',
+	'Which picture of the pattern the AI gets. The AI copies the fabric it sees, so choose the technical drawing or a photo in a plain fabric.' => 'La photo du patron que reçoit l\'IA. L\'IA reprend le tissu qu\'elle voit : choisissez donc le dessin technique ou une photo dans un tissu uni.',
 );

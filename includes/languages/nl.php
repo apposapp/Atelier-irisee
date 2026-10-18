@@ -1570,7 +1570,6 @@ return array(
 	'Something went wrong:' => 'Er ging iets mis:',
 	'Stop' => 'Stoppen',
 	'Stopped.' => 'Gestopt.',
-	'Sure? This makes %d pictures, each one is charged by the service. Click again to start.' => 'Zeker? Dit maakt %d foto\'s, de dienst rekent elke foto aan. Klik nogmaals om te starten.',
 	'The AI is told which picture is the person, the pattern and the fabric; this text says what the picture should look like. Leave it empty for the standard text.' => 'De AI krijgt te horen welke foto de persoon, het patroon en de stof is; deze tekst zegt hoe de foto eruit moet zien. Laat leeg voor de standaardtekst.',
 	'The maximum number of pictures for this month is reached (see Maximum per month).' => 'Het maximum aantal foto\'s voor deze maand is bereikt (zie Maximum per maand).',
 	'The pattern or the fabric has no picture.' => 'Het patroon of de stof heeft geen foto.',
@@ -1583,4 +1582,12 @@ return array(
 	'Waiting for approval' => 'Wacht op goedkeuring',
 	'— Fabric —' => '— Stof —',
 	'— Pattern design —' => '— Patroonontwerp —',
+
+	// 3.17.0
+	'First the garment in the fabric, then on the person (the fabric comes out much better; each picture costs 2 generations)' => 'Eerst het kledingstuk in de stof, dan op de persoon (de stof komt veel beter uit; elke foto kost 2 generaties)',
+	'Pattern picture per design' => 'Patroonfoto per ontwerp',
+	'Sure? This makes %1$d pictures: %2$d generations, each one is charged by the service. Click again to start.' => 'Zeker? Dit maakt %1$d foto\'s: %2$d generaties, de dienst rekent elke generatie aan. Klik nogmaals om te starten.',
+	'The picture of the first step is missing. Generate again.' => 'De foto van de eerste stap ontbreekt. Genereer opnieuw.',
+	'Two steps' => 'Twee stappen',
+	'Which picture of the pattern the AI gets. The AI copies the fabric it sees, so choose the technical drawing or a photo in a plain fabric.' => 'Welke foto van het patroon de AI krijgt. De AI neemt de stof over die hij ziet, kies dus de technische tekening of een foto in een effen stof.',
 );

@@ -60,24 +60,33 @@ class AIMP_AI_Looks {
 		);
 	}
 
+	/** The standard prompt of 3.16 (saved with the settings): read as today's standard prompt. */
+	const OLD_PROMPT = 'Create a realistic fashion photo of the person from the reference photos wearing the garment from the sewing pattern picture, sewn from the fabric. Keep the person\'s face, hair and body the same. Keep the garment\'s cut, length, neckline and details as in the pattern picture. Use the fabric\'s colour, texture and print at a realistic scale. Full body, natural pose, soft daylight studio light, plain light background, portrait format. No text, no logos.';
+
+	/**
+	 * What the picture should look like (editable). Which picture is what, and that the fabric must be used, is
+	 * always added by prompt().
+	 */
 	public static function default_prompt() {
-		return 'Create a realistic fashion photo of the person from the reference photos wearing the garment from the sewing pattern picture, sewn from the fabric. Keep the person\'s face, hair and body the same. Keep the garment\'s cut, length, neckline and details as in the pattern picture. Use the fabric\'s colour, texture and print at a realistic scale. Full body, natural pose, soft daylight studio light, plain light background, portrait format. No text, no logos.';
+		return 'Create a realistic fashion photo of the reference person wearing the garment. Keep the person\'s face, hair and body the same. Full body, natural pose, soft daylight studio light, plain light background, portrait format. No text, no logos.';
 	}
 
 	/**
 	 * A setting.
 	 *
-	 * @param string $key service, model_{service}, people, prompt, monthly_max.
+	 * @param string $key service, model_{service}, people, prompt, monthly_max, two_steps, pattern_pics.
 	 * @return mixed
 	 */
 	public static function opt( $key ) {
 		$options  = (array) get_option( self::OPTION, array() );
 		$services = self::services();
 		$defaults = array(
-			'service'     => 'leonardo',
-			'people'      => array(),
-			'prompt'      => self::default_prompt(),
-			'monthly_max' => 100,
+			'service'      => 'leonardo',
+			'people'       => array(),
+			'prompt'       => self::default_prompt(),
+			'monthly_max'  => 100,
+			'two_steps'    => 1,
+			'pattern_pics' => array(),
 		);
 		foreach ( $services as $service => $info ) {
 			$defaults[ 'model_' . $service ] = $info[1];
@@ -86,7 +95,43 @@ class AIMP_AI_Looks {
 		if ( 0 === strpos( $key, 'model_' ) && '' === trim( (string) $value ) ) {
 			$value = isset( $defaults[ $key ] ) ? $defaults[ $key ] : '';
 		}
+		if ( 'prompt' === $key && self::OLD_PROMPT === $value ) {
+			$value = self::default_prompt();
+		}
 		return $value;
+	}
+
+	/**
+	 * Generations per picture: 2 with "Two steps".
+	 *
+	 * @return int
+	 */
+	public static function steps() {
+		return self::opt( 'two_steps' ) ? 2 : 1;
+	}
+
+	/**
+	 * The pictures of a pattern design the AI can get: the design's pictures, then the pattern's main and gallery
+	 * pictures.
+	 *
+	 * @param int    $pattern_id Pattern.
+	 * @param string $slug       Design or ''.
+	 * @return int[]
+	 */
+	public static function pattern_images( $pattern_id, $slug ) {
+		$pattern = wc_get_product( absint( $pattern_id ) );
+		if ( ! $pattern ) {
+			return array();
+		}
+		$ids = array();
+		if ( '' !== (string) $slug ) {
+			$data = AIMP_Catalog::design_data( $pattern->get_id() );
+			if ( ! empty( $data[ $slug ]['image_ids'] ) ) {
+				$ids = $data[ $slug ]['image_ids'];
+			}
+		}
+		$ids = array_merge( $ids, array( (int) $pattern->get_image_id() ), $pattern->get_gallery_image_ids() );
+		return array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
 	}
 
 	/**
@@ -126,12 +171,23 @@ class AIMP_AI_Looks {
 		$old      = (array) get_option( self::OPTION, array() );
 		$services = self::services();
 		$clean    = array(
-			'service'     => isset( $input['service'], $services[ $input['service'] ] ) ? $input['service'] : 'leonardo',
-			'keys'        => isset( $old['keys'] ) && is_array( $old['keys'] ) ? $old['keys'] : array(),
-			'prompt'      => isset( $input['prompt'] ) ? sanitize_textarea_field( wp_unslash( $input['prompt'] ) ) : self::default_prompt(),
-			'monthly_max' => isset( $input['monthly_max'] ) ? min( 5000, absint( $input['monthly_max'] ) ) : 100,
-			'people'      => array(),
+			'service'      => isset( $input['service'], $services[ $input['service'] ] ) ? $input['service'] : 'leonardo',
+			'keys'         => isset( $old['keys'] ) && is_array( $old['keys'] ) ? $old['keys'] : array(),
+			'prompt'       => isset( $input['prompt'] ) ? sanitize_textarea_field( wp_unslash( $input['prompt'] ) ) : self::default_prompt(),
+			'monthly_max'  => isset( $input['monthly_max'] ) ? min( 5000, absint( $input['monthly_max'] ) ) : 100,
+			'people'       => array(),
+			'two_steps'    => empty( $input['two_steps'] ) ? 0 : 1,
+			'pattern_pics' => array(),
 		);
+		// The picture of each design the AI gets: only a picture of that pattern.
+		foreach ( isset( $input['pattern_pics'] ) && is_array( $input['pattern_pics'] ) ? $input['pattern_pics'] : array() as $design => $id ) {
+			$parts = explode( '|', sanitize_text_field( (string) $design ) );
+			$slug  = isset( $parts[1] ) ? sanitize_title( $parts[1] ) : '';
+			$id    = absint( $id );
+			if ( absint( $parts[0] ) && $id && in_array( $id, self::pattern_images( absint( $parts[0] ), $slug ), true ) ) {
+				$clean['pattern_pics'][ absint( $parts[0] ) . '|' . $slug ] = $id;
+			}
+		}
 		if ( '' === trim( $clean['prompt'] ) ) {
 			$clean['prompt'] = self::default_prompt();
 		}
@@ -216,6 +272,38 @@ class AIMP_AI_Looks {
 				</td>
 			</tr>
 			<tr>
+				<th scope="row"><?php esc_html_e( 'Two steps', 'atelier-irisee-master-plugin' ); ?></th>
+				<td>
+					<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[two_steps]" value="1"<?php checked( 1, (int) self::opt( 'two_steps' ) ); ?>> <?php esc_html_e( 'First the garment in the fabric, then on the person (the fabric comes out much better; each picture costs 2 generations)', 'atelier-irisee-master-plugin' ); ?></label>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Pattern picture per design', 'atelier-irisee-master-plugin' ); ?></th>
+				<td>
+					<p class="description"><?php esc_html_e( 'Which picture of the pattern the AI gets. The AI copies the fabric it sees, so choose the technical drawing or a photo in a plain fabric.', 'atelier-irisee-master-plugin' ); ?></p>
+					<?php foreach ( self::designs() as $design_key => $design ) : ?>
+						<?php
+						$parts = explode( '|', $design_key );
+						$pics  = self::pattern_images( (int) $parts[0], $parts[1] );
+						if ( count( $pics ) < 2 ) {
+							continue;
+						}
+						?>
+						<div class="aimp-ai-pics">
+							<strong><?php echo esc_html( $design['name'] ); ?></strong>
+							<div class="aimp-ai-pics-row">
+								<?php foreach ( $pics as $pic ) : ?>
+									<label class="aimp-ai-pic">
+										<input type="radio" name="<?php echo esc_attr( $name . '[pattern_pics][' . $design_key . ']' ); ?>" value="<?php echo esc_attr( (string) $pic ); ?>"<?php checked( $design['image'], $pic ); ?>>
+										<img src="<?php echo esc_url( (string) wp_get_attachment_image_url( $pic, 'thumbnail' ) ); ?>" alt="" loading="lazy">
+									</label>
+								<?php endforeach; ?>
+							</div>
+						</div>
+					<?php endforeach; ?>
+				</td>
+			</tr>
+			<tr>
 				<th scope="row"><label for="aimp_ai_max"><?php esc_html_e( 'Maximum per month', 'atelier-irisee-master-plugin' ); ?></label></th>
 				<td>
 					<input id="aimp_ai_max" type="number" min="0" max="5000" class="small-text" name="<?php echo esc_attr( $name ); ?>[monthly_max]" value="<?php echo esc_attr( (string) self::opt( 'monthly_max' ) ); ?>">
@@ -275,8 +363,8 @@ class AIMP_AI_Looks {
 					'done'      => __( 'Done. The picture is waiting for your approval below.', 'atelier-irisee-master-plugin' ),
 					/* translators: %d: number of pictures */
 					'start'     => __( 'Generate %d pictures', 'atelier-irisee-master-plugin' ),
-					/* translators: %d: number of pictures */
-					'confirm'   => __( 'Sure? This makes %d pictures, each one is charged by the service. Click again to start.', 'atelier-irisee-master-plugin' ),
+					/* translators: 1: number of pictures, 2: number of generations */
+					'confirm'   => __( 'Sure? This makes %1$d pictures: %2$d generations, each one is charged by the service. Click again to start.', 'atelier-irisee-master-plugin' ),
 					'none'      => __( 'Every combination has a picture.', 'atelier-irisee-master-plugin' ),
 					/* translators: 1: pictures done, 2: all pictures */
 					'progress'  => __( 'Generating: %1$d / %2$d…', 'atelier-irisee-master-plugin' ),
@@ -358,6 +446,12 @@ class AIMP_AI_Looks {
 					'image'       => ! empty( $row['image_ids'] ) ? (int) $row['image_ids'][0] : (int) $pattern->get_image_id(),
 					'fabric_cats' => $cats[ $slug ],
 				);
+			}
+		}
+		// The picture chosen under "Pattern picture per design".
+		foreach ( (array) self::opt( 'pattern_pics' ) as $design => $id ) {
+			if ( isset( $list[ $design ] ) && $id ) {
+				$list[ $design ]['image'] = (int) $id;
 			}
 		}
 		return $list;
@@ -457,10 +551,11 @@ class AIMP_AI_Looks {
 	/**
 	 * A picture as the AI gets it: a mid-size copy (not the large original).
 	 *
-	 * @param int $id Attachment.
-	 * @return array|null [ bytes, mime, extension, attachment ].
+	 * @param int    $id   Attachment.
+	 * @param string $role person, garment, fabric or made (the garment from step 1).
+	 * @return array|null [ bytes, mime, extension, attachment, role, upload cache key ].
 	 */
-	private static function picture( $id ) {
+	private static function picture( $id, $role ) {
 		$file = $id ? get_attached_file( $id ) : '';
 		if ( ! $file ) {
 			return null;
@@ -481,31 +576,93 @@ class AIMP_AI_Looks {
 		}
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a local upload.
 		$bytes = file_get_contents( $file );
-		return false === $bytes ? null : array( $bytes, $type['type'], 'jpeg' === $type['ext'] ? 'jpg' : $type['ext'], $id );
+		return false === $bytes ? null : array( $bytes, $type['type'], 'jpeg' === $type['ext'] ? 'jpg' : $type['ext'], $id, $role, '' );
 	}
 
 	/**
-	 * The text for the AI: which picture is what, then the prompt from the settings.
+	 * The fabric as a swatch: a square from the middle of its main picture, so the AI sees the cloth itself (not a
+	 * folded bolt or the background). The whole picture when cutting fails.
 	 *
-	 * @param int $people Number of person photos.
+	 * @param WC_Product $fabric Fabric.
+	 * @return array|null Like picture().
+	 */
+	private static function swatch( $fabric ) {
+		$id   = (int) $fabric->get_image_id();
+		$file = $id ? get_attached_file( $id ) : '';
+		if ( $file && file_exists( $file ) ) {
+			$editor = wp_get_image_editor( $file );
+			if ( ! is_wp_error( $editor ) ) {
+				$size = $editor->get_size();
+				$side = (int) floor( min( $size['width'], $size['height'] ) * 0.6 );
+				if ( $side >= 100 ) {
+					$out = min( 768, $side );
+					$editor->crop( (int) floor( ( $size['width'] - $side ) / 2 ), (int) floor( ( $size['height'] - $side ) / 2 ), $side, $side, $out, $out );
+					$editor->set_quality( 90 );
+					$target = trailingslashit( get_temp_dir() ) . 'aimp-swatch-' . wp_generate_password( 8, false ) . '.jpg';
+					$saved  = $editor->save( $target, 'image/jpeg' );
+					if ( ! is_wp_error( $saved ) && ! empty( $saved['path'] ) && file_exists( $saved['path'] ) ) {
+						// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- our own temporary file.
+						$bytes = file_get_contents( $saved['path'] );
+						wp_delete_file( $saved['path'] );
+						if ( $bytes ) {
+							return array( $bytes, 'image/jpeg', 'jpg', $id, 'fabric', '_swatch' );
+						}
+					}
+				}
+			}
+		}
+		return self::picture( $id, 'fabric' );
+	}
+
+	/**
+	 * What a picture is, as told to the AI.
+	 *
+	 * @param string $role Role.
 	 * @return string
 	 */
-	private static function prompt( $people ) {
-		$intro = 1 === $people
-			? 'Image 1 is the reference person.'
-			: sprintf( 'Images 1 to %d show the reference person.', $people );
-		$intro .= sprintf( ' Image %d is the sewing pattern: the garment to make. Image %d is the fabric.', $people + 1, $people + 2 );
-		return $intro . "\n\n" . (string) self::opt( 'prompt' );
+	private static function role_text( $role ) {
+		$roles = array(
+			'person'  => 'the reference person',
+			'garment' => 'the garment (sewing pattern): use only its shape, cut, length, neckline, sleeves and details, NOT its colour, print or fabric',
+			'fabric'  => 'the fabric swatch: the garment must be made from exactly this fabric (same colour, print and texture)',
+			'made'    => 'the finished garment: copy it exactly, including its fabric, colour and print',
+		);
+		return isset( $roles[ $role ] ) ? $roles[ $role ] : $role;
 	}
 
 	/**
-	 * Starts a picture: [ 'image' => bytes, 'mime' => … ] when the service answers at once, [ 'job' => id ] when it
-	 * works in the background (Leonardo), or a WP_Error.
+	 * The text for the AI: which picture is what, what to do with the fabric, then (except for step 1) the prompt
+	 * from the settings.
 	 *
-	 * @param string $key Combination.
+	 * @param array $images Pictures (picture()).
+	 * @param int   $step   0 = one step, 1 = the garment in the fabric, 2 = that garment on the person.
+	 * @return string
+	 */
+	private static function prompt( $images, $step ) {
+		$lines = array();
+		foreach ( $images as $i => $image ) {
+			$lines[] = 'Image ' . ( $i + 1 ) . ': ' . self::role_text( $image[4] ) . '.';
+		}
+		$text = implode( "\n", $lines ) . "\n\n";
+		if ( 1 === $step ) {
+			return $text . 'Make a product photo of the garment, sewn entirely from the fabric of the fabric swatch. Keep the garment\'s exact shape, cut, length, neckline, sleeves and details. Replace its colour, print and texture completely with the fabric: the same colour, print and texture, with the print at a realistic scale for clothing. Ignore the colour and fabric shown in the garment picture. Show the whole garment on an invisible mannequin, front view, plain white background, soft even light. No person, no text.';
+		}
+		$rule = 1 > $step
+			? 'Important: the garment must be made entirely from the fabric of the fabric swatch. Its colour, print and texture replace the colour and fabric shown in the garment picture, which only shows the shape.'
+			: 'Dress the reference person in exactly this garment: keep its shape, details, fabric, colour and print unchanged.';
+		return $text . $rule . "\n\n" . (string) self::opt( 'prompt' );
+	}
+
+	/**
+	 * Starts a picture or a step of it: [ 'image' => bytes, 'mime' => … ] when the service answers at once,
+	 * [ 'job' => id ] when it works in the background (Leonardo), or a WP_Error.
+	 *
+	 * @param string $key  Combination.
+	 * @param int    $step 0 = one step, 1 = the garment in the fabric, 2 = that garment ($made) on the person.
+	 * @param int    $made Step 2: the attachment of step 1.
 	 * @return array|WP_Error
 	 */
-	private static function start( $key ) {
+	private static function start( $key, $step, $made = 0 ) {
 		$parsed = self::parse( $key );
 		if ( ! $parsed ) {
 			return new WP_Error( 'aimp_ai', __( 'This combination no longer exists.', 'atelier-irisee-master-plugin' ) );
@@ -516,32 +673,42 @@ class AIMP_AI_Looks {
 		if ( '' === $api_key ) {
 			return new WP_Error( 'aimp_ai', __( 'There is no API key for this service yet (save it first).', 'atelier-irisee-master-plugin' ) );
 		}
-		$max = (int) self::opt( 'monthly_max' );
-		if ( self::month_count() >= $max ) {
+		// Room for the whole picture (both steps) before the first one; step 2 was counted in already.
+		$need = 1 === $step ? 2 : 1;
+		if ( 2 !== $step && self::month_count() + $need > (int) self::opt( 'monthly_max' ) ) {
 			return new WP_Error( 'aimp_ai', __( 'The maximum number of pictures for this month is reached (see Maximum per month).', 'atelier-irisee-master-plugin' ) );
 		}
 		$images = array();
-		foreach ( (array) self::opt( 'people' ) as $id ) {
-			$picture = self::picture( absint( $id ) );
-			if ( $picture ) {
-				$images[] = $picture;
+		if ( 1 !== $step ) {
+			foreach ( (array) self::opt( 'people' ) as $id ) {
+				$picture = self::picture( absint( $id ), 'person' );
+				if ( $picture ) {
+					$images[] = $picture;
+				}
+			}
+			if ( ! $images ) {
+				return new WP_Error( 'aimp_ai', __( 'Choose at least one photo of the reference person (and save).', 'atelier-irisee-master-plugin' ) );
 			}
 		}
-		$people = count( $images );
-		if ( ! $people ) {
-			return new WP_Error( 'aimp_ai', __( 'Choose at least one photo of the reference person (and save).', 'atelier-irisee-master-plugin' ) );
+		if ( 2 === $step ) {
+			$garment = self::picture( $made, 'made' );
+			if ( ! $garment ) {
+				return new WP_Error( 'aimp_ai', __( 'The picture of the first step is missing. Generate again.', 'atelier-irisee-master-plugin' ) );
+			}
+			$images[] = $garment;
+		} else {
+			$designs = self::designs();
+			$fabric  = wc_get_product( $fabric_id );
+			$pattern = self::picture( $designs[ $design ]['image'], 'garment' );
+			$cloth   = $fabric ? self::swatch( $fabric ) : null;
+			if ( ! $pattern || ! $cloth ) {
+				return new WP_Error( 'aimp_ai', __( 'The pattern or the fabric has no picture.', 'atelier-irisee-master-plugin' ) );
+			}
+			$images[] = $pattern;
+			$images[] = $cloth;
 		}
-		$designs = self::designs();
-		$fabric  = wc_get_product( $fabric_id );
-		$pattern = self::picture( $designs[ $design ]['image'] );
-		$cloth   = $fabric ? self::picture( (int) $fabric->get_image_id() ) : null;
-		if ( ! $pattern || ! $cloth ) {
-			return new WP_Error( 'aimp_ai', __( 'The pattern or the fabric has no picture.', 'atelier-irisee-master-plugin' ) );
-		}
-		$images[] = $pattern;
-		$images[] = $cloth;
-		$prompt   = self::prompt( $people );
-		$model    = (string) self::opt( 'model_' . $service );
+		$prompt = self::prompt( $images, $step );
+		$model  = (string) self::opt( 'model_' . $service );
 
 		if ( function_exists( 'set_time_limit' ) ) {
 			@set_time_limit( 180 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
@@ -613,8 +780,10 @@ class AIMP_AI_Looks {
 	 * Google Gemini (generateContent with the pictures inline; the answer has the picture).
 	 */
 	private static function gemini( $api_key, $model, $prompt, $images ) {
+		// Each picture comes after a line that says what it is.
 		$parts = array( array( 'text' => $prompt ) );
-		foreach ( $images as $image ) {
+		foreach ( $images as $i => $image ) {
+			$parts[] = array( 'text' => 'Image ' . ( $i + 1 ) . ' – ' . self::role_text( $image[4] ) . ':' );
 			$parts[] = array(
 				'inline_data' => array(
 					'mime_type' => $image[1],
@@ -727,7 +896,8 @@ class AIMP_AI_Looks {
 					'id'   => $id,
 					'type' => 'UPLOADED',
 				),
-				'strength' => 'MID',
+				// The garment picture only for the shape; the person and the fabric count most.
+				'strength' => 'garment' === $image[4] ? 'LOW' : 'HIGH',
 			);
 		}
 		$response = wp_remote_post(
@@ -776,7 +946,9 @@ class AIMP_AI_Looks {
 	 * @return string|WP_Error Leonardo's image id.
 	 */
 	private static function leonardo_upload( $headers, $image ) {
-		$saved = get_post_meta( $image[3], self::META_LEONARDO, true );
+		// The swatch is uploaded apart from the whole fabric picture.
+		$meta  = self::META_LEONARDO . $image[5];
+		$saved = get_post_meta( $image[3], $meta, true );
 		if ( is_array( $saved ) && ! empty( $saved['id'] ) && $saved['time'] > time() - WEEK_IN_SECONDS ) {
 			return $saved['id'];
 		}
@@ -810,7 +982,7 @@ class AIMP_AI_Looks {
 		}
 		update_post_meta(
 			$image[3],
-			self::META_LEONARDO,
+			$meta,
 			array(
 				'id'   => $upload['id'],
 				'time' => time(),
@@ -859,14 +1031,15 @@ class AIMP_AI_Looks {
 	}
 
 	/**
-	 * Saves a made picture in the media library (AIMP_Images makes its WebP copy) and marks it as waiting for
-	 * approval.
+	 * Puts a made picture in the media library (AIMP_Images makes its WebP copy).
 	 *
-	 * @param string $key   Combination.
-	 * @param array  $image [ image, mime ].
-	 * @return array|WP_Error The look.
+	 * @param string $key    Combination.
+	 * @param array  $image  [ image, mime ].
+	 * @param string $prefix File name start.
+	 * @param string $title  Title start.
+	 * @return int|WP_Error Attachment.
 	 */
-	private static function save( $key, $image ) {
+	private static function store( $key, $image, $prefix, $title ) {
 		$extensions = array(
 			'image/png'  => 'png',
 			'image/jpeg' => 'jpg',
@@ -876,15 +1049,15 @@ class AIMP_AI_Looks {
 		$ext  = isset( $extensions[ $mime ] ) ? $extensions[ $mime ] : 'png';
 		list( $design, $fabric_id ) = self::parse( $key );
 		$designs = self::designs();
-		$title   = 'AI – ' . $designs[ $design ]['name'] . ' – ' . wp_strip_all_tags( get_the_title( $fabric_id ) );
-		$upload  = wp_upload_bits( sanitize_file_name( 'ai-look-' . str_replace( '|', '-', $key ) . '-' . time() . '.' . $ext ), null, $image['image'] );
+		$name    = $designs[ $design ]['name'] . ' – ' . wp_strip_all_tags( get_the_title( $fabric_id ) );
+		$upload  = wp_upload_bits( sanitize_file_name( $prefix . str_replace( '|', '-', $key ) . '-' . time() . '.' . $ext ), null, $image['image'] );
 		if ( ! empty( $upload['error'] ) ) {
 			return new WP_Error( 'aimp_ai', $upload['error'] );
 		}
 		$id = wp_insert_attachment(
 			array(
 				'post_mime_type' => $mime,
-				'post_title'     => $title,
+				'post_title'     => $title . ' – ' . $name,
 				'post_status'    => 'inherit',
 			),
 			$upload['file']
@@ -894,8 +1067,24 @@ class AIMP_AI_Looks {
 		}
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $upload['file'] ) );
+		update_post_meta( $id, '_wp_attachment_image_alt', $name );
+		return (int) $id;
+	}
+
+	/**
+	 * Saves the finished picture and marks it as waiting for approval (the picture of step 1 is removed).
+	 *
+	 * @param string $key   Combination.
+	 * @param array  $image [ image, mime ].
+	 * @return array|WP_Error The look.
+	 */
+	private static function save( $key, $image ) {
+		$id = self::store( $key, $image, 'ai-look-', 'AI' );
+		if ( is_wp_error( $id ) ) {
+			return $id;
+		}
 		update_post_meta( $id, self::META, $key );
-		update_post_meta( $id, '_wp_attachment_image_alt', $designs[ $design ]['name'] . ' – ' . wp_strip_all_tags( get_the_title( $fabric_id ) ) );
+		self::drop_step1( $key );
 		$look = array(
 			'att'    => $id,
 			'status' => 'pending',
@@ -906,7 +1095,19 @@ class AIMP_AI_Looks {
 	}
 
 	/**
-	 * Removes the picture of a combination (from the media library too).
+	 * Removes the in-between picture of step 1 of a combination.
+	 *
+	 * @param string $key Combination.
+	 */
+	private static function drop_step1( $key ) {
+		$looks = self::looks();
+		if ( ! empty( $looks[ $key ]['step1_att'] ) ) {
+			wp_delete_attachment( (int) $looks[ $key ]['step1_att'], true );
+		}
+	}
+
+	/**
+	 * Removes the picture of a combination (from the media library too), and a picture of step 1.
 	 *
 	 * @param string $key Combination.
 	 */
@@ -915,6 +1116,81 @@ class AIMP_AI_Looks {
 		if ( ! empty( $looks[ $key ]['att'] ) ) {
 			wp_delete_attachment( (int) $looks[ $key ]['att'], true );
 		}
+		self::drop_step1( $key );
+	}
+
+	/**
+	 * Marks a combination as failed and answers the browser.
+	 *
+	 * @param string $key     Combination.
+	 * @param string $message Error.
+	 */
+	private static function fail( $key, $message ) {
+		self::drop_step1( $key );
+		self::set_look(
+			$key,
+			array(
+				'att'    => 0,
+				'status' => 'failed',
+				'time'   => time(),
+				'error'  => $message,
+			)
+		);
+		wp_send_json_error( array( 'message' => $message ) );
+	}
+
+	/**
+	 * What happens with the answer of a step, and the answer to the browser: "running" while a background job runs
+	 * or step 2 is still to come (the browser then asks poll), "done" when the picture is saved.
+	 *
+	 * @param string         $key    Combination.
+	 * @param array|WP_Error $result Answer of start() or leonardo_result().
+	 * @param int            $step   0 = one step, 1 or 2.
+	 */
+	private static function advance( $key, $result, $step ) {
+		if ( is_wp_error( $result ) ) {
+			self::fail( $key, $result->get_error_message() );
+		}
+		$looks = self::looks();
+		$step1 = ! empty( $looks[ $key ]['step1_att'] ) ? (int) $looks[ $key ]['step1_att'] : 0;
+		if ( isset( $result['job'] ) ) {
+			self::set_look(
+				$key,
+				array(
+					'att'       => 0,
+					'status'    => 'running',
+					'job'       => $result['job'],
+					'step'      => $step,
+					'step1_att' => $step1,
+					'time'      => time(),
+				)
+			);
+			wp_send_json_success( array( 'state' => 'running' ) );
+		}
+		if ( 1 === $step ) {
+			// The garment in the fabric: kept until step 2 has used it.
+			$id = self::store( $key, $result, 'ai-step1-', 'AI step 1' );
+			if ( is_wp_error( $id ) ) {
+				self::fail( $key, $id->get_error_message() );
+			}
+			update_post_meta( $id, self::META . '_step1', $key );
+			self::set_look(
+				$key,
+				array(
+					'att'       => 0,
+					'status'    => 'running',
+					'step'      => 2,
+					'step1_att' => $id,
+					'time'      => time(),
+				)
+			);
+			wp_send_json_success( array( 'state' => 'running' ) );
+		}
+		$look = self::save( $key, $result );
+		if ( is_wp_error( $look ) ) {
+			self::fail( $key, $look->get_error_message() );
+		}
+		wp_send_json_success( array( 'state' => 'done' ) );
 	}
 
 	/* ------------------------------------------------------------------ ajax */
@@ -947,7 +1223,10 @@ class AIMP_AI_Looks {
 		wp_send_json_success( $list );
 	}
 
-	/** Makes the picture of one combination (Leonardo: starts it; the browser then asks poll). */
+	/**
+	 * Makes the picture of one combination. With "Two steps" (and with Leonardo, which works in the background) this
+	 * answers "running" and the browser asks poll until it is done.
+	 */
 	public static function ajax_generate() {
 		self::check();
 		$key    = self::posted_key();
@@ -958,72 +1237,36 @@ class AIMP_AI_Looks {
 		}
 		// A new picture replaces the old one.
 		self::drop_picture( $key );
-		$result = self::start( $key );
-		if ( is_wp_error( $result ) ) {
-			self::set_look(
-				$key,
-				array(
-					'att'    => 0,
-					'status' => 'failed',
-					'time'   => time(),
-					'error'  => $result->get_error_message(),
-				)
-			);
-			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
-		}
-		if ( isset( $result['job'] ) ) {
-			self::set_look(
-				$key,
-				array(
-					'att'    => 0,
-					'status' => 'running',
-					'job'    => $result['job'],
-					'time'   => time(),
-				)
-			);
-			wp_send_json_success( array( 'state' => 'running' ) );
-		}
-		$look = self::save( $key, $result );
-		if ( is_wp_error( $look ) ) {
-			wp_send_json_error( array( 'message' => $look->get_error_message() ) );
-		}
-		wp_send_json_success( array( 'state' => 'done' ) );
+		self::set_look( $key, null );
+		$step = 2 === self::steps() ? 1 : 0;
+		self::advance( $key, self::start( $key, $step ), $step );
 	}
 
-	/** A running (Leonardo) picture: still running, done, or failed. */
+	/** A picture being made: a background job to fetch, or step 2 to make. */
 	public static function ajax_poll() {
 		self::check();
 		$key   = self::posted_key();
 		$looks = self::looks();
-		if ( ! isset( $looks[ $key ] ) || 'running' !== $looks[ $key ]['status'] || empty( $looks[ $key ]['job'] ) ) {
+		if ( ! isset( $looks[ $key ] ) || 'running' !== $looks[ $key ]['status'] ) {
 			wp_send_json_success( array( 'state' => isset( $looks[ $key ] ) ? $looks[ $key ]['status'] : '' ) );
 		}
-		$result = self::leonardo_result( $looks[ $key ]['job'] );
-		if ( null === $result ) {
-			// Ten minutes without an answer: give up.
-			if ( $looks[ $key ]['time'] < time() - 600 ) {
+		$look = $looks[ $key ];
+		$step = isset( $look['step'] ) ? (int) $look['step'] : 0;
+		if ( ! empty( $look['job'] ) ) {
+			$result = self::leonardo_result( $look['job'] );
+			if ( null === $result ) {
+				// Ten minutes without an answer: give up.
+				if ( $look['time'] >= time() - 600 ) {
+					wp_send_json_success( array( 'state' => 'running' ) );
+				}
 				$result = new WP_Error( 'aimp_ai', __( 'The service did not answer in time.', 'atelier-irisee-master-plugin' ) );
-			} else {
-				wp_send_json_success( array( 'state' => 'running' ) );
 			}
+			self::advance( $key, $result, $step );
 		}
-		if ( is_wp_error( $result ) ) {
-			self::set_look(
-				$key,
-				array(
-					'att'    => 0,
-					'status' => 'failed',
-					'time'   => time(),
-					'error'  => $result->get_error_message(),
-				)
-			);
-			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		if ( 2 === $step && ! empty( $look['step1_att'] ) ) {
+			self::advance( $key, self::start( $key, 2, (int) $look['step1_att'] ), 2 );
 		}
-		$look = self::save( $key, $result );
-		if ( is_wp_error( $look ) ) {
-			wp_send_json_error( array( 'message' => $look->get_error_message() ) );
-		}
-		wp_send_json_success( array( 'state' => 'done' ) );
+		self::fail( $key, __( 'The picture of the first step is missing. Generate again.', 'atelier-irisee-master-plugin' ) );
 	}
 
 	/** The combinations without a picture (failed ones are tried again; rejected ones are not). */
@@ -1039,10 +1282,13 @@ class AIMP_AI_Looks {
 				}
 			}
 		}
+		$steps = self::steps();
 		wp_send_json_success(
 			array(
 				'keys'  => $missing,
-				'left'  => max( 0, (int) self::opt( 'monthly_max' ) - self::month_count() ),
+				'steps' => $steps,
+				// Pictures that still fit in this month's maximum.
+				'left'  => (int) floor( max( 0, (int) self::opt( 'monthly_max' ) - self::month_count() ) / $steps ),
 			)
 		);
 	}
@@ -1097,6 +1343,8 @@ class AIMP_AI_Looks {
 				'fabric' => isset( $parts[2] ) ? wp_strip_all_tags( get_the_title( absint( $parts[2] ) ) ) : '',
 				'thumb'  => $att ? (string) wp_get_attachment_image_url( $att, 'medium' ) : '',
 				'large'  => $att ? (string) wp_get_attachment_image_url( $att, 'full' ) : '',
+				// The fabric beside the picture, to compare.
+				'swatch' => isset( $parts[2] ) ? (string) get_the_post_thumbnail_url( absint( $parts[2] ), 'thumbnail' ) : '',
 				'error'  => isset( $look['error'] ) ? $look['error'] : '',
 				'time'   => isset( $look['time'] ) ? (int) $look['time'] : 0,
 			);

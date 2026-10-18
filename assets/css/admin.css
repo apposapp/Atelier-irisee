@@ -1333,3 +1333,62 @@ table.aimp-design-fabrics {
 .aimp-ai [hidden] {
 	display: none !important;
 }
+
+/* AI pictures: the fabric in the corner of each picture. */
+.aimp-ai-item a {
+	position: relative;
+	display: block;
+}
+
+.aimp-ai-item img.aimp-ai-swatch {
+	position: absolute;
+	right: 6px;
+	bottom: 6px;
+	width: 48px;
+	height: 48px;
+	aspect-ratio: 1;
+	border: 2px solid #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* AI pictures: the picture of each pattern design the AI gets. */
+.aimp-ai-pics {
+	margin: 12px 0;
+}
+
+.aimp-ai-pics-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 6px;
+}
+
+.aimp-ai-pic {
+	position: relative;
+	cursor: pointer;
+}
+
+.aimp-ai-pic input {
+	position: absolute;
+	opacity: 0;
+}
+
+.aimp-ai-pic img {
+	display: block;
+	width: 72px;
+	height: 72px;
+	object-fit: cover;
+	border: 2px solid #dcdcde;
+	border-radius: 8px;
+}
+
+.aimp-ai-pic input:checked + img {
+	border-color: #b38f4f;
+	box-shadow: 0 0 0 2px #b38f4f;
+}
+
+.aimp-ai-pic input:focus-visible + img {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}

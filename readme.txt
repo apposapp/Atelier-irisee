@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.16.2
+Stable tag: 3.17.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.17.0 =
+* AI pictures use the chosen fabric much better:
+  * "Two steps" (on by default): first the garment is made in the fabric, then that garment is put on the person. Each picture then costs 2 generations (the count and the confirmation say so).
+  * Per pattern design you choose which of its pictures the AI gets (e.g. the technical drawing), so it has no other fabric to copy.
+  * The AI gets a swatch cut from the middle of the fabric photo, and every picture is labelled (person, garment shape only, fabric to use); Leonardo weighs the fabric high and the garment picture low.
+* The pictures grid shows the fabric in the corner of each picture.
 
 = 3.16.2 =
 * AI pictures: only the combinations the customizer shows: each pattern design with the fabrics allowed for its sizes (in the Fabrics category, visible). The single-picture choice lists only these, and a design without allowed fabrics is left out.
