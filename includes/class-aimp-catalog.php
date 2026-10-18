@@ -1669,11 +1669,17 @@ class AIMP_Catalog {
 		$pages    = (int) ceil( $total / $per_page );
 		$page     = min( max( 1, absint( $args['page'] ) ), max( 1, $pages ) );
 
+		// Approved AI pictures (this design sewn from the fabric, worn) come first in the fabric's pictures.
+		$looks = class_exists( 'AIMP_AI_Looks' ) ? AIMP_AI_Looks::approved_for( $req['pattern']->get_id(), self::variation_design( $req['variation'] ) ) : array();
 		$items = array();
 		foreach ( array_slice( $ids, ( $page - 1 ) * $per_page, $per_page ) as $id ) {
 			$product = wc_get_product( $id );
 			if ( $product && $product->is_visible() ) {
-				$items[] = self::material_card( $product, $req['fabric_units'] );
+				$card = self::material_card( $product, $req['fabric_units'] );
+				if ( isset( $looks[ $id ] ) ) {
+					$card['gallery'] = array_merge( self::images( $product, array(), array( $looks[ $id ] ) ), $card['gallery'] );
+				}
+				$items[] = $card;
 			}
 		}
 

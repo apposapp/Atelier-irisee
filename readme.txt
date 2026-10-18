@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.15.0
+Stable tag: 3.16.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.16.0 =
+* New settings tab "AI pictures": an image AI (Leonardo AI, Google Gemini or OpenAI – your choice, with your own API key, kept on the server) makes a picture of a pattern design sewn from a fabric, worn by your reference person. "Generate one combination" to try it, "Generate missing pictures" for every design with every fitting fabric (with a count and a confirmation first, and a maximum per month), and a grid to approve, reject or generate again.
+* Approved pictures come first among the fabric's pictures in the customizer, for that pattern design.
 
 = 3.15.0 =
 * "Atelier Irisee" is now its own item in the dashboard menu (under Products) instead of under WooCommerce. Existing links keep working.

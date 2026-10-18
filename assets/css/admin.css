@@ -1266,3 +1266,65 @@ table.aimp-design-fabrics {
 	outline: 2px solid #2271b1;
 	outline-offset: 2px;
 }
+
+/* Settings → AI pictures: the review grid. */
+.aimp-ai-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 16px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-ai-item {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0;
+	padding: 10px;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.aimp-ai-item.is-pending {
+	border-color: #b38f4f;
+	box-shadow: 0 0 0 1px #b38f4f;
+}
+
+.aimp-ai-item.is-approved em {
+	color: #008a20;
+}
+
+.aimp-ai-item.is-failed em,
+.aimp-ai-item.is-rejected em {
+	color: #b32d2e;
+}
+
+.aimp-ai-item img,
+.aimp-ai-blank {
+	display: block;
+	width: 100%;
+	aspect-ratio: 3 / 4;
+	object-fit: cover;
+	border-radius: 6px;
+	background: #f0f0f1;
+}
+
+.aimp-ai-item small {
+	color: #646970;
+	word-break: break-word;
+}
+
+.aimp-ai-item p {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 6px 0 0;
+}
+
+.aimp-ai .aimp-ai-design,
+.aimp-ai .aimp-ai-fabric {
+	max-width: 100%;
+}
