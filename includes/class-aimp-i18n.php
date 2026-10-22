@@ -168,7 +168,15 @@ class AIMP_I18n {
 	 * @return string
 	 */
 	public static function translate( $translation, $text ) {
-		$dictionary = self::dictionary( self::current() );
+		$lang = self::current();
+		// Own wording from the Design studio (Texts) comes first.
+		if ( class_exists( 'AIMP_Design', false ) ) {
+			$own = AIMP_Design::text( $text, $lang );
+			if ( null !== $own ) {
+				return $own;
+			}
+		}
+		$dictionary = self::dictionary( $lang );
 		return isset( $dictionary[ $text ] ) ? $dictionary[ $text ] : $text;
 	}
 

@@ -101,6 +101,17 @@
 		var data = e.data;
 		if (data.type === 'aimp-design-css') {
 			style.textContent = String(data.css || '');
+			// Slower or faster animations (the speed script of class-aimp-design.php).
+			window.aimpDesignSpeed = data.speeds || {};
+			if (window.aimpDesignSpeedApply) {
+				window.aimpDesignSpeedApply();
+			}
+		} else if (data.type === 'aimp-design-reload') {
+			// Own texts are made on the server: the page is loaded again, at the same place.
+			try {
+				window.sessionStorage.setItem('aimp-design-scroll', String(window.scrollY));
+			} catch (err) {}
+			window.location.reload();
 		} else if (data.type === 'aimp-design-pick') {
 			pick = !!data.on;
 			if (!pick && hovered) {
@@ -120,5 +131,12 @@
 	});
 
 	drawMarks();
+	try {
+		var scroll = window.sessionStorage.getItem('aimp-design-scroll');
+		if (scroll !== null) {
+			window.sessionStorage.removeItem('aimp-design-scroll');
+			window.scrollTo(0, parseInt(scroll, 10) || 0);
+		}
+	} catch (err) {}
 	send({ type: 'aimp-design-ready', url: window.location.href });
 })();

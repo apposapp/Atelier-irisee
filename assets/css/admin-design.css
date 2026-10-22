@@ -269,3 +269,154 @@
 		height: 75vh;
 	}
 }
+
+/* Tabs: Parts, Texts, Looks. */
+.aimp-ds-tabs {
+	display: flex;
+	gap: 4px;
+	margin: 0 0 10px;
+	border-bottom: 1px solid var(--ds-line);
+}
+
+.aimp-ds-tabs button {
+	margin-bottom: -1px;
+	padding: 6px 12px;
+	border: 1px solid transparent;
+	border-radius: 6px 6px 0 0;
+	background: none;
+	color: #50575e;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-ds-tabs button[aria-selected="true"] {
+	border-color: var(--ds-line);
+	border-bottom-color: #fff;
+	background: #fff;
+	color: #6b4f1e;
+}
+
+/* Picture of a part. */
+.aimp-ds-image {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin-bottom: 6px;
+}
+
+.aimp-ds-image-preview {
+	width: 56px;
+	height: 56px;
+	object-fit: cover;
+	border-radius: 6px;
+	box-shadow: 0 0 0 1px var(--ds-line);
+}
+
+/* Own texts. */
+.aimp-ds-text-search {
+	width: 100%;
+	margin: 6px 0;
+}
+
+.aimp-ds-text-count {
+	margin: 4px 0 8px;
+	color: #646970;
+	font-size: 12px;
+}
+
+.aimp-ds-text {
+	margin: 0 0 10px;
+	padding: 8px;
+	border: 1px solid var(--ds-line);
+	border-radius: 8px;
+}
+
+.aimp-ds-text.is-own {
+	border-color: var(--ds-gold);
+	background: var(--ds-gold-tint);
+}
+
+.aimp-ds-text-original {
+	margin: 0 0 6px;
+	font-size: 12px;
+	color: #3c434a;
+	word-break: break-word;
+}
+
+.aimp-ds-text-codes {
+	margin: 0 0 6px;
+	color: #8a6a33;
+	font-size: 11px;
+}
+
+.aimp-ds-text label {
+	display: grid;
+	grid-template-columns: 26px minmax(0, 1fr);
+	gap: 6px;
+	align-items: start;
+	margin-bottom: 4px;
+}
+
+.aimp-ds-text label span {
+	padding-top: 5px;
+	color: #646970;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.aimp-ds-text textarea {
+	width: 100%;
+	min-height: 30px;
+	font-size: 12px;
+	resize: vertical;
+}
+
+.aimp-ds-text textarea.is-wrong {
+	border-color: #b32d2e;
+	box-shadow: 0 0 0 1px #b32d2e;
+}
+
+/* Saved looks. */
+.aimp-ds-look-new {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.aimp-ds-look-new input {
+	flex: 1 1 140px;
+	min-width: 0;
+}
+
+.aimp-ds-looks {
+	margin: 0;
+}
+
+.aimp-ds-look {
+	margin: 0 0 8px;
+	padding: 8px;
+	border: 1px solid var(--ds-line);
+	border-radius: 8px;
+}
+
+.aimp-ds-look.is-on {
+	border-color: var(--ds-gold);
+	background: var(--ds-gold-tint);
+}
+
+.aimp-ds-look p {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+	margin: 6px 0 0;
+}
+
+.aimp-ds-look input[type="date"] {
+	max-width: 140px;
+}
+
+.aimp-ds .aimp-ds-danger {
+	color: #b32d2e;
+}

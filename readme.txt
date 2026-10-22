@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.21.1
+Stable tag: 3.22.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.22.0 =
+* Design studio, Texts tab: every text of the shop (±1,600) can get your own wording in Dutch, French and English. Search in any language; "Only my own texts" shows what you changed. Texts with codes like %s must keep them (the field turns red otherwise). Own texts are part of the draft and go live with Publish.
+* Design studio, Parts: per part another picture from the media library and a focal point (the spot that stays in view when a picture is cut off), and animations off or slower/faster. New part: Hero picture.
+* Design studio, Looks tab: save the draft as a named look ("Christmas", "Sale"), load it into the draft later, or plan it between two dates — visitors then see that look, and afterwards the published look again (cached pages are refreshed at the start and the end).
+* The history and the backup file now include the texts.
 
 = 3.21.1 =
 * Design studio: the page opens (it said "not allowed": its menu item was added before the Atelier Irisee menu existed).

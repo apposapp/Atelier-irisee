@@ -1,5 +1,5 @@
 /**
- * Design studio (class-aimp-design.php): the list of parts, the settings of the chosen part, the preview frame,
+ * Design studio (class-aimp-design.php): the parts and their settings, own texts, saved looks, the preview frame,
  * saving the draft, publishing, the history and the backup file.
  */
 (function () {
@@ -16,7 +16,11 @@
 	};
 	var draft = clone(cfg.draft);
 	var live = clone(cfg.live);
+	var draftTexts = clone(cfg.draftTexts);
+	var liveTexts = clone(cfg.liveTexts);
+	var images = clone(cfg.images);
 	var history = cfg.history || [];
+	var looks = cfg.looks || [];
 	var current = '';
 	var frame = q('.aimp-ds-frame');
 	var wrap = q('.aimp-ds-frame-wrap');
@@ -24,16 +28,14 @@
 	var status = q('.aimp-ds-status');
 	var width = 1280;
 	var saveTimer = 0;
+	var reloadTimer = 0;
 	var saving = false;
 	var saveAgain = false;
+	var textsChanged = false;
 	var frameOrigin = '';
 
 	function clone(value) {
 		return JSON.parse(JSON.stringify(value || {}));
-	}
-
-	function same(a, b) {
-		return JSON.stringify(sorted(a)) === JSON.stringify(sorted(b));
 	}
 
 	function sorted(obj) {
@@ -49,8 +51,20 @@
 		return out;
 	}
 
-	function fmt(text, n) {
-		return String(text).replace('%d', n);
+	function same(a, b) {
+		return JSON.stringify(sorted(a)) === JSON.stringify(sorted(b));
+	}
+
+	function unpublished() {
+		return !same(draft, live) || !same(draftTexts, liveTexts);
+	}
+
+	function fmt(text) {
+		var args = Array.prototype.slice.call(arguments, 1);
+		var i = 0;
+		return String(text).replace(/%(\d)\$d|%d/g, function (all, n) {
+			return String(args[n ? parseInt(n, 10) - 1 : i++]);
+		});
 	}
 
 	function post(action, data) {
@@ -75,27 +89,40 @@
 		});
 	}
 
-	function setState(data) {
-		draft = clone(data.draft);
+	// Everything the server sent back after a change.
+	function setState(data, keepDraft) {
+		if (!keepDraft) {
+			draft = clone(data.draft);
+			draftTexts = clone(data.draftTexts);
+		}
 		live = clone(data.live);
+		liveTexts = clone(data.liveTexts);
+		Object.keys(data.images || {}).forEach(function (id) {
+			images[id] = data.images[id];
+		});
 		history = data.history || history;
+		looks = data.looks || looks;
 		renderList();
 		renderHistory();
+		renderLooks();
 		showEdit();
 		sendCss();
+		if (!keepDraft) {
+			renderTexts();
+		}
 		showStatus();
 	}
 
 	function showStatus(text) {
-		status.textContent = text || (same(draft, live) ? t.published : t.unpublished);
-		status.classList.toggle('is-draft', !same(draft, live));
+		status.textContent = text || (unpublished() ? t.unpublished : t.published);
+		status.classList.toggle('is-draft', unpublished());
 	}
 
 	/* ---------------- the CSS (the same as AIMP_Design::css()) ---------------- */
 
-	function prefixed(selector) {
+	function prefixed(selector, extra) {
 		return selector.split(',').map(function (part) {
-			return 'html body ' + part.trim();
+			return 'html body ' + part.trim() + (extra || '');
 		}).join(',');
 	}
 
@@ -109,7 +136,8 @@
 			if (!el) {
 				return;
 			}
-			var sel = prefixed(el.selector);
+			var base = el.selector;
+			var sel = prefixed(base);
 			var common = '';
 			[['color', 'color'], ['bg', 'background-color'], ['border', 'border-color']].forEach(function (pair) {
 				if (row[pair[0]]) {
@@ -121,6 +149,19 @@
 			}
 			if (common) {
 				all += sel + '{' + common + '}';
+			}
+			var image = '';
+			if (row.img && images[row.img]) {
+				image += 'content:url("' + images[row.img].replace(/"/g, '%22') + '")!important;object-fit:cover;';
+			}
+			if (row.fx !== undefined || row.fy !== undefined) {
+				image += 'object-position:' + (row.fx !== undefined ? parseInt(row.fx, 10) : 50) + '% ' + (row.fy !== undefined ? parseInt(row.fy, 10) : 50) + '%!important;';
+			}
+			if (image) {
+				all += prefixed(base, ':is(img)') + ',' + prefixed(base, ' img') + '{' + image + '}';
+			}
+			if (row.noanim) {
+				all += [sel, prefixed(base, ' *'), prefixed(base, '::before'), prefixed(base, '::after'), prefixed(base, ' *::before'), prefixed(base, ' *::after')].join(',') + '{animation:none!important;transition:none!important}';
 			}
 			var device = function (p) {
 				var out = '';
@@ -162,6 +203,16 @@
 		return out;
 	}
 
+	function speeds(styles) {
+		var map = {};
+		Object.keys(styles).forEach(function (id) {
+			if (cfg.elements[id] && styles[id].speed !== undefined && !styles[id].noanim) {
+				map[cfg.elements[id].selector] = parseInt(styles[id].speed, 10);
+			}
+		});
+		return map;
+	}
+
 	function toFrame(message) {
 		if (frame.contentWindow && frameOrigin) {
 			frame.contentWindow.postMessage(message, frameOrigin);
@@ -169,12 +220,13 @@
 	}
 
 	function sendCss() {
-		toFrame({ type: 'aimp-design-css', css: css(draft) });
+		toFrame({ type: 'aimp-design-css', css: css(draft), speeds: speeds(draft) });
 	}
 
 	/* ---------------- saving ---------------- */
 
-	function save() {
+	function save(texts) {
+		textsChanged = textsChanged || !!texts;
 		window.clearTimeout(saveTimer);
 		saveTimer = window.setTimeout(flush, 700);
 		showStatus(t.saving);
@@ -186,9 +238,18 @@
 			return;
 		}
 		saving = true;
-		post('save', { styles: JSON.stringify(draft) }).then(function (data) {
-			live = clone(data.live);
-			showStatus(same(draft, live) ? t.published : t.saved + ' · ' + t.unpublished);
+		var reload = textsChanged;
+		textsChanged = false;
+		post('save', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts) }).then(function (data) {
+			setState(data, true);
+			showStatus(unpublished() ? t.saved + ' · ' + t.unpublished : t.published);
+			// Texts are made on the server: the preview loads again once you stop typing.
+			if (reload) {
+				window.clearTimeout(reloadTimer);
+				reloadTimer = window.setTimeout(function () {
+					toFrame({ type: 'aimp-design-reload' });
+				}, 600);
+			}
 		}).catch(function (e) {
 			showStatus(e.message);
 		}).then(function () {
@@ -199,6 +260,23 @@
 			}
 		});
 	}
+
+	/* ---------------- tabs ---------------- */
+
+	root.querySelectorAll('.aimp-ds-tabs [data-tab]').forEach(function (tab) {
+		tab.addEventListener('click', function () {
+			var name = tab.getAttribute('data-tab');
+			root.querySelectorAll('.aimp-ds-tabs [data-tab]').forEach(function (other) {
+				other.setAttribute('aria-selected', other === tab ? 'true' : 'false');
+			});
+			root.querySelectorAll('.aimp-ds-pane').forEach(function (pane) {
+				pane.hidden = pane.getAttribute('data-pane') !== name;
+			});
+			if (name === 'texts') {
+				loadTexts();
+			}
+		});
+	});
 
 	/* ---------------- the list of parts ---------------- */
 
@@ -244,6 +322,14 @@
 	/* ---------------- the chosen part ---------------- */
 
 	var edit = q('.aimp-ds-edit');
+	var imagePreview = q('.aimp-ds-image-preview');
+
+	function neutral(key) {
+		if (/zoom$/.test(key) || key === 'speed') {
+			return 100;
+		}
+		return key === 'fx' || key === 'fy' ? 50 : 0;
+	}
 
 	function select(id, scroll) {
 		current = id;
@@ -264,16 +350,17 @@
 		var row = draft[current] || {};
 		edit.querySelectorAll('[data-key]').forEach(function (input) {
 			var key = input.getAttribute('data-key');
-			var neutral = /zoom$/.test(key) ? 100 : 0;
 			if (input.type === 'checkbox') {
 				input.checked = !!row[key];
 			} else if (input.type === 'color') {
 				input.value = row[key] || '#ffffff';
 				input.closest('.aimp-ds-color').classList.toggle('is-set', !!row[key]);
 			} else {
-				input.value = row[key] !== undefined ? row[key] : neutral;
+				input.value = row[key] !== undefined ? row[key] : neutral(key);
 			}
 		});
+		imagePreview.hidden = !(row.img && images[row.img]);
+		imagePreview.src = row.img && images[row.img] ? images[row.img] : '';
 	}
 
 	function change(key, value) {
@@ -281,8 +368,7 @@
 			return;
 		}
 		var row = draft[current] || {};
-		var neutral = /zoom$/.test(key) ? 100 : 0;
-		if (value === '' || value === null || value === false || (typeof value === 'number' && value === neutral)) {
+		if (value === '' || value === null || value === false || (typeof value === 'number' && value === neutral(key) && key !== 'img')) {
 			delete row[key];
 		} else {
 			row[key] = value;
@@ -332,6 +418,25 @@
 		}
 	});
 
+	// Another picture from the media library.
+	var mediaFrame = null;
+	q('.aimp-ds-image-choose').addEventListener('click', function () {
+		if (!window.wp || !window.wp.media || !current) {
+			return;
+		}
+		if (!mediaFrame) {
+			mediaFrame = window.wp.media({ title: t.choose, button: { text: t.use }, library: { type: 'image' }, multiple: false });
+			mediaFrame.on('select', function () {
+				var file = mediaFrame.state().get('selection').first().toJSON();
+				var url = file.sizes && file.sizes.large ? file.sizes.large.url : file.url;
+				images[file.id] = url;
+				change('img', file.id);
+				showEdit();
+			});
+		}
+		mediaFrame.open();
+	});
+
 	q('.aimp-ds-reset-one').addEventListener('click', function () {
 		if (current) {
 			delete draft[current];
@@ -341,6 +446,109 @@
 			renderList();
 		}
 	});
+
+	/* ---------------- own texts ---------------- */
+
+	var texts = null;
+	var textBox = q('.aimp-ds-texts');
+	var textSearch = q('.aimp-ds-text-search');
+	var textOwn = q('.aimp-ds-text-own');
+	var textCount = q('.aimp-ds-text-count');
+	var textTimer = 0;
+
+	function codes(text) {
+		return (String(text).match(/%(?:\d+\$)?[sdfu]/g) || []).sort();
+	}
+
+	function loadTexts() {
+		if (texts) {
+			return;
+		}
+		texts = [];
+		textCount.textContent = t.loading;
+		post('texts').then(function (data) {
+			texts = data;
+			renderTexts();
+		}).catch(function (e) {
+			texts = null;
+			textCount.textContent = e.message;
+		});
+	}
+
+	function renderTexts() {
+		if (!texts || !texts.length) {
+			return;
+		}
+		var term = textSearch.value.trim().toLowerCase();
+		var found = texts.filter(function (row) {
+			var own = draftTexts[row[0]];
+			if (textOwn.checked && !own) {
+				return false;
+			}
+			if (!term) {
+				return true;
+			}
+			var hay = (row[0] + ' ' + row[1] + ' ' + row[2] + ' ' + (own ? (own.nl || '') + ' ' + (own.fr || '') + ' ' + (own.en || '') : '')).toLowerCase();
+			return hay.indexOf(term) !== -1;
+		});
+		var shown = found.slice(0, 40);
+		textCount.textContent = fmt(t.textsShown, shown.length, found.length);
+		textBox.innerHTML = '';
+		shown.forEach(function (row) {
+			var original = row[0];
+			var item = document.createElement('div');
+			item.className = 'aimp-ds-text' + (draftTexts[original] ? ' is-own' : '');
+			var head = document.createElement('p');
+			head.className = 'aimp-ds-text-original';
+			head.textContent = original;
+			item.appendChild(head);
+			var need = codes(original);
+			if (need.length) {
+				var hint = document.createElement('p');
+				hint.className = 'aimp-ds-text-codes';
+				hint.textContent = t.keepCodes + ' ' + need.join(' ');
+				item.appendChild(hint);
+			}
+			[['nl', row[1]], ['fr', row[2]], ['en', original]].forEach(function (pair) {
+				var lang = pair[0];
+				var label = document.createElement('label');
+				var tag = document.createElement('span');
+				tag.textContent = lang.toUpperCase();
+				var input = document.createElement('textarea');
+				input.rows = 1;
+				input.placeholder = pair[1];
+				input.value = draftTexts[original] && draftTexts[original][lang] ? draftTexts[original][lang] : '';
+				input.addEventListener('input', function () {
+					var value = input.value;
+					var ok = value.trim() === '' || codes(value).join() === need.join();
+					input.classList.toggle('is-wrong', !ok);
+					var own = draftTexts[original] || {};
+					if (value.trim() === '' || !ok) {
+						delete own[lang];
+					} else {
+						own[lang] = value;
+					}
+					if (Object.keys(own).length) {
+						draftTexts[original] = own;
+					} else {
+						delete draftTexts[original];
+					}
+					item.classList.toggle('is-own', !!draftTexts[original]);
+					save(true);
+				});
+				label.appendChild(tag);
+				label.appendChild(input);
+				item.appendChild(label);
+			});
+			textBox.appendChild(item);
+		});
+	}
+
+	textSearch.addEventListener('input', function () {
+		window.clearTimeout(textTimer);
+		textTimer = window.setTimeout(renderTexts, 200);
+	});
+	textOwn.addEventListener('change', renderTexts);
 
 	/* ---------------- confirm by clicking twice ---------------- */
 
@@ -367,14 +575,20 @@
 	twice(q('.aimp-ds-publish'), function () {
 		window.clearTimeout(saveTimer);
 		showStatus(t.saving);
-		post('publish', { styles: JSON.stringify(draft) }).then(setState).catch(function (e) {
+		post('publish', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts) }).then(function (data) {
+			setState(data);
+			toFrame({ type: 'aimp-design-reload' });
+		}).catch(function (e) {
 			showStatus(e.message);
 		});
 	});
 
 	twice(q('.aimp-ds-discard'), function () {
 		window.clearTimeout(saveTimer);
-		post('discard').then(setState).catch(function (e) {
+		post('discard').then(function (data) {
+			setState(data);
+			toFrame({ type: 'aimp-design-reload' });
+		}).catch(function (e) {
 			showStatus(e.message);
 		});
 	});
@@ -385,6 +599,108 @@
 		sendCss();
 		save();
 		renderList();
+	});
+
+	/* ---------------- saved looks ---------------- */
+
+	var lookList = q('.aimp-ds-looks');
+	var lookName = q('.aimp-ds-look-name');
+
+	function renderLooks() {
+		lookList.innerHTML = '';
+		if (!looks.length) {
+			var empty = document.createElement('li');
+			empty.textContent = t.noLooks;
+			lookList.appendChild(empty);
+			return;
+		}
+		looks.forEach(function (look) {
+			var li = document.createElement('li');
+			li.className = 'aimp-ds-look' + (look.on ? ' is-on' : '');
+			var title = document.createElement('strong');
+			title.textContent = look.name;
+			var info = document.createElement('span');
+			info.textContent = ' · ' + fmt(t.parts, look.count) + (look.on ? ' · ' + t.onNow : (look.from ? ' · ' + t.planned + ' ' + look.from + ' – ' + look.to : ''));
+			var row = document.createElement('p');
+			var from = document.createElement('input');
+			from.type = 'date';
+			from.value = look.from;
+			from.setAttribute('aria-label', t.from);
+			var to = document.createElement('input');
+			to.type = 'date';
+			to.value = look.to;
+			to.setAttribute('aria-label', t.to);
+			var plan = document.createElement('button');
+			plan.type = 'button';
+			plan.className = 'button';
+			plan.textContent = t.plan;
+			plan.addEventListener('click', function () {
+				if ((from.value || to.value) && (!from.value || !to.value || to.value < from.value)) {
+					showStatus(t.datesNeeded);
+					return;
+				}
+				post('look_plan', { id: look.id, from: from.value, to: to.value }).then(function (data) {
+					setState(data, true);
+				}).catch(function (e) {
+					showStatus(e.message);
+				});
+			});
+			var load = document.createElement('button');
+			load.type = 'button';
+			load.className = 'button-link';
+			load.textContent = t.load;
+			load.addEventListener('click', function () {
+				post('look_load', { id: look.id }).then(function (data) {
+					setState(data);
+					toFrame({ type: 'aimp-design-reload' });
+					showStatus(t.lookLoaded);
+				}).catch(function (e) {
+					showStatus(e.message);
+				});
+			});
+			var del = document.createElement('button');
+			del.type = 'button';
+			del.className = 'button-link aimp-ds-danger';
+			del.textContent = t.delete;
+			twice(del, function () {
+				post('look_delete', { id: look.id }).then(function (data) {
+					setState(data, true);
+				}).catch(function (e) {
+					showStatus(e.message);
+				});
+			});
+			row.appendChild(from);
+			row.appendChild(to);
+			row.appendChild(plan);
+			li.appendChild(title);
+			li.appendChild(info);
+			li.appendChild(row);
+			var actions = document.createElement('p');
+			actions.appendChild(load);
+			actions.appendChild(del);
+			li.appendChild(actions);
+			lookList.appendChild(li);
+		});
+	}
+
+	q('.aimp-ds-look-save').addEventListener('click', function () {
+		var name = lookName.value.trim();
+		if (!name) {
+			showStatus(t.nameNeeded);
+			lookName.focus();
+			return;
+		}
+		window.clearTimeout(saveTimer);
+		// The draft as it is now is saved first, then kept as a look.
+		post('save', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts) }).then(function () {
+			return post('look_save', { name: name });
+		}).then(function (data) {
+			lookName.value = '';
+			setState(data, true);
+			showStatus(t.lookSaved);
+		}).catch(function (e) {
+			showStatus(e.message);
+		});
 	});
 
 	/* ---------------- history and backup ---------------- */
@@ -411,6 +727,7 @@
 				window.clearTimeout(saveTimer);
 				post('restore', { index: item.index }).then(function (data) {
 					setState(data);
+					toFrame({ type: 'aimp-design-reload' });
 					showStatus(t.restored);
 				}).catch(function (e) {
 					showStatus(e.message);
@@ -423,7 +740,7 @@
 	}
 
 	q('.aimp-ds-export').addEventListener('click', function () {
-		var blob = new Blob([JSON.stringify({ aimpDesign: 1, styles: draft }, null, 2)], { type: 'application/json' });
+		var blob = new Blob([JSON.stringify({ aimpDesign: 1, styles: draft, texts: draftTexts }, null, 2)], { type: 'application/json' });
 		var a = document.createElement('a');
 		a.href = URL.createObjectURL(blob);
 		a.download = 'atelier-irisee-design-' + new Date().toISOString().slice(0, 10) + '.json';
@@ -446,9 +763,10 @@
 			if (!json || json.aimpDesign !== 1 || typeof json.styles !== 'object') {
 				throw new Error(t.badFile);
 			}
-			return post('import', { styles: JSON.stringify(json.styles) });
+			return post('import', { styles: JSON.stringify(json.styles), texts: JSON.stringify(json.texts || {}) });
 		}).then(function (data) {
 			setState(data);
+			toFrame({ type: 'aimp-design-reload' });
 			showStatus(t.imported);
 		}).catch(function (e) {
 			showStatus(e instanceof SyntaxError ? t.badFile : e.message);
@@ -516,6 +834,7 @@
 				toFrame({ type: 'aimp-design-show', id: current });
 			}
 		} else if (e.data.type === 'aimp-design-select' && cfg.elements[e.data.id]) {
+			root.querySelector('.aimp-ds-tabs [data-tab="parts"]').click();
 			select(e.data.id, false);
 			var item = list.querySelector('.is-current');
 			if (item) {
@@ -526,13 +845,12 @@
 
 	renderList();
 	renderHistory();
+	renderLooks();
 	showStatus();
 	fit();
 	load(cfg.pages.length ? cfg.pages[0][1] : '/');
-	if (!current) {
-		var hint = document.createElement('p');
-		hint.className = 'aimp-ds-hint';
-		hint.textContent = t.pick;
-		list.parentNode.insertBefore(hint, list);
-	}
+	var hint = document.createElement('p');
+	hint.className = 'aimp-ds-hint';
+	hint.textContent = t.pick;
+	list.parentNode.insertBefore(hint, list);
 })();
