@@ -19,7 +19,7 @@
 	gap: 0.5rem;
 	padding: 0.45rem 1.2rem;
 	/* A single thin line instead of the double border of the other buttons. */
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 }
 
 .aimp-shop-toggle svg {
@@ -47,7 +47,7 @@
 
 :is(.aimp-shop, .aimp-fabric-filters).is-filters-open .aimp-shop-toggle .aimp-shop-count {
 	background: #fff;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 /* ------------------------------------------------------------------
@@ -86,7 +86,7 @@
 	border: 0;
 	border-radius: var(--aimp-panel-radius);
 	/* Gold and slightly see-through, fading towards the products, like the side menu. */
-	background: linear-gradient(90deg, rgba(179, 143, 79, 0.94) 0%, rgba(179, 143, 79, 0.9) 75%, rgba(179, 143, 79, 0.75) 100%);
+	background: linear-gradient(90deg, color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 94%, transparent) 0%, color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 90%, transparent) 75%, color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 75%, transparent) 100%);
 	color: #fff;
 	opacity: 1;
 	transform: none;
@@ -130,7 +130,7 @@
 
 :is(.aimp-configurator, #aimp-specificity) .aimp-shop-layout .aimp-shop-sidebar .aimp-shop-count {
 	background: #fff;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-shop-sidebar-head {
@@ -168,7 +168,7 @@
 .aimp-filter-group {
 	margin: 0;
 	padding: 0.75rem 0;
-	border-top: 1px solid var(--aimp-gold-tint);
+	border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold-tint);
 }
 
 .aimp-filter-group:first-child {
@@ -180,7 +180,7 @@
 .aimp-configurator .aimp-filter-label {
 	display: block;
 	margin-bottom: 0.4rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-weight: 700;
 	cursor: pointer;
 }
@@ -202,8 +202,8 @@
 	right: 0.2rem;
 	width: 0.45em;
 	height: 0.45em;
-	border-right: 2px solid var(--aimp-gold);
-	border-bottom: 2px solid var(--aimp-gold);
+	border-right: 2px var(--aimp-site-line, solid) var(--aimp-gold);
+	border-bottom: 2px var(--aimp-site-line, solid) var(--aimp-gold);
 	transform: rotate(45deg);
 	transition: transform 0.2s ease;
 }
@@ -251,10 +251,10 @@
 .aimp-configurator .aimp-price-inputs input {
 	width: 100%;
 	padding: 0.45rem 0.6rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 	background: transparent;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 }
 
@@ -269,7 +269,7 @@
 }
 
 .aimp-configurator .aimp-price-inputs input::placeholder {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	opacity: 0.6;
 }
 
@@ -278,7 +278,7 @@
 	padding: 0;
 	border: 0;
 	background: none;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	font-weight: 700;
 	text-decoration: underline;
@@ -414,7 +414,7 @@
 
 .aimp-configurator .aimp-overview-card .aimp-card-name {
 	padding-bottom: 0.4rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
@@ -480,7 +480,7 @@
 	min-height: 0;
 	margin: 0;
 	overflow: hidden;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: 14px;
 }
 
@@ -519,7 +519,7 @@
 
 .aimp-configurator .aimp-mosaic-name {
 	overflow: hidden;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 13px;
 	font-weight: 700;
 	text-overflow: ellipsis;
@@ -617,7 +617,7 @@
 	display: block;
 	margin: 0.5rem 0 1rem;
 	padding: 0.9rem 1rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
@@ -653,7 +653,7 @@
 	border: 0;
 	background: none;
 	box-shadow: none;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 1.9rem;
 	font-weight: 400;
 	line-height: 1;
@@ -699,7 +699,7 @@
 }
 
 .aimp-configurator .aimp-shop-buy-message .aimp-shop-buy-error {
-	color: #a3352b;
+	color: var(--aimp-site-error, #a3352b);
 }
 
 /* All products: "Sewing project kits" as the hero (bento): a large tile on the left, two rows high,
@@ -778,7 +778,7 @@
 .aimp-sheet-backdrop {
 	position: absolute;
 	inset: 0;
-	background: rgba(97, 57, 7, 0.4);
+	background: color-mix(in srgb, var(--aimp-site-brown, #613907) 40%, transparent);
 	opacity: 0;
 	transition: opacity 0.3s ease;
 }
@@ -799,7 +799,7 @@
 	padding: 0 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
 	border-radius: 24px 24px 0 0;
 	background: #fff;
-	box-shadow: 0 -12px 30px rgba(97, 57, 7, 0.18);
+	box-shadow: 0 -12px 30px color-mix(in srgb, var(--aimp-site-brown, #613907) 18%, transparent);
 	transform: translateY(100%);
 	transition: transform 0.3s ease;
 }
@@ -824,7 +824,7 @@
 	width: 44px;
 	height: 5px;
 	border-radius: 100px;
-	background: rgba(179, 143, 79, 0.45);
+	background: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 45%, transparent);
 }
 
 /* The × of a sheet: a round button with a double gold line. */
@@ -837,10 +837,10 @@
 	width: 2.75rem;
 	height: 2.75rem;
 	padding: 0;
-	border: 4px double var(--aimp-gold, #b38f4f);
+	border: 4px double var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
 	border-radius: 50%;
 	background: #fff;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 30px;
 	line-height: 1;
 	cursor: pointer;
@@ -865,7 +865,7 @@ html.aimp-sheet-open body {
 		left: 50%;
 		z-index: 900;
 		background: #fff;
-		box-shadow: 0 6px 18px rgba(97, 57, 7, 0.18);
+		box-shadow: 0 6px 18px color-mix(in srgb, var(--aimp-site-brown, #613907) 18%, transparent);
 		transform: translateX(-50%);
 	}
 
@@ -947,7 +947,7 @@ html.aimp-sheet-open body {
 		bottom: 0;
 		left: 0;
 		padding: 0.4rem 0.3rem;
-		background: rgba(179, 143, 79, 0.9);
+		background: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 90%, transparent);
 		color: #fff;
 		font-size: 0.8em;
 		text-align: center;
@@ -1010,10 +1010,10 @@ html.aimp-sheet-open body {
 	gap: 0.4rem;
 	min-height: 0;
 	padding: 0.2rem 0.75rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: 100px;
 	background: var(--aimp-gold-tint);
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	font-size: 0.85em;
 	line-height: 1.5;

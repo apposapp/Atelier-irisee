@@ -1,9 +1,9 @@
 /* [atelier_irisee_kit_steps]: four steps of the customizer on a gold thread, for the home page.
    Desktop one playful row (about 390px), tablet a smaller row, phone a 2 × 2 grid; fits one screen. */
 .aimp-kit-steps {
-	--ks-gold: #b38f4f;
-	--ks-gold-text: #8a6a33;
-	--ks-brown: #613907;
+	--ks-gold: var(--aimp-site-gold, #b38f4f);
+	--ks-gold-text: var(--aimp-site-gold-text, #8a6a33);
+	--ks-brown: var(--aimp-site-brown, #613907);
 	--ks-tint: #fbf8f2;
 	box-sizing: border-box;
 	position: relative;
@@ -83,7 +83,7 @@
 /* A fine gold sewing needle: tapered shaft, sharp point, elongated eye. */
 .ks-needle-shaft {
 	fill: #d9bd84;
-	stroke: #8a6a33;
+	stroke: var(--aimp-site-gold-text, #8a6a33);
 	stroke-width: 0.8;
 	stroke-linejoin: round;
 }
@@ -98,12 +98,12 @@
 
 .ks-needle-eye {
 	fill: #fff;
-	stroke: #8a6a33;
+	stroke: var(--aimp-site-gold-text, #8a6a33);
 	stroke-width: 0.6;
 }
 
 .aimp-kit-steps-sewing .ks-needle {
-	filter: drop-shadow(0 1px 1px rgba(97, 57, 7, 0.2));
+	filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--aimp-site-brown, #613907) 20%, transparent));
 }
 
 .aimp-kit-steps-list {
@@ -128,7 +128,7 @@
 	border: 1px solid var(--ks-gold);
 	border-radius: 18px;
 	background: #fff;
-	box-shadow: 0 6px 18px rgba(97, 57, 7, 0.08);
+	box-shadow: 0 6px 18px color-mix(in srgb, var(--aimp-site-brown, #613907) 8%, transparent);
 	transition: transform 0.35s ease;
 }
 
@@ -453,14 +453,14 @@
 		radial-gradient(circle, var(--ks-gold) 0 3px, transparent 3.5px) 34% 98% / 16px 16px no-repeat,
 		radial-gradient(circle, var(--ks-gold) 0 3.5px, transparent 4px) 10% 92% / 18px 18px no-repeat,
 		radial-gradient(circle, var(--ks-gold) 0 2.5px, transparent 3px) 0% 58% / 14px 14px no-repeat,
-		radial-gradient(circle, rgba(179, 143, 79, 0.6) 0 2px, transparent 2.5px) 62% 30% / 10px 10px no-repeat;
+		radial-gradient(circle, color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 60%, transparent) 0 2px, transparent 2.5px) 62% 30% / 10px 10px no-repeat;
 }
 
 /* A soft gold glow. */
 .aimp-kit-steps .aimp-kit-steps-button::after {
 	inset: -6px;
 	border-radius: 100px;
-	box-shadow: 0 0 0 0 rgba(179, 143, 79, 0.55);
+	box-shadow: 0 0 0 0 color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 55%, transparent);
 }
 
 .aimp-kit-steps .aimp-kit-steps-button.is-sparked {
@@ -488,9 +488,9 @@
 }
 
 @keyframes ks-glow {
-	0% { opacity: 1; box-shadow: 0 0 0 0 rgba(179, 143, 79, 0.65); }
+	0% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 65%, transparent); }
 	35% { opacity: 1; }
-	100% { opacity: 0; box-shadow: 0 0 0 26px rgba(179, 143, 79, 0); }
+	100% { opacity: 0; box-shadow: 0 0 0 26px color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 0%, transparent); }
 }
 
 /* The CTA: a little wider for the longer text. */

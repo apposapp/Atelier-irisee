@@ -1,9 +1,9 @@
 /* Atelier Irisee account page ([atelier_irisee_account]). */
 .aimp-account {
-	--aimp-acc-gold: #b38f4f;
-	--aimp-acc-text: #613907;
-	--aimp-acc-tint: rgba(179, 143, 79, 0.12);
-	--aimp-acc-danger: #a3352b;
+	--aimp-acc-gold: var(--aimp-site-gold, #b38f4f);
+	--aimp-acc-text: var(--aimp-site-brown, #613907);
+	--aimp-acc-tint: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 12%, transparent);
+	--aimp-acc-danger: var(--aimp-site-error, #a3352b);
 	max-width: 1200px;
 	margin: 0 auto 3rem;
 	color: var(--aimp-acc-text);
@@ -24,7 +24,7 @@
 }
 
 .aimp-account a {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 /* Tabs: a gold side panel on the left, like the shop filters (always open). */
@@ -41,7 +41,7 @@
 	padding: 1.25rem;
 	border-radius: 24px;
 	/* The shop filter panel's gradient (and the side menu's). */
-	background: linear-gradient(90deg, rgba(179, 143, 79, 0.94) 0%, rgba(179, 143, 79, 0.9) 75%, rgba(179, 143, 79, 0.75) 100%);
+	background: linear-gradient(90deg, color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 94%, transparent) 0%, color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 90%, transparent) 75%, color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 75%, transparent) 100%);
 	color: #fff;
 }
 
@@ -127,13 +127,13 @@
 
 .aimp-account .aimp-account-title {
 	margin: 0 0 1rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 
 .aimp-account .aimp-account-subtitle {
 	margin: 2rem 0 0.75rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-account-text,
@@ -196,7 +196,7 @@
 
 .aimp-account-address h4 {
 	margin: 0 0 0.5rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-account-address address {
@@ -256,7 +256,7 @@
 
 .aimp-refund-items legend {
 	padding: 0 0.4rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-refund-item {
@@ -328,7 +328,7 @@
 
 .aimp-account .woocommerce-orders-table th,
 .aimp-account .woocommerce-table th {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 @media (max-width: 600px) {
@@ -362,7 +362,7 @@
 }
 
 .aimp-address-dialog::backdrop {
-	background: rgba(97, 57, 7, 0.45);
+	background: color-mix(in srgb, var(--aimp-site-brown, #613907) 45%, transparent);
 }
 
 .aimp-address-form {
@@ -379,14 +379,14 @@
 
 .aimp-address-head h3 {
 	margin: 0;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-address-close {
 	padding: 0 0.25rem;
 	border: 0;
 	background: none;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 28px;
 	line-height: 1;
 	cursor: pointer;
@@ -541,9 +541,9 @@
 		justify-self: start;
 		margin: 0;
 		padding: 0.55rem 1.1rem;
-		border: 1px solid var(--aimp-acc-gold, #b38f4f);
+		border: 1px solid var(--aimp-acc-gold, var(--aimp-site-gold, #b38f4f));
 		border-radius: 100px;
-		background: var(--aimp-acc-gold, #b38f4f);
+		background: var(--aimp-acc-gold, var(--aimp-site-gold, #b38f4f));
 		color: #fff;
 		font: inherit;
 		font-size: 15px;
@@ -623,7 +623,7 @@
 .aimp-pickup-point {
 	margin: 1rem 0;
 	padding: 1rem 1.25rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius, 24px);
 }
 
@@ -667,7 +667,7 @@
 		gap: 0.2rem 0.75rem;
 		margin: 0 0 0.75rem;
 		padding: 0.75rem 0.9rem;
-		border: 1px solid var(--aimp-acc-gold, #b38f4f);
+		border: 1px solid var(--aimp-acc-gold, var(--aimp-site-gold, #b38f4f));
 		border-radius: 16px;
 	}
 
@@ -720,7 +720,7 @@
 		padding: 0.15rem 0.65rem;
 		border-radius: 100px;
 		background: var(--aimp-gold-tint, #f6ecd9);
-		color: var(--aimp-acc-text, #8a6a33);
+		color: var(--aimp-acc-text, var(--aimp-site-gold-text, #8a6a33));
 		font-size: 0.85em;
 		line-height: 1.5;
 	}
@@ -814,7 +814,7 @@
 	width: 44px;
 	height: 5px;
 	border-radius: 3px;
-	background: var(--aimp-acc-gold, #b38f4f);
+	background: var(--aimp-acc-gold, var(--aimp-site-gold, #b38f4f));
 	opacity: 0.5;
 	content: "";
 }
@@ -828,10 +828,10 @@
 	width: 2.75rem;
 	height: 2.75rem;
 	padding: 0;
-	border: 4px double var(--aimp-acc-gold, #b38f4f);
+	border: 4px double var(--aimp-acc-gold, var(--aimp-site-gold, #b38f4f));
 	border-radius: 50%;
 	background: #fff;
-	color: var(--aimp-acc-text, #8a6a33);
+	color: var(--aimp-acc-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 30px;
 	line-height: 1;
 	cursor: pointer;
@@ -863,7 +863,7 @@
 .aimp-account-sheet mark {
 	padding: 0;
 	background: none;
-	color: var(--aimp-acc-text, #8a6a33);
+	color: var(--aimp-acc-text, var(--aimp-site-gold-text, #8a6a33));
 	font-weight: 700;
 }
 

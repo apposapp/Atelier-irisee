@@ -1,12 +1,12 @@
 /* Atelier Irisee configurator. Override the variables below in your theme to restyle. */
 .aimp-configurator {
-	--aimp-gold: #b38f4f;
-	--aimp-gold-text: #8a6a33; /* Gold for text: readable on white (contrast about 5:1). */
-	--aimp-gold-tint: rgba(179, 143, 79, 0.12);
+	--aimp-gold: var(--aimp-site-gold, #b38f4f);
+	--aimp-gold-text: var(--aimp-site-gold-text, #8a6a33); /* Gold for text: readable on white (contrast about 5:1). */
+	--aimp-gold-tint: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 12%, transparent);
 	--aimp-accent: var(--aimp-gold);
 	--aimp-accent-text: #fff;
 	--aimp-text: var(--aimp-gold-text);
-	--aimp-body-text: #613907;
+	--aimp-body-text: var(--aimp-site-brown, #613907);
 	--aimp-body-size: 15px;
 	--aimp-muted: var(--aimp-gold-text);
 	--aimp-border: var(--aimp-gold);
@@ -103,13 +103,13 @@
 	border-bottom-left-radius: 100px;
 	border-bottom-right-radius: 100px;
 	border-width: 5px;
-	border-color: #b38f4f;
+	border-color: var(--aimp-site-gold, #b38f4f);
 	border-style: double;
 	transition-property: background-color, mask-position, mask-size;
 	transition-duration: 300ms;
 	transition-timing-function: ease;
 	transition-delay: 0ms;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	box-shadow: none;
 	text-shadow: none;
@@ -126,7 +126,7 @@
 .aimp-configurator .aimp-button:focus-visible,
 .aimp-configurator .aimp-card:focus-visible {
 	background-color: var(--aimp-gold-tint);
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 /* Selected: filled gold with white text. */
@@ -218,14 +218,14 @@
 	list-style: none;
 	margin: 0 0 1.5rem;
 	padding: 0 0 1rem;
-	border-bottom: 1px solid var(--aimp-gold);
+	border-bottom: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 }
 
 .aimp-configurator .aimp-steps li {
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-configurator .aimp-steps li::marker,
@@ -241,7 +241,7 @@
 	background: none;
 	border: 0;
 	padding: 0;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	cursor: pointer;
 	text-decoration: underline;
@@ -254,8 +254,8 @@
 	width: 1.7em;
 	height: 1.7em;
 	border-radius: 50%;
-	border: 1px solid var(--aimp-gold);
-	color: var(--aimp-gold-text, #8a6a33);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 0.85em;
 }
 
@@ -376,10 +376,10 @@
 
 .aimp-configurator .aimp-search,
 .aimp-configurator .aimp-sort select {
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 	background: transparent;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 }
 
@@ -390,7 +390,7 @@
 }
 
 .aimp-configurator .aimp-search::placeholder {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	opacity: 0.7;
 }
 
@@ -499,9 +499,9 @@
 	transform: translateX(-50%);
 	padding: 0.15rem 0.6rem;
 	border-radius: 999px;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	background: #fff;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 0.75em;
 	white-space: nowrap;
 }
@@ -637,7 +637,7 @@
 .aimp-measurements div {
 	padding: 0.7rem 0.5rem;
 	background: transparent;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 	text-align: center;
 }
@@ -658,7 +658,7 @@
 	justify-content: space-between;
 	gap: 1rem;
 	padding: 0.35rem 0;
-	border-bottom: 1px solid var(--aimp-gold);
+	border-bottom: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 }
 
 .aimp-info-list dd {
@@ -682,7 +682,7 @@
 	gap: 0.6rem;
 	margin: 0;
 	padding: 0.55rem 0.7rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 }
 
@@ -690,7 +690,7 @@
 	flex: 0 0 auto;
 	width: 1.7rem;
 	height: 1.7rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-need-text {
@@ -717,7 +717,7 @@
 .aimp-configurator .aimp-recap {
 	margin-bottom: var(--aimp-gap);
 	padding: 0.75rem 1rem;
-	border-left: 3px solid var(--aimp-gold);
+	border-left: 3px var(--aimp-site-line, solid) var(--aimp-gold);
 	background: transparent;
 	color: var(--aimp-body-text);
 }
@@ -744,7 +744,7 @@
 	width: 44px;
 	height: 44px;
 	object-fit: cover;
-	border: 2px solid var(--aimp-gold);
+	border: 2px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: 50%;
 }
 
@@ -780,9 +780,9 @@
 .aimp-configurator .aimp-summary td {
 	padding: 0.5rem 0.75rem;
 	border: 0;
-	border-bottom: 1px solid var(--aimp-gold);
+	border-bottom: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	background: transparent;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	text-align: left;
 }
 
@@ -812,7 +812,7 @@
 }
 
 .aimp-configurator .aimp-step--summary h3 {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-configurator .aimp-step--summary .aimp-help {
@@ -826,7 +826,7 @@
 .aimp-configurator .aimp-summary tfoot th,
 .aimp-configurator .aimp-summary tfoot td {
 	font-weight: 700;
-	border-top: 2px solid var(--aimp-gold);
+	border-top: 2px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-bottom: 0;
 }
 
@@ -865,8 +865,8 @@
 
 .aimp-configurator .aimp-notice--success {
 	background: transparent;
-	border: 1px solid var(--aimp-gold);
-	color: var(--aimp-gold-text, #8a6a33);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-notice .aimp-actions {
@@ -938,7 +938,7 @@
 	border: 0;
 	border-radius: 50%;
 	background: rgba(255, 255, 255, 0.9);
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 1.8rem;
 	line-height: 1;
 	cursor: pointer;
@@ -974,7 +974,7 @@
 
 /* Titles and table headers: gold */
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6, th, legend, summary) {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(h1, h2, h3, h4, h5, h6) {
@@ -984,7 +984,7 @@
 
 /* Links: gold */
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(p, li, dd, td, .woocommerce-breadcrumb, nav) a:not([class*="aimp-"]):not(.button) {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 /* Prices: brown and semi-bold like the configurator prices; the main price a little larger */
@@ -1017,7 +1017,7 @@
 }
 
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(.out-of-stock, .is-out) {
-	color: #a3352b;
+	color: var(--aimp-site-error, #a3352b);
 }
 
 /* WooCommerce's own buttons (add to cart, review submit): the configurator button */
@@ -1056,11 +1056,11 @@
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) :is(input[type="text"], input[type="email"], input[type="number"], input[type="search"], input[type="tel"], input[type="url"], input[type="password"], select, textarea) {
 	max-width: 100%;
 	padding: 0.5rem 0.75rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 	background: transparent;
 	box-shadow: none;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	font-weight: 600;
 }
@@ -1073,7 +1073,7 @@
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) .star-rating,
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) .star-rating span::before,
 .aimp-configurator:is(.aimp-product, .aimp-shop, .aimp-cart, .aimp-checkout, #aimp-specificity) p.stars a {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 /* Reviews: WooCommerce styles these through IDs, so these rules need IDs as well. */
@@ -1084,14 +1084,14 @@
 }
 
 #aimp-reviews :is(#reviews, #aimp-specificity) :is(#comments, #review_form_wrapper, #aimp-specificity) :is(h2, h3, .comment-reply-title) {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 #aimp-reviews :is(#reviews, #aimp-specificity) :is(#review_form, #aimp-specificity) :is(#respond, #aimp-specificity) :is(input[type="text"], input[type="email"], textarea, select) {
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 	background: transparent;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 }
 
@@ -1100,7 +1100,7 @@
 	border: 5px double var(--aimp-gold);
 	border-radius: 100px;
 	background: transparent;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	font-weight: 700;
 	cursor: pointer;
@@ -1170,9 +1170,9 @@
 	display: inline-block;
 	margin: 0.35rem 0 0;
 	padding: 0.1rem 0.7rem;
-	border: 1px solid #a3352b;
+	border: 1px solid var(--aimp-site-error, #a3352b);
 	border-radius: 100px;
-	color: #a3352b;
+	color: var(--aimp-site-error, #a3352b);
 	font-size: calc(var(--aimp-body-size) * 0.85);
 	font-weight: 600;
 }
@@ -1211,7 +1211,7 @@
 }
 
 .aimp-configurator .aimp-summary .aimp-summary-discount :is(th, td) {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-weight: 700;
 }
 
@@ -1238,10 +1238,10 @@
 	align-items: center;
 	gap: 0.75rem;
 	padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
-	border-top: 1px solid #b38f4f;
+	border-top: 1px solid var(--aimp-site-gold, #b38f4f);
 	background: #fff;
-	box-shadow: 0 -8px 20px rgba(97, 57, 7, 0.08);
-	color: #613907;
+	box-shadow: 0 -8px 20px color-mix(in srgb, var(--aimp-site-brown, #613907) 8%, transparent);
+	color: var(--aimp-site-brown, #613907);
 	font-size: 15px;
 }
 
@@ -1262,9 +1262,9 @@
 	flex: 0 0 auto;
 	min-height: 44px;
 	padding: 0.5rem 1.2rem;
-	border: 4px double #b38f4f;
+	border: 4px double var(--aimp-site-gold, #b38f4f);
 	border-radius: 100px;
-	background: #b38f4f;
+	background: var(--aimp-site-gold, #b38f4f);
 	color: #fff;
 	font: inherit;
 	font-weight: 700;
@@ -1314,7 +1314,7 @@
 		gap: 0.25rem 0.75rem;
 		margin: 0 0 0.6rem;
 		padding: 0.6rem 0.8rem;
-		border: 1px solid var(--aimp-gold);
+		border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 		border-radius: var(--aimp-radius);
 	}
 
@@ -1333,7 +1333,7 @@
 
 	.aimp-configurator :is(table.aimp-size-chart, table.aimp-summary) tbody :is(th, td)[data-label]:not(:first-child)::before {
 		content: attr(data-label) ": ";
-		color: var(--aimp-gold-text, #8a6a33);
+		color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 		font-size: 0.85em;
 	}
 
@@ -1361,11 +1361,11 @@
 	.aimp-configurator:not(.aimp-shop) .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) {
 		grid-template-columns: minmax(0, 1fr);
 		gap: 0;
-		border-top: 1px solid var(--aimp-gold);
+		border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	}
 
 	.aimp-configurator:not(.aimp-shop) .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) > li {
-		border-bottom: 1px solid var(--aimp-gold);
+		border-bottom: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	}
 
 	.aimp-configurator:not(.aimp-shop) .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card {
@@ -1384,7 +1384,7 @@
 	}
 
 	.aimp-configurator:not(.aimp-shop) .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) > .aimp-card {
-		border-bottom: 1px solid var(--aimp-gold);
+		border-bottom: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	}
 
 	.aimp-configurator:not(.aimp-shop) .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card-image {
@@ -1408,11 +1408,11 @@
 	.aimp-configurator:not(.aimp-shop) .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card.is-selected:hover {
 		box-shadow: inset 4px 0 0 var(--aimp-gold);
 		background-color: var(--aimp-gold-tint);
-		color: var(--aimp-gold-text, #8a6a33);
+		color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	}
 
 	.aimp-configurator:not(.aimp-shop) .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-card.is-selected :is(.aimp-card-name, .aimp-card-price, .aimp-card-price *) {
-		color: var(--aimp-gold-text, #8a6a33);
+		color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	}
 
 	/* The heart on the right of the row. */
@@ -1429,7 +1429,7 @@
 	margin-top: 0.1em;
 	font-size: 0.85em;
 	font-weight: 400;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 /* Phones: Back / Continue stay at the bottom of the screen (above the tab bar) while a step is scrolled. */
@@ -1443,9 +1443,9 @@
 		margin-right: calc(50% - 50vw);
 		margin-left: calc(50% - 50vw);
 		padding: 0.6rem 1rem;
-		border-top: 1px solid var(--aimp-gold);
+		border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 		background: #fff;
-		box-shadow: 0 -6px 16px rgba(97, 57, 7, 0.08);
+		box-shadow: 0 -6px 16px color-mix(in srgb, var(--aimp-site-brown, #613907) 8%, transparent);
 	}
 
 	.aimp-configurator .aimp-step > .aimp-actions .aimp-button {
@@ -1478,7 +1478,7 @@
 		align-items: center;
 		min-height: 36px;
 		padding: 0.2rem 0.9rem;
-		border: 1px solid var(--aimp-gold);
+		border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 		border-radius: 100px;
 		text-decoration: none;
 	}
@@ -1563,7 +1563,7 @@
 		padding: 0.2rem 0;
 		border: 0;
 		background: none;
-		color: var(--aimp-gold-text, #8a6a33);
+		color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 		font: inherit;
 		font-weight: 700;
 		text-decoration: underline;
@@ -1586,7 +1586,7 @@
 		height: 0.65rem;
 		min-height: 0;
 		padding: 0;
-		border: 1px solid var(--aimp-gold);
+		border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 		border-radius: 50%;
 		background: transparent;
 		cursor: pointer;
@@ -1681,7 +1681,7 @@
 	z-index: 5;
 	margin: 1rem -1rem 0;
 	padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
-	border-top: 1px solid var(--aimp-gold);
+	border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	background: #fff;
 }
 
@@ -1706,13 +1706,13 @@
 		overflow-x: clip;
 		border-top: 1px solid #fff;
 		background: var(--aimp-gold);
-		box-shadow: 0 -6px 18px rgba(97, 57, 7, 0.22);
+		box-shadow: 0 -6px 18px color-mix(in srgb, var(--aimp-site-brown, #613907) 22%, transparent);
 	}
 
 	:is(.aimp-configurator, #aimp-specificity#aimp-specificity) :is(.aimp-step > .aimp-actions, .aimp-sheet-body .aimp-actions) .aimp-button:not(.aimp-button--ghost) {
 		border: 4px double var(--aimp-gold);
 		background-color: #fff;
-		color: var(--aimp-gold-text, #8a6a33);
+		color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 		font-weight: 700;
 	}
 
@@ -1807,10 +1807,10 @@
 	gap: 0.45rem;
 	margin: 0 auto 0 0;
 	padding: 0.3rem 0.9rem 0.3rem 0.35rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: 100px;
 	background: transparent;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	font-size: 0.9em;
 	cursor: pointer;
@@ -1826,7 +1826,7 @@
 	width: 1.6rem;
 	height: 1.6rem;
 	border-radius: 50%;
-	background: var(--aimp-gold, #b38f4f);
+	background: var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
 	color: #fff;
 	font-weight: 700;
 	line-height: 1;

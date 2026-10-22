@@ -4,7 +4,7 @@
 .aimp-favorites,
 .aimp-favorites p,
 .aimp-favorites a {
-	color: #8a6a33;
+	color: var(--aimp-site-gold-text, #8a6a33);
 }
 
 .aimp-favorites .aimp-fav-card-action,
@@ -20,9 +20,9 @@
 	border-bottom-left-radius: 100px;
 	border-bottom-right-radius: 100px;
 	border-width: 5px;
-	border-color: #b38f4f;
+	border-color: var(--aimp-site-gold, #b38f4f);
 	border-style: double;
-	color: #613907;
+	color: var(--aimp-site-brown, #613907);
 	font-size: 15px;
 	font-weight: 700;
 	text-decoration: none;
@@ -33,8 +33,8 @@
 }
 
 .aimp-favorites .aimp-fav-card-action:hover {
-	background-color: rgba(179, 143, 79, 0.12);
-	color: #613907;
+	background-color: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 12%, transparent);
+	color: var(--aimp-site-brown, #613907);
 }
 
 .aimp-fav-empty,
@@ -158,10 +158,10 @@
 	width: 2rem;
 	height: 2rem;
 	padding: 0;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: 50%;
 	background: #fff;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 1.2rem;
 	line-height: 1;
 	cursor: pointer;

@@ -19,6 +19,7 @@
 	var draftTexts = clone(cfg.draftTexts);
 	var liveTexts = clone(cfg.liveTexts);
 	var images = clone(cfg.images);
+	var siteCss = cfg.siteCss || '';
 	var history = cfg.history || [];
 	var looks = cfg.looks || [];
 	var current = '';
@@ -97,6 +98,7 @@
 		}
 		live = clone(data.live);
 		liveTexts = clone(data.liveTexts);
+		siteCss = data.siteCss || '';
 		Object.keys(data.images || {}).forEach(function (id) {
 			images[id] = data.images[id];
 		});
@@ -133,7 +135,8 @@
 		Object.keys(styles).forEach(function (id) {
 			var el = cfg.elements[id];
 			var row = styles[id];
-			if (!el) {
+			// "Whole site" parts: their CSS comes from the server (siteCss).
+			if (!el || !el.selector) {
 				return;
 			}
 			var base = el.selector;
@@ -220,7 +223,7 @@
 	}
 
 	function sendCss() {
-		toFrame({ type: 'aimp-design-css', css: css(draft), speeds: speeds(draft) });
+		toFrame({ type: 'aimp-design-css', css: siteCss + css(draft), speeds: speeds(draft) });
 	}
 
 	/* ---------------- saving ---------------- */
@@ -228,7 +231,9 @@
 	function save(texts) {
 		textsChanged = textsChanged || !!texts;
 		window.clearTimeout(saveTimer);
-		saveTimer = window.setTimeout(flush, 700);
+		// The whole-site look is made on the server: saved sooner, so the preview follows quickly.
+		var site = current && cfg.elements[current] && !cfg.elements[current].selector;
+		saveTimer = window.setTimeout(flush, site ? 300 : 700);
 		showStatus(t.saving);
 	}
 
@@ -294,7 +299,12 @@
 			(groups[el.group] = groups[el.group] || []).push(id);
 		});
 		list.innerHTML = '';
-		Object.keys(groups).forEach(function (group) {
+		// "Whole site" first.
+		Object.keys(groups).sort(function (a, b) {
+			var siteA = !cfg.elements[groups[a][0]].selector;
+			var siteB = !cfg.elements[groups[b][0]].selector;
+			return siteA === siteB ? 0 : (siteA ? -1 : 1);
+		}).forEach(function (group) {
 			var h = document.createElement('h3');
 			h.textContent = group;
 			list.appendChild(h);
@@ -322,30 +332,56 @@
 	/* ---------------- the chosen part ---------------- */
 
 	var edit = q('.aimp-ds-edit');
-	var imagePreview = q('.aimp-ds-image-preview');
 
+	// The standard value of a number setting (cfg.groups: [ min, max, standard ]), else null.
 	function neutral(key) {
-		if (/zoom$/.test(key) || key === 'speed') {
-			return 100;
-		}
-		return key === 'fx' || key === 'fy' ? 50 : 0;
+		var found = null;
+		Object.keys(cfg.groups).forEach(function (group) {
+			var rule = cfg.groups[group][key];
+			if (Array.isArray(rule) && typeof rule[0] === 'number') {
+				found = rule[2];
+			}
+		});
+		return found;
 	}
 
+	// A chosen part: only its settings, without the list (‹ All parts goes back).
 	function select(id, scroll) {
 		current = id;
 		renderList();
 		showEdit();
-		if (scroll) {
+		if (scroll && cfg.elements[id].selector) {
 			toFrame({ type: 'aimp-design-show', id: id });
 		}
 	}
 
+	function focusMode(on) {
+		[q('.aimp-ds-search'), list, q('.aimp-ds-hint')].forEach(function (el) {
+			if (el) {
+				el.hidden = on;
+			}
+		});
+	}
+
+	q('.aimp-ds-back').addEventListener('click', function () {
+		current = '';
+		toFrame({ type: 'aimp-design-show', id: '' });
+		renderList();
+		showEdit();
+	});
+
 	function showEdit() {
 		if (!current || !cfg.elements[current]) {
 			edit.hidden = true;
+			focusMode(false);
 			return;
 		}
 		edit.hidden = false;
+		focusMode(true);
+		var controls = cfg.elements[current].controls || [];
+		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
+			group.hidden = controls.indexOf(group.getAttribute('data-group')) === -1;
+		});
 		q('.aimp-ds-edit-name').textContent = cfg.elements[current].label;
 		var row = draft[current] || {};
 		edit.querySelectorAll('[data-key]').forEach(function (input) {
@@ -355,12 +391,20 @@
 			} else if (input.type === 'color') {
 				input.value = row[key] || '#ffffff';
 				input.closest('.aimp-ds-color').classList.toggle('is-set', !!row[key]);
+			} else if (input.tagName === 'SELECT' || input.type === 'text') {
+				input.value = row[key] !== undefined ? row[key] : '';
 			} else {
-				input.value = row[key] !== undefined ? row[key] : neutral(key);
+				// "Standard" outside the range (e.g. -1 for corners): an empty box.
+				var standard = neutral(key);
+				input.value = row[key] !== undefined ? row[key] : (standard !== null && standard < parseInt(input.min, 10) ? '' : standard);
 			}
 		});
-		imagePreview.hidden = !(row.img && images[row.img]);
-		imagePreview.src = row.img && images[row.img] ? images[row.img] : '';
+		edit.querySelectorAll('[data-image]').forEach(function (box) {
+			var id = row[box.getAttribute('data-image')];
+			var img = box.querySelector('.aimp-ds-image-preview');
+			img.hidden = !(id && images[id]);
+			img.src = id && images[id] ? images[id] : '';
+		});
 	}
 
 	function change(key, value) {
@@ -368,7 +412,7 @@
 			return;
 		}
 		var row = draft[current] || {};
-		if (value === '' || value === null || value === false || (typeof value === 'number' && value === neutral(key) && key !== 'img')) {
+		if (value === '' || value === null || value === false || (typeof value === 'number' && value === neutral(key))) {
 			delete row[key];
 		} else {
 			row[key] = value;
@@ -391,6 +435,10 @@
 		}
 		if (input.type === 'checkbox') {
 			change(key, input.checked ? 1 : false);
+		} else if (input.tagName === 'SELECT') {
+			change(key, input.value);
+		} else if (input.type === 'text') {
+			change(key, input.value.trim());
 		} else if (input.type === 'color') {
 			input.closest('.aimp-ds-color').classList.add('is-set');
 			change(key, input.value);
@@ -413,24 +461,29 @@
 	edit.addEventListener('click', function (e) {
 		var clear = e.target.closest('[data-clear]');
 		if (clear) {
-			change(clear.getAttribute('data-clear'), '');
+			clear.getAttribute('data-clear').split(',').forEach(function (key) {
+				change(key, '');
+			});
 			showEdit();
 		}
 	});
 
-	// Another picture from the media library.
+	// A picture from the media library (a part's picture, the page background, the browser icon).
 	var mediaFrame = null;
-	q('.aimp-ds-image-choose').addEventListener('click', function () {
-		if (!window.wp || !window.wp.media || !current) {
+	var mediaKey = '';
+	edit.addEventListener('click', function (e) {
+		var button = e.target.closest('.aimp-ds-image-choose');
+		if (!button || !window.wp || !window.wp.media || !current) {
 			return;
 		}
+		mediaKey = button.getAttribute('data-image-key');
 		if (!mediaFrame) {
 			mediaFrame = window.wp.media({ title: t.choose, button: { text: t.use }, library: { type: 'image' }, multiple: false });
 			mediaFrame.on('select', function () {
 				var file = mediaFrame.state().get('selection').first().toJSON();
 				var url = file.sizes && file.sizes.large ? file.sizes.large.url : file.url;
 				images[file.id] = url;
-				change('img', file.id);
+				change(mediaKey, file.id);
 				showEdit();
 			});
 		}

@@ -23,9 +23,9 @@
 .aimp-configurator .aimp-checkout-message {
 	margin: 0 0 1rem;
 	padding: 0.75rem 1rem;
-	border: 1px solid #a3352b;
+	border: 1px solid var(--aimp-site-error, #a3352b);
 	border-radius: var(--aimp-radius);
-	color: #a3352b;
+	color: var(--aimp-site-error, #a3352b);
 }
 
 /* ------------------------------------------------------------------
@@ -55,7 +55,7 @@
 
 .aimp-configurator.aimp-checkout :is(.woocommerce-billing-fields, .woocommerce-shipping-fields, .woocommerce-additional-fields, .woocommerce-account-fields, #order_review) {
 	padding: 1.25rem 1.4rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
@@ -106,16 +106,16 @@
 }
 
 .aimp-configurator.aimp-checkout .select2-container .select2-selection {
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 }
 
 .aimp-configurator.aimp-checkout .form-row.woocommerce-invalid :is(input.input-text, select, textarea) {
-	border-color: #a3352b;
+	border-color: var(--aimp-site-error, #a3352b);
 }
 
 .aimp-configurator.aimp-checkout .required {
-	color: #a3352b;
+	color: var(--aimp-site-error, #a3352b);
 	text-decoration: none;
 }
 
@@ -147,7 +147,7 @@
 .aimp-configurator.aimp-checkout table.shop_table :is(th, td) {
 	padding: 0.55rem 0;
 	border: 0;
-	border-bottom: 1px solid var(--aimp-gold-tint);
+	border-bottom: 1px var(--aimp-site-line, solid) var(--aimp-gold-tint);
 	background: transparent;
 	text-align: left;
 	vertical-align: top;
@@ -185,7 +185,7 @@
 .aimp-configurator.aimp-checkout #payment ul.payment_methods li {
 	margin: 0 0 0.5rem;
 	padding: 0.7rem 0.9rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 }
 
@@ -231,14 +231,14 @@
 .aimp-configurator.aimp-checkout :is(.checkout_coupon, form.login) {
 	margin: 0 0 1rem;
 	padding: 1rem 1.25rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
 /* Confirmation (thank-you page) */
 .aimp-configurator.aimp-checkout.is-confirmation .woocommerce-order {
 	padding: 1.25rem 1.4rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
@@ -290,7 +290,7 @@
 	position: sticky;
 	top: var(--aimp-sticky-top);
 	padding: 1.25rem 1.4rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
@@ -337,7 +337,7 @@
 
 .aimp-configurator .aimp-os > li + li {
 	padding-top: 1rem;
-	border-top: 1px solid var(--aimp-gold-tint);
+	border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold-tint);
 }
 
 .aimp-configurator .aimp-os-set-title {
@@ -371,7 +371,7 @@
 .aimp-configurator .aimp-os-name small,
 .aimp-configurator .aimp-os-name dl.variation {
 	margin: 0;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 0.85em;
 }
 
@@ -400,7 +400,7 @@
 	gap: 1rem;
 	margin: 0.6rem 0 0;
 	padding-top: 0.5rem;
-	border-top: 1px solid var(--aimp-gold-tint);
+	border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold-tint);
 }
 
 .aimp-configurator .aimp-os-set-total strong {
@@ -412,7 +412,7 @@
 .aimp-configurator .aimp-checkout-address {
 	margin: 0 0 1rem;
 	padding: 1.25rem 1.4rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
@@ -434,7 +434,7 @@
 	padding: 0;
 	border: 0;
 	background: none;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	text-decoration: underline;
 	cursor: pointer;
@@ -497,7 +497,7 @@
 .aimp-configurator .aimp-checkout-codes {
 	margin: 0 0 1rem;
 	padding: 1.25rem 1.4rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
@@ -526,7 +526,7 @@
 	margin: 0.75rem 0 0;
 	padding: 0.75rem 0 0;
 	border: 0;
-	border-top: 1px solid var(--aimp-gold-tint);
+	border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold-tint);
 	border-radius: 0;
 }
 
@@ -612,7 +612,7 @@
 }
 
 .aimp-configurator.aimp-checkout #payment ul.payment_methods li > input.input-radio:focus-visible + label {
-	outline: 2px solid var(--aimp-gold);
+	outline: 2px var(--aimp-site-line, solid) var(--aimp-gold);
 	outline-offset: 2px;
 }
 
@@ -629,7 +629,7 @@
 	width: 100%;
 	margin: 0;
 	padding: 1rem 1.25rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 	background: #fff;
 	color: var(--aimp-body-text);
@@ -654,7 +654,7 @@
 	width: 100%;
 	max-width: 100%;
 	min-height: 2.6rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-radius);
 }
 
@@ -684,7 +684,7 @@
 .aimp-configurator .aimp-free-shipping-hint {
 	display: block;
 	margin-top: 0.2rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 0.9em;
 	line-height: 1.4;
 }
@@ -777,7 +777,7 @@
 
 .aimp-configurator .aimp-thankyou-title {
 	margin: 0 0 0.5rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 1.6em;
 	text-wrap: balance;
 }
@@ -818,7 +818,7 @@
 .aimp-configurator .aimp-thankyou-address {
 	display: inline-block;
 	padding: 0.9rem 1.5rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 	text-align: left;
 }
@@ -838,7 +838,7 @@
 .aimp-configurator :is(.aimp-thankyou-next, .aimp-thankyou-account) {
 	margin: 1.5rem 0 0;
 	padding: 1.25rem 1.4rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius);
 }
 
@@ -888,10 +888,10 @@
 	align-items: center;
 	gap: 0.75rem;
 	padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
-	border-top: 1px solid #b38f4f;
+	border-top: 1px solid var(--aimp-site-gold, #b38f4f);
 	background: #fff;
-	box-shadow: 0 -8px 20px rgba(97, 57, 7, 0.08);
-	color: #613907;
+	box-shadow: 0 -8px 20px color-mix(in srgb, var(--aimp-site-brown, #613907) 8%, transparent);
+	color: var(--aimp-site-brown, #613907);
 	font-size: 15px;
 }
 
@@ -909,9 +909,9 @@
 	flex: 0 0 auto;
 	min-height: 44px;
 	padding: 0.5rem 1.3rem;
-	border: 4px double #b38f4f;
+	border: 4px double var(--aimp-site-gold, #b38f4f);
 	border-radius: 100px;
-	background: #b38f4f;
+	background: var(--aimp-site-gold, #b38f4f);
 	color: #fff;
 	font: inherit;
 	font-weight: 700;
@@ -946,7 +946,7 @@
 .aimp-configurator.aimp-checkout .aimp-field-error {
 	display: block;
 	margin-top: 0.25rem;
-	color: #a3352b;
+	color: var(--aimp-site-error, #a3352b);
 	font-size: 0.85em;
 }
 
@@ -959,7 +959,7 @@
 	padding: 0;
 	border: 0;
 	background: none;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	font-weight: 700;
 	cursor: pointer;
@@ -978,7 +978,7 @@
 }
 
 .aimp-configurator .aimp-checkout-summary-total {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-weight: 700;
 }
 
@@ -1006,7 +1006,7 @@
 
 .aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_container {
 	margin: 0;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: var(--aimp-panel-radius, 16px);
 	font-size: var(--aimp-body-size);
 }
@@ -1022,10 +1022,10 @@
 }
 
 .aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_checkout_tab_list > li .postnl_checkout_tab {
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: 100px;
 	background: transparent;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: var(--aimp-body-size);
 }
 
@@ -1046,11 +1046,11 @@
 }
 
 .aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_content .postnl_list .list_title span {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_content .postnl_list .postnl_sub_list > li {
-	border-bottom: 1px solid var(--aimp-gold-tint);
+	border-bottom: 1px var(--aimp-site-line, solid) var(--aimp-gold-tint);
 	color: var(--aimp-body-text);
 }
 
@@ -1067,7 +1067,7 @@
 }
 
 .aimp-configurator:is(.aimp-checkout, #aimp-specificity) .postnl_content .postnl_list .postnl_sub_list .postnl_sub_radio_label i {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-weight: 700;
 }
 

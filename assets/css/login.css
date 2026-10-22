@@ -1,15 +1,15 @@
 /* Atelier Irisee login & registration. Colors and sizes come from the "Style" settings (CSS variables). */
 :root {
-	--aimp-el-primary: #b38f4f;
+	--aimp-el-primary: var(--aimp-site-gold, #b38f4f);
 	--aimp-el-button-text: #ffffff;
-	--aimp-el-text: #b38f4f;
-	--aimp-el-border: #b38f4f;
+	--aimp-el-text: var(--aimp-site-gold, #b38f4f);
+	--aimp-el-border: var(--aimp-site-gold, #b38f4f);
 	--aimp-el-bg: #ffffff;
 	--aimp-el-overlay: rgba(0, 0, 0, 0.6);
 	--aimp-el-font-size: 16px;
 	--aimp-el-width: 480px;
-	--aimp-el-error: #b3261e;
-	--aimp-el-success: #2e6b3a;
+	--aimp-el-error: var(--aimp-site-error, #b3261e);
+	--aimp-el-success: var(--aimp-site-success, #2e6b3a);
 }
 
 html.aimp-el-open {
@@ -92,7 +92,7 @@ html.aimp-el-open {
 
 .aimp-el-close:hover,
 .aimp-el-close:focus-visible {
-	background: rgba(179, 143, 79, 0.12);
+	background: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 12%, transparent);
 }
 
 .aimp-el-modal.is-open .aimp-el-overlay,
@@ -762,7 +762,7 @@ html.aimp-el-open {
 	overflow-y: auto;
 	list-style: none;
 	background: #fff;
-	border: 1px solid #b38f4f;
+	border: 1px solid var(--aimp-site-gold, #b38f4f);
 	border-radius: 12px;
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 	font-size: 0.95em;
@@ -780,7 +780,7 @@ html.aimp-el-open {
 
 .aimp-address-list li.is-active,
 .aimp-address-list li:hover {
-	background: rgba(179, 143, 79, 0.14);
+	background: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 14%, transparent);
 }
 
 .aimp-address-list .aimp-address-empty {

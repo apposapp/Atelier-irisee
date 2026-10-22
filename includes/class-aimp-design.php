@@ -127,65 +127,172 @@ class AIMP_Design {
 			'footer-payments' => array( $footer, __( 'Payment logos', 'atelier-irisee-master-plugin' ), '.aimp-footer-payments' ),
 			'footer-bottom'   => array( $footer, __( 'Bottom line', 'atelier-irisee-master-plugin' ), '.aimp-footer-bottom' ),
 		);
+		// Which settings a part has: every part can be moved, sized, spaced, hidden, coloured and calmed down; boxes
+		// also get rounded corners, and parts with pictures a picture and focal point.
+		$text    = array( 'move', 'size', 'space', 'hide', 'colors', 'anim' );
+		$box     = array_merge( $text, array( 'radius' ) );
+		$picture = array_merge( $box, array( 'image' ) );
+		$texts   = array( 'header-menu-bar', 'hero-title', 'hero-text', 'kit-steps-title', 'overview-hero', 'card-name', 'card-price', 'product-title', 'product-brand', 'product-subtitle', 'product-price', 'config-title', 'account-title', 'account-hello', 'footer-title', 'footer-bottom', 'hero-arrow' );
+		$images  = array( 'header-logo', 'hero', 'hero-logo', 'hero-image', 'overview', 'overview-card', 'mosaic', 'product-gallery', 'product-recommend', 'kit-steps-list', 'footer-payments', 'footer-socials', 'cart-items' );
 		$elements = array();
 		foreach ( $list as $id => $row ) {
 			$elements[ $id ] = array(
 				'group'    => $row[0],
 				'label'    => $row[1],
 				'selector' => $row[2],
+				'controls' => in_array( $id, $images, true ) ? $picture : ( in_array( $id, $texts, true ) ? $text : $box ),
+			);
+		}
+		// The overall look of the site: no part of the page to click, chosen from the list.
+		$site = __( 'Whole site', 'atelier-irisee-master-plugin' );
+		foreach ( array(
+			'site-colors'  => array( __( 'Brand colours', 'atelier-irisee-master-plugin' ), array( 'palette' ) ),
+			'site-fonts'   => array( __( 'Fonts and text sizes', 'atelier-irisee-master-plugin' ), array( 'fonts', 'textsize', 'headings', 'caps' ) ),
+			'site-buttons' => array( __( 'Buttons', 'atelier-irisee-master-plugin' ), array( 'buttons', 'hover' ) ),
+			'site-cards'   => array( __( 'Cards and shadows', 'atelier-irisee-master-plugin' ), array( 'cards', 'shadows' ) ),
+			'site-page'    => array( __( 'Page background, width and lines', 'atelier-irisee-master-plugin' ), array( 'background', 'width', 'lines' ) ),
+			'site-effects' => array( __( 'Effects, icons and browser icon', 'atelier-irisee-master-plugin' ), array( 'effects', 'icons', 'loading', 'focus', 'favicon' ) ),
+		) as $id => $row ) {
+			$elements[ $id ] = array(
+				'group'    => $site,
+				'label'    => $row[0],
+				'selector' => '',
+				'controls' => $row[1],
 			);
 		}
 		return apply_filters( 'aimp_design_elements', $elements );
 	}
 
 	/**
-	 * The settings of one part: key => [ min, max ] for numbers, 'bool', 'color' or 'image'. A "p" in front = on phones.
+	 * The settings per group: key => rule. A rule is [ min, max, standard ] for numbers, 'bool', 'color', 'image',
+	 * 'font' (a Google Fonts family name) or [ 'select', choices ] (the first choice is the standard). A "p" in front
+	 * of a key = on phones.
 	 *
 	 * @return array
 	 */
-	public static function fields() {
+	public static function groups() {
 		return array(
-			'x'      => array( -200, 200 ),
-			'y'      => array( -200, 200 ),
-			'zoom'   => array( 40, 250 ),
-			'hide'   => 'bool',
-			'mt'     => array( -150, 300 ),
-			'mb'     => array( -150, 300 ),
-			'px'     => array( -200, 200 ),
-			'py'     => array( -200, 200 ),
-			'pzoom'  => array( 40, 250 ),
-			'phide'  => 'bool',
-			'pmt'    => array( -150, 300 ),
-			'pmb'    => array( -150, 300 ),
-			'color'  => 'color',
-			'bg'     => 'color',
-			'border' => 'color',
-			'radius' => array( 0, 200 ),
-			// Picture: another picture from the media library, and the point that stays in view when it is cropped.
-			'img'    => 'image',
-			'fx'     => array( 0, 100 ),
-			'fy'     => array( 0, 100 ),
-			// Animations: off, or slower / faster (percent of the normal speed).
-			'noanim' => 'bool',
-			'speed'  => array( 25, 400 ),
+			'move'       => array(
+				'x'  => array( -200, 200, 0 ),
+				'y'  => array( -200, 200, 0 ),
+				'px' => array( -200, 200, 0 ),
+				'py' => array( -200, 200, 0 ),
+			),
+			'size'       => array(
+				'zoom'  => array( 40, 250, 100 ),
+				'pzoom' => array( 40, 250, 100 ),
+			),
+			'space'      => array(
+				'mt'  => array( -150, 300, 0 ),
+				'mb'  => array( -150, 300, 0 ),
+				'pmt' => array( -150, 300, 0 ),
+				'pmb' => array( -150, 300, 0 ),
+			),
+			'hide'       => array(
+				'hide'  => 'bool',
+				'phide' => 'bool',
+			),
+			'colors'     => array(
+				'color'  => 'color',
+				'bg'     => 'color',
+				'border' => 'color',
+			),
+			'radius'     => array( 'radius' => array( 0, 200, 0 ) ),
+			'image'      => array(
+				'img' => 'image',
+				'fx'  => array( 0, 100, 50 ),
+				'fy'  => array( 0, 100, 50 ),
+			),
+			'anim'       => array(
+				'noanim' => 'bool',
+				'speed'  => array( 25, 400, 100 ),
+			),
+			// The whole site.
+			'palette'    => array(
+				'gold'      => 'color',
+				'gold_text' => 'color',
+				'brown'     => 'color',
+				'success'   => 'color',
+				'error'     => 'color',
+			),
+			'fonts'      => array(
+				'head_font'   => array( 'select', array( '', 'trajan', 'serif', 'sans', 'google' ) ),
+				'head_google' => 'font',
+				'body_font'   => array( 'select', array( '', 'trajan', 'serif', 'sans', 'google' ) ),
+				'body_google' => 'font',
+			),
+			'textsize'   => array(
+				'fs'  => array( 0, 24, 0 ),
+				'pfs' => array( 0, 24, 0 ),
+			),
+			'headings'   => array(
+				'h1'  => array( 0, 80, 0 ),
+				'h2'  => array( 0, 64, 0 ),
+				'h3'  => array( 0, 48, 0 ),
+				'ph1' => array( 0, 64, 0 ),
+				'ph2' => array( 0, 48, 0 ),
+				'ph3' => array( 0, 40, 0 ),
+			),
+			'caps'       => array(
+				'nocaps'  => 'bool',
+				'spacing' => array( 0, 30, -1 ),
+			),
+			'buttons'    => array(
+				'b_radius' => array( 0, 100, -1 ),
+				'b_style'  => array( 'select', array( '', 'single', 'none' ) ),
+				'b_width'  => array( 0, 10, -1 ),
+				'b_fill'   => 'bool',
+				'b_pad'    => array( 50, 200, 100 ),
+			),
+			'hover'      => array( 'hover' => array( 'select', array( '', 'lift', 'underline', 'none' ) ) ),
+			'cards'      => array(
+				'c_radius' => array( 0, 60, -1 ),
+				'c_style'  => array( 'select', array( '', 'single', 'none' ) ),
+				'c_width'  => array( 0, 10, -1 ),
+			),
+			'shadows'    => array( 'shadow' => array( 'select', array( '', 'soft', 'strong' ) ) ),
+			'background' => array(
+				'page_bg'    => 'color',
+				'page_bg2'   => 'color',
+				'page_img'   => 'image',
+				'page_fixed' => 'bool',
+			),
+			'width'      => array(
+				'max_width' => array( 0, 2000, 0 ),
+				'gutter'    => array( 0, 48, 0 ),
+			),
+			'lines'      => array( 'line' => array( 'select', array( '', 'dashed', 'dotted' ) ) ),
+			'effects'    => array( 'nosparkle' => 'bool' ),
+			'icons'      => array( 'icon_line' => array( 'select', array( '', 'thin', 'bold' ) ) ),
+			'loading'    => array( 'loader' => array( 'select', array( '', 'ring', 'dots' ) ) ),
+			'focus'      => array(
+				'focus_color' => 'color',
+				'focus_width' => array( 0, 6, -1 ),
+			),
+			'favicon'    => array( 'favicon' => 'image' ),
 		);
 	}
 
 	/**
-	 * The value of a setting that changes nothing (it is not kept).
+	 * All settings of a part: key => rule.
 	 *
-	 * @param string $key Setting.
-	 * @return int
+	 * @param string $id Part.
+	 * @return array
 	 */
-	private static function neutral( $key ) {
-		if ( in_array( $key, array( 'zoom', 'pzoom', 'speed' ), true ) ) {
-			return 100;
+	public static function fields( $id ) {
+		$elements = self::elements();
+		$groups   = self::groups();
+		$fields   = array();
+		foreach ( isset( $elements[ $id ] ) ? $elements[ $id ]['controls'] : array() as $group ) {
+			if ( isset( $groups[ $group ] ) ) {
+				$fields = array_merge( $fields, $groups[ $group ] );
+			}
 		}
-		return in_array( $key, array( 'fx', 'fy' ), true ) ? 50 : 0;
+		return $fields;
 	}
 
 	/**
-	 * Only known parts and settings, within their limits.
+	 * Only known parts and the settings they have, within their limits.
 	 *
 	 * @param mixed $styles Posted or imported styles.
 	 * @return array
@@ -193,13 +300,12 @@ class AIMP_Design {
 	public static function clean( $styles ) {
 		$clean    = array();
 		$elements = self::elements();
-		$fields   = self::fields();
 		foreach ( is_array( $styles ) ? $styles : array() as $id => $values ) {
 			if ( ! isset( $elements[ $id ] ) || ! is_array( $values ) ) {
 				continue;
 			}
 			$row = array();
-			foreach ( $fields as $key => $rule ) {
+			foreach ( self::fields( $id ) as $key => $rule ) {
 				if ( ! isset( $values[ $key ] ) || '' === $values[ $key ] || null === $values[ $key ] ) {
 					continue;
 				}
@@ -217,10 +323,20 @@ class AIMP_Design {
 					if ( absint( $value ) && wp_attachment_is_image( absint( $value ) ) ) {
 						$row[ $key ] = absint( $value );
 					}
-				} elseif ( is_numeric( $value ) ) {
-					$number = (int) round( (float) $value );
-					if ( $number !== self::neutral( $key ) ) {
-						$row[ $key ] = max( $rule[0], min( $rule[1], $number ) );
+				} elseif ( 'font' === $rule ) {
+					// A Google Fonts family: letters, digits and spaces only.
+					$font = trim( preg_replace( '/[^A-Za-z0-9 ]/', '', (string) $value ) );
+					if ( '' !== $font ) {
+						$row[ $key ] = substr( $font, 0, 60 );
+					}
+				} elseif ( is_array( $rule ) && 'select' === $rule[0] ) {
+					if ( '' !== $value && in_array( (string) $value, $rule[1], true ) ) {
+						$row[ $key ] = (string) $value;
+					}
+				} elseif ( is_array( $rule ) && is_numeric( $value ) ) {
+					$number = max( $rule[0], min( $rule[1], (int) round( (float) $value ) ) );
+					if ( $number !== $rule[2] ) {
+						$row[ $key ] = $number;
 					}
 				}
 			}
@@ -451,7 +567,8 @@ class AIMP_Design {
 		$computer = '';
 		$phone    = '';
 		foreach ( $styles as $id => $row ) {
-			if ( ! isset( $elements[ $id ] ) ) {
+			// "Whole site" parts have no selector: site_css() makes their CSS.
+			if ( ! isset( $elements[ $id ] ) || '' === $elements[ $id ]['selector'] ) {
 				continue;
 			}
 			$base     = $elements[ $id ]['selector'];
@@ -516,7 +633,7 @@ class AIMP_Design {
 				$phone .= $selector . '{' . $mobile . '}';
 			}
 		}
-		$css = $all;
+		$css = self::site_css( $styles ) . $all;
 		if ( '' !== $computer ) {
 			$css .= '@media (min-width:' . ( self::PHONE + 1 ) . 'px){' . $computer . '}';
 		}
@@ -524,6 +641,201 @@ class AIMP_Design {
 			$css .= '@media (max-width:' . self::PHONE . 'px){' . $phone . '}';
 		}
 		return $css;
+	}
+
+	/**
+	 * The settings of the "Whole site" parts of a look, as one row.
+	 *
+	 * @param array $styles Styles.
+	 * @return array
+	 */
+	private static function site_row( $styles ) {
+		$elements = self::elements();
+		$row      = array();
+		foreach ( $styles as $id => $values ) {
+			if ( isset( $elements[ $id ] ) && '' === $elements[ $id ]['selector'] ) {
+				$row = array_merge( $row, (array) $values );
+			}
+		}
+		return $row;
+	}
+
+	/**
+	 * The CSS of the "Whole site" parts (fonts from Google Fonts come first, as @import).
+	 *
+	 * @param array $styles Styles.
+	 * @return string
+	 */
+	public static function site_css( $styles ) {
+		$s       = self::site_row( $styles );
+		$imports = '';
+		$css     = '';
+		$root    = '';
+		foreach ( array(
+			'gold'      => '--aimp-site-gold',
+			'gold_text' => '--aimp-site-gold-text',
+			'brown'     => '--aimp-site-brown',
+			'success'   => '--aimp-site-success',
+			'error'     => '--aimp-site-error',
+		) as $key => $var ) {
+			if ( isset( $s[ $key ] ) ) {
+				$root .= $var . ':' . $s[ $key ] . ';';
+			}
+		}
+		if ( isset( $s['line'] ) ) {
+			$root .= '--aimp-site-line:' . $s['line'] . ';';
+		}
+		if ( '' !== $root ) {
+			$css .= ':root{' . $root . '}';
+		}
+
+		// Fonts.
+		$families = array(
+			'trajan' => '"' . ( class_exists( 'AIMP_Site' ) ? AIMP_Site::FONT_FAMILY : 'Trajan Pro' ) . '","Trajan",Georgia,serif',
+			'serif'  => 'Georgia,"Times New Roman",serif',
+			'sans'   => '-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',
+		);
+		$family = function ( $which, $fallback ) use ( $s, $families, &$imports ) {
+			$choice = isset( $s[ $which . '_font' ] ) ? $s[ $which . '_font' ] : '';
+			if ( 'google' === $choice && ! empty( $s[ $which . '_google' ] ) ) {
+				$name     = $s[ $which . '_google' ];
+				$imports .= '@import url("https://fonts.googleapis.com/css2?family=' . str_replace( ' ', '+', $name ) . ':wght@400;600;700&display=swap");';
+				return '"' . $name . '",' . $fallback;
+			}
+			return isset( $families[ $choice ] ) ? $families[ $choice ] : '';
+		};
+		$titles = 'html body :is(h1,h2,h3,h4,h5,h6,.aimp-product-title,.aimp-hero-title,.aimp-kit-steps-title,.aimp-card-name,.aimp-details-title,.aimp-account-title,.aimp-footer-title)';
+		$head   = $family( 'head', 'Georgia,serif' );
+		$body   = $family( 'body', 'sans-serif' );
+		if ( '' !== $body ) {
+			$css .= 'html body,html body :is(button,input,select,textarea,.aimp-configurator,.aimp-header,.aimp-footer,.aimp-kit-steps,.aimp-hero){font-family:' . $body . '!important}';
+		}
+		if ( '' !== $head ) {
+			$css .= $titles . '{font-family:' . $head . '!important}';
+		}
+
+		// Text and title sizes, computer and phone.
+		$sizes    = function ( $prefix ) use ( $s ) {
+			$out = '';
+			if ( ! empty( $s[ $prefix . 'fs' ] ) ) {
+				$out .= 'html body{font-size:' . (int) $s[ $prefix . 'fs' ] . 'px}html body :is(.aimp-configurator,.aimp-header,.aimp-footer){--aimp-body-size:' . (int) $s[ $prefix . 'fs' ] . 'px}';
+			}
+			foreach ( array( 'h1', 'h2', 'h3' ) as $tag ) {
+				if ( ! empty( $s[ $prefix . $tag ] ) ) {
+					$out .= 'html body ' . $tag . '{font-size:' . (int) $s[ $prefix . $tag ] . 'px!important}';
+				}
+			}
+			return $out;
+		};
+		$computer = $sizes( '' );
+		$phone    = $sizes( 'p' );
+		if ( '' !== $computer ) {
+			$css .= '@media (min-width:' . ( self::PHONE + 1 ) . 'px){' . $computer . '}';
+		}
+		if ( '' !== $phone ) {
+			$css .= '@media (max-width:' . self::PHONE . 'px){' . $phone . '}';
+		}
+		if ( ! empty( $s['nocaps'] ) ) {
+			$css .= 'html body :is(.aimp-configurator,.aimp-header,.aimp-footer,.aimp-kit-steps,.aimp-hero),html body :is(.aimp-configurator,.aimp-header,.aimp-footer,.aimp-kit-steps,.aimp-hero) *{text-transform:none!important}';
+		}
+		if ( isset( $s['spacing'] ) ) {
+			$css .= $titles . '{letter-spacing:' . ( (int) $s['spacing'] / 100 ) . 'em!important}';
+		}
+
+		// Buttons.
+		$buttons = 'html body :is(.aimp-configurator,.aimp-header,.aimp-footer,.aimp-kit-steps,.aimp-hero,.aimp-account) :is(.aimp-button,.aimp-account-button,.aimp-footer-button,.aimp-kit-steps-button,.aimp-hero-button)';
+		$button  = '';
+		if ( isset( $s['b_radius'] ) ) {
+			$button .= 'border-radius:' . (int) $s['b_radius'] . 'px!important;';
+		}
+		if ( isset( $s['b_style'] ) ) {
+			$button .= 'border-style:' . ( 'single' === $s['b_style'] ? 'solid' : 'none' ) . '!important;';
+		}
+		if ( isset( $s['b_width'] ) ) {
+			$button .= 'border-width:' . (int) $s['b_width'] . 'px!important;';
+		}
+		if ( ! empty( $s['b_fill'] ) ) {
+			$button .= 'background-color:var(--aimp-site-gold,#b38f4f)!important;color:#fff!important;';
+		}
+		if ( isset( $s['b_pad'] ) ) {
+			$k       = (int) $s['b_pad'] / 100;
+			$button .= 'padding:' . round( 0.7 * $k, 2 ) . 'rem ' . round( 1.6 * $k, 2 ) . 'rem!important;';
+		}
+		if ( '' !== $button ) {
+			$css .= $buttons . '{' . $button . '}';
+		}
+		if ( isset( $s['hover'] ) ) {
+			$hover = array(
+				'lift'      => 'transform:translateY(-2px);box-shadow:0 6px 14px color-mix(in srgb,var(--aimp-site-brown,#613907) 18%,transparent)!important;',
+				'underline' => 'text-decoration:underline!important;text-underline-offset:3px;',
+				'none'      => 'background-color:transparent!important;',
+			);
+			$css .= $buttons . ':is(:hover,:focus-visible){' . $hover[ $s['hover'] ] . '}';
+		}
+
+		// Cards and shadows.
+		$cards = 'html body :is(.aimp-configurator,.aimp-account) .aimp-card';
+		$card  = '';
+		if ( isset( $s['c_radius'] ) ) {
+			$card .= 'border-radius:' . (int) $s['c_radius'] . 'px!important;';
+		}
+		if ( isset( $s['c_style'] ) ) {
+			$card .= 'border-style:' . ( 'single' === $s['c_style'] ? 'solid' : 'none' ) . '!important;';
+		}
+		if ( isset( $s['c_width'] ) ) {
+			$card .= 'border-width:' . (int) $s['c_width'] . 'px!important;';
+		}
+		if ( isset( $s['shadow'] ) ) {
+			$card .= 'soft' === $s['shadow']
+				? 'box-shadow:0 4px 14px color-mix(in srgb,var(--aimp-site-brown,#613907) 12%,transparent)!important;'
+				: 'box-shadow:0 10px 28px color-mix(in srgb,var(--aimp-site-brown,#613907) 24%,transparent)!important;';
+		}
+		if ( '' !== $card ) {
+			$css .= $cards . '{' . $card . '}';
+		}
+
+		// Page background and width.
+		$background = '';
+		if ( isset( $s['page_bg'] ) && isset( $s['page_bg2'] ) ) {
+			$background .= 'background:linear-gradient(180deg,' . $s['page_bg'] . ',' . $s['page_bg2'] . ')!important;';
+		} elseif ( isset( $s['page_bg'] ) ) {
+			$background .= 'background:' . $s['page_bg'] . '!important;';
+		}
+		if ( ! empty( $s['page_img'] ) ) {
+			$url = wp_get_attachment_image_url( (int) $s['page_img'], 'full' );
+			if ( $url ) {
+				$background .= 'background-image:url("' . esc_url_raw( $url ) . '")!important;background-size:cover!important;background-position:center top!important;';
+			}
+		}
+		if ( ! empty( $s['page_fixed'] ) ) {
+			$background .= 'background-attachment:fixed!important;';
+		}
+		if ( '' !== $background ) {
+			$css .= 'html body{' . $background . '}';
+		}
+		if ( ! empty( $s['max_width'] ) ) {
+			$css .= 'html body .aimp-configurator{max-width:' . (int) $s['max_width'] . 'px;margin-left:auto!important;margin-right:auto!important}';
+		}
+		if ( ! empty( $s['gutter'] ) ) {
+			$css .= '@media (max-width:' . self::PHONE . 'px){html body .aimp-configurator{padding-left:' . (int) $s['gutter'] . 'px!important;padding-right:' . (int) $s['gutter'] . 'px!important}}';
+		}
+
+		// Effects, icons, loading, focus.
+		if ( ! empty( $s['nosparkle'] ) ) {
+			$css .= 'html body .is-sparked,html body .is-sparked::before,html body .is-sparked::after{animation:none!important}html body .ks-spark{display:none!important}';
+		}
+		if ( isset( $s['icon_line'] ) ) {
+			$css .= 'html body :is(.aimp-header,.aimp-configurator,.aimp-footer,.aimp-kit-steps,.aimp-tabbar) svg :is(path,circle,rect,line,polyline,polygon,ellipse){stroke-width:' . ( 'thin' === $s['icon_line'] ? '1.1' : '2.1' ) . '!important}';
+		}
+		if ( isset( $s['loader'] ) ) {
+			$css .= 'ring' === $s['loader']
+				? 'html body .aimp-loading::before{content:"";display:block;width:28px;height:28px;margin:0 auto .6rem;border:3px solid color-mix(in srgb,var(--aimp-site-gold,#b38f4f) 25%,transparent);border-top-color:var(--aimp-site-gold,#b38f4f);border-radius:50%;animation:aimp-spin .9s linear infinite}@keyframes aimp-spin{to{transform:rotate(360deg)}}'
+				: 'html body .aimp-loading::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:aimp-dots 1.2s steps(4,end) infinite}@keyframes aimp-dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}';
+		}
+		if ( isset( $s['focus_color'] ) || isset( $s['focus_width'] ) ) {
+			$css .= 'html body :focus-visible{outline:' . ( isset( $s['focus_width'] ) ? (int) $s['focus_width'] : 2 ) . 'px solid ' . ( isset( $s['focus_color'] ) ? $s['focus_color'] : 'var(--aimp-site-gold,#b38f4f)' ) . '!important;outline-offset:2px}';
+		}
+		return $imports . $css;
 	}
 
 	/**
@@ -637,7 +949,8 @@ class AIMP_Design {
 				'origin'   => admin_url(),
 				'param'    => self::PREVIEW,
 				'phone'    => self::PHONE,
-				'elements' => wp_list_pluck( self::elements(), 'selector' ),
+				// Parts of the page only ("Whole site" has nothing to click).
+				'elements' => array_filter( wp_list_pluck( self::elements(), 'selector' ) ),
 			)
 		);
 	}
@@ -715,6 +1028,7 @@ class AIMP_Design {
 					'phone'    => self::PHONE,
 					'pages'    => self::pages(),
 					'elements' => self::elements(),
+					'groups'   => self::groups(),
 					'i18n'     => array(
 						'saving'      => __( 'Saving…', 'atelier-irisee-master-plugin' ),
 						'saved'       => __( 'Draft saved', 'atelier-irisee-master-plugin' ),
@@ -777,6 +1091,293 @@ class AIMP_Design {
 		);
 	}
 
+	/**
+	 * A colour with a "Standard" link.
+	 *
+	 * @param string $key   Setting.
+	 * @param string $label Label.
+	 */
+	private static function color( $key, $label ) {
+		printf(
+			'<label class="aimp-ds-color"><span>%1$s</span><input type="color" data-key="%2$s"><button type="button" class="button-link" data-clear="%2$s">%3$s</button></label>',
+			esc_html( $label ),
+			esc_attr( $key ),
+			esc_html__( 'Standard', 'atelier-irisee-master-plugin' )
+		);
+	}
+
+	/**
+	 * A choice list; the first choice is the standard.
+	 *
+	 * @param string $key     Setting.
+	 * @param string $label   Label.
+	 * @param array  $choices value => label.
+	 */
+	private static function choice( $key, $label, $choices ) {
+		echo '<label class="aimp-ds-select"><span>' . esc_html( $label ) . '</span><select data-key="' . esc_attr( $key ) . '">';
+		foreach ( $choices as $value => $text ) {
+			echo '<option value="' . esc_attr( $value ) . '">' . esc_html( $text ) . '</option>';
+		}
+		echo '</select></label>';
+	}
+
+	/**
+	 * A yes/no setting.
+	 *
+	 * @param string $key   Setting.
+	 * @param string $label Label.
+	 */
+	private static function check_box( $key, $label ) {
+		echo '<label class="aimp-ds-check"><input type="checkbox" data-key="' . esc_attr( $key ) . '"> ' . esc_html( $label ) . '</label>';
+	}
+
+	/**
+	 * A picture from the media library.
+	 *
+	 * @param string $key   Setting.
+	 * @param string $label Button label.
+	 */
+	private static function picture_field( $key, $label ) {
+		printf(
+			'<div class="aimp-ds-image" data-image="%1$s"><img class="aimp-ds-image-preview" alt="" hidden><button type="button" class="button aimp-ds-image-choose" data-image-key="%1$s">%2$s</button><button type="button" class="button-link" data-clear="%1$s">%3$s</button></div>',
+			esc_attr( $key ),
+			esc_html( $label ),
+			esc_html__( 'Standard', 'atelier-irisee-master-plugin' )
+		);
+	}
+
+	/**
+	 * The settings, one block per group (the studio shows the blocks of the chosen part only).
+	 */
+	private static function render_groups() {
+		$computer = __( 'Computer', 'atelier-irisee-master-plugin' );
+		$phone    = __( 'Phone', 'atelier-irisee-master-plugin' );
+		$standard = __( 'Standard', 'atelier-irisee-master-plugin' );
+		$group    = function ( $key, $title ) {
+			echo '<fieldset class="aimp-ds-group" data-group="' . esc_attr( $key ) . '" hidden><legend>' . esc_html( $title ) . '</legend>';
+		};
+		$sub      = function ( $title ) {
+			echo '<p class="aimp-ds-sub">' . esc_html( $title ) . '</p>';
+		};
+
+		$group( 'move', __( 'Position', 'atelier-irisee-master-plugin' ) );
+		$sub( $computer );
+		self::number( 'x', __( 'Left / right', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
+		self::number( 'y', __( 'Up / down', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
+		$sub( $phone );
+		self::number( 'px', __( 'Left / right', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
+		self::number( 'py', __( 'Up / down', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
+		echo '</fieldset>';
+
+		$group( 'size', __( 'Size', 'atelier-irisee-master-plugin' ) );
+		self::number( 'zoom', $computer, 40, 250, '%' );
+		self::number( 'pzoom', $phone, 40, 250, '%' );
+		echo '</fieldset>';
+
+		$group( 'space', __( 'Space above and below', 'atelier-irisee-master-plugin' ) );
+		$sub( $computer );
+		self::number( 'mt', __( 'Space above', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
+		self::number( 'mb', __( 'Space below', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
+		$sub( $phone );
+		self::number( 'pmt', __( 'Space above', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
+		self::number( 'pmb', __( 'Space below', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
+		echo '</fieldset>';
+
+		$group( 'hide', __( 'Show or hide', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'hide', __( 'Hide on computers', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'phide', __( 'Hide on phones', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'colors', __( 'Colours', 'atelier-irisee-master-plugin' ) );
+		self::color( 'color', __( 'Text colour', 'atelier-irisee-master-plugin' ) );
+		self::color( 'bg', __( 'Background', 'atelier-irisee-master-plugin' ) );
+		self::color( 'border', __( 'Border colour', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'radius', __( 'Rounded corners', 'atelier-irisee-master-plugin' ) );
+		self::number( 'radius', __( 'Rounded corners', 'atelier-irisee-master-plugin' ), 0, 200, 'px' );
+		echo '</fieldset>';
+
+		$group( 'image', __( 'Picture', 'atelier-irisee-master-plugin' ) );
+		self::picture_field( 'img', __( 'Other picture', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Replaces the pictures in this part. The focal point is the spot that stays in view when a picture is cut off.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::number( 'fx', __( 'Focal point left → right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+		self::number( 'fy', __( 'Focal point top → bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+		echo '</fieldset>';
+
+		$group( 'anim', __( 'Animations', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'noanim', __( 'No animations in this part', 'atelier-irisee-master-plugin' ) );
+		self::number( 'speed', __( 'Speed', 'atelier-irisee-master-plugin' ), 25, 400, '%' );
+		echo '</fieldset>';
+
+		// The whole site.
+		$group( 'palette', __( 'Brand colours', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Used everywhere in the shop: buttons, lines, prices, titles, icons.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::color( 'gold', __( 'Gold', 'atelier-irisee-master-plugin' ) );
+		self::color( 'gold_text', __( 'Gold text (darker, readable)', 'atelier-irisee-master-plugin' ) );
+		self::color( 'brown', __( 'Brown (body text)', 'atelier-irisee-master-plugin' ) );
+		self::color( 'success', __( 'Success messages', 'atelier-irisee-master-plugin' ) );
+		self::color( 'error', __( 'Error messages', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$fonts = array(
+			''       => $standard,
+			'trajan' => __( 'Trajan Pro (the uploaded font files)', 'atelier-irisee-master-plugin' ),
+			'serif'  => __( 'Classic serif (Georgia)', 'atelier-irisee-master-plugin' ),
+			'sans'   => __( 'Clean sans-serif (system font)', 'atelier-irisee-master-plugin' ),
+			'google' => __( 'A Google Font (name below)', 'atelier-irisee-master-plugin' ),
+		);
+		$group( 'fonts', __( 'Fonts', 'atelier-irisee-master-plugin' ) );
+		self::choice( 'head_font', __( 'Titles', 'atelier-irisee-master-plugin' ), $fonts );
+		echo '<label class="aimp-ds-text-field"><span>' . esc_html__( 'Google Font for titles', 'atelier-irisee-master-plugin' ) . '</span><input type="text" data-key="head_google" placeholder="Cinzel"></label>';
+		self::choice( 'body_font', __( 'Text', 'atelier-irisee-master-plugin' ), $fonts );
+		echo '<label class="aimp-ds-text-field"><span>' . esc_html__( 'Google Font for text', 'atelier-irisee-master-plugin' ) . '</span><input type="text" data-key="body_google" placeholder="Lato"></label>';
+		echo '<p class="description">' . esc_html__( 'Google Fonts: type the name exactly as on fonts.google.com, e.g. "Cormorant Garamond".', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'textsize', __( 'Text size (0 = standard)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'fs', $computer, 0, 24, 'px' );
+		self::number( 'pfs', $phone, 0, 24, 'px' );
+		echo '</fieldset>';
+
+		$group( 'headings', __( 'Title sizes (0 = standard)', 'atelier-irisee-master-plugin' ) );
+		$sub( $computer );
+		self::number( 'h1', __( 'Main title', 'atelier-irisee-master-plugin' ), 0, 80, 'px' );
+		self::number( 'h2', __( 'Subtitle', 'atelier-irisee-master-plugin' ), 0, 64, 'px' );
+		self::number( 'h3', __( 'Small title', 'atelier-irisee-master-plugin' ), 0, 48, 'px' );
+		$sub( $phone );
+		self::number( 'ph1', __( 'Main title', 'atelier-irisee-master-plugin' ), 0, 64, 'px' );
+		self::number( 'ph2', __( 'Subtitle', 'atelier-irisee-master-plugin' ), 0, 48, 'px' );
+		self::number( 'ph3', __( 'Small title', 'atelier-irisee-master-plugin' ), 0, 40, 'px' );
+		echo '</fieldset>';
+
+		$group( 'caps', __( 'Capitals and letter spacing', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'nocaps', __( 'No capitals (normal letters instead of UPPERCASE)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'spacing', __( 'Letter spacing of titles', 'atelier-irisee-master-plugin' ), 0, 30, '‰' );
+		echo '<button type="button" class="button-link" data-clear="spacing">' . esc_html( $standard ) . '</button>';
+		echo '</fieldset>';
+
+		$group( 'buttons', __( 'Buttons', 'atelier-irisee-master-plugin' ) );
+		self::number( 'b_radius', __( 'Rounded corners', 'atelier-irisee-master-plugin' ), 0, 100, 'px' );
+		self::choice(
+			'b_style',
+			__( 'Border', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Double gold line (standard)', 'atelier-irisee-master-plugin' ),
+				'single' => __( 'Single line', 'atelier-irisee-master-plugin' ),
+				'none'   => __( 'No border', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::number( 'b_width', __( 'Border width', 'atelier-irisee-master-plugin' ), 0, 10, 'px' );
+		self::check_box( 'b_fill', __( 'Filled with gold (white text)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'b_pad', __( 'Inner space', 'atelier-irisee-master-plugin' ), 50, 200, '%' );
+		echo '<p><button type="button" class="button-link" data-clear="b_radius,b_width">' . esc_html( $standard ) . '</button></p>';
+		echo '</fieldset>';
+
+		$group( 'hover', __( 'When the mouse is on a button', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'hover',
+			__( 'Effect', 'atelier-irisee-master-plugin' ),
+			array(
+				''          => __( 'Light gold (standard)', 'atelier-irisee-master-plugin' ),
+				'lift'      => __( 'Lifts up a little', 'atelier-irisee-master-plugin' ),
+				'underline' => __( 'Underline', 'atelier-irisee-master-plugin' ),
+				'none'      => __( 'Nothing', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		echo '</fieldset>';
+
+		$group( 'cards', __( 'Product and choice cards', 'atelier-irisee-master-plugin' ) );
+		self::number( 'c_radius', __( 'Rounded corners', 'atelier-irisee-master-plugin' ), 0, 60, 'px' );
+		self::choice(
+			'c_style',
+			__( 'Border', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Double gold line (standard)', 'atelier-irisee-master-plugin' ),
+				'single' => __( 'Single line', 'atelier-irisee-master-plugin' ),
+				'none'   => __( 'No border', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::number( 'c_width', __( 'Border width', 'atelier-irisee-master-plugin' ), 0, 10, 'px' );
+		echo '<p><button type="button" class="button-link" data-clear="c_radius,c_width">' . esc_html( $standard ) . '</button></p>';
+		echo '</fieldset>';
+
+		$group( 'shadows', __( 'Shadows', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'shadow',
+			__( 'Shadow under cards', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'None (standard)', 'atelier-irisee-master-plugin' ),
+				'soft'   => __( 'Soft', 'atelier-irisee-master-plugin' ),
+				'strong' => __( 'Stronger', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		echo '</fieldset>';
+
+		$group( 'background', __( 'Page background', 'atelier-irisee-master-plugin' ) );
+		self::color( 'page_bg', __( 'Colour', 'atelier-irisee-master-plugin' ) );
+		self::color( 'page_bg2', __( 'Second colour (gradient to the bottom)', 'atelier-irisee-master-plugin' ) );
+		self::picture_field( 'page_img', __( 'Background picture', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'page_fixed', __( 'The picture stays in place while scrolling', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'width', __( 'Width (0 = standard)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'max_width', __( 'Widest shop content', 'atelier-irisee-master-plugin' ), 0, 2000, 'px' );
+		self::number( 'gutter', __( 'Side margin on phones', 'atelier-irisee-master-plugin' ), 0, 48, 'px' );
+		echo '</fieldset>';
+
+		$group( 'lines', __( 'Gold lines', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'line',
+			__( 'Style', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Solid (standard)', 'atelier-irisee-master-plugin' ),
+				'dashed' => __( 'Stitched (dashes)', 'atelier-irisee-master-plugin' ),
+				'dotted' => __( 'Dotted', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		echo '</fieldset>';
+
+		$group( 'effects', __( 'Sparkles', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'nosparkle', __( 'No sparkles and twinkling stars', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'icons', __( 'Icons', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'icon_line',
+			__( 'Line thickness', 'atelier-irisee-master-plugin' ),
+			array(
+				''     => $standard,
+				'thin' => __( 'Thin', 'atelier-irisee-master-plugin' ),
+				'bold' => __( 'Bold', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		echo '</fieldset>';
+
+		$group( 'loading', __( 'While something loads', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'loader',
+			__( 'Show', 'atelier-irisee-master-plugin' ),
+			array(
+				''     => __( 'The word "Loading…" (standard)', 'atelier-irisee-master-plugin' ),
+				'ring' => __( 'A turning gold ring', 'atelier-irisee-master-plugin' ),
+				'dots' => __( 'Moving dots', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		echo '</fieldset>';
+
+		$group( 'focus', __( 'Keyboard focus (accessibility)', 'atelier-irisee-master-plugin' ) );
+		self::color( 'focus_color', __( 'Colour of the outline', 'atelier-irisee-master-plugin' ) );
+		self::number( 'focus_width', __( 'Thickness', 'atelier-irisee-master-plugin' ), 0, 6, 'px' );
+		echo '<button type="button" class="button-link" data-clear="focus_width">' . esc_html( $standard ) . '</button>';
+		echo '</fieldset>';
+
+		$group( 'favicon', __( 'Browser tab icon', 'atelier-irisee-master-plugin' ) );
+		self::picture_field( 'favicon', __( 'Choose a square picture', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The small icon in the browser tab and on phone home screens. It changes when you publish.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+	}
+
 	public static function render_page() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
@@ -811,52 +1412,12 @@ class AIMP_Design {
 						<div class="aimp-ds-list"></div>
 
 						<div class="aimp-ds-edit" hidden>
+							<button type="button" class="button-link aimp-ds-back">‹ <?php esc_html_e( 'All parts', 'atelier-irisee-master-plugin' ); ?></button>
 							<div class="aimp-ds-edit-head">
 								<strong class="aimp-ds-edit-name"></strong>
 								<button type="button" class="button-link aimp-ds-reset-one"><?php esc_html_e( 'Reset this part', 'atelier-irisee-master-plugin' ); ?></button>
 							</div>
-							<?php foreach ( array( '' => $computer, 'p' => $phone ) as $prefix => $device ) : ?>
-								<fieldset class="aimp-ds-device">
-									<legend><?php echo esc_html( $device ); ?></legend>
-									<?php
-									self::number( $prefix . 'x', __( 'Left / right', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
-									self::number( $prefix . 'y', __( 'Up / down', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
-									self::number( $prefix . 'zoom', __( 'Size', 'atelier-irisee-master-plugin' ), 40, 250, '%' );
-									self::number( $prefix . 'mt', __( 'Space above', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
-									self::number( $prefix . 'mb', __( 'Space below', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
-									?>
-									<label class="aimp-ds-check"><input type="checkbox" data-key="<?php echo esc_attr( $prefix . 'hide' ); ?>"> <?php esc_html_e( 'Hide', 'atelier-irisee-master-plugin' ); ?></label>
-								</fieldset>
-							<?php endforeach; ?>
-							<fieldset class="aimp-ds-device">
-								<legend><?php esc_html_e( 'Colours and corners (all screens)', 'atelier-irisee-master-plugin' ); ?></legend>
-								<?php foreach ( array( 'color' => __( 'Text colour', 'atelier-irisee-master-plugin' ), 'bg' => __( 'Background', 'atelier-irisee-master-plugin' ), 'border' => __( 'Border colour', 'atelier-irisee-master-plugin' ) ) as $key => $label ) : ?>
-									<label class="aimp-ds-color">
-										<span><?php echo esc_html( $label ); ?></span>
-										<input type="color" data-key="<?php echo esc_attr( $key ); ?>">
-										<button type="button" class="button-link" data-clear="<?php echo esc_attr( $key ); ?>"><?php esc_html_e( 'Standard', 'atelier-irisee-master-plugin' ); ?></button>
-									</label>
-								<?php endforeach; ?>
-								<?php self::number( 'radius', __( 'Rounded corners', 'atelier-irisee-master-plugin' ), 0, 200, 'px' ); ?>
-							</fieldset>
-							<fieldset class="aimp-ds-device">
-								<legend><?php esc_html_e( 'Picture (all screens)', 'atelier-irisee-master-plugin' ); ?></legend>
-								<div class="aimp-ds-image">
-									<img class="aimp-ds-image-preview" alt="" hidden>
-									<button type="button" class="button aimp-ds-image-choose"><?php esc_html_e( 'Other picture', 'atelier-irisee-master-plugin' ); ?></button>
-									<button type="button" class="button-link" data-clear="img"><?php esc_html_e( 'Standard', 'atelier-irisee-master-plugin' ); ?></button>
-								</div>
-								<p class="description"><?php esc_html_e( 'Replaces the pictures in this part. The focal point is the spot that stays in view when a picture is cut off.', 'atelier-irisee-master-plugin' ); ?></p>
-								<?php
-								self::number( 'fx', __( 'Focal point left → right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
-								self::number( 'fy', __( 'Focal point top → bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
-								?>
-							</fieldset>
-							<fieldset class="aimp-ds-device">
-								<legend><?php esc_html_e( 'Animations (all screens)', 'atelier-irisee-master-plugin' ); ?></legend>
-								<label class="aimp-ds-check"><input type="checkbox" data-key="noanim"> <?php esc_html_e( 'No animations in this part', 'atelier-irisee-master-plugin' ); ?></label>
-								<?php self::number( 'speed', __( 'Speed', 'atelier-irisee-master-plugin' ), 25, 400, '%' ); ?>
-							</fieldset>
+							<?php self::render_groups(); ?>
 						</div>
 					</section>
 
@@ -947,6 +1508,8 @@ class AIMP_Design {
 		return array(
 			'draft'      => (object) $draft,
 			'live'       => (object) self::live(),
+			// The "Whole site" CSS of the draft (made on the server; the parts' CSS is made in the studio itself).
+			'siteCss'    => self::site_css( $draft ),
 			'draftTexts' => (object) self::draft_texts(),
 			'liveTexts'  => (object) self::live_texts(),
 			'images'     => (object) $images,
@@ -1016,6 +1579,11 @@ class AIMP_Design {
 				'draft_time'  => 0,
 			)
 		);
+		// The browser icon of the whole site (WordPress's own site icon).
+		$site = self::site_row( self::live() );
+		if ( ! empty( $site['favicon'] ) && (int) get_option( 'site_icon' ) !== (int) $site['favicon'] ) {
+			update_option( 'site_icon', (int) $site['favicon'] );
+		}
 		// Cached pages carry the old style block and texts.
 		self::purge();
 		wp_send_json_success( self::state() );

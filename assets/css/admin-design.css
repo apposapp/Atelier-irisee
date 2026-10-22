@@ -420,3 +420,45 @@
 .aimp-ds .aimp-ds-danger {
 	color: #b32d2e;
 }
+
+/* The settings of the chosen part, one block per group. */
+.aimp-ds-back {
+	margin: 0 0 8px;
+}
+
+.aimp-ds-group {
+	margin: 0 0 10px;
+	padding: 8px 10px 6px;
+	border: 1px solid var(--ds-line);
+	border-radius: 8px;
+}
+
+.aimp-ds-group legend {
+	padding: 0 4px;
+	font-weight: 600;
+}
+
+.aimp-ds-sub {
+	margin: 4px 0 4px;
+	color: #646970;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.aimp-ds-select,
+.aimp-ds-text-field {
+	display: grid;
+	grid-template-columns: 92px minmax(0, 1fr);
+	gap: 6px;
+	align-items: center;
+	margin-bottom: 6px;
+	font-size: 12px;
+}
+
+.aimp-ds-select select,
+.aimp-ds-text-field input {
+	width: 100%;
+	min-width: 0;
+}

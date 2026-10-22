@@ -3,9 +3,9 @@
 .aimp-gc-redeem,
 .aimp-gc-list,
 .aimp-gc-check {
-	--aimp-gc-gold: #b38f4f;
-	--aimp-gc-text: #613907;
-	--aimp-gc-tint: rgba(179, 143, 79, 0.12);
+	--aimp-gc-gold: var(--aimp-site-gold, #b38f4f);
+	--aimp-gc-text: var(--aimp-site-brown, #613907);
+	--aimp-gc-tint: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 12%, transparent);
 	color: var(--aimp-gc-text);
 }
 
@@ -28,7 +28,7 @@
 
 .aimp-gc-group legend {
 	margin-bottom: 0.6rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 1.1em;
 	font-weight: 700;
 }
@@ -92,7 +92,7 @@
 	padding: 0.5rem 1.2rem;
 	border: 5px double var(--aimp-gc-gold);
 	border-radius: 100px;
-	color: #613907;
+	color: var(--aimp-site-brown, #613907);
 	font-size: 15px;
 	font-weight: 700;
 	cursor: pointer;
@@ -143,7 +143,7 @@
 
 .aimp-gc-option strong {
 	display: block;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-gc-field {
@@ -176,7 +176,7 @@
 }
 
 .aimp-gc-total strong {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 1.2em;
 }
 
@@ -192,7 +192,7 @@
 
 .aimp-gc-redeem-title {
 	margin: 0 0 0.6rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-weight: 700;
 }
 
@@ -219,7 +219,7 @@
 	border: 5px double var(--aimp-gc-gold);
 	border-radius: 100px;
 	background: transparent;
-	color: #613907;
+	color: var(--aimp-site-brown, #613907);
 	font-size: 15px;
 	font-weight: 700;
 	cursor: pointer;
@@ -248,7 +248,7 @@
 	padding: 0;
 	border: 0;
 	background: none;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font: inherit;
 	font-size: 0.9em;
 	text-decoration: underline;
@@ -261,7 +261,7 @@
 }
 
 .aimp-gc-redeem-msg.is-error {
-	color: #b3261e;
+	color: var(--aimp-site-error, #b3261e);
 }
 
 .aimp-gc-redeem-note {
@@ -312,7 +312,7 @@
 }
 
 .aimp-gc-item-value {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 1.3em !important;
 }
 

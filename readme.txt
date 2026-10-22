@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.22.0
+Stable tag: 3.23.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.23.0 =
+* Design studio: clicking a part shows only the settings that part has (a title has no picture or corners, a picture part gets the picture and focal point), without the list; "‹ All parts" goes back.
+* Design studio, new "Whole site" group (phase 2, the overall look): brand colours (gold, gold text, brown, success and error), fonts for titles and text (Trajan Pro, classic, clean or any Google Font), text and title sizes for computer and phone, capitals on/off and letter spacing, button shape/border/fill/inner space and mouse-over effect, card corners/border/shadow, page background (colour, gradient, picture), shop width and phone side margin, stitched or dotted gold lines, sparkles on/off, icon line thickness, a loading ring or dots, the keyboard focus outline, and the browser tab icon.
+* The colours in all front-end stylesheets now follow the brand colours (nothing changes until you set one).
 
 = 3.22.0 =
 * Design studio, Texts tab: every text of the shop (±1,600) can get your own wording in Dutch, French and English. Search in any language; "Only my own texts" shows what you changed. Texts with codes like %s must keep them (the field turns red otherwise). Own texts are part of the draft and go live with Publish.

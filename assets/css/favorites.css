@@ -16,9 +16,9 @@
 	border-bottom-left-radius: 100px;
 	border-bottom-right-radius: 100px;
 	border-width: 5px;
-	border-color: #b38f4f;
+	border-color: var(--aimp-site-gold, #b38f4f);
 	border-style: double;
-	color: #8a6a33;
+	color: var(--aimp-site-gold-text, #8a6a33);
 	font: inherit;
 	line-height: 1;
 	box-shadow: none;
@@ -32,7 +32,7 @@
 .aimp-fav:hover,
 .aimp-fav:focus-visible {
 	background-color: #f6efe3;
-	color: #8a6a33;
+	color: var(--aimp-site-gold-text, #8a6a33);
 }
 
 .aimp-fav:disabled {
@@ -78,10 +78,10 @@
 	gap: 0.5rem 1rem;
 	max-width: calc(100vw - 2rem);
 	padding: 0.75rem 1.4rem;
-	border: 1px solid #b38f4f;
+	border: 1px solid var(--aimp-site-gold, #b38f4f);
 	border-radius: 6px;
 	background: #fff;
-	color: #613907;
+	color: var(--aimp-site-brown, #613907);
 	font-size: 15px;
 	font-weight: 600;
 	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
@@ -98,7 +98,7 @@
 }
 
 .aimp-fav-toast a {
-	color: #8a6a33;
+	color: var(--aimp-site-gold-text, #8a6a33);
 	font-weight: 600;
 	text-decoration: underline;
 }

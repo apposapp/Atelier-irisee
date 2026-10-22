@@ -1,12 +1,12 @@
 /* Atelier Irisee footer: four columns, payment logos, legal links and copyright. */
 
 .aimp-footer {
-	--aimp-gold: #b38f4f;
-	--aimp-gold-text: #8a6a33; /* Gold for text: readable on white (contrast about 5:1). */
-	--aimp-brown: #613907;
+	--aimp-gold: var(--aimp-site-gold, #b38f4f);
+	--aimp-gold-text: var(--aimp-site-gold-text, #8a6a33); /* Gold for text: readable on white (contrast about 5:1). */
+	--aimp-brown: var(--aimp-site-brown, #613907);
 	margin: 0;
 	padding: 1.75rem clamp(1rem, 4vw, 3rem) 0.9rem;
-	border-top: 1px solid var(--aimp-gold);
+	border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	background: #fff;
 	color: var(--aimp-brown);
 	font-size: 15px;
@@ -31,7 +31,7 @@
 .aimp-footer .aimp-footer-title {
 	margin: 0 0 0.5rem;
 	padding: 0;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	font-size: 1rem;
 	font-weight: 700;
 	letter-spacing: 0.06em;
@@ -47,7 +47,7 @@
 }
 
 .aimp-footer a {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 	text-decoration: none;
 }
 
@@ -76,7 +76,7 @@
 
 .aimp-footer .aimp-footer-menu a:hover,
 .aimp-footer .aimp-footer-menu a:focus-visible {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 /* Social icons: gold circles */
@@ -130,7 +130,7 @@
 	width: 100%;
 	max-width: 280px;
 	padding: 0.55rem 0.75rem;
-	border: 1px solid var(--aimp-gold);
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
 	border-radius: 6px;
 	background: #fff;
 	box-shadow: none;
@@ -165,7 +165,7 @@
 
 .aimp-footer .aimp-footer-button:hover,
 .aimp-footer .aimp-footer-button:focus-visible {
-	background: rgba(179, 143, 79, 0.12);
+	background: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 12%, transparent);
 }
 
 .aimp-footer .aimp-footer-button:disabled {
@@ -179,7 +179,7 @@
 }
 
 .aimp-footer .aimp-newsletter-message.is-error {
-	color: #a3352b;
+	color: var(--aimp-site-error, #a3352b);
 }
 
 .aimp-footer .aimp-newsletter-consent {
@@ -195,8 +195,8 @@
 	justify-content: center;
 	gap: 0.5rem;
 	padding: 0.5rem 0;
-	border-top: 1px solid rgba(179, 143, 79, 0.35);
-	border-bottom: 1px solid rgba(179, 143, 79, 0.35);
+	border-top: 1px solid color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 35%, transparent);
+	border-bottom: 1px solid color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 35%, transparent);
 }
 
 .aimp-footer .aimp-footer-payment {
@@ -227,11 +227,11 @@
 .aimp-footer-bottom .aimp-footer-menu li + li::before {
 	content: "|";
 	margin: 0 0.6rem;
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-footer-bottom .aimp-footer-menu a {
-	color: var(--aimp-gold-text, #8a6a33);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
 .aimp-footer .aimp-footer-copyright {
@@ -291,7 +291,7 @@ body.aimp-replace-theme-footer :is(#main-footer, .et-l--footer, #colophon, .site
 	justify-content: space-between;
 	min-height: 44px;
 	margin: 0;
-	border-bottom: 1px solid rgba(179, 143, 79, 0.35);
+	border-bottom: 1px solid color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 35%, transparent);
 	cursor: pointer;
 }
 
