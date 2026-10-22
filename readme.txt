@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.20.1
+Stable tag: 3.21.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.21.0 =
+* New: Atelier Irisee → Design studio. Your site in a live preview (computer, tablet or phone size, on any of the main pages). Click a part of the page — or pick it from the list — and move it left/right and up/down, make it bigger or smaller, hide it, change the space above and below (computer and phone separately), or its text, background and border colour and rounded corners.
+* Changes are a draft, only visible in the studio, until you press Publish (cached pages are refreshed). Discard draft goes back to the published look.
+* History: the last 20 published looks can be put back into the draft. Backup: download the draft as a file and load it again later. Reset one part or every part.
+* The Atelier Irisee menu now has two items: Settings and Design studio.
 
 = 3.20.1 =
 * Customizer on phones: the sparkle of the gold bar no longer makes the size sheet scroll sideways.
