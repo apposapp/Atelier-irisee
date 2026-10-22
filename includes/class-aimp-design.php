@@ -37,7 +37,8 @@ class AIMP_Design {
 	const PHONE = 700;
 
 	public static function init() {
-		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 20 );
+		// After the main Atelier Irisee item (AIMP_Settings::add_menu(), priority 60).
+		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 61 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_assets' ) );
 		foreach ( array( 'save', 'publish', 'discard', 'restore', 'import' ) as $action ) {
 			add_action( 'wp_ajax_aimp_design_' . $action, array( __CLASS__, 'ajax_' . $action ) );
