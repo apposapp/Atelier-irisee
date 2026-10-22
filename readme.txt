@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.20.0
+Stable tag: 3.20.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.20.1 =
+* Customizer on phones: the sparkle of the gold bar no longer makes the size sheet scroll sideways.
 
 = 3.20.0 =
 * Refund request: the quantity of an item that is not ticked is greyed out and no longer checked (no more "value must be at least 1" message). After an error the form keeps what was filled in.

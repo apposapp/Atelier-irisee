@@ -1702,6 +1702,8 @@
 @media (max-width: 700px) {
 	:is(.aimp-configurator, #aimp-specificity#aimp-specificity) .aimp-step > .aimp-actions,
 	:is(.aimp-config-sheet, #aimp-specificity#aimp-specificity) .aimp-actions {
+		/* The sparkle never makes the sheet scroll sideways. */
+		overflow-x: clip;
 		border-top: 1px solid #fff;
 		background: var(--aimp-gold);
 		box-shadow: 0 -6px 18px rgba(97, 57, 7, 0.22);
