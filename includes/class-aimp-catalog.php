@@ -71,16 +71,18 @@ class AIMP_Catalog {
 			'ribbon'               => array( 'ribbons', 'ribbon' ),
 			'cord'                 => array( 'cords', 'cord' ),
 			'interfacing'          => array( 'interfacing', 'interfacing' ),
+			'shoulder_pad'         => array( 'shoulder_pads', 'shoulder_pad' ),
 		);
 		$types = array();
 		foreach ( AIMP_Notions::rules() as $rule => $info ) {
-			$kind = AIMP_Notions::kind( $info[0] );
+			$kind    = AIMP_Notions::kind( $info[0] );
+			$measure = AIMP_Notions::measure( $info[0], $info[1] ); // Shoulder pads: per pair, not per length.
 			$types[ $steps[ $rule ][0] ] = array(
 				'role'        => $steps[ $rule ][1],
 				'setting'     => $kind['setting'],
 				'fallback'    => '',
-				'unit'        => 'length' === $kind['measure'] ? '10cm' : 'piece',
-				'kind'        => 'zip' === $info[0] ? 'zip' : ( 'length' === $kind['measure'] ? 'length' : 'count' ),
+				'unit'        => 'length' === $measure ? '10cm' : 'piece',
+				'kind'        => 'zip' === $info[0] ? 'zip' : ( 'length' === $measure ? 'length' : 'count' ),
 				'material'    => $info[2],
 				'rule'        => $rule,
 				'notion_kind' => $info[0],
@@ -116,6 +118,7 @@ class AIMP_Catalog {
 			'embroidery'           => array( '_aimp_embroidery_cm', __( 'Embroidery', 'atelier-irisee-master-plugin' ), 'cm', __( 'Embroidery', 'atelier-irisee-master-plugin' ) ),
 			'bag_strap'            => array( '_aimp_bag_strap_cm', __( 'Bag strap', 'atelier-irisee-master-plugin' ), 'cm', __( 'Bag strap', 'atelier-irisee-master-plugin' ) ),
 			'interfacing'          => array( '_aimp_interfacing_cm', __( 'Fusible interfacing', 'atelier-irisee-master-plugin' ), 'cm', __( 'Fusible interfacing', 'atelier-irisee-master-plugin' ) ),
+			'shoulder_pads'        => array( '_aimp_shoulder_pad_count', __( 'Shoulder pads (pairs)', 'atelier-irisee-master-plugin' ), 'piece', __( 'Shoulder pads', 'atelier-irisee-master-plugin' ) ),
 			'cord_lock'            => array( '_aimp_cord_lock_count', __( 'Cord lock', 'atelier-irisee-master-plugin' ), 'piece', __( 'Cord lock', 'atelier-irisee-master-plugin' ) ),
 		);
 		$fields = array();

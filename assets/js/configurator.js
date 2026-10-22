@@ -226,6 +226,56 @@
 	Configurator.prototype.watchLayout = function () {
 		UI.watchLayout(this.root);
 		this.setupMobileBar();
+		this.setupSparkle();
+	};
+
+	/*
+	 * Phones: the button that leads to the next step (Confirm, Confirm fabric, Continue, Add to cart) sparkles once
+	 * when it appears in the gold bar at the bottom (configurator.css), like the kit steps bar's button.
+	 */
+	Configurator.prototype.setupSparkle = function () {
+		var self = this;
+		if (this.sparkleObserver || !window.MutationObserver || !window.matchMedia) {
+			return;
+		}
+		var phone = window.matchMedia('(max-width: 700px)');
+		var shown = {};
+		var frame = 0;
+		var selector = '.aimp-actions [data-action="confirm"], .aimp-actions [data-action="confirm-fabric"], .aimp-actions [data-action="continue"], .aimp-actions [data-action="add"]';
+		var check = function () {
+			frame = 0;
+			var now = {};
+			[self.root, self.sheet].forEach(function (scope) {
+				if (!scope) {
+					return;
+				}
+				Array.prototype.forEach.call(scope.querySelectorAll(selector), function (button) {
+					if (button.hidden || button.disabled || button.offsetParent === null) {
+						return;
+					}
+					var action = button.getAttribute('data-action');
+					now[action] = true;
+					// Only when it newly appears (not on every redraw of a step).
+					if (phone.matches && !shown[action]) {
+						button.classList.remove('is-sparked');
+						void button.offsetWidth; // Restart the animation.
+						button.classList.add('is-sparked');
+						window.setTimeout(function () {
+							button.classList.remove('is-sparked');
+						}, 1950);
+					}
+				});
+			});
+			shown = now;
+		};
+		var schedule = function () {
+			if (!frame) {
+				frame = window.requestAnimationFrame(check);
+			}
+		};
+		this.sparkleObserver = new MutationObserver(schedule);
+		this.sparkleObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'disabled'] });
+		schedule();
 	};
 
 	/*
@@ -985,7 +1035,8 @@
 		html += '</div>';
 
 		if (size) {
-			var measures = usedMeasures([size]);
+			// Phones and tablets: the measurements are in the size chart below (only the chosen size).
+			var measures = this.isSheetMode() ? [] : usedMeasures([size]);
 			if (measures.length) {
 				html += '<dl class="aimp-measurements">';
 				measures.forEach(function (m) {
@@ -996,8 +1047,8 @@
 			html += '<p class="aimp-needs-title">' + esc(t.needs) + ':</p>' + this.needsHtml(size);
 			html += '<p class="aimp-size-price">' + size.price_html + '</p>';
 		}
-		// Phones and tablets: the size chart in the sheet too, under the sizes.
-		if (this.isSheetMode()) {
+		// Phones and tablets: the size chart in the sheet too, under the sizes, once a size is chosen.
+		if (this.isSheetMode() && size) {
 			html += '<section class="aimp-size-chart-box" data-role="size-chart-in" hidden></section>';
 		}
 
@@ -1129,10 +1180,10 @@
 			html += '<th>' + esc(t[m[1]]) + '</th>';
 		});
 		html += '</tr></thead><tbody>';
-		// In the sheet the chosen size comes first, so its measurements are right under the sizes.
-		var rows = inner && s.size ? [s.size].concat(sizes.filter(function (sz) {
-			return sz.id !== s.size.id;
-		})) : sizes;
+		// In the sheet only the chosen size, right under the sizes (less to scroll on a phone).
+		var rows = inner && s.size ? sizes.filter(function (sz) {
+			return sz.id === s.size.id;
+		}) : sizes;
 		rows.forEach(function (sz) {
 			var selected = s.size && s.size.id === sz.id;
 			html +=

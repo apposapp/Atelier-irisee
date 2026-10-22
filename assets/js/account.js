@@ -1,5 +1,6 @@
 /**
- * Atelier Irisee account page: show the items of the order chosen in the refund form.
+ * Atelier Irisee account page: show the items of the order chosen in the refund form. A quantity only counts (and is
+ * only checked by the browser) for a ticked item.
  */
 (function () {
 	'use strict';
@@ -19,9 +20,23 @@
 						input.disabled = !show;
 					}
 				});
+				// An item that is not ticked: its quantity is greyed out and not checked (no "at least 1" message).
+				fieldset.querySelectorAll('.aimp-refund-item').forEach(function (item) {
+					var check = item.querySelector('[data-aimp-refund-check]');
+					var qty = item.querySelector('[data-aimp-refund-qty]');
+					if (check && qty) {
+						qty.disabled = !show || check.disabled || !check.checked;
+						qty.closest('.aimp-refund-qty').classList.toggle('is-off', qty.disabled);
+					}
+				});
 			});
 		}
 		select.addEventListener('change', update);
+		form.addEventListener('change', function (e) {
+			if (e.target.matches('[data-aimp-refund-check]')) {
+				update();
+			}
+		});
 		update();
 	});
 })();

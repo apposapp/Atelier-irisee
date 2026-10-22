@@ -23,7 +23,7 @@ class AIMP_Settings {
 		return array(
 			'pattern_cat' => __( 'Patterns category', 'atelier-irisee-master-plugin' ),
 			'fabric_cat'  => __( 'Fabrics category', 'atelier-irisee-master-plugin' ),
-			'button_cat'  => __( 'Buttons category', 'atelier-irisee-master-plugin' ),
+			'button_cat'  => __( 'Buttons & fasteners category', 'atelier-irisee-master-plugin' ),
 			'zip_cat'     => __( 'Zips category', 'atelier-irisee-master-plugin' ),
 			'interfacing_cat' => __( 'Interfacing category', 'atelier-irisee-master-plugin' ),
 			'elastic_cat' => __( 'Elastic category', 'atelier-irisee-master-plugin' ),

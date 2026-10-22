@@ -76,6 +76,16 @@
 	text-wrap: balance;
 }
 
+/* The brand right under the title, small like "per 10 cm". */
+.aimp-configurator .aimp-product-title:has(+ .aimp-product-brand) {
+	margin-bottom: 0.15rem;
+}
+
+.aimp-configurator .aimp-product-brand {
+	margin: 0 0 0.6rem;
+	letter-spacing: 0.04em;
+}
+
 .aimp-product-rating {
 	display: flex;
 	align-items: center;
@@ -947,7 +957,7 @@ html:has(.aimp-product-reviews) {
 		order: 2;
 	}
 
-	.aimp-configurator .aimp-product-summary > :is(.aimp-product-title, .aimp-product-rating, .aimp-buy-bar, .aimp-product-price, .aimp-stock-alert, .aimp-low-stock, .aimp-delivery-line) {
+	.aimp-configurator .aimp-product-summary > :is(.aimp-product-title, .aimp-product-brand, .aimp-product-rating, .aimp-buy-bar, .aimp-product-price, .aimp-stock-alert, .aimp-low-stock, .aimp-delivery-line) {
 		order: 0;
 	}
 

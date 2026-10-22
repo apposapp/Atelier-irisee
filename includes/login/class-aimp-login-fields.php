@@ -770,8 +770,13 @@ class AIMP_Login_Fields {
 
 	public static function account_fields() {
 		$user_id = get_current_user_id();
+		// WooCommerce showed the form again after an error (a save redirects): what was filled in comes back.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- only shown back in the form; WooCommerce checks the nonce when saving.
+		$posted = ( isset( $_POST['action'], $_POST['aimp'] ) && 'save_account_details' === $_POST['action'] && is_array( $_POST['aimp'] ) ) ? wc_clean( wp_unslash( $_POST['aimp'] ) ) : array();
+		// phpcs:enable
 		foreach ( self::custom( 'profile' ) as $field ) {
-			echo self::render( $field, self::value( $user_id, $field ), 'aimp-account' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in render().
+			$value = ( ! in_array( $field['type'], array( 'file', 'avatar' ), true ) && isset( $field['key'] ) && array_key_exists( $field['key'], $posted ) ) ? $posted[ $field['key'] ] : self::value( $user_id, $field );
+			echo self::render( $field, $value, 'aimp-account' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in render().
 		}
 	}
 

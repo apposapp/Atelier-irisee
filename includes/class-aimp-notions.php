@@ -62,9 +62,10 @@ class AIMP_Notions {
 		$kinds[ $lang ] = array(
 			'button'      => array(
 				'setting'      => 'button_cat',
-				'name'         => __( 'Buttons', 'atelier-irisee-master-plugin' ),
+				// The category's name (not "Buttons": that text is also used for the number of buttons a size needs).
+				'name'         => __( 'Buttons & fasteners', 'atelier-irisee-master-plugin' ),
 				'single'       => __( 'Button', 'atelier-irisee-master-plugin' ),
-				'all'          => __( 'All buttons', 'atelier-irisee-master-plugin' ),
+				'all'          => __( 'All buttons & fasteners', 'atelier-irisee-master-plugin' ),
 				'add'          => __( 'Add a button', 'atelier-irisee-master-plugin' ),
 				'types'        => array(
 					'button'       => __( 'Button', 'atelier-irisee-master-plugin' ),
@@ -104,10 +105,16 @@ class AIMP_Notions {
 				'single'       => __( 'Interfacing', 'atelier-irisee-master-plugin' ),
 				'all'          => __( 'All interfacing', 'atelier-irisee-master-plugin' ),
 				'add'          => __( 'Add interfacing', 'atelier-irisee-master-plugin' ),
-				'types'        => array(),
-				'default_type' => '',
-				'specs'        => array( 'width' ),
+				'types'        => array(
+					'interfacing'  => __( 'Interfacing fabric', 'atelier-irisee-master-plugin' ),
+					'shoulder_pad' => __( 'Shoulder pads', 'atelier-irisee-master-plugin' ),
+				),
+				// Interfacing saved before 3.20 had no type: it is interfacing fabric.
+				'default_type' => 'interfacing',
+				'specs'        => array( 'type', 'width' ),
 				'measure'      => 'length',
+				// Types sold another way than the kind: shoulder pads per pair (piece).
+				'type_measure' => array( 'shoulder_pad' => 'piece' ),
 				'main'         => 'width',
 				'range'        => 'width',
 				'range_unit'   => 'cm',
@@ -232,7 +239,8 @@ class AIMP_Notions {
 			'bias'                 => array( 'bias', '', 'bias' ),
 			'ribbon'               => array( 'ribbon', 'ribbon', 'ribbon' ),
 			'cord'                 => array( 'ribbon', 'cord', 'cord' ),
-			'interfacing'          => array( 'interfacing', '', 'interfacing' ),
+			'interfacing'          => array( 'interfacing', 'interfacing', 'interfacing' ),
+			'shoulder_pad'         => array( 'interfacing', 'shoulder_pad', 'shoulder_pads' ),
 		);
 	}
 
@@ -341,11 +349,36 @@ class AIMP_Notions {
 			return '';
 		}
 		$sold = (string) $product->get_meta( self::META_SOLD );
-		if ( 'piece' === $info['measure'] ) {
+		if ( 'piece' === self::measure( self::kind_of( $product ), self::type_of( $product ) ) ) {
 			$size = absint( $product->get_meta( self::META_SET_SIZE ) );
 			return ( 'set' === $sold || '' === $sold ) && $size > 1 ? 'set' : 'piece';
 		}
 		return 'roll' === $sold && self::number( $product, 'length' ) > 0 ? 'roll' : '10cm';
+	}
+
+	/**
+	 * How a kind (and type) is counted: piece or length. Shoulder pads (an interfacing type) are sold per pair.
+	 *
+	 * @param string $kind Kind.
+	 * @param string $type Type, or ''.
+	 * @return string
+	 */
+	public static function measure( $kind, $type = '' ) {
+		$info = self::kind( $kind );
+		if ( ! $info ) {
+			return '';
+		}
+		return ( '' !== $type && isset( $info['type_measure'][ $type ] ) ) ? $info['type_measure'][ $type ] : $info['measure'];
+	}
+
+	/**
+	 * Whether a product is counted in pairs (shoulder pads).
+	 *
+	 * @param WC_Product $product Product.
+	 * @return bool
+	 */
+	public static function per_pair( $product ) {
+		return 'interfacing' === self::kind_of( $product ) && 'shoulder_pad' === self::type_of( $product );
 	}
 
 	/**
@@ -587,7 +620,7 @@ class AIMP_Notions {
 			case '10cm':
 				return __( 'per 10 cm', 'atelier-irisee-master-plugin' );
 			case 'piece':
-				return __( 'per piece', 'atelier-irisee-master-plugin' );
+				return self::per_pair( $product ) ? __( 'per pair', 'atelier-irisee-master-plugin' ) : __( 'per piece', 'atelier-irisee-master-plugin' );
 		}
 		return '';
 	}
@@ -609,7 +642,7 @@ class AIMP_Notions {
 			case '10cm':
 				return __( 'Per 10 cm', 'atelier-irisee-master-plugin' );
 		}
-		return __( 'Piece', 'atelier-irisee-master-plugin' );
+		return self::per_pair( $product ) ? __( 'Pair', 'atelier-irisee-master-plugin' ) : __( 'Piece', 'atelier-irisee-master-plugin' );
 	}
 
 	/**
@@ -798,6 +831,10 @@ class AIMP_Notions {
 	public static function rule_unit( $rule ) {
 		$rules = self::rules();
 		$info  = isset( $rules[ $rule ] ) ? self::kind( $rules[ $rule ][0] ) : null;
+		// A type counted otherwise than its kind (shoulder pads) has no size range.
+		if ( $info && 'piece' === self::measure( $rules[ $rule ][0], $rules[ $rule ][1] ) && 'piece' !== $info['measure'] ) {
+			return '';
+		}
 		return $info && '' !== $info['range'] ? $info['range_unit'] : '';
 	}
 
@@ -858,7 +895,7 @@ class AIMP_Notions {
 		$info = self::kind( $kind );
 		$min  = '' !== $rule['min'] ? (float) $rule['min'] : 0;
 		$max  = '' !== $rule['max'] ? (float) $rule['max'] : 0;
-		if ( '' === $info['range'] || ( ! $min && ! $max ) ) {
+		if ( '' === $info['range'] || '' === self::rule_unit( $key ) || ( ! $min && ! $max ) ) {
 			return true;
 		}
 		$value = self::number( $product, $info['range'] );
@@ -899,6 +936,10 @@ class AIMP_Notions {
 						'key'     => self::META_TYPE,
 						'compare' => 'NOT EXISTS',
 					),
+					array(
+						'key'   => self::META_TYPE,
+						'value' => '',
+					),
 				);
 			} else {
 				$query[] = array(
@@ -909,7 +950,7 @@ class AIMP_Notions {
 		}
 		$min = '' !== $rule['min'] ? (float) $rule['min'] : 0;
 		$max = '' !== $rule['max'] ? (float) $rule['max'] : 0;
-		if ( '' !== $info['range'] && ( $min || $max ) ) {
+		if ( '' !== $info['range'] && '' !== self::rule_unit( $key ) && ( $min || $max ) ) {
 			$fields = self::fields();
 			$clause = array(
 				'key'  => $fields[ $info['range'] ][0],

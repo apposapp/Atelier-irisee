@@ -204,6 +204,36 @@ jQuery(function ($) {
 	$(document).on('change', '#product_catchecklist input[type="checkbox"]', refresh);
 	refresh();
 
+	// "Sold per" follows the type: e.g. interfacing per length, shoulder pads per pair. The other choice is switched
+	// off, so it is not sent.
+	// The product workspace moves these parts out of their kind's box: they are found by their kind.
+	function soldWay(select) {
+		var kind = (select.name.match(/^aimp_hab\[([a-z_]+)\]/) || [])[1];
+		var type = select.value || '';
+		var $ways = $('.aimp-notion-sold-measure[data-kind="' + kind + '"]');
+		if ($ways.length < 2) {
+			return;
+		}
+		var $match = $ways.filter(function () {
+			return (this.getAttribute('data-types') || '').split(',').indexOf(type) !== -1;
+		});
+		if (!$match.length) {
+			$match = $ways.filter('[data-types=""]');
+		}
+		$ways.each(function () {
+			var on = this === $match[0];
+			this.hidden = !on;
+			$(this).find('input').prop('disabled', !on);
+			if (on && !$(this).find('input[type="radio"]:checked').length) {
+				$(this).find('input[type="radio"]').first().prop('checked', true);
+			}
+		});
+	}
+
+	$(document).on('change', 'select[name^="aimp_hab["][name$="[type]"]', function () {
+		soldWay(this);
+	});
+
 	$details.on('input', 'input[data-sold]', function () {
 		if (this.value !== '') {
 			$(this).closest('label').find('input[type="radio"]').prop('checked', true);

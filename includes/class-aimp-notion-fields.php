@@ -123,7 +123,7 @@ class AIMP_Notion_Fields {
 		?>
 		<div class="aimp-notion-details" data-kind-terms="<?php echo esc_attr( wp_json_encode( (object) self::kind_terms() ) ); ?>">
 			<input type="hidden" name="aimp_hab_present" value="1">
-			<p class="description"><?php esc_html_e( 'Only used for haberdashery (the Buttons, Zips, Interfacing, Elastic, Ribbons & cords and Bias tape categories). The type and the size decide in which patterns the product is offered in the configurator.', 'atelier-irisee-master-plugin' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Only used for haberdashery (the Buttons & fasteners, Zips, Interfacing, Elastic, Ribbons & cords and Bias tape categories). The type and the size decide in which patterns the product is offered in the configurator.', 'atelier-irisee-master-plugin' ); ?></p>
 
 			<div class="aimp-notion-order-info">
 				<h4><label for="aimp_hab_order_info"><?php esc_html_e( 'Order information', 'atelier-irisee-master-plugin' ); ?></label></h4>
@@ -147,7 +147,14 @@ class AIMP_Notion_Fields {
 				$is_current = $kind === $current;
 				$base       = 'aimp_hab[' . $kind . ']';
 				$id         = 'aimp_hab_' . $kind . '_';
-				$sold       = $is_current ? AIMP_Notions::sold( $product ) : ( 'piece' === $info['measure'] ? 'piece' : '10cm' );
+				$type_now   = $is_current ? AIMP_Notions::type_of( $product, $kind ) : $info['default_type'];
+				$measure    = AIMP_Notions::measure( $kind, $type_now );
+				$sold       = $is_current ? AIMP_Notions::sold( $product ) : ( 'piece' === $measure ? 'piece' : '10cm' );
+				// How it can be sold: the kind's way, and another way for some types (shoulder pads: per pair).
+				$measures   = array( $info['measure'] => array() );
+				foreach ( isset( $info['type_measure'] ) ? $info['type_measure'] : array() as $type_key => $type_measure ) {
+					$measures[ $type_measure ][] = $type_key;
+				}
 				$specs      = array_values( array_diff( $info['specs'], 'length' === $info['measure'] ? array( 'length' ) : array() ) );
 				?>
 				<div class="aimp-notion-kind" data-kind="<?php echo esc_attr( $kind ); ?>"<?php echo $is_current ? '' : ' hidden'; ?>>
@@ -194,36 +201,40 @@ class AIMP_Notion_Fields {
 
 					<fieldset class="aimp-notion-sold">
 						<legend><?php esc_html_e( 'Sold per', 'atelier-irisee-master-plugin' ); ?></legend>
+						<?php foreach ( $measures as $way => $way_types ) : ?>
+						<div class="aimp-notion-sold-measure" data-kind="<?php echo esc_attr( $kind ); ?>" data-measure="<?php echo esc_attr( $way ); ?>" data-types="<?php echo esc_attr( implode( ',', $way_types ) ); ?>"<?php echo $way === $measure ? '' : ' hidden'; ?>>
 						<p class="aimp-notion-sold-choice">
-							<?php if ( 'piece' === $info['measure'] ) : ?>
-								<?php $size = $is_current ? AIMP_Notions::set_size( $product ) : 1; ?>
-								<label><input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="piece"<?php checked( 'piece', $sold ); ?>> <?php esc_html_e( 'Per piece', 'atelier-irisee-master-plugin' ); ?></label>
+							<?php if ( 'piece' === $way ) : ?>
+								<?php $size = $is_current && $way === $measure ? AIMP_Notions::set_size( $product ) : 1; ?>
+								<label><input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="piece"<?php checked( $way === $measure && 'piece' === $sold ); ?><?php disabled( $way !== $measure ); ?>> <?php echo esc_html( $way_types ? __( 'Per pair', 'atelier-irisee-master-plugin' ) : __( 'Per piece', 'atelier-irisee-master-plugin' ) ); ?></label>
 								<label>
-									<input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="set"<?php checked( 'set', $sold ); ?>>
+									<input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="set"<?php checked( $way === $measure && 'set' === $sold ); ?><?php disabled( $way !== $measure ); ?>>
 									<?php esc_html_e( 'Per set of', 'atelier-irisee-master-plugin' ); ?>
-									<input type="number" class="small-text" data-sold="set" name="<?php echo esc_attr( $base . '[set_size]' ); ?>" min="2" step="1" value="<?php echo $size > 1 ? esc_attr( $size ) : ''; ?>" aria-label="<?php esc_attr_e( 'Pieces in a set', 'atelier-irisee-master-plugin' ); ?>">
-									<?php esc_html_e( 'pieces', 'atelier-irisee-master-plugin' ); ?>
+									<input type="number" class="small-text" data-sold="set" name="<?php echo esc_attr( $base . '[set_size]' ); ?>" min="2" step="1" value="<?php echo $size > 1 ? esc_attr( $size ) : ''; ?>" aria-label="<?php esc_attr_e( 'Pieces in a set', 'atelier-irisee-master-plugin' ); ?>"<?php disabled( $way !== $measure ); ?>>
+									<?php echo esc_html( $way_types ? __( 'pairs', 'atelier-irisee-master-plugin' ) : __( 'pieces', 'atelier-irisee-master-plugin' ) ); ?>
 								</label>
 							<?php else : ?>
-								<?php $roll = $is_current ? AIMP_Notions::number( $product, 'length' ) : 0; ?>
-								<label><input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="10cm"<?php checked( '10cm', $sold ); ?>> <?php esc_html_e( 'Per 10 cm', 'atelier-irisee-master-plugin' ); ?></label>
+								<?php $roll = $is_current && $way === $measure ? AIMP_Notions::number( $product, 'length' ) : 0; ?>
+								<label><input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="10cm"<?php checked( $way === $measure && '10cm' === $sold ); ?><?php disabled( $way !== $measure ); ?>> <?php esc_html_e( 'Per 10 cm', 'atelier-irisee-master-plugin' ); ?></label>
 								<label>
-									<input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="roll"<?php checked( 'roll', $sold ); ?>>
+									<input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="roll"<?php checked( $way === $measure && 'roll' === $sold ); ?><?php disabled( $way !== $measure ); ?>>
 									<?php esc_html_e( 'Per piece/roll of', 'atelier-irisee-master-plugin' ); ?>
-									<input type="number" class="small-text" data-sold="roll" name="<?php echo esc_attr( $base . '[length]' ); ?>" min="1" step="1" value="<?php echo $roll > 0 ? esc_attr( wc_format_decimal( $roll, 1, true ) ) : ''; ?>" aria-label="<?php esc_attr_e( 'Length of a roll in cm', 'atelier-irisee-master-plugin' ); ?>">
+									<input type="number" class="small-text" data-sold="roll" name="<?php echo esc_attr( $base . '[length]' ); ?>" min="1" step="1" value="<?php echo $roll > 0 ? esc_attr( wc_format_decimal( $roll, 1, true ) ) : ''; ?>" aria-label="<?php esc_attr_e( 'Length of a roll in cm', 'atelier-irisee-master-plugin' ); ?>"<?php disabled( $way !== $measure ); ?>>
 									<?php esc_html_e( 'cm', 'atelier-irisee-master-plugin' ); ?>
 								</label>
 							<?php endif; ?>
 						</p>
 						<p class="description">
 							<?php
-							if ( 'piece' === $info['measure'] ) {
+							if ( 'piece' === $way ) {
 								esc_html_e( 'Per set: the price and the stock are per set, and one sale lowers the stock by one set. The customer sees "per set of 6"; the configurator adds as many whole sets as a pattern size needs.', 'atelier-irisee-master-plugin' );
 							} else {
 								esc_html_e( 'Per 10 cm: price and stock per 10 cm, like fabric (a 5 m roll = stock 50). Per piece/roll: price and stock per roll of the length you fill in; the configurator adds as many whole rolls as a pattern size needs.', 'atelier-irisee-master-plugin' );
 							}
 							?>
 						</p>
+						</div>
+						<?php endforeach; ?>
 					</fieldset>
 				</div>
 			<?php endforeach; ?>
@@ -314,7 +325,9 @@ class AIMP_Notion_Fields {
 		}
 
 		$sold = isset( $row['sold'] ) ? sanitize_key( $row['sold'] ) : '';
-		if ( 'piece' === $info['measure'] ) {
+		// Per piece or per length: by the kind, or by the type (shoulder pads: per pair).
+		$type_posted = isset( $row['type'] ) ? sanitize_key( $row['type'] ) : '';
+		if ( 'piece' === AIMP_Notions::measure( $kind, isset( $info['types'][ $type_posted ] ) ? $type_posted : $info['default_type'] ) ) {
 			$size = isset( $row['set_size'] ) ? absint( $row['set_size'] ) : 0;
 			$sold = 'set' === $sold && $size > 1 ? 'set' : 'piece';
 			$set( AIMP_Notions::META_SET_SIZE, 'set' === $sold ? (string) $size : '' );

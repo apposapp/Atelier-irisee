@@ -113,7 +113,7 @@ defined( 'ABSPATH' ) || exit;
 			array( $data['home_url'], 'home', __( 'Home', 'atelier-irisee-master-plugin' ) ),
 			array( $data['shop_url'], 'shop', __( 'Shop', 'atelier-irisee-master-plugin' ) ),
 			array( isset( $data['kit_url'] ) ? $data['kit_url'] : '', 'kit', __( 'Customizer', 'atelier-irisee-master-plugin' ) ),
-			array( $data['cart_url'], 'bag', __( 'Basket', 'atelier-irisee-master-plugin' ) ), // Short: it has to fit a tab.
+			// The cart is in the top bar, also on phones.
 		);
 		foreach ( $aimp_tabs as $aimp_tab ) :
 			if ( '' === (string) $aimp_tab[0] ) {
@@ -122,7 +122,7 @@ defined( 'ABSPATH' ) || exit;
 			$aimp_now = AIMP_Header::is_current( $aimp_tab[0], isset( $data['current_url'] ) ? $data['current_url'] : '' );
 			?>
 			<a class="aimp-tabbar-item<?php echo $aimp_now ? ' is-current' : ''; ?>" href="<?php echo esc_url( $aimp_tab[0] ); ?>"<?php echo $aimp_now ? ' aria-current="page"' : ''; ?>>
-				<span class="aimp-tabbar-icon"><?php echo AIMP_Header::icon( $aimp_tab[1] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><?php echo 'bag' === $aimp_tab[1] ? $data['cart_badge'] : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from an integer. ?></span>
+				<span class="aimp-tabbar-icon"><?php echo AIMP_Header::icon( $aimp_tab[1] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
 				<span class="aimp-tabbar-label"><?php echo esc_html( $aimp_tab[2] ); ?></span>
 			</a>
 		<?php endforeach; ?>

@@ -284,6 +284,11 @@
 	border-radius: 8px;
 }
 
+/* The quantity of an item that is not ticked. */
+.aimp-refund-qty.is-off {
+	opacity: 0.45;
+}
+
 .aimp-account-requests {
 	margin: 0;
 	padding: 0;

@@ -39,6 +39,8 @@ class AIMP_PostNL {
 		add_filter( 'pre_option_woocommerce_shipping_cost_requires_address', array( __CLASS__, 'requires_address' ) );
 		// "Free shipping from €75: €12.50 to go." under the PostNL rate (cart and checkout totals).
 		add_action( 'woocommerce_after_shipping_rate', array( __CLASS__, 'free_hint' ) );
+		// Free shipping counts the amount after discount codes (PostNL looks at the amount before them).
+		add_filter( 'woocommerce_package_rates', array( __CLASS__, 'no_free_below_minimum' ), 20, 2 );
 		// My orders → order: the PostNL pickup point (the thank-you page shows it at the top instead).
 		add_action( 'woocommerce_order_details_after_order_table', array( __CLASS__, 'pickup_block' ) );
 		// PostNL's checkout script (pickup points), also when PostNL thinks the checkout page is a block checkout.
@@ -136,7 +138,7 @@ class AIMP_PostNL {
 		$country = ( function_exists( 'WC' ) && WC()->customer ) ? (string) WC()->customer->get_shipping_country() : '';
 		$amounts = self::amounts_for( '' !== $country ? $country : WC()->countries->get_base_country() );
 		$cost    = '' === $amounts['cost'] ? 0.0 : (float) $amounts['cost'];
-		$free    = '' !== $amounts['free'] && WC()->cart && (float) WC()->cart->get_displayed_subtotal() > (float) $amounts['free'];
+		$free    = '' !== $amounts['free'] && WC()->cart && self::discounted_subtotal() >= (float) $amounts['free'];
 		if ( $cost <= 0 || $free ) {
 			return $name;
 		}
@@ -1070,6 +1072,52 @@ class AIMP_PostNL {
 	 *
 	 * @param WC_Shipping_Rate $rate Shipping option.
 	 */
+	/**
+	 * The cart amount that counts for free shipping: the subtotal as shown in the cart (the kit discount is already in
+	 * it) minus discount codes. Gift cards are a way of paying, not a discount: they don't count.
+	 *
+	 * @return float
+	 */
+	public static function discounted_subtotal() {
+		$cart = WC()->cart;
+		if ( ! $cart ) {
+			return 0.0;
+		}
+		$discount = (float) $cart->get_discount_total();
+		if ( $cart->display_prices_including_tax() ) {
+			$discount += (float) $cart->get_discount_tax();
+		}
+		return max( 0.0, (float) $cart->get_displayed_subtotal() - $discount );
+	}
+
+	/**
+	 * PostNL makes shipping free from its minimum amount, counted before discount codes. When a discount code takes
+	 * the cart under that amount, the normal shipping cost of the zone applies again.
+	 *
+	 * @param WC_Shipping_Rate[] $rates   Rates.
+	 * @param array              $package Package.
+	 * @return WC_Shipping_Rate[]
+	 */
+	public static function no_free_below_minimum( $rates, $package ) {
+		if ( ! WC()->cart ) {
+			return $rates;
+		}
+		foreach ( $rates as $rate ) {
+			if ( ! $rate instanceof WC_Shipping_Rate || self::METHOD !== $rate->get_method_id() || (float) $rate->get_cost() > 0 ) {
+				continue;
+			}
+			$settings = self::instance_settings( $rate->get_instance_id() );
+			$free     = isset( $settings['minimum_for_free_shipping'] ) ? (string) $settings['minimum_for_free_shipping'] : '';
+			$cost     = isset( $settings['cost'] ) ? (string) $settings['cost'] : '';
+			if ( '' === $free || (float) $free <= 0 || ! is_numeric( $cost ) || (float) $cost <= 0 || self::discounted_subtotal() >= (float) $free ) {
+				continue;
+			}
+			$rate->set_cost( wc_format_decimal( (float) $cost ) );
+			$rate->set_taxes( wc_tax_enabled() ? WC_Tax::calc_shipping_tax( (float) $cost, WC_Tax::get_shipping_tax_rates() ) : array() );
+		}
+		return $rates;
+	}
+
 	public static function free_hint( $rate ) {
 		if ( ! $rate instanceof WC_Shipping_Rate || self::METHOD !== $rate->get_method_id() || ! WC()->cart || ! WC()->cart->needs_shipping() ) {
 			return;
@@ -1079,8 +1127,8 @@ class AIMP_PostNL {
 		if ( '' === $free || (float) $free <= 0 || (float) $rate->get_cost() <= 0 ) {
 			return;
 		}
-		// PostNL makes shipping free when the subtotal (as shown in the cart) is above the amount.
-		$missing = (float) $free - (float) WC()->cart->get_displayed_subtotal();
+		// Free shipping from the amount after discount codes (no_free_below_minimum()).
+		$missing = (float) $free - self::discounted_subtotal();
 		if ( $missing <= 0 ) {
 			return;
 		}

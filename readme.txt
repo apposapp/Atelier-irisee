@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.19.0
+Stable tag: 3.20.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,17 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.20.0 =
+* Refund request: the quantity of an item that is not ticked is greyed out and no longer checked (no more "value must be at least 1" message). After an error the form keeps what was filled in.
+* Free delivery from €75 counts the amount after discount codes: a code that takes the cart under €75 brings back the shipping cost (and the "… to go" text uses the same amount). Gift cards don't count as a discount.
+* Phones: the cart icon is in the top bar; the tab bar has Home, Shop, Customizer and Menu.
+* Customizer on phones: the size chart only appears once a size is chosen, and shows only that size (it changes with the size).
+* Customizer on phones: the bar with the next step's button is gold, its button is white and sparkles when it appears.
+* Forms keep their entries after an error: refund request, gift card form, extra account fields.
+* Dutch: "Vlieseline" is now "Verstevigingen" (the Vlieseline brand stays). New type in that category: shoulder pads, sold per pair; a pattern can ask for shoulder pads (pairs) and the customizer offers them.
+* "Knopen" is now "Knopen en sluitingen" (FR "Boutons et fermetures", EN "Buttons & fasteners").
+* Product pages show the brand under the title.
 
 = 3.19.0 =
 * AI pictures, new "Per pattern design" block (one box per design): its own model photo to dress, and several pictures of the pattern for the AI (tick up to 4 of the pattern's pictures and add up to 4 other pictures from the media library, e.g. front, back and technical drawing).

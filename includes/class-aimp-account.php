@@ -218,6 +218,11 @@ class AIMP_Account {
 		return 'aimp_address_form_' . (int) $user_id;
 	}
 
+	/** A refund request that came back with an error: what was filled in, for 10 minutes. */
+	private static function refund_transient( $user_id ) {
+		return 'aimp_refund_form_' . (int) $user_id;
+	}
+
 	/**
 	 * WooCommerce's address fields of a type, for a country.
 	 *
@@ -326,6 +331,21 @@ class AIMP_Account {
 
 	public static function tab_refund( $user ) {
 		$orders = self::eligible_orders( $user->ID );
+		// After an error: what the customer had filled in comes back.
+		$sent = get_transient( self::refund_transient( $user->ID ) );
+		$sent = is_array( $sent ) ? $sent : array();
+		if ( $sent ) {
+			delete_transient( self::refund_transient( $user->ID ) );
+		}
+		$sent = wp_parse_args(
+			$sent,
+			array(
+				'order'  => 0,
+				'items'  => array(),
+				'qty'    => array(),
+				'reason' => '',
+			)
+		);
 		echo '<h2 class="aimp-account-title">' . esc_html__( 'Request a refund', 'atelier-irisee-master-plugin' ) . '</h2>';
 		/* translators: %d: number of days */
 		echo '<p class="aimp-account-text">' . esc_html( sprintf( __( 'You can ask for a refund up to %d days after your order. Choose the order and the items, and tell us why. We will reply by email.', 'atelier-irisee-master-plugin' ), self::refund_days() ) ) . '</p>';
@@ -342,7 +362,7 @@ class AIMP_Account {
 					<select id="aimp-refund-order" name="aimp_refund[order]" required>
 						<option value=""><?php esc_html_e( '— Choose an order —', 'atelier-irisee-master-plugin' ); ?></option>
 						<?php foreach ( $orders as $order ) : ?>
-							<option value="<?php echo esc_attr( $order->get_id() ); ?>">
+							<option value="<?php echo esc_attr( $order->get_id() ); ?>"<?php selected( (int) $sent['order'], $order->get_id() ); ?>>
 								<?php
 								/* translators: 1: order number, 2: date, 3: total */
 								echo esc_html( sprintf( __( 'Order #%1$s of %2$s (%3$s)', 'atelier-irisee-master-plugin' ), $order->get_order_number(), wc_format_datetime( $order->get_date_created() ), wp_strip_all_tags( wc_price( $order->get_total(), array( 'currency' => $order->get_currency() ) ) ) ) );
@@ -364,13 +384,13 @@ class AIMP_Account {
 							?>
 							<div class="aimp-refund-item<?php echo $used ? ' is-disabled' : ''; ?>">
 								<label>
-									<input type="checkbox" name="aimp_refund[items][<?php echo esc_attr( $item_id ); ?>]" value="1" <?php disabled( $used ); ?>>
+									<input type="checkbox" name="aimp_refund[items][<?php echo esc_attr( $item_id ); ?>]" value="1" data-aimp-refund-check <?php disabled( $used ); ?><?php checked( ! $used && isset( $sent['items'][ $item_id ] ) ); ?>>
 									<span><?php echo esc_html( $item->get_name() ); ?></span>
 								</label>
 								<?php if ( $used ) : ?>
 									<small><?php esc_html_e( 'This gift card has already been used.', 'atelier-irisee-master-plugin' ); ?></small>
 								<?php elseif ( $max > 1 ) : ?>
-									<label class="aimp-refund-qty"><?php esc_html_e( 'Quantity', 'atelier-irisee-master-plugin' ); ?> <input type="number" name="aimp_refund[qty][<?php echo esc_attr( $item_id ); ?>]" value="<?php echo esc_attr( $max ); ?>" min="1" max="<?php echo esc_attr( $max ); ?>"></label>
+									<label class="aimp-refund-qty"><?php esc_html_e( 'Quantity', 'atelier-irisee-master-plugin' ); ?> <input type="number" name="aimp_refund[qty][<?php echo esc_attr( $item_id ); ?>]" value="<?php echo esc_attr( isset( $sent['qty'][ $item_id ] ) ? min( $max, max( 1, (int) $sent['qty'][ $item_id ] ) ) : $max ); ?>" min="1" max="<?php echo esc_attr( $max ); ?>" data-aimp-refund-qty></label>
 								<?php else : ?>
 									<input type="hidden" name="aimp_refund[qty][<?php echo esc_attr( $item_id ); ?>]" value="1">
 								<?php endif; ?>
@@ -380,7 +400,7 @@ class AIMP_Account {
 				<?php endforeach; ?>
 				<p class="aimp-account-field">
 					<label for="aimp-refund-reason"><?php esc_html_e( 'Why would you like a refund?', 'atelier-irisee-master-plugin' ); ?></label>
-					<textarea id="aimp-refund-reason" name="aimp_refund[reason]" rows="4" maxlength="1000" required></textarea>
+					<textarea id="aimp-refund-reason" name="aimp_refund[reason]" rows="4" maxlength="1000" required><?php echo esc_textarea( $sent['reason'] ); ?></textarea>
 				</p>
 				<button type="submit" class="aimp-account-button aimp-account-button--primary"><?php esc_html_e( 'Send refund request', 'atelier-irisee-master-plugin' ); ?></button>
 			</form>
@@ -543,7 +563,21 @@ class AIMP_Account {
 			self::eligible_orders( $user_id )
 		);
 
+		// On an error the form gets back what was filled in.
+		$keep = function () use ( $data, $user_id, $reason ) {
+			set_transient(
+				self::refund_transient( $user_id ),
+				array(
+					'order'  => isset( $data['order'] ) ? absint( $data['order'] ) : 0,
+					'items'  => array_fill_keys( array_map( 'absint', array_keys( isset( $data['items'] ) ? (array) $data['items'] : array() ) ), 1 ),
+					'qty'    => array_map( 'absint', isset( $data['qty'] ) ? (array) $data['qty'] : array() ),
+					'reason' => $reason,
+				),
+				10 * MINUTE_IN_SECONDS
+			);
+		};
 		if ( ! $order || (int) $order->get_customer_id() !== $user_id || ! in_array( $order->get_id(), $eligible, true ) || '' === trim( $reason ) ) {
+			$keep();
 			self::back( 'refund', 'refund_error' );
 		}
 
@@ -563,6 +597,7 @@ class AIMP_Account {
 			$amount                  += ( (float) $item->get_total() + (float) $item->get_total_tax() ) / max( 1, $item->get_quantity() ) * $qty;
 		}
 		if ( ! $items ) {
+			$keep();
 			self::back( 'refund', 'refund_error' );
 		}
 

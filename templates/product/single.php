@@ -111,6 +111,10 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 		<div class="aimp-product-summary">
 			<h1 class="aimp-product-title"><?php echo esc_html( wp_strip_all_tags( $the_product->get_name() ) ); ?></h1>
+			<?php $aimp_brand = AIMP_Product_Page::brand( $the_product ); ?>
+			<?php if ( '' !== $aimp_brand ) : ?>
+				<p class="aimp-product-brand"><?php echo esc_html( $aimp_brand ); ?></p>
+			<?php endif; ?>
 
 			<?php if ( wc_review_ratings_enabled() && $the_product->get_rating_count() > 0 ) : ?>
 				<div class="aimp-product-rating">

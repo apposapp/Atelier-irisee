@@ -219,6 +219,7 @@ class AIMP_Shortcode {
 			'cords'                => __( 'Choose your cord (optional)', 'atelier-irisee-master-plugin' ),
 			'elastic'              => __( 'Choose your elastic (optional)', 'atelier-irisee-master-plugin' ),
 			'interfacing'          => __( 'Choose your interfacing (optional)', 'atelier-irisee-master-plugin' ),
+			'shoulder_pads'        => __( 'Choose your shoulder pads (optional)', 'atelier-irisee-master-plugin' ),
 		);
 		$strings = array( 'notInKit' => __( 'not in the kit', 'atelier-irisee-master-plugin' ) );
 		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
@@ -256,7 +257,7 @@ class AIMP_Shortcode {
 			'extra'  => AIMP_Product_Page::fabric_icon( 'tips' ),
 		);
 		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
-			$icon           = 'zip' === $info['kind'] ? 'zips' : ( 'count' === $info['kind'] ? 'buttons' : ( in_array( $type, array( 'bias', 'elastic', 'interfacing' ), true ) ? $type : 'ribbons' ) );
+			$icon           = 'shoulder_pads' === $type ? 'shoulder_pad' : ( 'zip' === $info['kind'] ? 'zips' : ( 'count' === $info['kind'] ? 'buttons' : ( in_array( $type, array( 'bias', 'elastic', 'interfacing' ), true ) ? $type : 'ribbons' ) ) );
 			$icons[ $type ] = AIMP_Product_Page::fabric_icon( $icon );
 		}
 		return $icons;

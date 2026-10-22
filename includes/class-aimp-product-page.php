@@ -1074,6 +1074,24 @@ class AIMP_Product_Page {
 	 * @param string $subject A subject key of AIMP_Catalog::fabric_text_fields().
 	 * @return string SVG.
 	 */
+	/**
+	 * The brand of a product (WooCommerce Brands), e.g. "YKK"; several are joined with a comma. '' without one.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	public static function brand( $product ) {
+		if ( ! $product instanceof WC_Product || ! taxonomy_exists( 'product_brand' ) ) {
+			return '';
+		}
+		$id    = $product->get_parent_id() ? $product->get_parent_id() : $product->get_id();
+		$terms = get_the_terms( $id, 'product_brand' );
+		if ( ! $terms || is_wp_error( $terms ) ) {
+			return '';
+		}
+		return implode( ', ', wp_list_pluck( $terms, 'name' ) );
+	}
+
 	public static function fabric_icon( $subject ) {
 		$paths = array(
 			'composition' => '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12l6 6"/><path d="M12 12H3.5"/>',
@@ -1102,6 +1120,8 @@ class AIMP_Product_Page {
 			'bias'        => '<path d="M3 16c3-6 6-6 9 0s6 6 9 0"/><path d="M3 11c3-6 6-6 9 0s6 6 9 0"/>',
 			// Elastic: a band with stretch marks; interfacing: a sheet with an iron-on dot pattern.
 			'elastic'     => '<path d="M2.5 9.5h19v5h-19z"/><path d="M6 9.5l1.5 5M10 9.5l1.5 5M14 9.5l1.5 5M18 9.5l1.5 5"/>',
+			// A shoulder pad: a rounded half-moon with its stitching.
+			'shoulder_pad' => '<path d="M3.5 16.5C5 9.5 8.5 6.5 12 6.5s7 3 8.5 10z"/><path d="M6.5 14.5c1.3-3.8 3.3-5.5 5.5-5.5s4.2 1.7 5.5 5.5" stroke-dasharray="1.6 1.6"/>',
 			'interfacing' => '<path d="M5 3.5h10l4 4v13H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5h.01M8.5 18h.01M12 18h.01"/>',
 			// Button page: type (a button with four holes), diameter (a button between two measuring lines),
 			// material, surface finish (a sparkle), mounting method (a needle and thread), sold per (a stack).
