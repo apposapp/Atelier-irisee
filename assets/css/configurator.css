@@ -1876,3 +1876,63 @@
 	height: 1em;
 	flex: 0 0 auto;
 }
+
+/* ------------------------------------------------------------------
+ * Design studio (Customizer): the step indicator, the line at the top of a step, the discount badge.
+ * ------------------------------------------------------------------ */
+.aimp-configurator .aimp-steps.aimp-steps--bar {
+	position: relative;
+	padding-bottom: 12px;
+}
+
+.aimp-configurator .aimp-steps.aimp-steps--bar::before,
+.aimp-configurator .aimp-steps.aimp-steps--bar::after {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	height: 4px;
+	border-radius: 4px;
+}
+
+.aimp-configurator .aimp-steps.aimp-steps--bar::before {
+	right: 0;
+	background: color-mix(in srgb, var(--aimp-gold) 20%, transparent);
+}
+
+.aimp-configurator .aimp-steps.aimp-steps--bar::after {
+	width: var(--cz-progress, 0%);
+	background: var(--aimp-gold);
+	transition: width 0.35s ease;
+}
+
+/* No step indicator: only the phones' "‹ Back" stays. */
+.aimp-configurator .aimp-steps.aimp-steps--none li:not(.aimp-steps-back) {
+	display: none;
+}
+
+.aimp-configurator .aimp-steps.aimp-steps--nonum .aimp-step-num {
+	display: none;
+}
+
+.aimp-configurator .aimp-cz-intro {
+	margin: 0 0 1rem;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font-size: 1.05em;
+}
+
+.aimp-configurator .aimp-cz-badge {
+	display: inline-block;
+	margin: 0 0 0.75rem;
+	padding: 0.3rem 0.85rem;
+	border-radius: 100px;
+	background: var(--aimp-gold);
+	color: #fff;
+	font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-configurator .aimp-steps.aimp-steps--bar::after {
+		transition: none;
+	}
+}

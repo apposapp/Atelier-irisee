@@ -115,6 +115,7 @@ class AIMP_Design {
 			'product-desc'    => array( $product, __( 'Description', 'atelier-irisee-master-plugin' ), '.aimp-description' ),
 			'product-specs'   => array( $product, __( 'Specifications', 'atelier-irisee-master-plugin' ), '.aimp-info-list' ),
 			'product-recommend' => array( $product, __( 'Recommended products', 'atelier-irisee-master-plugin' ), '.aimp-recommended' ),
+			'customizer'      => array( $config, __( 'Customizer (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator[data-aimp-configurator]' ),
 			'config-steps'    => array( $config, __( 'Step indicator', 'atelier-irisee-master-plugin' ), '.aimp-configurator .aimp-steps' ),
 			'config-title'    => array( $config, __( 'Details titles', 'atelier-irisee-master-plugin' ), '.aimp-details-title' ),
 			'cart-items'      => array( $cart, __( 'Cart items', 'atelier-irisee-master-plugin' ), '.aimp-cart-items' ),
@@ -174,7 +175,11 @@ class AIMP_Design {
 		}
 		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
 		if ( isset( $elements['product-page'] ) ) {
-			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info' );
+			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info', 'cz_steps', 'cz_flow', 'cz_bar', 'cz_summary' );
+		}
+		// The customizer as a whole (phase 7): steps, cards, the haberdashery, the bar on phones, the summary.
+		if ( isset( $elements['customizer'] ) ) {
+			$elements['customizer']['controls'] = array( 'cz_steps', 'cz_cards', 'cz_flow', 'cz_bar', 'cz_summary' );
 		}
 		// The overall look of the site: no part of the page to click, chosen from the list.
 		$site = __( 'Whole site', 'atelier-irisee-master-plugin' );
@@ -451,6 +456,41 @@ class AIMP_Design {
 				'pp_share'   => 'bool',
 			),
 			'pp_info'     => self::product_info_fields(),
+			// The customizer (phase 7).
+			'cz_steps'    => array(
+				'cz_progress'      => array( 'select', array( '', 'bar', 'none' ) ),
+				'cz_nonum'         => 'bool',
+				'cz_intro_pattern' => 'text',
+				'cz_intro_fabric'  => 'text',
+				'cz_intro_notions' => 'text',
+				'cz_intro_summary' => 'text',
+				'cz_nohowto'       => 'bool',
+			),
+			'cz_cards'    => array(
+				'cz_cols'    => array( 0, 6, 0 ),
+				'cz_pcols'   => array( 0, 3, 0 ),
+				'cz_noprice' => 'bool',
+				'cz_nosub'   => 'bool',
+				'cz_nofav'   => 'bool',
+				'cz_ratio'   => array( 'select', array( '', 'square', 'portrait', 'landscape' ) ),
+			),
+			'cz_flow'     => array(
+				'cz_norder'      => array( 'order', array_keys( self::notion_labels() ) ),
+				'cz_nonotions'   => 'bool',
+				'cz_nosizechart' => 'bool',
+				'cz_nomeasure'   => 'bool',
+				'cz_sheet'       => array( 'select', array( '', 'full' ) ),
+			),
+			'cz_bar'      => array(
+				'cz_bar_bg'     => 'color',
+				'cz_bar_fg'     => 'color',
+				'cz_nosparkle'  => 'bool',
+			),
+			'cz_summary'  => array(
+				'cz_nosave'   => 'bool',
+				'cz_discount' => array( 'select', array( '', 'total', 'badge' ) ),
+				'cz_note'     => 'text',
+			),
 		);
 	}
 
@@ -503,6 +543,74 @@ class AIMP_Design {
 			$fields[ 'ov_sub_' . $section ]   = 'text';
 		}
 		return $fields;
+	}
+
+	/**
+	 * The haberdashery steps of the customizer: type => label (in their standard order).
+	 *
+	 * @return array
+	 */
+	public static function notion_labels() {
+		static $labels = null;
+		if ( null !== $labels ) {
+			return $labels;
+		}
+		$labels = array();
+		if ( class_exists( 'AIMP_Catalog' ) && method_exists( 'AIMP_Catalog', 'notion_types' ) ) {
+			$fields = AIMP_Catalog::material_fields();
+			foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
+				$labels[ $type ] = isset( $fields[ $info['material'] ]['label'] ) ? $fields[ $info['material'] ]['label'] : $type;
+			}
+		}
+		return $labels;
+	}
+
+	/**
+	 * The customizer's settings for configurator.js (texts as "NL | FR | EN": the customizer switches language itself).
+	 *
+	 * @return array
+	 */
+	public static function customizer() {
+		$out = array();
+		foreach ( array( 'cz_progress', 'cz_nonum', 'cz_nohowto', 'cz_nosparkle', 'cz_nosave', 'cz_discount' ) as $key ) {
+			$value = self::opt( 'customizer', $key, '' );
+			if ( '' !== $value ) {
+				$out[ $key ] = $value;
+			}
+		}
+		foreach ( array( 'cz_intro_pattern', 'cz_intro_fabric', 'cz_intro_notions', 'cz_intro_summary', 'cz_note' ) as $key ) {
+			$value = (string) self::opt( 'customizer', $key, '' );
+			if ( '' !== $value ) {
+				$out[ $key ] = $value;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * The haberdashery steps in the order chosen in the Design studio (none when the step is switched off).
+	 *
+	 * @param array $steps [ [ type, … ] ] in the standard order.
+	 * @return array
+	 */
+	public static function notion_order( $steps ) {
+		if ( self::opt( 'customizer', 'cz_nonotions' ) ) {
+			return array();
+		}
+		$order = self::opt( 'customizer', 'cz_norder', '' );
+		if ( ! $order ) {
+			return $steps;
+		}
+		$place = array_flip( explode( ',', $order ) );
+		usort(
+			$steps,
+			function ( $a, $b ) use ( $place ) {
+				$pa = isset( $place[ $a['type'] ] ) ? $place[ $a['type'] ] : 999;
+				$pb = isset( $place[ $b['type'] ] ) ? $place[ $b['type'] ] : 999;
+				return $pa - $pb;
+			}
+		);
+		return $steps;
 	}
 
 	/**
@@ -1531,6 +1639,42 @@ class AIMP_Design {
 			$css .= $pp . ' .star-rating,' . $pp . ' .star-rating span::before,' . $pp . ' p.stars a{color:' . $get( 'product-page', 'pp_stars' ) . '!important}';
 		}
 
+		// Customizer: cards per row, what a card shows, the size chart, the sheet, the bar on phones.
+		$cz = 'html body :is(.aimp-configurator[data-aimp-configurator],.aimp-config-sheet)';
+		if ( $get( 'customizer', 'cz_cols' ) ) {
+			$computer .= $cz . ' .aimp-grid{grid-template-columns:repeat(' . (int) $get( 'customizer', 'cz_cols' ) . ',minmax(0,1fr))!important}';
+		}
+		if ( $get( 'customizer', 'cz_pcols' ) ) {
+			$phone .= $cz . ' .aimp-grid{grid-template-columns:repeat(' . (int) $get( 'customizer', 'cz_pcols' ) . ',minmax(0,1fr))!important}';
+		}
+		foreach ( array(
+			'cz_noprice'     => ' .aimp-grid .aimp-card-price',
+			'cz_nosub'       => ' .aimp-grid .aimp-card-sub',
+			'cz_nofav'       => ' .aimp-grid .aimp-fav',
+			'cz_nosizechart' => ' :is([data-role="size-chart"],[data-role="size-chart-in"])',
+			'cz_nomeasure'   => ' [data-action="measure-guide"]',
+		) as $key => $selector ) {
+			if ( $get( 'customizer', $key ) ) {
+				$css .= $cz . $selector . '{display:none!important}';
+			}
+		}
+		if ( isset( $ratios[ $get( 'customizer', 'cz_ratio' ) ] ) ) {
+			$css .= $cz . ' .aimp-grid .aimp-card-image{aspect-ratio:' . $ratios[ $get( 'customizer', 'cz_ratio' ) ] . '!important}' . $cz . ' .aimp-grid .aimp-card-image img{width:100%;height:100%;object-fit:cover}';
+		}
+		if ( 'full' === $get( 'customizer', 'cz_sheet' ) ) {
+			$css .= 'html body .aimp-config-sheet .aimp-sheet-panel{top:0;max-height:none!important;border-radius:0!important}';
+		}
+		$bar = '';
+		if ( $get( 'customizer', 'cz_bar_bg' ) ) {
+			$bar .= 'background:' . $get( 'customizer', 'cz_bar_bg' ) . '!important;';
+		}
+		if ( $get( 'customizer', 'cz_bar_fg' ) ) {
+			$bar .= 'color:' . $get( 'customizer', 'cz_bar_fg' ) . '!important;';
+		}
+		if ( '' !== $bar ) {
+			$css .= 'html body .aimp-config-bar{' . $bar . '}';
+		}
+
 		if ( '' !== $computer ) {
 			$css .= $min . $computer . '}';
 		}
@@ -2524,6 +2668,90 @@ class AIMP_Design {
 		self::check_box( 'pp_noalert', __( 'No "Email me when it\'s back" on sold-out products', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'pp_share', __( 'Share buttons (WhatsApp, Facebook, Pinterest, email, copy link)', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'The texts (delivery line, sold out, back in stock) can be changed in the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		// Customizer (phase 7).
+		$lang_hint = __( 'NL | FR | EN', 'atelier-irisee-master-plugin' );
+		$group( 'cz_steps', __( 'Steps', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'cz_progress',
+			__( 'Step indicator', 'atelier-irisee-master-plugin' ),
+			array(
+				''     => __( 'Numbered steps (standard)', 'atelier-irisee-master-plugin' ),
+				'bar'  => __( 'Numbered steps with a gold progress bar', 'atelier-irisee-master-plugin' ),
+				'none' => __( 'None', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'cz_nonum', __( 'No numbers in front of the step names', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cz_nohowto', __( 'No "How it works" button', 'atelier-irisee-master-plugin' ) );
+		$sub( __( 'A line at the top of each step', 'atelier-irisee-master-plugin' ) );
+		$field( 'cz_intro_pattern', __( 'Pattern', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+		$field( 'cz_intro_fabric', __( 'Fabric', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+		$field( 'cz_intro_notions', __( 'Haberdashery', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+		$field( 'cz_intro_summary', __( 'Summary', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+		echo '<p class="description">' . esc_html__( 'The step names themselves can be changed in the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'cz_cards', __( 'Product cards in the customizer', 'atelier-irisee-master-plugin' ) );
+		$sub( __( 'Cards per row (0 = standard)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'cz_cols', $computer, 0, 6, '' );
+		self::number( 'cz_pcols', $phone, 0, 3, '' );
+		self::check_box( 'cz_noprice', __( 'No price', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cz_nosub', __( 'No line under the name (e.g. the diameter)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cz_nofav', __( 'No favourite heart', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'cz_ratio',
+			__( 'Picture shape', 'atelier-irisee-master-plugin' ),
+			array(
+				''          => $standard,
+				'square'    => __( 'Square', 'atelier-irisee-master-plugin' ),
+				'portrait'  => __( 'Upright (3:4)', 'atelier-irisee-master-plugin' ),
+				'landscape' => __( 'Wide (4:3)', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		echo '</fieldset>';
+
+		$notions    = self::notion_labels();
+		$group( 'cz_flow', __( 'Haberdashery, size chart and details', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cz_nonotions', __( 'No haberdashery step (only pattern and fabric)', 'atelier-irisee-master-plugin' ) );
+		echo '<div class="aimp-ds-order-field"><p class="aimp-ds-sub">' . esc_html__( 'Order of the haberdashery', 'atelier-irisee-master-plugin' ) . '</p><ol class="aimp-ds-order" data-order="cz_norder">';
+		$n = 0;
+		foreach ( $notions as $type => $name ) {
+			echo '<li draggable="true" data-block="' . esc_attr( $type ) . '" data-std="' . esc_attr( $n++ ) . '"><span class="aimp-ds-order-grip" aria-hidden="true">⋮⋮</span><span class="aimp-ds-order-name">' . esc_html( $name ) . '</span>';
+			echo '<button type="button" class="button-link" data-move="-1" aria-label="' . esc_attr__( 'Up', 'atelier-irisee-master-plugin' ) . '">↑</button><button type="button" class="button-link" data-move="1" aria-label="' . esc_attr__( 'Down', 'atelier-irisee-master-plugin' ) . '">↓</button></li>';
+		}
+		echo '</ol><button type="button" class="button-link" data-clear="cz_norder">' . esc_html( $standard ) . '</button></div>';
+		echo '<p class="description">' . esc_html__( 'Every haberdashery choice stays optional; a pattern only shows the ones it needs.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::check_box( 'cz_nosizechart', __( 'No size chart under the sizes', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cz_nomeasure', __( 'No "How to measure" button', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'cz_sheet',
+			__( 'Details on phones and tablets', 'atelier-irisee-master-plugin' ),
+			array(
+				''     => __( 'A sheet from the bottom (standard)', 'atelier-irisee-master-plugin' ),
+				'full' => __( 'The whole screen', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		echo '</fieldset>';
+
+		$group( 'cz_bar', __( 'Gold bar at the bottom (phones)', 'atelier-irisee-master-plugin' ) );
+		self::color( 'cz_bar_bg', __( 'Background', 'atelier-irisee-master-plugin' ) );
+		self::color( 'cz_bar_fg', __( 'Text colour', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cz_nosparkle', __( 'The next button does not sparkle', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'cz_summary', __( 'Summary', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'cz_discount',
+			__( 'The kit discount', 'atelier-irisee-master-plugin' ),
+			array(
+				''      => __( 'Crossed-out prices on every line (standard)', 'atelier-irisee-master-plugin' ),
+				'total' => __( 'Only at the total', 'atelier-irisee-master-plugin' ),
+				'badge' => __( 'Only at the total, with a gold badge above the table', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'cz_nosave', __( 'No "Save this kit" button', 'atelier-irisee-master-plugin' ) );
+		$field( 'cz_note', __( 'A line under the table', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
 		echo '</fieldset>';
 
 		$group( 'pp_info', __( 'Information', 'atelier-irisee-master-plugin' ) );

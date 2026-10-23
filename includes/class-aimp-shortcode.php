@@ -39,6 +39,8 @@ class AIMP_Shortcode {
 			'categories' => AIMP_Catalog::get_pattern_categories(),
 			// Design studio (Kit steps bar): the steps as a pop-up on the first visit, or not.
 			'howtoAuto'  => ! ( class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'kit-steps', 'ks_nopopup' ) ),
+			// Design studio (Customizer): steps, intros, the bar, the summary.
+			'design'     => class_exists( 'AIMP_Design' ) ? (object) AIMP_Design::customizer() : (object) array(),
 			'currency'   => array(
 				'symbol'    => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
 				'position'  => get_option( 'woocommerce_currency_pos', 'left' ),
@@ -245,7 +247,8 @@ class AIMP_Shortcode {
 				'unitLabel' => '10cm' === $info['unit'] ? 'pricePerUnit' : 'pricePerPiece',
 			);
 		}
-		return $steps;
+		// Design studio: in its own order, or none.
+		return class_exists( 'AIMP_Design' ) ? AIMP_Design::notion_order( $steps ) : $steps;
 	}
 
 	/**

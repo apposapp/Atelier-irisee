@@ -51,6 +51,27 @@
 
 	var esc = UI.esc;
 
+	// Design studio (Customizer): see AIMP_Design::customizer().
+	var design = cfg.design || {};
+
+	// A text written as "NL | FR | EN" (or one text for all) in the chosen language.
+	function localText(text) {
+		var parts = String(text || '').split('|').map(function (part) {
+			return part.trim();
+		});
+		var codes = (cfg.languages || []).map(function (language) {
+			return language.code;
+		});
+		var i = codes.indexOf(lang);
+		return parts.length > 1 && i !== -1 && parts[i] ? parts[i] : parts[0];
+	}
+
+	// The line at the top of a step (Design studio).
+	function introHtml(step) {
+		var text = design['cz_intro_' + step];
+		return text ? '<p class="aimp-cz-intro">' + esc(localText(text)) + '</p>' : '';
+	}
+
 	var fmt = UI.fmt;
 
 	function money(amount) {
@@ -235,7 +256,7 @@
 	 */
 	Configurator.prototype.setupSparkle = function () {
 		var self = this;
-		if (this.sparkleObserver || !window.MutationObserver || !window.matchMedia) {
+		if (design.cz_nosparkle || this.sparkleObserver || !window.MutationObserver || !window.matchMedia) {
 			return;
 		}
 		var phone = window.matchMedia('(max-width: 700px)');
@@ -478,7 +499,7 @@
 		if (!size || size.fabric_units > 0) {
 			steps.push({ key: 'fabric', label: t.stepFabric });
 		}
-		if (!size || this.notionTypes().length) {
+		if (size ? this.notionTypes().length : NOTIONS.length) {
 			steps.push({ key: 'notions', label: t.stepNotions });
 		}
 		steps.push({ key: 'summary', label: t.stepSummary });
@@ -514,7 +535,9 @@
 		open.addEventListener('click', function () {
 			self.openHowto();
 		});
-		this.root.querySelector('.aimp-topbar').insertBefore(open, this.languagesEl);
+		if (!design.cz_nohowto) {
+			this.root.querySelector('.aimp-topbar').insertBefore(open, this.languagesEl);
+		}
 		var seen = false;
 		try {
 			seen = !!window.localStorage.getItem(HOWTO_SEEN);
@@ -747,6 +770,12 @@
 	Configurator.prototype.renderSteps = function () {
 		var self = this;
 		var current = this.stepIndex(this.state.step);
+		var count = this.steps().length;
+		// Design studio: a gold progress bar under the steps, no numbers, or no step indicator at all.
+		this.stepsEl.classList.toggle('aimp-steps--bar', design.cz_progress === 'bar');
+		this.stepsEl.classList.toggle('aimp-steps--none', design.cz_progress === 'none');
+		this.stepsEl.classList.toggle('aimp-steps--nonum', !!design.cz_nonum);
+		this.stepsEl.style.setProperty('--cz-progress', (count > 1 ? Math.round(current / (count - 1) * 100) : 100) + '%');
 		this.stepsEl.innerHTML = this.steps()
 			.map(function (step, i) {
 				var cls = i === current ? 'is-current' : i < current ? 'is-done' : '';
@@ -833,7 +862,7 @@
 	Configurator.prototype.renderPatternStep = function () {
 		var self = this;
 		var s = this.state;
-		var html = '<div class="aimp-step aimp-step--pattern">';
+		var html = '<div class="aimp-step aimp-step--pattern">' + introHtml('pattern');
 
 		if (cfg.categories && cfg.categories.length) {
 			html += '<div class="aimp-filters" role="group">';
@@ -1268,6 +1297,7 @@
 		// The same filter panel as the shop pages: a gold column on the left that opens and closes.
 		this.body.innerHTML =
 			'<div class="aimp-step aimp-step--fabric aimp-fabric-filters">' +
+			introHtml('fabric') +
 			this.recapHtml() +
 			'<h3>' + esc(t.chooseFabric) + '</h3>' +
 			'<div class="aimp-fabric-filterbar">' +
@@ -1542,7 +1572,7 @@
 	Configurator.prototype.renderNotionsStep = function () {
 		var self = this;
 		var s = this.state;
-		var html = '<div class="aimp-step aimp-step--notions">' + this.recapHtml();
+		var html = '<div class="aimp-step aimp-step--notions">' + introHtml('notions') + this.recapHtml();
 
 		this.notionTypes().forEach(function (type) {
 			var info = notionInfo(type);
@@ -1718,14 +1748,19 @@
 			return '<del>' + esc(money(amount)) + '</del> <ins>' + esc(money(amount * (100 - discount) / 100)) + '</ins>';
 		};
 
-		var html = '<div class="aimp-step aimp-step--summary">' + this.recapHtml() + '<h3>' + esc(t.summaryTitle) + '</h3>';
+		var html = '<div class="aimp-step aimp-step--summary">' + introHtml('summary') + this.recapHtml() + '<h3>' + esc(t.summaryTitle) + '</h3>';
+		// Design studio: the kit discount only at the total (and as a gold badge above the table).
+		var perLine = design.cz_discount !== 'total' && design.cz_discount !== 'badge';
+		if (discount && design.cz_discount === 'badge') {
+			html += '<p class="aimp-cz-badge">' + esc(fmt(t.kitDiscount, discount)) + '</p>';
+		}
 		html += '<div class="aimp-table-scroll"><table class="aimp-summary"><thead><tr><th>' + esc(t.product) + '</th><th>' + esc(t.quantity) + '</th><th>' + esc(t.price) + '</th></tr></thead><tbody>';
 		lines.forEach(function (line) {
 			var subtotal = line.price * line.qty;
 			total += subtotal;
 			html +=
 				'<tr><td>' + esc(line.name) + (line.detail ? '<br><small>' + esc(line.detail) + '</small>' : '') + '</td>' +
-				'<td>' + esc(line.qty) + '</td><td class="aimp-summary-price">' + priceHtml(subtotal) + '</td></tr>';
+				'<td>' + esc(line.qty) + '</td><td class="aimp-summary-price">' + (perLine ? priceHtml(subtotal) : esc(money(subtotal))) + '</td></tr>';
 		});
 		html += '</tbody><tfoot>';
 		if (discount) {
@@ -1733,11 +1768,14 @@
 		}
 		html += '<tr><th colspan="2">' + esc(t.total) + '</th><td class="aimp-summary-price">' + priceHtml(total) + '</td></tr></tfoot></table></div>';
 		html += '<p class="aimp-help">' + esc(t.lockedNote) + '</p>';
+		if (design.cz_note) {
+			html += '<p class="aimp-help aimp-cz-note">' + esc(localText(design.cz_note)) + '</p>';
+		}
 		html += '<div data-role="messages"></div>';
 		html +=
 			'<div class="aimp-actions">' +
 			'<button type="button" class="aimp-button aimp-button--ghost" data-action="back"' + (s.added ? ' hidden' : '') + '>' + esc(t.back) + '</button>' +
-			'<button type="button" class="aimp-button aimp-button--ghost" data-action="save">' + esc(t.saveKit) + '</button>' +
+			'<button type="button" class="aimp-button aimp-button--ghost" data-action="save"' + (design.cz_nosave ? ' hidden' : '') + '>' + esc(t.saveKit) + '</button>' +
 			'<button type="button" class="aimp-button" data-action="add"' + (s.added ? ' hidden' : '') + '>' + esc(t.addToCart) + '</button>' +
 			'</div><div data-role="save-message"></div></div>';
 		this.body.innerHTML = html;

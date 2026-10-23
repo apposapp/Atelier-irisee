@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.27.0
+Stable tag: 3.28.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,14 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.28.0 =
+* Design studio, phase 7 (customizer), new part "Customizer (whole)":
+  * Steps: numbered steps, with a gold progress bar, or no step indicator; no numbers; no "How it works" button; a line at the top of each step (NL | FR | EN).
+  * Product cards: cards per row on computers and phones, no price, no line under the name, no favourite heart, the picture shape.
+  * Haberdashery: drag the haberdashery types in order, or leave the haberdashery step out; no size chart, no "How to measure" button; details on phones and tablets as a sheet or the whole screen.
+  * The gold bar on phones: its colours, and the next button without sparkle.
+  * Summary: the kit discount on every line, only at the total, or with a gold badge; no "Save this kit" button; a line under the table.
 
 = 3.27.0 =
 * Design studio, phase 6 (product page), new part "Product page (whole)":
