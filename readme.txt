@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.33.0
+Stable tag: 3.34.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,18 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.34.0 =
+* Design studio: click and change (almost) everything.
+  * Any element of a page can be clicked, also the page's own content (Divi sections, titles, paragraphs, pictures): it becomes one of "Your own picks", with text style, colours, picture, size, space, corners, position, show or hide and animations. Header and footer elements count on every page, the rest on that page.
+  * "Or change:" under the name shows the clicked element and the ones around it (e.g. Section › Block › Paragraph): one click switches.
+  * The preview names what is under the mouse.
+  * New for every part: Text style (size, thickness, alignment, capitals), on the Design tab.
+  * Undo and Redo (also Ctrl+Z / Ctrl+Shift+Z), for settings and texts.
+  * Words from the page's own content: next to "Edit this in WordPress" also "Open this page in the Divi builder".
+  * The page list has every published page (e.g. the start page) and the latest blog posts, in groups; a page reached by browsing in the preview shows as "This page".
+  * After a change, the open block and tab stay as they are.
+* Fix: clicking a customizer text in the preview could open the English text list instead of the page language.
 
 = 3.33.0 =
 * Design studio, organised like Divi:

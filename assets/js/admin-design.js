@@ -40,12 +40,15 @@
 	var device = 'computer';
 	// Like Divi: a part's settings on three tabs. Content = the clicked text and the part's own settings,
 	// Design = how it looks, Advanced = where it sits, when it shows, how it moves.
-	var DESIGN = ['colors', 'image', 'size', 'space', 'radius'];
+	var DESIGN = ['typo', 'colors', 'image', 'size', 'space', 'radius'];
 	var ADVANCED = ['move', 'hide', 'anim'];
 	var activeTab = 'content';
 	// The shop text clicked in the preview ({ original, shown }), or that the clicked words are not a shop text.
 	var currentText = null;
 	var currentMiss = false;
+	// The part and text the panel shows now (to keep its tab and open block when it is drawn again).
+	var shownPart = '';
+	var shownText = null;
 	// The preview's own post (product or page), for "Edit this in WordPress".
 	var currentPost = 0;
 	// The shop texts on the page in the preview (originals), or null.
@@ -501,6 +504,12 @@
 		edit.hidden = false;
 		focusMode(true);
 		var controls = cfg.elements[current].controls || [];
+		// The same part again (e.g. after saving): the same tab and the same open block.
+		var samePart = current === shownPart && currentText === shownText;
+		var openGroup = edit.querySelector('.aimp-ds-group.is-open');
+		var openKey = samePart && openGroup ? (openGroup.getAttribute('data-group') || 'text') : '';
+		shownPart = current;
+		shownText = currentText;
 		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
 			var key = group.getAttribute('data-group');
 			group.classList.remove('is-open');
@@ -534,10 +543,17 @@
 			button.hidden = !filled[button.getAttribute('data-ptab')];
 		});
 		partTabs.hidden = Object.keys(filled).length < 2;
-		if (currentText || currentMiss || !filled[activeTab]) {
+		if ((!samePart && (currentText || currentMiss)) || !filled[activeTab]) {
 			activeTab = filled.content ? 'content' : (filled.design ? 'design' : 'advanced');
 		}
 		setTab(activeTab);
+		var keep = openKey === 'text' ? textGroup : (openKey ? edit.querySelector('.aimp-ds-group[data-group="' + openKey + '"]') : null);
+		if (keep && !keep.hidden && !keep.classList.contains('is-off-tab')) {
+			edit.querySelectorAll('.aimp-ds-group.is-open').forEach(function (other) {
+				other.classList.remove('is-open');
+			});
+			keep.classList.add('is-open');
+		}
 		markGroups();
 		q('.aimp-ds-edit-name').textContent = cfg.elements[current].label;
 		var row = draft[current] || {};
