@@ -792,7 +792,8 @@
 			var doc = frame.contentDocument;
 			var sel = pictureKey === 'h_img' ? '.aimp-hero' : cfg.elements[current].selector;
 			var el = doc.querySelector(prefixed(sel));
-			var img = el && (el.tagName === 'IMG' ? el : el.querySelector('img'));
+			// The hero: its photo (a background, or the first slide), never the round seal on it.
+			var img = el && (el.tagName === 'IMG' ? el : el.querySelector(pictureKey === 'h_img' ? '.aimp-hero-media img' : 'img'));
 			if (img && img.currentSrc) {
 				return img.currentSrc;
 			}
