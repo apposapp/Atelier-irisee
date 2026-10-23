@@ -520,7 +520,7 @@
 			seen = !!window.localStorage.getItem(HOWTO_SEEN);
 		} catch (e) {}
 		// Not when coming from a product page or a saved kit: then the visitor already knows what to do.
-		if (!seen && !/[?&]aimp_(pattern|kit)=/.test(window.location.search)) {
+		if (!seen && cfg.howtoAuto !== false && !/[?&]aimp_(pattern|kit)=/.test(window.location.search)) {
 			this.openHowto();
 		}
 	};

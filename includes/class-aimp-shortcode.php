@@ -37,6 +37,8 @@ class AIMP_Shortcode {
 			'nonce'      => wp_create_nonce( AIMP_Ajax::NONCE ),
 			'cartUrl'    => wc_get_cart_url(),
 			'categories' => AIMP_Catalog::get_pattern_categories(),
+			// Design studio (Kit steps bar): the steps as a pop-up on the first visit, or not.
+			'howtoAuto'  => ! ( class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'kit-steps', 'ks_nopopup' ) ),
 			'currency'   => array(
 				'symbol'    => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
 				'position'  => get_option( 'woocommerce_currency_pos', 'left' ),

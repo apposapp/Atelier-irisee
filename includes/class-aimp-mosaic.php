@@ -209,11 +209,41 @@ class AIMP_Mosaic {
 	}
 
 	/**
+	 * Products picked by a rule of the Design studio: newest, sale or random. Kept for an hour.
+	 *
+	 * @param string $type   Page type.
+	 * @param string $source newest, sale or random.
+	 * @return int[]
+	 */
+	private static function chosen_by( $type, $source ) {
+		$key = 'aimp_shop_mosaic_' . $source . '_' . $type . '_' . AIMP_Shop::cache_version();
+		$ids = get_transient( $key );
+		if ( is_array( $ids ) ) {
+			return $ids;
+		}
+		$ids = self::scope_ids( $type );
+		if ( 'sale' === $source ) {
+			$ids = array_values( array_intersect( $ids, array_map( 'absint', wc_get_product_ids_on_sale() ) ) );
+		}
+		if ( 'newest' === $source ) {
+			// The scope comes newest first (WP_Query's standard order).
+			$ids = array_slice( $ids, 0, self::COUNT );
+		} else {
+			shuffle( $ids );
+			$ids = array_slice( $ids, 0, self::COUNT );
+		}
+		set_transient( $key, $ids, HOUR_IN_SECONDS );
+		return $ids;
+	}
+
+	/**
 	 * @param string $type Page type.
 	 * @return WC_Product[]
 	 */
 	public static function products( $type ) {
-		$ids = 'manual' === self::get( 'source' ) ? (array) self::get( $type ) : array();
+		// Design studio (Mosaic): the newest products, those on sale, or a random choice instead.
+		$source = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'mosaic', 'mos_source', '' ) : '';
+		$ids    = '' !== $source ? self::chosen_by( $type, $source ) : ( 'manual' === self::get( 'source' ) ? (array) self::get( $type ) : array() );
 		if ( ! $ids ) {
 			$ids = self::bestsellers( $type );
 		}

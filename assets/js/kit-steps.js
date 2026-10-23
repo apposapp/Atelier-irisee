@@ -23,18 +23,30 @@
 		return n.toFixed(1);
 	}
 
+	// Design studio (Kit steps bar): a smooth thread without loops (each loop becomes a straight piece).
+	var straight = false;
+
 	// A loop at (x, y): from (x - r, y) the thread curls above (dir -1) or below (dir 1) and comes out at (x + r, y).
 	function loop(x, y, r, dir) {
+		if (straight) {
+			return ' L ' + f(x + r) + ' ' + f(y);
+		}
 		return ' C ' + f(x + r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x - r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x + r) + ' ' + f(y);
 	}
 
 	// The same loop for a thread going left: from (x + r, y) out at (x - r, y).
 	function loopBack(x, y, r, dir) {
+		if (straight) {
+			return ' L ' + f(x - r) + ' ' + f(y);
+		}
 		return ' C ' + f(x - r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x + r * 2.6) + ' ' + f(y + dir * r * 2.8) + ', ' + f(x - r) + ' ' + f(y);
 	}
 
 	// A sideways loop on a line going down, at (x, y): from (x, y - r) out at (x, y + r).
 	function loopDown(x, y, r) {
+		if (straight) {
+			return ' L ' + f(x) + ' ' + f(y + r);
+		}
 		return ' C ' + f(x + r * 2.8) + ' ' + f(y + r * 2.6) + ', ' + f(x + r * 2.8) + ' ' + f(y - r * 2.6) + ', ' + f(x) + ' ' + f(y + r);
 	}
 
@@ -161,8 +173,11 @@
 			});
 			// Two columns: the phone layout.
 			var phone = cards.length >= 4 && Math.abs(cards[0].top - cards[1].top) < 30 && cards[2].top > cards[0].bottom - 5;
+			straight = bar.getAttribute('data-loops') === '0';
 			var d = seam(box, cards, button.getBoundingClientRect(), phone);
-			duration = phone ? 8000 : DURATION;
+			// Design studio: the needle's speed in percent of the normal speed.
+			var speed = (parseFloat(bar.getAttribute('data-speed')) || 100) / 100;
+			duration = (phone ? 8000 : DURATION) / speed;
 			guide.setAttribute('d', d);
 			sewn.setAttribute('d', d);
 			reveal.setAttribute('d', d);
@@ -198,6 +213,9 @@
 
 		var sparked = false;
 		function spark() {
+			if (bar.getAttribute('data-sparkle') === '0') {
+				return;
+			}
 			button.classList.remove('is-sparked');
 			void button.offsetWidth; // Restart the animation.
 			button.classList.add('is-sparked');

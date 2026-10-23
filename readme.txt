@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.24.0
+Stable tag: 3.25.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.25.0 =
+* Design studio, phase 4 (kit steps bar and mosaic):
+  * Kit steps bar: leave out step 2 or 3, add a fifth step ("Start sewing", with a new spool-and-needle drawing), another drawing or your own picture per step, thread colour and thickness, needle speed, a smooth thread without loops, another address for the button, no sparkle, and the steps pop-up on the first visit of the customizer on/off. New part: each kit steps card.
+  * Mosaic: the newest products, those on sale or a random choice (besides the settings), an even grid or one row to scroll sideways, space between the pictures, names and prices on/off, and the mouse-over effect.
 
 = 3.24.0 =
 * Design studio, phase 3 (header, menu, tab bar, search, hero):

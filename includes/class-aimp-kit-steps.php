@@ -28,16 +28,35 @@ class AIMP_Kit_Steps {
 	}
 
 	/**
-	 * The four steps: [ key, title, text ].
+	 * A Design studio setting of the bar (Design studio → Kit steps bar).
+	 *
+	 * @param string $key     Setting.
+	 * @param mixed  $default When it is not set.
+	 * @return mixed
+	 */
+	private static function design( $key, $default = null ) {
+		return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'kit-steps', $key, $default ) : $default;
+	}
+
+	/**
+	 * The steps: [ drawing, title, text, step number ]. Steps 2 and 3 can be left out and a fifth one ("Start
+	 * sewing") added in the Design studio; each step can get another drawing or a picture of its own.
 	 *
 	 * @return array
 	 */
 	private static function steps() {
 		$defaults = self::default_texts();
 		$steps    = array();
-		foreach ( array( 'pattern', 'fabric', 'notions', 'kit' ) as $i => $key ) {
-			$n       = $i + 1;
-			$steps[] = array( $key, self::text( 'ks_s' . $n . '_title', $defaults[ 'ks_s' . $n . '_title' ] ), self::text( 'ks_s' . $n . '_text', $defaults[ 'ks_s' . $n . '_text' ] ) );
+		$slots    = array( 1 => 'pattern', 2 => 'fabric', 3 => 'notions', 4 => 'kit' );
+		if ( self::design( 'ks_step5' ) ) {
+			$slots[5] = 'sew';
+		}
+		foreach ( $slots as $n => $key ) {
+			if ( ( 2 === $n && self::design( 'ks_hide_2' ) ) || ( 3 === $n && self::design( 'ks_hide_3' ) ) ) {
+				continue;
+			}
+			$drawing = (string) self::design( 'ks_icon_' . $n, '' );
+			$steps[] = array( '' !== $drawing ? $drawing : $key, self::text( 'ks_s' . $n . '_title', $defaults[ 'ks_s' . $n . '_title' ] ), self::text( 'ks_s' . $n . '_text', $defaults[ 'ks_s' . $n . '_text' ] ), $n );
 		}
 		return $steps;
 	}
@@ -58,6 +77,9 @@ class AIMP_Kit_Steps {
 			'ks_s3_text'  => __( 'Buttons, zips and more that fit.', 'atelier-irisee-master-plugin' ),
 			'ks_s4_title' => __( 'Your sewing kit', 'atelier-irisee-master-plugin' ),
 			'ks_s4_text'  => __( 'Everything together, ready to sew.', 'atelier-irisee-master-plugin' ),
+			// The fifth step (Design studio → Kit steps bar).
+			'ks_s5_title' => __( 'Start sewing', 'atelier-irisee-master-plugin' ),
+			'ks_s5_text'  => __( 'Follow the pattern, step by step.', 'atelier-irisee-master-plugin' ),
 			'ks_button'   => __( 'Start making your project sewing kit', 'atelier-irisee-master-plugin' ),
 		);
 	}
@@ -110,7 +132,16 @@ class AIMP_Kit_Steps {
 				'<g class="ks-lid"><path d="M22 32h76v10H22z"/></g>' .
 				'<g class="ks-bow"><path d="M60 32c-6-10-18-10-16-2s12 4 16 2zm0 0c6-10 18-10 16-2s-12 4-16 2z"/></g>' .
 				'<path class="ks-spark" d="M100 14l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/><path class="ks-spark ks-spark--2" d="M16 18l1.3 3.2 3.2 1.3-3.2 1.3L16 27l-1.3-3.2-3.2-1.3 3.2-1.3z"/>',
+			// A spool of thread and a needle with the thread running through it (the fifth step, "Start sewing").
+			'sew'     => '<path class="ks-box" d="M30 22h34M30 78h34"/><path d="M34 22v56M60 22v56"/>' .
+				'<path class="ks-print" d="M34 30h26M34 38h26M34 46h26M34 54h26M34 62h26M34 70h26"/>' .
+				'<g class="ks-lid"><path d="M74 72L102 16"/><ellipse cx="99.5" cy="21" rx="1.4" ry="3.6" transform="rotate(27 99.5 21)"/></g>' .
+				'<path class="ks-cut" d="M60 50c8 0 10-8 16-14s12-8 22-16"/>' .
+				'<path class="ks-spark" d="M16 18l1.3 3.2 3.2 1.3-3.2 1.3L16 27l-1.3-3.2-3.2-1.3 3.2-1.3z"/>',
 		);
+		if ( ! isset( $parts[ $key ] ) ) {
+			$key = 'kit';
+		}
 		return '<svg class="aimp-kit-steps-drawing ks-' . esc_attr( $key ) . '" viewBox="0 0 120 90" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $parts[ $key ] . '</svg>';
 	}
 
@@ -184,6 +215,16 @@ class AIMP_Kit_Steps {
 		);
 		$page = AIMP_Settings::get( 'configurator_page' );
 		$url  = '' !== $atts['url'] ? $atts['url'] : ( $page && 'publish' === get_post_status( $page ) ? get_permalink( $page ) : '' );
+		// Design studio: another address for the button (not for the pop-up in the customizer, which has its own).
+		if ( '' === $atts['url'] && self::design( 'ks_url' ) ) {
+			$url = (string) self::design( 'ks_url' );
+		}
+		$steps = self::steps();
+		$speed = (int) self::design( 'ks_speed', 100 );
+		$extra = ' style="--ks-count:' . count( $steps ) . '"';
+		$extra .= 100 !== $speed ? ' data-speed="' . esc_attr( (string) $speed ) . '"' : '';
+		$extra .= self::design( 'ks_noloops' ) ? ' data-loops="0"' : '';
+		$extra .= self::design( 'ks_nosparkle' ) ? ' data-sparkle="0"' : '';
 
 		if ( ! wp_style_is( 'aimp-kit-steps', 'registered' ) ) {
 			self::register_assets();
@@ -197,7 +238,7 @@ class AIMP_Kit_Steps {
 
 		ob_start();
 		?>
-		<section class="aimp-kit-steps" data-aimp-kit-steps aria-label="<?php echo esc_attr( $title ); ?>">
+		<section class="aimp-kit-steps" data-aimp-kit-steps aria-label="<?php echo esc_attr( $title ); ?>"<?php echo $extra; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from numbers and fixed text above. ?>>
 			<h2 class="aimp-kit-steps-title"><?php echo esc_html( $title ); ?></h2>
 			<div class="aimp-kit-steps-row">
 				<?php // The seam behind the steps, and a needle above them that sews it from left to right (kit-steps.js). ?>
@@ -207,10 +248,15 @@ class AIMP_Kit_Steps {
 				</svg>
 				<svg class="aimp-kit-steps-sewing" aria-hidden="true" focusable="false"><?php echo self::needle(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?></svg>
 				<ol class="aimp-kit-steps-list">
-					<?php foreach ( self::steps() as $index => $step ) : ?>
+					<?php foreach ( $steps as $index => $step ) : ?>
 						<li class="aimp-kit-step aimp-kit-step--<?php echo esc_attr( $step[0] ); ?>">
 							<span class="aimp-kit-step-seal" aria-hidden="true"><?php echo (int) $index + 1; ?></span>
-							<?php echo self::drawing( $step[0] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?>
+							<?php $picture = (int) self::design( 'ks_img_' . $step[3], 0 ); ?>
+							<?php if ( $picture ) : ?>
+								<?php echo wp_get_attachment_image( $picture, 'medium', false, array( 'class' => 'aimp-kit-steps-drawing aimp-kit-steps-picture', 'alt' => '', 'loading' => 'lazy' ) ); ?>
+							<?php else : ?>
+								<?php echo self::drawing( $step[0] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?>
+							<?php endif; ?>
 							<h3 class="aimp-kit-step-title"><?php echo esc_html( $step[1] ); ?></h3>
 							<p class="aimp-kit-step-text"><?php echo esc_html( $step[2] ); ?></p>
 						</li>

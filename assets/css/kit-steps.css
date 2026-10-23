@@ -110,7 +110,7 @@
 	position: relative;
 	display: grid;
 	flex: 1 1 auto;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(var(--ks-count, 4), minmax(0, 1fr));
 	gap: clamp(0.5rem, 1.5vw, 1.25rem);
 	margin: 0;
 	padding: 0;
@@ -552,4 +552,14 @@
 		padding: 0.85rem 1.3rem;
 		font-size: 1.05rem;
 	}
+}
+
+/* Design studio: a step with a picture of its own instead of a drawing. */
+.aimp-kit-steps .aimp-kit-steps-picture {
+	width: 100%;
+	max-width: 160px;
+	height: auto;
+	aspect-ratio: 4 / 3;
+	object-fit: contain;
+	stroke: none;
 }

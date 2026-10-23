@@ -96,6 +96,7 @@ class AIMP_Design {
 			'kit-steps'       => array( $steps, __( 'Kit steps bar (whole)', 'atelier-irisee-master-plugin' ), '.aimp-kit-steps' ),
 			'kit-steps-title' => array( $steps, __( 'Kit steps title', 'atelier-irisee-master-plugin' ), '.aimp-kit-steps-title' ),
 			'kit-steps-list'  => array( $steps, __( 'Kit steps cards', 'atelier-irisee-master-plugin' ), '.aimp-kit-steps-list' ),
+			'kit-step'        => array( $steps, __( 'Kit steps card (each)', 'atelier-irisee-master-plugin' ), '.aimp-kit-step' ),
 			'kit-steps-button' => array( $steps, __( 'Kit steps button', 'atelier-irisee-master-plugin' ), '.aimp-kit-steps-button' ),
 			'overview'        => array( $shop, __( 'Overview cards (whole)', 'atelier-irisee-master-plugin' ), '.aimp-overview-grid' ),
 			'overview-card'   => array( $shop, __( 'Overview cards (each)', 'atelier-irisee-master-plugin' ), '.aimp-overview-card' ),
@@ -156,6 +157,8 @@ class AIMP_Design {
 			'header-lang'     => array( 'lang_opts' ),
 			'header-search'   => array( 'search_opts' ),
 			'hero-arrow'      => array( 'arrow_opts' ),
+			'kit-steps'       => array( 'ks_opts' ),
+			'mosaic'          => array( 'mosaic_opts' ),
 		) as $id => $more ) {
 			if ( isset( $elements[ $id ] ) ) {
 				$elements[ $id ]['controls'] = array_merge( $elements[ $id ]['controls'], $more );
@@ -371,6 +374,16 @@ class AIMP_Design {
 				'ha_target' => array( 'select', array( '', 'next', 'anchor' ) ),
 				'ha_anchor' => 'text',
 			),
+			// The kit steps bar and the mosaic (phase 4).
+			'ks_opts'     => self::kit_step_fields(),
+			'mosaic_opts' => array(
+				'mos_source'    => array( 'select', array( '', 'newest', 'sale', 'random' ) ),
+				'mos_layout'    => array( 'select', array( '', 'grid', 'row' ) ),
+				'mos_gap'       => array( 0, 40, -1 ),
+				'mos_nocaption' => 'bool',
+				'mos_noprice'   => 'bool',
+				'mos_hover'     => array( 'select', array( '', 'none', 'lift' ) ),
+			),
 		);
 	}
 
@@ -406,6 +419,37 @@ class AIMP_Design {
 	}
 
 	/**
+	 * The kit steps bar's own settings: steps 2 and 3 can be left out and a fifth one added; per step a drawing or a
+	 * picture; the thread, the needle's speed, loops, the button and the customizer's first-visit pop-up.
+	 *
+	 * @return array
+	 */
+	private static function kit_step_fields() {
+		$drawings = array( 'select', array( '', 'pattern', 'fabric', 'notions', 'kit', 'sew' ) );
+		$fields   = array(
+			'ks_hide_2'   => 'bool',
+			'ks_hide_3'   => 'bool',
+			'ks_step5'    => 'bool',
+		);
+		for ( $n = 1; $n <= 5; $n++ ) {
+			$fields[ 'ks_icon_' . $n ] = $drawings;
+			$fields[ 'ks_img_' . $n ]  = 'image';
+		}
+		return array_merge(
+			$fields,
+			array(
+				'ks_thread'    => 'color',
+				'ks_width'     => array( 1, 8, -1 ),
+				'ks_speed'     => array( 25, 400, 100 ),
+				'ks_noloops'   => 'bool',
+				'ks_url'       => 'url',
+				'ks_nosparkle' => 'bool',
+				'ks_nopopup'   => 'bool',
+			)
+		);
+	}
+
+	/**
 	 * A setting of a part as the page being made uses it: the draft in the studio's preview, else what visitors see.
 	 *
 	 * @param string $part    Part.
@@ -427,7 +471,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'header_opts', 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_media', 'hero_buttons', 'arrow_opts', 'favicon' );
+		return array( 'header_opts', 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_media', 'hero_buttons', 'arrow_opts', 'favicon', 'ks_opts', 'mosaic_opts' );
 	}
 
 	/**
@@ -1134,6 +1178,36 @@ class AIMP_Design {
 		};
 		$computer .= $place( $get( 'hero', 'h_x' ), $get( 'hero', 'h_y' ) );
 		$phone    .= $place( $get( 'hero', 'ph_x' ), $get( 'hero', 'ph_y' ) );
+
+		// Kit steps bar: the thread.
+		if ( $get( 'kit-steps', 'ks_thread' ) ) {
+			$css .= 'html body .aimp-kit-steps .ks-seam-sewn{stroke:' . $get( 'kit-steps', 'ks_thread' ) . '!important}html body .aimp-kit-steps .ks-seam-guide{stroke:color-mix(in srgb,' . $get( 'kit-steps', 'ks_thread' ) . ' 35%,transparent)!important}';
+		}
+		if ( null !== $get( 'kit-steps', 'ks_width' ) ) {
+			$css .= 'html body .aimp-kit-steps :is(.ks-seam-sewn,.ks-seam-guide){stroke-width:' . (int) $get( 'kit-steps', 'ks_width' ) . '!important}';
+		}
+
+		// Mosaic: layout, gaps, captions, mouse-over.
+		$layout = $get( 'mosaic', 'mos_layout' );
+		if ( 'grid' === $layout ) {
+			$css      .= 'html body .aimp-configurator .aimp-mosaic-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-template-rows:none!important;grid-auto-rows:clamp(140px,18vw,240px)!important}html body .aimp-configurator .aimp-mosaic-tile{grid-column:auto!important;grid-row:auto!important}';
+			$phone    .= 'html body .aimp-configurator .aimp-mosaic-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}';
+		} elseif ( 'row' === $layout ) {
+			$css .= 'html body .aimp-configurator .aimp-mosaic-grid{display:grid!important;grid-template-columns:none!important;grid-template-rows:none!important;grid-auto-flow:column!important;grid-auto-columns:clamp(160px,22vw,260px)!important;grid-auto-rows:clamp(200px,28vw,320px)!important;overflow-x:auto!important;scroll-snap-type:x mandatory}html body .aimp-configurator .aimp-mosaic-tile{grid-column:auto!important;grid-row:auto!important;scroll-snap-align:start}';
+		}
+		if ( null !== $get( 'mosaic', 'mos_gap' ) ) {
+			$css .= 'html body .aimp-configurator .aimp-mosaic-grid{gap:' . (int) $get( 'mosaic', 'mos_gap' ) . 'px!important}';
+		}
+		if ( $get( 'mosaic', 'mos_nocaption' ) ) {
+			$css .= 'html body .aimp-mosaic-caption{display:none!important}';
+		} elseif ( $get( 'mosaic', 'mos_noprice' ) ) {
+			$css .= 'html body .aimp-configurator .aimp-mosaic-price{display:none!important}';
+		}
+		if ( 'none' === $get( 'mosaic', 'mos_hover' ) ) {
+			$css .= 'html body .aimp-configurator .aimp-mosaic-tile a:is(:hover,:focus-visible) img{transform:none!important}';
+		} elseif ( 'lift' === $get( 'mosaic', 'mos_hover' ) ) {
+			$css .= 'html body .aimp-configurator .aimp-mosaic-tile a:is(:hover,:focus-visible) img{transform:none!important}html body .aimp-configurator .aimp-mosaic-tile{transition:transform .25s ease,box-shadow .25s ease}html body .aimp-configurator .aimp-mosaic-tile:hover{transform:translateY(-4px);box-shadow:0 10px 24px color-mix(in srgb,var(--aimp-site-brown,#613907) 22%,transparent)}';
+		}
 
 		if ( '' !== $computer ) {
 			$css .= $min . $computer . '}';
@@ -1877,6 +1951,73 @@ class AIMP_Design {
 			)
 		);
 		$field( 'ha_anchor', __( '#name of that part', 'atelier-irisee-master-plugin' ), 'text', '#shop' );
+		echo '</fieldset>';
+
+		// The kit steps bar and the mosaic (phase 4).
+		$drawings = array(
+			''        => $standard,
+			'pattern' => __( 'Pattern with scissors', 'atelier-irisee-master-plugin' ),
+			'fabric'  => __( 'Fabric roll with tape measure', 'atelier-irisee-master-plugin' ),
+			'notions' => __( 'Buttons and zip', 'atelier-irisee-master-plugin' ),
+			'kit'     => __( 'Gift box', 'atelier-irisee-master-plugin' ),
+			'sew'     => __( 'Spool and needle', 'atelier-irisee-master-plugin' ),
+		);
+		$group( 'ks_opts', __( 'Steps, drawings, thread and button', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The texts of the steps are under Settings → Kit steps bar; the fifth step\'s texts in the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::check_box( 'ks_hide_2', __( 'Leave out step 2 (fabric)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ks_hide_3', __( 'Leave out step 3 (haberdashery)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ks_step5', __( 'Add a fifth step ("Start sewing")', 'atelier-irisee-master-plugin' ) );
+		for ( $n = 1; $n <= 5; $n++ ) {
+			/* translators: %d: step number */
+			echo '<p class="aimp-ds-sub">' . esc_html( sprintf( __( 'Step %d', 'atelier-irisee-master-plugin' ), $n ) ) . '</p>';
+			self::choice( 'ks_icon_' . $n, __( 'Drawing', 'atelier-irisee-master-plugin' ), $drawings );
+			self::picture_field( 'ks_img_' . $n, __( 'Or your own picture', 'atelier-irisee-master-plugin' ) );
+		}
+		echo '<p class="aimp-ds-sub">' . esc_html__( 'Needle and thread', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::color( 'ks_thread', __( 'Thread colour', 'atelier-irisee-master-plugin' ) );
+		self::number( 'ks_width', __( 'Thread thickness', 'atelier-irisee-master-plugin' ), 1, 8, '' );
+		echo '<button type="button" class="button-link" data-clear="ks_width">' . esc_html( $standard ) . '</button>';
+		self::number( 'ks_speed', __( 'Needle speed', 'atelier-irisee-master-plugin' ), 25, 400, '%' );
+		self::check_box( 'ks_noloops', __( 'A smooth thread without loops', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="aimp-ds-sub">' . esc_html__( 'Button', 'atelier-irisee-master-plugin' ) . '</p>';
+		$field( 'ks_url', __( 'The button goes to (standard: the customizer)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
+		self::check_box( 'ks_nosparkle', __( 'No sparkle on the button', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ks_nopopup', __( 'Do not open the steps as a pop-up on the first visit of the customizer', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'mosaic_opts', __( 'Products, layout and captions', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'mos_source',
+			__( 'Products', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'As in Settings → Mosaic (standard)', 'atelier-irisee-master-plugin' ),
+				'newest' => __( 'The newest', 'atelier-irisee-master-plugin' ),
+				'sale'   => __( 'On sale', 'atelier-irisee-master-plugin' ),
+				'random' => __( 'Random (changes every hour)', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'mos_layout',
+			__( 'Layout', 'atelier-irisee-master-plugin' ),
+			array(
+				''     => __( 'Centre stage (standard)', 'atelier-irisee-master-plugin' ),
+				'grid' => __( 'Even grid', 'atelier-irisee-master-plugin' ),
+				'row'  => __( 'One row to scroll sideways', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::number( 'mos_gap', __( 'Space between pictures', 'atelier-irisee-master-plugin' ), 0, 40, 'px' );
+		echo '<button type="button" class="button-link" data-clear="mos_gap">' . esc_html( $standard ) . '</button>';
+		self::check_box( 'mos_nocaption', __( 'No names and prices', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'mos_noprice', __( 'Names without prices', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'mos_hover',
+			__( 'When the mouse is on a picture', 'atelier-irisee-master-plugin' ),
+			array(
+				''     => __( 'The picture zooms in (standard)', 'atelier-irisee-master-plugin' ),
+				'none' => __( 'Nothing', 'atelier-irisee-master-plugin' ),
+				'lift' => __( 'Lifts up a little', 'atelier-irisee-master-plugin' ),
+			)
+		);
 		echo '</fieldset>';
 	}
 
