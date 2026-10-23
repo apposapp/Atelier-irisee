@@ -784,11 +784,11 @@ class AIMP_Product_Fields {
 								<span class="aimp-notion-rule-range">
 									<label>
 										<?php echo esc_html( sprintf( /* translators: %s: "Diameter" or "Width" */ __( '%s from', 'atelier-irisee-master-plugin' ), $range ) ); ?>
-										<input type="number" class="small-text" min="0" step="<?php echo 'cm' === $unit ? '1' : '0.5'; ?>" name="<?php echo esc_attr( $base . '[min]' ); ?>" value="<?php echo esc_attr( (string) $rule['min'] ); ?>">
+										<input type="number" class="small-text" min="0" step="<?php echo 'cm' === $unit ? '1' : '0.1'; ?>" name="<?php echo esc_attr( $base . '[min]' ); ?>" value="<?php echo esc_attr( (string) $rule['min'] ); ?>">
 									</label>
 									<label>
 										<?php esc_html_e( 'to', 'atelier-irisee-master-plugin' ); ?>
-										<input type="number" class="small-text" min="0" step="<?php echo 'cm' === $unit ? '1' : '0.5'; ?>" name="<?php echo esc_attr( $base . '[max]' ); ?>" value="<?php echo esc_attr( (string) $rule['max'] ); ?>">
+										<input type="number" class="small-text" min="0" step="<?php echo 'cm' === $unit ? '1' : '0.1'; ?>" name="<?php echo esc_attr( $base . '[max]' ); ?>" value="<?php echo esc_attr( (string) $rule['max'] ); ?>">
 										<?php echo esc_html( $unit ); ?>
 									</label>
 								</span>

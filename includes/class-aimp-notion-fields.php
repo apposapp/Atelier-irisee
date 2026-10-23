@@ -174,7 +174,7 @@ class AIMP_Notion_Fields {
 										<?php endforeach; ?>
 									</select>
 								<?php elseif ( in_array( $field, array( 'diameter', 'width', 'length' ), true ) ) : ?>
-									<input type="number" id="<?php echo esc_attr( $id . $field ); ?>" name="<?php echo esc_attr( $base . '[' . $field . ']' ); ?>" min="0" step="<?php echo 'mm' === AIMP_Notions::unit( $kind, $field ) ? '0.5' : '0.1'; ?>" value="<?php echo esc_attr( $is_current ? $get( $fields[ $field ][0] ) : '' ); ?>" placeholder="<?php echo esc_attr( self::example( $kind, $field ) ); ?>">
+									<input type="number" id="<?php echo esc_attr( $id . $field ); ?>" name="<?php echo esc_attr( $base . '[' . $field . ']' ); ?>" min="0" step="0.1" value="<?php echo esc_attr( $is_current ? $get( $fields[ $field ][0] ) : '' ); ?>" placeholder="<?php echo esc_attr( self::example( $kind, $field ) ); ?>">
 								<?php elseif ( in_array( $field, array( 'material', 'finish' ), true ) ) : ?>
 									<?php
 									// The choices from the settings (Atelier Irisee → Haberdashery options); a value that is not in the

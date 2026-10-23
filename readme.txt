@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.37.0
+Stable tag: 3.37.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.37.1 =
+* Haberdashery: the diameter (and the width of ribbons, elastic, bias tape) can have one decimal, e.g. 12,8 mm (the field took steps of 0.5 mm). The same for the diameter range a pattern asks for.
 
 = 3.37.0 =
 * Design studio: spacing like Divi 4. The block "Spacing" (Design tab) has the margin (outside) and the padding (inside) of a part, each with a field per side, "the same on all sides" and "Standard". Empty = standard; 0 is a value of its own.
