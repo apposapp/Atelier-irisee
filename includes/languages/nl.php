@@ -2227,4 +2227,17 @@ return array(
 	'right' => 'rechts',
 	'standard' => 'standaard',
 	'top' => 'boven',
+
+	// Lining
+	'Can also be used as lining' => 'Ook bruikbaar als voering',
+	'Choose your lining (optional)' => 'Kies je voering (optioneel)',
+	'Confirm lining' => 'Voering bevestigen',
+	'Continue without lining' => 'Verder zonder voering',
+	'It then also shows under Lining in the shop and in the lining step of the customizer: the same product, price and stock.' => 'Hij verschijnt dan ook onder Voering in de winkel en in de voeringstap van de customizer: hetzelfde product, dezelfde prijs en voorraad.',
+	'Lining' => 'Voering',
+	'No lining fabrics are available at the moment.' => 'Er zijn momenteel geen voeringstoffen beschikbaar.',
+	'Select a lining to see its pictures and details.' => 'Kies een voering om de foto\'s en details te zien.',
+	'This fabric can also be used as lining' => 'Deze stof kan ook als voering gebruikt worden',
+	'This fabric cannot be used as lining.' => 'Deze stof kan niet als voering gebruikt worden.',
+	'Used as' => 'Gebruikt als',
 );

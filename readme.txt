@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.37.1
+Stable tag: 3.38.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.38.0 =
+* Lining: a fabric can also be used as lining (Fabric data → Specifications: "This fabric can also be used as lining"). It is the same product: the same price and the same stock.
+  * Shop: on the fabrics page a "Lining" filter at the top of the categories, and "Lining" in the side menu under the fabrics. The product page says "Can also be used as lining".
+  * Patterns: a lining amount per size (cm), next to the fabric. The size chart on the pattern page gets a Lining column.
+  * Customizer: when the chosen size needs lining, a step "Lining" after the fabric, with every lining fabric (filters, search, stock), optional ("Continue without lining"). The lining is added to the cart as its own line of the set (used as: lining), with the kit discount; fabric and lining of the same product are checked together against its stock. Saved kits keep the lining.
+  * Design studio: a line at the top of the lining step (Customizer → Steps).
 
 = 3.37.1 =
 * Haberdashery: the diameter (and the width of ribbons, elastic, bias tape) can have one decimal, e.g. 12,8 mm (the field took steps of 0.5 mm). The same for the diameter range a pattern asks for.

@@ -330,8 +330,8 @@
 			if (s.step === 'pattern') {
 				return s.pattern ? s.pattern.name + (s.size ? ' – ' + s.size.label : '') : '';
 			}
-			if (s.step === 'fabric') {
-				return s.fabric ? s.fabric.name : '';
+			if (s.step === 'fabric' || s.step === 'lining') {
+				return s[s.step] ? s[s.step].name : '';
 			}
 			return '';
 		};
@@ -401,6 +401,13 @@
 		s.fabricImage = 0;
 		s.fabricFilters = defaultFabricFilters();
 		s.fabricCategories = null;
+		// The lining (optional): the same kind of list as the fabric.
+		s.liningPage = 1;
+		s.linings = null;
+		s.lining = null;
+		s.liningImage = 0;
+		s.liningFilters = defaultFabricFilters();
+		s.liningCategories = null;
 		s.notions = {};
 		NOTIONS.forEach(function (n) {
 			s.notions[n.type] = { page: 1, data: null, selected: null, image: 0 };
@@ -448,6 +455,7 @@
 
 		s.patterns = null;
 		s.fabrics = null;
+		s.linings = null;
 		self.clearNotionData();
 
 		if (s.pattern) {
@@ -498,6 +506,10 @@
 		var steps = [{ key: 'pattern', label: t.stepPattern }];
 		if (!size || size.fabric_units > 0) {
 			steps.push({ key: 'fabric', label: t.stepFabric });
+		}
+		// Lining: when the chosen size needs it.
+		if (size && size.lining_units > 0) {
+			steps.push({ key: 'lining', label: t.stepLining });
 		}
 		if (size ? this.notionTypes().length : NOTIONS.length) {
 			steps.push({ key: 'notions', label: t.stepNotions });
@@ -754,6 +766,8 @@
 		this.renderSteps();
 		switch (this.state.step) {
 			case 'fabric':
+			case 'lining':
+				this.matKind = this.state.step;
 				this.renderFabricStep();
 				break;
 			case 'notions':
@@ -1004,6 +1018,9 @@
 		if (size.fabric_units > 0) {
 			rows.push(card('fabric', t.fabricNeeded, size.fabric_text));
 		}
+		if (size.lining_units > 0) {
+			rows.push(card('fabric', t.liningNeeded, size.lining_text));
+		}
 		NOTIONS.forEach(function (n) {
 			if (n.qty(size) > 0) {
 				// A named button group ("Buttons – Cuffs") by its own name.
@@ -1155,7 +1172,7 @@
 		this.renderSteps();
 		window.scrollTo(window.pageXOffset, y);
 		if (chosen.fabric_units > 0) {
-			prefetch('fabrics', this.fabricParams());
+			prefetch('fabrics', this.fabricParams('fabric'));
 		}
 		if (sheetBody) {
 			sheetBody.scrollTop = sheetY;
@@ -1256,6 +1273,9 @@
 		if (s.step !== 'fabric' && s.fabric && s.size.fabric_units > 0) {
 			items.push({ image: s.fabric.image, name: s.fabric.name });
 		}
+		if (s.step !== 'lining' && s.step !== 'fabric' && s.lining && s.size.lining_units > 0) {
+			items.push({ image: s.lining.image, name: s.lining.name, detail: t.stepLining });
+		}
 		if (s.step === 'summary') {
 			NOTIONS.forEach(function (n) {
 				var selected = s.notions[n.type].selected;
@@ -1276,9 +1296,10 @@
 	};
 
 	Configurator.prototype.renderFabricStep = function () {
+		var k = this.matKind || 'fabric';
 		var self = this;
 		var s = this.state;
-		var f = s.fabricFilters;
+		var f = s[k + 'Filters'];
 		// The haberdashery lists of the next step in the background.
 		this.notionTypes().forEach(function (type) {
 			if (!s.notions[type].data) {
@@ -1296,10 +1317,10 @@
 
 		// The same filter panel as the shop pages: a gold column on the left that opens and closes.
 		this.body.innerHTML =
-			'<div class="aimp-step aimp-step--fabric aimp-fabric-filters">' +
-			introHtml('fabric') +
+			'<div class="aimp-step aimp-step--fabric aimp-step--' + k + ' aimp-fabric-filters">' +
+			introHtml(k) +
 			this.recapHtml() +
-			'<h3>' + esc(t.chooseFabric) + '</h3>' +
+			'<h3>' + esc(k === 'lining' ? t.chooseLining : t.chooseFabric) + '</h3>' +
 			'<div class="aimp-fabric-filterbar">' +
 			'<button type="button" class="aimp-button aimp-shop-toggle" data-action="toggle-filters" aria-controls="aimp-fabric-filters"></button>' +
 			'</div>' +
@@ -1328,12 +1349,20 @@
 			'</div>' +
 			'<div class="aimp-actions">' +
 			'<button type="button" class="aimp-button aimp-button--ghost" data-action="back">' + esc(t.back) + '</button>' +
+			(k === 'lining' ? '<button type="button" class="aimp-button aimp-button--ghost" data-action="skip-lining">' + esc(t.skipLining) + '</button>' : '') +
 			'</div>' +
 			'</div>';
 
 		this.body.querySelector('[data-action="back"]').addEventListener('click', function () {
 			self.prev();
 		});
+		var skip = this.body.querySelector('[data-action="skip-lining"]');
+		if (skip) {
+			skip.addEventListener('click', function () {
+				s.lining = null;
+				self.next();
+			});
+		}
 
 		var step = this.body.querySelector('.aimp-fabric-filters');
 		var toggle = this.body.querySelector('[data-action="toggle-filters"]');
@@ -1359,7 +1388,7 @@
 		this.renderFilterToggle();
 
 		var reload = function () {
-			s.fabricPage = 1;
+			s[k + 'Page'] = 1;
 			self.renderFilterToggle();
 			self.loadFabrics();
 		};
@@ -1386,18 +1415,19 @@
 		this.renderFabricCategories();
 		this.renderFabricGrid();
 		this.renderFabricPanel();
-		if (!s.fabrics) {
+		if (!s[k + 's']) {
 			this.loadFabrics();
 		}
 	};
 
 	// "Filters" with the number of active filters, like on the shop pages.
 	Configurator.prototype.renderFilterToggle = function () {
+		var k = this.matKind || 'fabric';
 		var toggle = this.body.querySelector('[data-action="toggle-filters"]');
 		if (!toggle) {
 			return;
 		}
-		var f = this.state.fabricFilters;
+		var f = this.state[k + 'Filters'];
 		var count = f.category.length + (f.search ? 1 : 0) + (f.inStock ? 1 : 0);
 		toggle.innerHTML =
 			'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>' +
@@ -1407,6 +1437,7 @@
 
 	// Fabric categories in the filter panel: tick boxes, several at once.
 	Configurator.prototype.renderFabricCategories = function () {
+		var k = this.matKind || 'fabric';
 		var self = this;
 		var s = this.state;
 		var container = this.body.querySelector('[data-role="fabric-cats"]');
@@ -1414,7 +1445,7 @@
 		if (!container) {
 			return;
 		}
-		var cats = s.fabricCategories || [];
+		var cats = s[k + 'Categories'] || [];
 		if (cats.length < 2) {
 			container.innerHTML = '';
 			group.hidden = true;
@@ -1424,7 +1455,7 @@
 		// Several can be ticked; none ticked = all allowed fabrics.
 		container.innerHTML = cats
 			.map(function (cat) {
-				var active = s.fabricFilters.category.indexOf(cat.id) !== -1;
+				var active = s[k + 'Filters'].category.indexOf(cat.id) !== -1;
 				return (
 					'<li><label class="aimp-filter-option">' +
 					'<input type="checkbox" value="' + esc(cat.id) + '" data-fabric-cat' + (active ? ' checked' : '') + '> ' +
@@ -1435,25 +1466,26 @@
 		container.querySelectorAll('[data-fabric-cat]').forEach(function (input) {
 			input.addEventListener('change', function () {
 				var id = parseInt(input.value, 10) || 0;
-				s.fabricFilters.category = s.fabricFilters.category.filter(function (other) {
+				s[k + 'Filters'].category = s[k + 'Filters'].category.filter(function (other) {
 					return other !== id;
 				});
 				if (input.checked && id) {
-					s.fabricFilters.category.push(id);
+					s[k + 'Filters'].category.push(id);
 				}
-				s.fabricPage = 1;
+				s[k + 'Page'] = 1;
 				self.renderFilterToggle();
 				self.loadFabrics();
 			});
 		});
 	};
 
-	Configurator.prototype.fabricParams = function () {
+	Configurator.prototype.fabricParams = function (kind) {
+		var k = kind || this.matKind || 'fabric';
 		var s = this.state;
-		var f = s.fabricFilters;
+		var f = s[k + 'Filters'];
 		return {
 			variation: s.size.id,
-			page: s.fabricPage,
+			page: s[k + 'Page'],
 			category: f.category.join(','),
 			search: f.search,
 			in_stock: f.inStock ? 1 : 0,
@@ -1462,24 +1494,25 @@
 	};
 
 	Configurator.prototype.loadFabrics = function () {
+		var k = this.matKind || 'fabric';
 		var self = this;
 		var s = this.state;
 		var params = this.fabricParams();
 		var key = lang + JSON.stringify(params);
 		this.fabricRequestKey = key;
-		s.fabrics = null;
+		s[k + 's'] = null;
 		this.renderFabricGrid();
-		fetchOnce('fabrics', params)
+		fetchOnce(k + 's', params)
 			.then(function (data) {
 				if (self.fabricRequestKey !== key) {
 					return;
 				}
-				s.fabrics = data;
-				s.fabricPage = data.page;
-				s.fabric = rebind(s.fabric, data.items);
-				var hadCategories = s.fabricCategories !== null;
-				s.fabricCategories = data.categories || [];
-				if (s.step === 'fabric') {
+				s[k + 's'] = data;
+				s[k + 'Page'] = data.page;
+				s[k] = rebind(s[k], data.items);
+				var hadCategories = s[k + 'Categories'] !== null;
+				s[k + 'Categories'] = data.categories || [];
+				if (s.step === k) {
 					self.renderFabricGrid();
 					self.renderFabricPanel();
 					if (!hadCategories) {
@@ -1496,55 +1529,57 @@
 	};
 
 	Configurator.prototype.renderFabricGrid = function () {
+		var k = this.matKind || 'fabric';
 		var self = this;
 		var s = this.state;
 		var container = this.body.querySelector('[data-role="fabrics"]');
 		if (!container) {
 			return;
 		}
-		var filtered = s.fabricFilters.category.length || s.fabricFilters.search || s.fabricFilters.inStock;
-		this.renderGrid(container, s.fabrics, {
-			selectedId: s.fabric ? s.fabric.id : null,
-			emptyText: filtered ? t.noFabricsMatch : t.noFabrics,
+		var filtered = s[k + 'Filters'].category.length || s[k + 'Filters'].search || s[k + 'Filters'].inStock;
+		this.renderGrid(container, s[k + 's'], {
+			selectedId: s[k] ? s[k].id : null,
+			emptyText: filtered ? t.noFabricsMatch : (k === 'lining' ? t.noLinings : t.noFabrics),
 			unavailableText: t.notEnoughStock,
 			compact: true,
 			priceSuffix: t.per10cm,
 			onSelect: function (item) {
-				if (!s.fabric || s.fabric.id !== item.id) {
-					s.fabric = item;
-					s.fabricImage = 0;
+				if (!s[k] || s[k].id !== item.id) {
+					s[k] = item;
+					s[k + 'Image'] = 0;
 				}
 				self.renderFabricGrid();
 				self.renderFabricPanel();
 				self.showPanel(self.findPanel('fabric-panel'));
 			},
 			onPage: function (page) {
-				s.fabricPage = page;
+				s[k + 'Page'] = page;
 				self.loadFabrics();
 			}
 		});
 	};
 
 	Configurator.prototype.renderFabricPanel = function () {
+		var k = this.matKind || 'fabric';
 		var self = this;
 		var s = this.state;
 		var panel = this.findPanel('fabric-panel');
 		if (!panel) {
 			return;
 		}
-		if (!s.fabric) {
-			panel.innerHTML = '<div class="aimp-side-placeholder">' + esc(t.selectFabricHint) + '</div>';
+		if (!s[k]) {
+			panel.innerHTML = '<div class="aimp-side-placeholder">' + esc(k === 'lining' ? t.selectLiningHint : t.selectFabricHint) + '</div>';
 			return;
 		}
-		var html = this.materialDetailsHtml(s.fabric, s.fabricImage, t.pricePerUnit, s.size.fabric_text);
+		var html = this.materialDetailsHtml(s[k], s[k + 'Image'], t.pricePerUnit, s.size[k + '_text']);
 		html +=
 			'<div class="aimp-actions">' +
-			'<button type="button" class="aimp-button aimp-button--block" data-action="confirm-fabric">' + esc(t.confirmFabric) + '</button>' +
+			'<button type="button" class="aimp-button aimp-button--block" data-action="confirm-fabric">' + esc(k === 'lining' ? t.confirmLining : t.confirmFabric) + '</button>' +
 			'</div>';
 		panel.innerHTML = html;
 
-		this.bindGallery(panel, s.fabric.gallery, function (i) {
-			s.fabricImage = i;
+		this.bindGallery(panel, s[k].gallery, function (i) {
+			s[k + 'Image'] = i;
 		});
 		panel.querySelector('[data-action="confirm-fabric"]').addEventListener('click', function () {
 			self.closeSheet(true);
@@ -1719,6 +1754,9 @@
 		if (s.size.fabric_units > 0 && s.fabric) {
 			lines.push({ name: s.fabric.name, detail: s.size.fabric_text, qty: s.size.fabric_units, price: s.fabric.price });
 		}
+		if (s.size.lining_units > 0 && s.lining) {
+			lines.push({ name: s.lining.name, detail: t.stepLining + ' · ' + s.size.lining_text, qty: s.size.lining_units, price: s.lining.price });
+		}
 		NOTIONS.forEach(function (n) {
 			var selected = s.notions[n.type].selected;
 			if (n.qty(s.size) > 0 && selected) {
@@ -1802,7 +1840,8 @@
 		var params = {
 			nonce: cfg.nonce,
 			variation: s.size.id,
-			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0
+			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0,
+			lining: s.size.lining_units > 0 && s.lining ? s.lining.id : 0
 		};
 		NOTIONS.forEach(function (n) {
 			var selected = s.notions[n.type].selected;
@@ -1843,6 +1882,7 @@
 					return;
 				}
 				s.fabric = data.fabric || null;
+				s.lining = data.lining || null;
 				NOTIONS.forEach(function (n) {
 					s.notions[n.type].selected = (data.notions && data.notions[n.type]) || null;
 				});
@@ -1885,7 +1925,8 @@
 		var params = {
 			nonce: cfg.nonce,
 			variation: s.size.id,
-			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0
+			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0,
+			lining: s.size.lining_units > 0 && s.lining ? s.lining.id : 0
 		};
 		// One parameter per haberdashery role: button, zip, ribbon, bias.
 		NOTIONS.forEach(function (n) {
@@ -1924,6 +1965,7 @@
 				self.showError(messages, err);
 				// Stock may have changed: reload material lists next time they are shown.
 				s.fabrics = null;
+				s.linings = null;
 				self.clearNotionData();
 			});
 	};

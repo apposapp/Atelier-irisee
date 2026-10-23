@@ -210,7 +210,8 @@ class AIMP_Product_Page {
 			// Accessories: every material any size needs, one value or a range.
 			$accessories = array();
 			foreach ( $fields as $key => $field ) {
-				if ( 'fabric' === $key ) {
+				// Fabric and lining have their own columns in the table.
+				if ( 'fabric' === $key || 'lining' === $key ) {
 					continue;
 				}
 				$amounts = array_filter(
@@ -244,7 +245,13 @@ class AIMP_Product_Page {
 					}
 				}
 			}
-			$rows = array();
+			$lining = (bool) array_filter(
+				$reqs,
+				function ( $req ) {
+					return $req['lining_cm'] > 0;
+				}
+			);
+			$rows   = array();
 			foreach ( $reqs as $req ) {
 				$row = array( $req['size'] );
 				foreach ( array_keys( $used ) as $key ) {
@@ -252,13 +259,17 @@ class AIMP_Product_Page {
 					$row[] = '' !== (string) $req[ $key ] && (float) $req[ $key ] > 0 ? sprintf( __( '%s cm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( (float) $req[ $key ], floor( (float) $req[ $key ] ) == (float) $req[ $key ] ? 0 : 1 ) ) : '–';
 				}
 				/* translators: %s: length in metres */
-				$row[]  = $req['fabric_cm'] > 0 ? sprintf( __( '%s m', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $req['fabric_cm'] / 100, 2 ) ) : '–';
+				$row[] = $req['fabric_cm'] > 0 ? sprintf( __( '%s m', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $req['fabric_cm'] / 100, 2 ) ) : '–';
+				if ( $lining ) {
+					/* translators: %s: length in metres */
+					$row[] = $req['lining_cm'] > 0 ? sprintf( __( '%s m', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $req['lining_cm'] / 100, 2 ) ) : '–';
+				}
 				$rows[] = $row;
 			}
 			$groups[] = array(
 				'name'        => isset( $names[ $slug ] ) ? $names[ $slug ] : '',
 				'accessories' => $accessories,
-				'columns'     => array_merge( array( __( 'Size', 'atelier-irisee-master-plugin' ) ), array_values( $used ), array( __( 'Fabric', 'atelier-irisee-master-plugin' ) ) ),
+				'columns'     => array_merge( array( __( 'Size', 'atelier-irisee-master-plugin' ) ), array_values( $used ), array( __( 'Fabric', 'atelier-irisee-master-plugin' ) ), $lining ? array( __( 'Lining', 'atelier-irisee-master-plugin' ) ) : array() ),
 				'rows'        => $rows,
 			);
 		}
@@ -1186,6 +1197,8 @@ class AIMP_Product_Page {
 			'set'             => '<circle cx="8" cy="9" r="4"/><circle cx="16" cy="9" r="4"/><circle cx="12" cy="16" r="4"/>',
 			// Length: a ruler (the width uses the fabric width arrows).
 			'length'          => '<rect x="2.5" y="8.5" width="19" height="7" rx="1"/><path d="M6 8.5v3M9.5 8.5v2M13 8.5v3M16.5 8.5v2M20 8.5v3"/>',
+			// Lining: a jacket opened at the front, its lining showing.
+			'lining'          => '<path d="M8.5 3.5 4 6l-1 14h6.5L12 9l2.5 11H21l-1-14-4.5-2.5"/><path d="M8.5 3.5 12 9l3.5-5.5"/><path d="M12 9l-1.6 7.5M12 9l1.6 7.5" stroke-dasharray="1.5 1.5"/>',
 		);
 		$path  = isset( $paths[ $subject ] ) ? $paths[ $subject ] : $paths['tips'];
 		return '<svg class="aimp-washing-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $path . '</svg>';

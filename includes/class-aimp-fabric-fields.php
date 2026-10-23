@@ -122,6 +122,13 @@ class AIMP_Fabric_Fields {
 				<?php foreach ( AIMP_Catalog::fabric_text_fields() as $group => $fields ) : ?>
 					<fieldset>
 						<legend><?php echo esc_html( $groups[ $group ] ); ?></legend>
+						<?php if ( 'specs' === $group ) : ?>
+							<?php // In the specifications (the product workspace moves this fieldset into its own card). ?>
+							<p class="aimp-fabric-lining">
+								<label><input type="checkbox" name="aimp_fabric[lining]" value="1"<?php checked( 'yes', $get( AIMP_Catalog::META_LINING ) ); ?>> <strong><?php esc_html_e( 'This fabric can also be used as lining', 'atelier-irisee-master-plugin' ); ?></strong></label>
+								<br><span class="description"><?php esc_html_e( 'It then also shows under Lining in the shop and in the lining step of the customizer: the same product, price and stock.', 'atelier-irisee-master-plugin' ); ?></span>
+							</p>
+						<?php endif; ?>
 						<?php foreach ( $fields as $subject => $field ) : ?>
 							<p>
 								<label for="<?php echo esc_attr( 'aimp_' . $group . '_' . $subject ); ?>"><?php echo esc_html( $field[1] ); ?></label>
@@ -276,6 +283,7 @@ class AIMP_Fabric_Fields {
 		// The single inspiration text from before the cards now lives in card 1.
 		$product->delete_meta_data( AIMP_Catalog::META_INSPIRATION );
 		$set( AIMP_Catalog::META_ORDER_INFO, isset( $input['order_info'] ) ? wp_kses_post( $input['order_info'] ) : '' );
+		$set( AIMP_Catalog::META_LINING, empty( $input['lining'] ) ? '' : 'yes' );
 
 		foreach ( AIMP_Catalog::fabric_text_fields() as $fields ) {
 			foreach ( $fields as $subject => $field ) {

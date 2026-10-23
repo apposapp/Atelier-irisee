@@ -229,6 +229,7 @@ class AIMP_Shop {
 			'noMatch'         => __( 'No products match your filters.', 'atelier-irisee-master-plugin' ),
 			// Design studio (Shop): badges and the "Show more" button.
 			'badgeNew'        => __( 'New', 'atelier-irisee-master-plugin' ),
+			'lining'          => __( 'Lining', 'atelier-irisee-master-plugin' ),
 			'badgeSale'       => __( 'Sale', 'atelier-irisee-master-plugin' ),
 			'badgeLow'        => __( 'Almost sold out', 'atelier-irisee-master-plugin' ),
 			'showMore'        => __( 'Show more', 'atelier-irisee-master-plugin' ),
@@ -353,6 +354,7 @@ class AIMP_Shop {
 			'min'      => null,
 			'max'      => null,
 			'in_stock' => false,
+			'lining'   => false,
 			'sort'     => ( class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'shop', 'sort_default' ) ) ? AIMP_Design::opt( 'shop', 'sort_default' ) : 'recommended',
 			'page'     => 1,
 			'attrs'    => array(),
@@ -681,6 +683,13 @@ class AIMP_Shop {
 			// Haberdashery: type, colour, diameter, width, length and material (only those the page has).
 			'buttons'    => self::notion_facets( $ids ),
 			'price'      => self::price_range( $ids ),
+			// Whether this page has fabrics that can also be used as lining (the "Voering" filter).
+			'lining'     => in_array( $type, array( 'all', 'fabrics' ), true ) && (bool) array_filter(
+				$ids,
+				function ( $id ) {
+					return 'yes' === get_post_meta( $id, AIMP_Catalog::META_LINING, true );
+				}
+			),
 		);
 		set_transient( $key, $facets, 12 * HOUR_IN_SECONDS );
 		return $facets;
@@ -1073,6 +1082,8 @@ class AIMP_Shop {
 			'min'      => $price( 'min' ),
 			'max'      => $price( 'max' ),
 			'in_stock' => '1' === $text( 'in_stock', 1 ),
+			// Fabrics that can also be used as lining ("Voering").
+			'lining'   => '1' === $text( 'lining', 1 ),
 			'sort'     => in_array( $sort, self::SORTS, true ) ? $sort : 'recommended',
 			'page'     => max( 1, absint( $text( 'page', 10 ) ) ),
 			'attrs'    => array(),
@@ -1203,6 +1214,12 @@ class AIMP_Shop {
 		}
 		// Haberdashery filters: only the matching haberdashery products.
 		$notion_in = $args['buttons'] ? self::notion_matches( $args['buttons'] ) : null;
+		if ( ! empty( $args['lining'] ) ) {
+			$meta_query[] = array(
+				'key'   => AIMP_Catalog::META_LINING,
+				'value' => 'yes',
+			);
+		}
 		if ( $args['in_stock'] ) {
 			$meta_query[] = array(
 				'key'     => '_stock_status',

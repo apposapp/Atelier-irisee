@@ -74,6 +74,7 @@ class AIMP_Saved_Kits {
 			'id'        => strtolower( wp_generate_password( 10, false, false ) ),
 			'variation' => $req['variation']->get_id(),
 			'fabric'    => self::int_param( 'fabric' ),
+			'lining'    => self::int_param( 'lining' ),
 			'notions'   => $notions,
 			'date'      => time(),
 		);
@@ -134,6 +135,18 @@ class AIMP_Saved_Kits {
 			}
 		}
 
+		// The lining (optional): only when it is still a lining fabric with enough stock.
+		$lining = null;
+		if ( $req['lining_units'] > 0 && ! empty( $kit['lining'] ) ) {
+			$product = AIMP_Catalog::get_allowed_lining( $kit['lining'] );
+			$card    = $product ? AIMP_Catalog::material_card( $product, $req['lining_units'] ) : null;
+			if ( $card && $card['available'] ) {
+				$lining = $card;
+			} else {
+				$missing = true;
+			}
+		}
+
 		$notions = array();
 		foreach ( array_keys( AIMP_Catalog::notion_types() ) as $type ) {
 			$count = AIMP_Catalog::notion_count( $type, $req );
@@ -155,6 +168,7 @@ class AIMP_Saved_Kits {
 				'sizes'   => $sizes,
 				'size'    => $req['variation']->get_id(),
 				'fabric'  => $fabric,
+				'lining'  => $lining,
 				'notions' => (object) $notions,
 				'message' => $missing ? __( 'Some items of this kit are no longer available. Please choose them again.', 'atelier-irisee-master-plugin' ) : '',
 			)
@@ -180,6 +194,10 @@ class AIMP_Saved_Kits {
 		if ( $req['fabric_units'] > 0 && $kit['fabric'] ) {
 			$fabric = wc_get_product( $kit['fabric'] );
 			$total += $fabric ? (float) wc_get_price_to_display( $fabric ) * $req['fabric_units'] : 0;
+		}
+		if ( $req['lining_units'] > 0 && ! empty( $kit['lining'] ) ) {
+			$lining = wc_get_product( $kit['lining'] );
+			$total += $lining ? (float) wc_get_price_to_display( $lining ) * $req['lining_units'] : 0;
 		}
 		foreach ( array_keys( AIMP_Catalog::notion_types() ) as $type ) {
 			$count   = AIMP_Catalog::notion_count( $type, $req );

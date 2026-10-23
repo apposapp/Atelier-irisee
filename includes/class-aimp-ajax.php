@@ -17,7 +17,7 @@ class AIMP_Ajax {
 	const NONCE = 'aimp_configurator';
 
 	public static function init() {
-		foreach ( array( 'patterns', 'sizes', 'fabrics', 'notions', 'add_to_cart' ) as $action ) {
+		foreach ( array( 'patterns', 'sizes', 'fabrics', 'linings', 'notions', 'add_to_cart' ) as $action ) {
 			add_action( 'wc_ajax_aimp_' . $action, array( __CLASS__, $action ) );
 		}
 	}
@@ -93,7 +93,7 @@ class AIMP_Ajax {
 		wp_send_json_success( $data );
 	}
 
-	public static function fabrics() {
+	public static function fabrics( $lining = false ) {
 		$data = AIMP_Catalog::get_fabrics(
 			self::int_param( 'variation' ),
 			array(
@@ -102,12 +102,18 @@ class AIMP_Ajax {
 				'search'   => isset( $_POST['search'] ) ? substr( sanitize_text_field( wp_unslash( $_POST['search'] ) ), 0, 100 ) : '',
 				'in_stock' => 1 === self::int_param( 'in_stock' ),
 				'sort'     => isset( $_POST['sort'] ) ? sanitize_key( wp_unslash( $_POST['sort'] ) ) : 'recommended',
-			)
+			),
+			true === $lining
 		);
 		if ( null === $data ) {
 			self::not_found();
 		}
 		wp_send_json_success( $data );
+	}
+
+	// The lining step: every fabric that can also be used as lining.
+	public static function linings() {
+		self::fabrics( true );
 	}
 
 	public static function notions() {
@@ -138,7 +144,8 @@ class AIMP_Ajax {
 		$result = AIMP_Cart::add_group(
 			self::int_param( 'variation' ),
 			self::int_param( 'fabric' ),
-			$notions
+			$notions,
+			self::int_param( 'lining' )
 		);
 
 		// WooCommerce may have queued its own notices while adding; we report errors in the configurator instead.

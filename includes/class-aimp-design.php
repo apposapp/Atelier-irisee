@@ -576,6 +576,7 @@ class AIMP_Design {
 				'cz_nonum'         => 'bool',
 				'cz_intro_pattern' => 'text',
 				'cz_intro_fabric'  => 'text',
+				'cz_intro_lining'  => 'text',
 				'cz_intro_notions' => 'text',
 				'cz_intro_summary' => 'text',
 				'cz_nohowto'       => 'bool',
@@ -761,7 +762,7 @@ class AIMP_Design {
 				$out[ $key ] = $value;
 			}
 		}
-		foreach ( array( 'cz_intro_pattern', 'cz_intro_fabric', 'cz_intro_notions', 'cz_intro_summary', 'cz_note' ) as $key ) {
+		foreach ( array( 'cz_intro_pattern', 'cz_intro_fabric', 'cz_intro_lining', 'cz_intro_notions', 'cz_intro_summary', 'cz_note' ) as $key ) {
 			$value = (string) self::opt( 'customizer', $key, '' );
 			if ( '' !== $value ) {
 				$out[ $key ] = $value;
@@ -834,6 +835,7 @@ class AIMP_Design {
 			'finish'        => __( 'Finish', 'atelier-irisee-master-plugin' ),
 			'mounting'      => __( 'Mounting', 'atelier-irisee-master-plugin' ),
 			'certification' => __( 'Certification', 'atelier-irisee-master-plugin' ),
+			'lining'        => __( 'Lining', 'atelier-irisee-master-plugin' ),
 			'washing'       => __( 'Washing', 'atelier-irisee-master-plugin' ),
 			'drying'        => __( 'Drying', 'atelier-irisee-master-plugin' ),
 			'ironing'       => __( 'Ironing', 'atelier-irisee-master-plugin' ),
@@ -3519,6 +3521,7 @@ class AIMP_Design {
 		$sub( __( 'A line at the top of each step', 'atelier-irisee-master-plugin' ) );
 		$field( 'cz_intro_pattern', __( 'Pattern', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
 		$field( 'cz_intro_fabric', __( 'Fabric', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+		$field( 'cz_intro_lining', __( 'Lining', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
 		$field( 'cz_intro_notions', __( 'Haberdashery', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
 		$field( 'cz_intro_summary', __( 'Summary', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
 		echo '<p class="description">' . esc_html__( 'The step names themselves can be changed in the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';

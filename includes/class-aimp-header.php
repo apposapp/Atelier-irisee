@@ -159,10 +159,30 @@ class AIMP_Header {
 			return array();
 		}
 		$links = array( array( 'all', 'fabrics' === $type ? __( 'All fabrics', 'atelier-irisee-master-plugin' ) : __( 'All patterns', 'atelier-irisee-master-plugin' ), $url ) );
+		// Fabrics: "Lining", the fabrics that can also be used as lining.
+		if ( 'fabrics' === $type && self::has_linings() ) {
+			$links[] = array( 'lining', __( 'Lining', 'atelier-irisee-master-plugin' ), add_query_arg( 'aimp_lining', 1, $url ) );
+		}
 		foreach ( $terms as $term ) {
 			$links[] = array( $term->slug, $term->name, add_query_arg( 'aimp_cat', $term->term_id, $url ) );
 		}
 		return $links;
+	}
+
+	/**
+	 * Whether a published fabric can also be used as lining.
+	 *
+	 * @return bool
+	 */
+	private static function has_linings() {
+		$root = (int) AIMP_Settings::get( 'fabric_cat' );
+		if ( ! $root ) {
+			return false;
+		}
+		$args                   = AIMP_Catalog::base_query_args( array( $root ), 'simple', array( array( 'key' => AIMP_Catalog::META_LINING, 'value' => 'yes' ) ) );
+		$args['posts_per_page'] = 1;
+		$args['no_found_rows']  = true;
+		return (bool) ( new WP_Query( $args ) )->posts;
 	}
 
 	public static function register_menu() {

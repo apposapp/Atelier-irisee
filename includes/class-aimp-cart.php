@@ -60,7 +60,7 @@ class AIMP_Cart {
 	 * @param array $notions      Chosen haberdashery: notion type (buttons, zips, ribbons, bias) => product ID (0 = none).
 	 * @return true|WP_Error WP_Error carries one message per problem.
 	 */
-	public static function add_group( $variation_id, $fabric_id, $notions ) {
+	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0 ) {
 		$errors = new WP_Error();
 		$req    = AIMP_Catalog::get_requirements( $variation_id );
 		if ( ! $req ) {
@@ -89,6 +89,21 @@ class AIMP_Cart {
 					'product' => $fabric,
 					'qty'     => $req['fabric_units'],
 					'role'    => 'fabric',
+				);
+			}
+		}
+
+		// Lining: optional (many people use their own); if chosen, a fabric that can be used as lining. It comes
+		// from the same product and stock as that fabric (the stock check below counts both together).
+		if ( $req['lining_units'] > 0 && $lining_id ) {
+			$lining = AIMP_Catalog::get_allowed_lining( $lining_id );
+			if ( ! $lining ) {
+				$errors->add( 'aimp_lining', __( 'This fabric cannot be used as lining.', 'atelier-irisee-master-plugin' ) );
+			} else {
+				$lines[] = array(
+					'product' => $lining,
+					'qty'     => $req['lining_units'],
+					'role'    => 'lining',
 				);
 			}
 		}
@@ -464,6 +479,12 @@ class AIMP_Cart {
 				'key'   => __( 'For', 'atelier-irisee-master-plugin' ),
 				'value' => $meta['label'],
 			);
+			if ( 'lining' === $meta['role'] ) {
+				$item_data[] = array(
+					'key'   => __( 'Used as', 'atelier-irisee-master-plugin' ),
+					'value' => __( 'Lining', 'atelier-irisee-master-plugin' ),
+				);
+			}
 			if ( AIMP_Catalog::sold_per_10cm( $cart_item['data'] ) ) {
 				$item_data[] = array(
 					'key'   => __( 'Length', 'atelier-irisee-master-plugin' ),
@@ -499,6 +520,9 @@ class AIMP_Cart {
 			sprintf( '%s (#%s)', $meta['label'], strtoupper( substr( str_replace( '-', '', $meta['group'] ), 0, 6 ) ) ),
 			true
 		);
+		if ( 'lining' === $meta['role'] ) {
+			$item->add_meta_data( 'aimp_use', __( 'Lining', 'atelier-irisee-master-plugin' ), true );
+		}
 		if ( isset( $values['data'] ) && AIMP_Catalog::sold_per_10cm( $values['data'] ) ) {
 			$item->add_meta_data( 'aimp_length', AIMP_Catalog::fabric_text( (int) $meta['qty'] ), true );
 		}
@@ -513,6 +537,9 @@ class AIMP_Cart {
 		}
 		if ( 'aimp_length' === $meta->key ) {
 			return __( 'Length', 'atelier-irisee-master-plugin' );
+		}
+		if ( 'aimp_use' === $meta->key ) {
+			return __( 'Used as', 'atelier-irisee-master-plugin' );
 		}
 		return $display_key;
 	}

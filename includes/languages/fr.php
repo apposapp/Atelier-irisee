@@ -2227,4 +2227,17 @@ return array(
 	'right' => 'à droite',
 	'standard' => 'standard',
 	'top' => 'en haut',
+
+	// Lining
+	'Can also be used as lining' => 'Utilisable aussi comme doublure',
+	'Choose your lining (optional)' => 'Choisissez votre doublure (facultatif)',
+	'Confirm lining' => 'Confirmer la doublure',
+	'Continue without lining' => 'Continuer sans doublure',
+	'It then also shows under Lining in the shop and in the lining step of the customizer: the same product, price and stock.' => 'Il apparaît alors aussi sous Doublure dans la boutique et à l\'étape doublure du configurateur : même produit, même prix et même stock.',
+	'Lining' => 'Doublure',
+	'No lining fabrics are available at the moment.' => 'Aucun tissu de doublure n\'est disponible pour le moment.',
+	'Select a lining to see its pictures and details.' => 'Choisissez une doublure pour voir ses photos et détails.',
+	'This fabric can also be used as lining' => 'Ce tissu peut aussi servir de doublure',
+	'This fabric cannot be used as lining.' => 'Ce tissu ne peut pas servir de doublure.',
+	'Used as' => 'Utilisé comme',
 );

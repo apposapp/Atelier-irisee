@@ -35,6 +35,9 @@ class AIMP_Catalog {
 	const META_PROJECT_TIME    = '_aimp_project_time';
 	const META_DESIGNS         = '_aimp_designs';
 	const META_FABRIC_CM       = '_aimp_fabric_cm';
+	/** On a size: the lining it needs in cm. On a fabric: "yes" when it can also be used as lining. */
+	const META_LINING_CM       = '_aimp_lining_cm';
+	const META_LINING          = '_aimp_lining';
 	const META_RECOMMENDED     = '_aimp_recommended_pattern';
 
 
@@ -104,6 +107,7 @@ class AIMP_Catalog {
 		$buttons = __( 'Buttons', 'atelier-irisee-master-plugin' );
 		$list    = array(
 			'fabric'               => array( self::META_FABRIC_CM, __( 'Fabric', 'atelier-irisee-master-plugin' ), 'cm', __( 'Fabric', 'atelier-irisee-master-plugin' ) ),
+			'lining'               => array( self::META_LINING_CM, __( 'Lining', 'atelier-irisee-master-plugin' ), 'cm', __( 'Lining', 'atelier-irisee-master-plugin' ) ),
 			'zip_divisible'        => array( '_aimp_zip_divisible', __( 'Divisible zipper', 'atelier-irisee-master-plugin' ), 'cm', $zips ),
 			'zip_invisible'        => array( '_aimp_zip_invisible', __( 'Invisible zipper', 'atelier-irisee-master-plugin' ), 'cm', $zips ),
 			'zip_non_divisible'    => array( '_aimp_zip_non_divisible', __( 'Non divisible zipper', 'atelier-irisee-master-plugin' ), 'cm', $zips ),
@@ -639,6 +643,10 @@ class AIMP_Catalog {
 			}
 			$texts[ $group ] = $filled ? $list : array();
 		}
+		// A fabric that can also be used as lining says so with its specifications.
+		if ( 'yes' === $product->get_meta( self::META_LINING ) ) {
+			$texts['specs']['lining'] = array( __( 'Lining', 'atelier-irisee-master-plugin' ), __( 'Can also be used as lining', 'atelier-irisee-master-plugin' ) );
+		}
 		return $texts;
 	}
 
@@ -962,6 +970,7 @@ class AIMP_Catalog {
 			}
 		}
 		$fabric_units = $materials['fabric'] > 0 ? (int) ceil( $materials['fabric'] / self::FABRIC_UNIT_CM ) : 0;
+		$lining_units = $materials['lining'] > 0 ? (int) ceil( $materials['lining'] / self::FABRIC_UNIT_CM ) : 0;
 
 		return array(
 			'variation'    => $variation,
@@ -972,6 +981,8 @@ class AIMP_Catalog {
 			'fabric_units' => $fabric_units,
 			'fabric_cm'    => (float) $materials['fabric'],
 			'fabric_cats'  => $fabric_cats,
+			'lining_units' => $lining_units,
+			'lining_cm'    => (float) $materials['lining'],
 			'notion_rules' => $notion_rules,
 			'button_count' => (int) $materials['buttons'],
 			'ribbon_length' => absint( $variation->get_meta( self::META_RIBBON_LENGTH ) ),
@@ -1117,6 +1128,8 @@ class AIMP_Catalog {
 				'inside_leg'   => $req['inside_leg'],
 				'fabric_units' => $req['fabric_units'],
 				'fabric_text'  => self::fabric_need_text( $req ),
+				'lining_units' => $req['lining_units'],
+				'lining_text'  => $req['lining_units'] > 0 ? self::fabric_need_text( array( 'fabric_cm' => $req['lining_cm'], 'fabric_units' => $req['lining_units'] ) ) : '',
 				'notions'      => (object) self::size_notions( $req ),
 				'extras'       => self::size_extras( $req ),
 				'ribbon_qty'   => $req['ribbon_qty'],
@@ -1179,6 +1192,61 @@ class AIMP_Catalog {
 			$tree = array_merge( $tree, self::category_tree( $cat ) );
 		}
 		return self::get_material( $fabric_id, $tree );
+	}
+
+	/**
+	 * Whether a product is a fabric that can also be used as lining (Fabric data: "can also be used as lining").
+	 *
+	 * @param WC_Product|int $product Product.
+	 * @return bool
+	 */
+	public static function is_lining( $product ) {
+		$product = $product instanceof WC_Product ? $product : wc_get_product( $product );
+		return $product && 'yes' === $product->get_meta( self::META_LINING ) && self::in_categories( $product, self::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
+	}
+
+	/**
+	 * The lining product if it can be used as lining (every lining fabric fits every pattern).
+	 *
+	 * @param int $lining_id Product ID.
+	 * @return WC_Product|null
+	 */
+	public static function get_allowed_lining( $lining_id ) {
+		$product = self::get_material( $lining_id, self::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
+		return $product && self::is_lining( $product ) ? $product : null;
+	}
+
+	/**
+	 * The fabric categories with lining fabrics in them: [ id, name ] (the filter of the lining step).
+	 *
+	 * @return array[]
+	 */
+	private static function lining_filter_categories() {
+		$root = (int) AIMP_Settings::get( 'fabric_cat' );
+		if ( ! $root ) {
+			return array();
+		}
+		$ids = ( new WP_Query( self::base_query_args( array( $root ), 'simple', array( array( 'key' => self::META_LINING, 'value' => 'yes' ) ) ) + array( 'posts_per_page' => -1, 'no_found_rows' => true ) ) )->posts;
+		$list = array();
+		foreach ( get_terms( array( 'taxonomy' => 'product_cat', 'parent' => $root, 'hide_empty' => true ) ) as $term ) {
+			$tree = self::category_tree( $term->term_id );
+			foreach ( $ids as $id ) {
+				if ( array_intersect( wc_get_product_cat_ids( $id ), $tree ) ) {
+					$list[] = array(
+						'id'   => (int) $term->term_id,
+						'name' => $term->name,
+					);
+					break;
+				}
+			}
+		}
+		usort(
+			$list,
+			function ( $a, $b ) {
+				return strcasecmp( $a['name'], $b['name'] );
+			}
+		);
+		return $list;
 	}
 
 	/**
@@ -1378,7 +1446,7 @@ class AIMP_Catalog {
 		}
 		$extras = array();
 		foreach ( self::material_fields() as $key => $field ) {
-			if ( 'fabric' === $key || isset( $sold[ $key ] ) || empty( $req['materials'][ $key ] ) ) {
+			if ( 'fabric' === $key || 'lining' === $key || isset( $sold[ $key ] ) || empty( $req['materials'][ $key ] ) ) {
 				continue;
 			}
 			$extras[] = array(
@@ -1606,30 +1674,33 @@ class AIMP_Catalog {
 	 * @param array $args         [ page, category, search, in_stock, sort ].
 	 * @return array|null
 	 */
-	public static function get_fabrics( $variation_id, $args ) {
+	public static function get_fabrics( $variation_id, $args, $lining = false ) {
 		$req = self::get_requirements( $variation_id );
 		if ( ! $req ) {
 			return null;
 		}
 
-		$priority   = self::get_fabric_priority( $req['pattern'], self::variation_design( $req['variation'] ) );
-		$categories = self::fabric_filter_categories( $req, $priority );
+		// The lining step: every lining fabric (any fabric category), no priority of the pattern.
+		$units      = $lining ? $req['lining_units'] : $req['fabric_units'];
+		$allowed    = $lining ? array_filter( array( (int) AIMP_Settings::get( 'fabric_cat' ) ) ) : $req['fabric_cats'];
+		$priority   = $lining ? array() : self::get_fabric_priority( $req['pattern'], self::variation_design( $req['variation'] ) );
+		$categories = $lining ? self::lining_filter_categories() : self::fabric_filter_categories( $req, $priority );
 		$result     = self::empty_page();
 
 		$result['categories'] = $categories;
-		if ( ! $req['fabric_cats'] ) {
+		if ( ! $allowed ) {
 			return $result;
 		}
 
 		// Category filter: one or more of the allowed categories (or their subcategories).
 		$allowed_tree = array();
-		foreach ( $req['fabric_cats'] as $cat ) {
+		foreach ( $allowed as $cat ) {
 			$allowed_tree = array_merge( $allowed_tree, self::category_tree( $cat ) );
 		}
 		$chosen = array_values( array_intersect( array_map( 'absint', (array) $args['category'] ), $allowed_tree ) );
-		$cats   = $chosen ? $chosen : $req['fabric_cats'];
+		$cats   = $chosen ? $chosen : $allowed;
 
-		$query_args                   = self::base_query_args( $cats, 'simple' );
+		$query_args                   = self::base_query_args( $cats, 'simple', $lining ? array( array( 'key' => self::META_LINING, 'value' => 'yes' ) ) : array() );
 		$query_args['posts_per_page'] = -1;
 		$query_args['no_found_rows']  = true;
 		if ( '' !== $args['search'] ) {
@@ -1667,9 +1738,9 @@ class AIMP_Catalog {
 			$ids = array_values(
 				array_filter(
 					$ids,
-					function ( $id ) use ( $req ) {
+					function ( $id ) use ( $units ) {
 						$product = wc_get_product( $id );
-						return $product && self::is_available( $product, $req['fabric_units'] );
+						return $product && self::is_available( $product, $units );
 					}
 				)
 			);
@@ -1681,12 +1752,12 @@ class AIMP_Catalog {
 		$page     = min( max( 1, absint( $args['page'] ) ), max( 1, $pages ) );
 
 		// Approved AI pictures (this design sewn from the fabric, worn) come first in the fabric's pictures.
-		$looks = class_exists( 'AIMP_AI_Looks' ) ? AIMP_AI_Looks::approved_for( $req['pattern']->get_id(), self::variation_design( $req['variation'] ) ) : array();
+		$looks = $lining || ! class_exists( 'AIMP_AI_Looks' ) ? array() : AIMP_AI_Looks::approved_for( $req['pattern']->get_id(), self::variation_design( $req['variation'] ) );
 		$items = array();
 		foreach ( array_slice( $ids, ( $page - 1 ) * $per_page, $per_page ) as $id ) {
 			$product = wc_get_product( $id );
 			if ( $product && $product->is_visible() ) {
-				$card = self::material_card( $product, $req['fabric_units'] );
+				$card = self::material_card( $product, $units );
 				if ( isset( $looks[ $id ] ) ) {
 					$card['gallery'] = array_merge( self::images( $product, array(), array( $looks[ $id ] ) ), $card['gallery'] );
 				}
