@@ -2206,4 +2206,10 @@ return array(
 	'Texts in the gold bar' => 'Teksten in de gouden balk',
 	'These texts are the same as under Atelier Irisee → Settings. The preview shows your change after a moment; Publish saves them there.' => 'Dit zijn dezelfde teksten als onder Atelier Irisee → Instellingen. De voorbeeldweergave toont je wijziging na een ogenblik; Publiceren bewaart ze daar.',
 	'WordPress menu' => 'WordPress-menu',
+
+	// Design studio: live changes
+	'Click or drag on the picture to choose the spot that stays in view.' => 'Klik of sleep op de foto om de plek te kiezen die in beeld blijft.',
+	'Focal point' => 'Focuspunt',
+	'Not moved' => 'Niet verplaatst',
+	'Tip: drag the part in the preview, or use the arrow keys (Shift: 10 px at a time). The preview shows where it was and how far it moved.' => 'Tip: sleep het onderdeel in de voorbeeldweergave, of gebruik de pijltjestoetsen (Shift: 10 px per keer). De voorbeeldweergave toont waar het stond en hoe ver het verschoof.',
 );

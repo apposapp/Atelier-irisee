@@ -1003,3 +1003,46 @@ body.aimp-ds-screen .aimp-ds {
 	color: #b32d2e !important;
 	font-size: 11px;
 }
+
+/* The focal point: the picture with a cross to click or drag. */
+.aimp-ds-focal {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	margin: 6px 0 8px;
+	overflow: hidden;
+	border: 1px solid var(--ds-line);
+	border-radius: 6px;
+	background-color: #f0f0f1;
+	background-position: center;
+	background-size: 100% 100%;
+	cursor: crosshair;
+	user-select: none;
+}
+
+.aimp-ds-focal.is-empty {
+	background-image: none !important;
+}
+
+.aimp-ds-focal-cross {
+	position: absolute;
+	width: 22px;
+	height: 22px;
+	margin: -11px 0 0 -11px;
+	border: 3px solid #fff;
+	border-radius: 50%;
+	background: var(--ds-gold);
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 9999px rgba(0, 0, 0, 0.08);
+	pointer-events: none;
+}
+
+.aimp-ds-focal-hint {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	padding: 3px 8px;
+	background: rgba(0, 0, 0, 0.55);
+	color: #fff;
+	font-size: 11px;
+	pointer-events: none;
+}

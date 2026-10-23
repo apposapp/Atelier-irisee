@@ -328,7 +328,7 @@
 			if (reload) {
 				window.clearTimeout(reloadTimer);
 				reloadTimer = window.setTimeout(function () {
-					toFrame({ type: 'aimp-design-reload' });
+					reloadPreview();
 				}, 600);
 			}
 		}).catch(function (e) {
@@ -537,6 +537,7 @@
 		});
 		textGroup.hidden = !currentText && !currentMiss;
 		renderTextGroup();
+		drawFocalPads();
 		settingsGroup.hidden = !renderSettingsGroup();
 		renderPath();
 		// The tabs that have something; a clicked text opens on Content.
@@ -650,8 +651,215 @@
 		}
 		sendCss();
 		save(reloads(key));
+		if (!reloads(key) && isOptionKey(key)) {
+			fastCss();
+		}
+		showFocus(key);
 		renderList();
 		markGroups();
+	}
+
+	// A setting whose CSS the server makes (the "Whole site" and the parts' own options), not the studio itself.
+	var PART_GROUPS = ['move', 'size', 'space', 'hide', 'colors', 'anim', 'radius', 'image', 'typo'];
+	function isOptionKey(key) {
+		var option = false;
+		Object.keys(cfg.groups).forEach(function (group) {
+			if (cfg.groups[group][key] !== undefined && PART_GROUPS.indexOf(group) === -1) {
+				option = true;
+			}
+		});
+		return option || !(cfg.elements[current] && cfg.elements[current].selector);
+	}
+
+	// The server's CSS for the styles in the studio, without saving: shown within a moment.
+	var cssTimer = 0;
+	var cssTurn = 0;
+	function fastCss() {
+		window.clearTimeout(cssTimer);
+		cssTimer = window.setTimeout(function () {
+			var turn = ++cssTurn;
+			post('css', { styles: JSON.stringify(draft) }).then(function (data) {
+				if (turn === cssTurn) {
+					siteCss = data.css || '';
+					sendCss();
+				}
+			}).catch(function () {});
+		}, 120);
+	}
+
+	/* ---------------- what moved where: shown in the preview ---------------- */
+
+	function px(n) {
+		return Math.abs(n) + ' px';
+	}
+	// The preview draws the part where it was (dashed), where it is now, an arrow and a label.
+	function showFocus(key) {
+		var el = cfg.elements[current];
+		var row = draft[current] || {};
+		if (current === 'hero' && (key === 'h_fx' || key === 'h_fy')) {
+			toFrame({ type: 'aimp-design-focus', kind: 'focal', selector: '.aimp-hero', fx: row.h_fx !== undefined ? row.h_fx : 75, fy: row.h_fy !== undefined ? row.h_fy : 40, label: t.focal + ' ' + (row.h_fx !== undefined ? row.h_fx : 75) + '% / ' + (row.h_fy !== undefined ? row.h_fy : 40) + '%' });
+			return;
+		}
+		if (!el || !el.selector) {
+			return;
+		}
+		var p = /^p(x|y|zoom|mt|mb)$/.test(key) ? 'p' : '';
+		var base = key.replace(/^p(?=(x|y|zoom|mt|mb)$)/, '');
+		if (base === 'x' || base === 'y') {
+			var x = parseInt(row[p + 'x'] || 0, 10);
+			var y = parseInt(row[p + 'y'] || 0, 10);
+			var parts = [];
+			if (x) {
+				parts.push((x > 0 ? '→ ' : '← ') + px(x));
+			}
+			if (y) {
+				parts.push((y > 0 ? '↓ ' : '↑ ') + px(y));
+			}
+			toFrame({ type: 'aimp-design-focus', kind: 'move', selector: el.selector, x: x, y: y, label: parts.length ? parts.join('   ') : t.notMoved });
+		} else if (base === 'zoom') {
+			toFrame({ type: 'aimp-design-focus', kind: 'box', selector: el.selector, label: t.sizeWord + ' ' + (row[p + 'zoom'] !== undefined ? row[p + 'zoom'] : 100) + ' %' });
+		} else if (base === 'mt' || base === 'mb') {
+			toFrame({ type: 'aimp-design-focus', kind: 'space', side: base === 'mt' ? 'top' : 'bottom', selector: el.selector, value: parseInt(row[p + base] || 0, 10), label: (base === 'mt' ? t.spaceAbove : t.spaceBelow) + ' ' + parseInt(row[p + base] || 0, 10) + ' px' });
+		} else if (key === 'fx' || key === 'fy') {
+			toFrame({ type: 'aimp-design-focus', kind: 'focal', selector: el.selector, fx: row.fx !== undefined ? row.fx : 50, fy: row.fy !== undefined ? row.fy : 50, label: t.focal + ' ' + (row.fx !== undefined ? row.fx : 50) + '% / ' + (row.fy !== undefined ? row.fy : 50) + '%' });
+		}
+	}
+
+	// Move the chosen part: dragged in the preview, or with the arrow keys (1 px, Shift: 10 px).
+	var dragBase = null;
+	function canMove() {
+		return !!(current && cfg.elements[current] && cfg.elements[current].selector && (cfg.elements[current].controls || []).indexOf('move') !== -1);
+	}
+	function moveBy(dx, dy, base) {
+		var p = device === 'phone' ? 'p' : '';
+		var clamp = function (n) {
+			return Math.max(-200, Math.min(200, Math.round(n)));
+		};
+		var row = draft[current] || {};
+		var from = base || { x: parseInt(row[p + 'x'] || 0, 10), y: parseInt(row[p + 'y'] || 0, 10) };
+		change(p + 'x', clamp(from.x + dx));
+		change(p + 'y', clamp(from.y + dy));
+	}
+	function onDrag(data) {
+		if (!canMove()) {
+			return;
+		}
+		var p = device === 'phone' ? 'p' : '';
+		var row = draft[current] || {};
+		if (data.phase === 'start' || !dragBase) {
+			dragBase = { x: parseInt(row[p + 'x'] || 0, 10), y: parseInt(row[p + 'y'] || 0, 10) };
+		} else {
+			// One Undo step for the whole drag.
+			lastSnap = Date.now();
+		}
+		moveBy(data.dx || 0, data.dy || 0, dragBase);
+		if (data.phase === 'end') {
+			dragBase = null;
+			showEdit();
+		}
+	}
+	function nudge(key, shift) {
+		var step = shift ? 10 : 1;
+		var d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[key];
+		if (!d || !canMove()) {
+			return false;
+		}
+		moveBy(d[0], d[1]);
+		window.clearTimeout(nudgeTimer);
+		nudgeTimer = window.setTimeout(showEdit, 400);
+		return true;
+	}
+	var nudgeTimer = 0;
+	document.addEventListener('keydown', function (e) {
+		if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) {
+			return;
+		}
+		if (nudge(e.key, e.shiftKey)) {
+			e.preventDefault();
+		}
+	});
+
+	/* ---------------- the focal point: a picture with a cross to click or drag ---------------- */
+
+	var FOCAL = { h_fx: ['h_fx', 'h_fy', 'h_img', 75, 40], fx: ['fx', 'fy', 'img', 50, 50] };
+	function focalPicture(pictureKey) {
+		var row = draft[current] || {};
+		if (row[pictureKey] && images[row[pictureKey]]) {
+			return images[row[pictureKey]];
+		}
+		// The picture the page shows now.
+		try {
+			var doc = frame.contentDocument;
+			var sel = pictureKey === 'h_img' ? '.aimp-hero' : cfg.elements[current].selector;
+			var el = doc.querySelector(prefixed(sel));
+			var img = el && (el.tagName === 'IMG' ? el : el.querySelector('img'));
+			if (img && img.currentSrc) {
+				return img.currentSrc;
+			}
+			var bg = el ? window.getComputedStyle(el).backgroundImage : '';
+			var m = bg && bg.match(/url\("?(.*?)"?\)/);
+			return m ? m[1] : '';
+		} catch (e) {
+			return '';
+		}
+	}
+	function drawFocalPads() {
+		Object.keys(FOCAL).forEach(function (first) {
+			var spec = FOCAL[first];
+			var input = edit.querySelector('input[type="number"][data-key="' + spec[0] + '"]');
+			if (!input) {
+				return;
+			}
+			var holder = input.closest('label');
+			var pad = holder.parentNode.querySelector('.aimp-ds-focal[data-focal="' + spec[0] + '"]');
+			if (!pad) {
+				pad = document.createElement('div');
+				pad.className = 'aimp-ds-focal';
+				pad.setAttribute('data-focal', spec[0]);
+				pad.innerHTML = '<span class="aimp-ds-focal-cross" aria-hidden="true"></span><span class="aimp-ds-focal-hint"></span>';
+				pad.querySelector('.aimp-ds-focal-hint').textContent = t.focalHint;
+				holder.parentNode.insertBefore(pad, holder);
+				var set = function (e) {
+					var box = pad.getBoundingClientRect();
+					var fx = Math.max(0, Math.min(100, Math.round((e.clientX - box.left) / box.width * 100)));
+					var fy = Math.max(0, Math.min(100, Math.round((e.clientY - box.top) / box.height * 100)));
+					change(spec[0], fx);
+					change(spec[1], fy);
+					placeCross(pad, fx, fy);
+					edit.querySelectorAll('[data-key="' + spec[0] + '"]').forEach(function (i) {
+						i.value = fx;
+					});
+					edit.querySelectorAll('[data-key="' + spec[1] + '"]').forEach(function (i) {
+						i.value = fy;
+					});
+				};
+				var down = false;
+				pad.addEventListener('mousedown', function (e) {
+					down = true;
+					remember();
+					set(e);
+					e.preventDefault();
+				});
+				window.addEventListener('mousemove', function (e) {
+					if (down) {
+						set(e);
+					}
+				});
+				window.addEventListener('mouseup', function () {
+					down = false;
+				});
+			}
+			var row = draft[current] || {};
+			var url = focalPicture(spec[2]);
+			pad.style.backgroundImage = url ? 'url("' + url.replace(/"/g, '%22') + '")' : '';
+			pad.classList.toggle('is-empty', !url);
+			placeCross(pad, row[spec[0]] !== undefined ? row[spec[0]] : spec[3], row[spec[1]] !== undefined ? row[spec[1]] : spec[4]);
+		});
+	}
+	function placeCross(pad, fx, fy) {
+		var cross = pad.querySelector('.aimp-ds-focal-cross');
+		cross.style.left = fx + '%';
+		cross.style.top = fy + '%';
 	}
 
 	/* ---------------- undo and redo ---------------- */
@@ -1037,6 +1245,9 @@
 
 	// Whether a setting is made on the server when the page is built (the preview then loads again).
 	function reloads(key) {
+		if (cfg.reloadKeys) {
+			return cfg.reloadKeys.indexOf(key) !== -1;
+		}
 		var found = false;
 		(cfg.reload || []).forEach(function (group) {
 			if (cfg.groups[group] && cfg.groups[group][key] !== undefined) {
@@ -1359,7 +1570,7 @@
 		showStatus(t.saving);
 		post('publish', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts) }).then(function (data) {
 			setState(data);
-			toFrame({ type: 'aimp-design-reload' });
+			reloadPreview();
 		}).catch(function (e) {
 			showStatus(e.message);
 		});
@@ -1369,7 +1580,7 @@
 		window.clearTimeout(saveTimer);
 		post('discard').then(function (data) {
 			setState(data);
-			toFrame({ type: 'aimp-design-reload' });
+			reloadPreview();
 		}).catch(function (e) {
 			showStatus(e.message);
 		});
@@ -1434,7 +1645,7 @@
 			load.addEventListener('click', function () {
 				post('look_load', { id: look.id }).then(function (data) {
 					setState(data);
-					toFrame({ type: 'aimp-design-reload' });
+					reloadPreview();
 					showStatus(t.lookLoaded);
 				}).catch(function (e) {
 					showStatus(e.message);
@@ -1509,7 +1720,7 @@
 				window.clearTimeout(saveTimer);
 				post('restore', { index: item.index }).then(function (data) {
 					setState(data);
-					toFrame({ type: 'aimp-design-reload' });
+					reloadPreview();
 					showStatus(t.restored);
 				}).catch(function (e) {
 					showStatus(e.message);
@@ -1548,7 +1759,7 @@
 			return post('import', { styles: JSON.stringify(json.styles), texts: JSON.stringify(json.texts || {}) });
 		}).then(function (data) {
 			setState(data);
-			toFrame({ type: 'aimp-design-reload' });
+			reloadPreview();
 			showStatus(t.imported);
 		}).catch(function (e) {
 			showStatus(e instanceof SyntaxError ? t.badFile : e.message);
@@ -1761,8 +1972,64 @@
 		toFrame({ type: 'aimp-design-pick', on: pickBox.checked });
 	});
 
+	// A new page in a second frame behind the visible one, at the same place; swapped once it is ready.
+	var loadingFrame = null;
+	function reloadPreview() {
+		var y = 0;
+		try {
+			y = frame.contentWindow.scrollY;
+			window.sessionStorage.setItem('aimp-design-scroll', String(y));
+		} catch (err) {}
+		var url = '';
+		try {
+			url = frame.contentWindow.location.href;
+		} catch (err) {
+			url = frame.src;
+		}
+		if (loadingFrame && loadingFrame.parentNode) {
+			loadingFrame.parentNode.removeChild(loadingFrame);
+		}
+		loadingFrame = frame.cloneNode(false);
+		loadingFrame.removeAttribute('src');
+		loadingFrame.style.position = 'absolute';
+		loadingFrame.style.top = '0';
+		loadingFrame.style.left = '0';
+		loadingFrame.style.visibility = 'hidden';
+		frame.parentNode.appendChild(loadingFrame);
+		loadingFrame.src = url;
+	}
+	function swapFrames() {
+		var old = frame;
+		frame = loadingFrame;
+		loadingFrame = null;
+		frame.style.position = '';
+		frame.style.top = '';
+		frame.style.left = '';
+		frame.style.visibility = '';
+		if (old.parentNode) {
+			old.parentNode.removeChild(old);
+		}
+		fit();
+	}
+
 	window.addEventListener('message', function (e) {
 		if (e.origin !== frameOrigin || !e.data || typeof e.data !== 'object') {
+			return;
+		}
+		if (loadingFrame && e.source === loadingFrame.contentWindow) {
+			if (e.data.type !== 'aimp-design-ready') {
+				return;
+			}
+			swapFrames();
+		} else if (frame.contentWindow && e.source !== frame.contentWindow) {
+			return;
+		}
+		if (e.data.type === 'aimp-design-drag') {
+			onDrag(e.data);
+			return;
+		}
+		if (e.data.type === 'aimp-design-key') {
+			nudge(e.data.key, e.data.shift);
 			return;
 		}
 		if (e.data.type === 'aimp-design-ready') {

@@ -35,6 +35,89 @@
 	label.style.cssText = 'position:fixed;z-index:2147483647;display:none;padding:2px 8px;border-radius:4px;background:#8a6a33;color:#fff;font:600 12px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;max-width:60vw;overflow:hidden;text-overflow:ellipsis';
 	document.documentElement.appendChild(label);
 
+	/*
+	 * What changed, drawn over the page: where the part was (dashed), where it is now (gold), an arrow and a label;
+	 * the focal point of a picture as a cross. It fades away a moment after the last change.
+	 */
+	var overlay = document.createElement('div');
+	overlay.setAttribute('aria-hidden', 'true');
+	overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483646;pointer-events:none;display:none;transition:opacity .4s ease';
+	document.documentElement.appendChild(overlay);
+	var overlayTimer = 0;
+	function box(r, css) {
+		var d = document.createElement('div');
+		d.style.cssText = 'position:fixed;left:' + r.left + 'px;top:' + r.top + 'px;width:' + Math.max(0, r.width) + 'px;height:' + Math.max(0, r.height) + 'px;box-sizing:border-box;' + css;
+		overlay.appendChild(d);
+		return d;
+	}
+	function tag(text, x, y) {
+		var d = document.createElement('div');
+		d.textContent = text;
+		d.style.cssText = 'position:fixed;left:' + Math.max(4, Math.min(x, window.innerWidth - 220)) + 'px;top:' + Math.max(4, y) + 'px;padding:3px 10px;border-radius:100px;background:#8a6a33;color:#fff;font:600 13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)';
+		overlay.appendChild(d);
+	}
+	function showFocus(data) {
+		var el = null;
+		try {
+			el = document.querySelector(prefixed(data.selector));
+		} catch (e) {}
+		if (!el) {
+			return;
+		}
+		overlay.innerHTML = '';
+		overlay.style.display = 'block';
+		overlay.style.opacity = '1';
+		var r = el.getBoundingClientRect();
+		if (data.kind === 'move') {
+			// Where it was: the same box without the move.
+			var was = { left: r.left - data.x, top: r.top - data.y, width: r.width, height: r.height };
+			box(was, 'border:2px dashed rgba(70,70,70,.75);background:rgba(255,255,255,.25)');
+			box(r, 'border:3px solid #b38f4f');
+			if (data.x || data.y) {
+				var x1 = was.left + was.width / 2;
+				var y1 = was.top + was.height / 2;
+				var x2 = r.left + r.width / 2;
+				var y2 = r.top + r.height / 2;
+				var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+				svg.setAttribute('width', window.innerWidth);
+				svg.setAttribute('height', window.innerHeight);
+				svg.style.cssText = 'position:fixed;left:0;top:0;overflow:visible';
+				svg.innerHTML = '<defs><marker id="aimp-ds-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8a6a33"/></marker></defs>' +
+					'<circle cx="' + x1 + '" cy="' + y1 + '" r="4" fill="#8a6a33"/>' +
+					'<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#8a6a33" stroke-width="3" marker-end="url(#aimp-ds-arrow)"/>';
+				overlay.appendChild(svg);
+			}
+			tag(data.label, r.left, r.top - 30 > 0 ? r.top - 30 : r.bottom + 6);
+		} else if (data.kind === 'focal') {
+			box(r, 'border:2px solid rgba(179,143,79,.8)');
+			var fx = r.left + r.width * (data.fx / 100);
+			var fy = r.top + r.height * (data.fy / 100);
+			box({ left: fx - 1, top: r.top, width: 2, height: r.height }, 'background:rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(0,0,0,.35)');
+			box({ left: r.left, top: fy - 1, width: r.width, height: 2 }, 'background:rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(0,0,0,.35)');
+			box({ left: fx - 11, top: fy - 11, width: 22, height: 22 }, 'border:3px solid #fff;border-radius:50%;background:#b38f4f;box-shadow:0 0 0 1px rgba(0,0,0,.4)');
+			tag(data.label, fx + 16, fy - 14);
+		} else if (data.kind === 'space') {
+			box(r, 'border:2px solid #b38f4f');
+			var h = Math.max(0, data.value || 0);
+			if (h) {
+				box({ left: r.left, top: data.side === 'top' ? r.top - h : r.bottom, width: r.width, height: h }, 'background:repeating-linear-gradient(45deg,rgba(179,143,79,.28) 0 6px,rgba(179,143,79,.12) 6px 12px)');
+			}
+			tag(data.label, r.left, data.side === 'top' ? r.top - h - 30 : r.bottom + h + 6);
+		} else {
+			box(r, 'border:3px solid #b38f4f');
+			tag(data.label, r.left, r.top - 30 > 0 ? r.top - 30 : r.bottom + 6);
+		}
+		window.clearTimeout(overlayTimer);
+		overlayTimer = window.setTimeout(function () {
+			overlay.style.opacity = '0';
+			window.setTimeout(function () {
+				if (overlay.style.opacity === '0') {
+					overlay.style.display = 'none';
+				}
+			}, 450);
+		}, 1600);
+	}
+
 	// "html body" in front (as AIMP_Design::prefixed()); a selector that starts at body gets only "html".
 	function prefixed(selector, extra) {
 		return selector.split(',').map(function (part) {
@@ -241,7 +324,59 @@
 		label.style.display = 'none';
 	});
 
+	var drag = null;
+	var dragged = false;
+	document.addEventListener('mousedown', function (e) {
+		if (!pick || !selectedSel || e.button !== 0) {
+			return;
+		}
+		var el = null;
+		try {
+			el = e.target.closest(prefixed(selectedSel));
+		} catch (err) {}
+		if (!el) {
+			return;
+		}
+		drag = { x: e.clientX, y: e.clientY, started: false };
+		e.preventDefault();
+	}, true);
+	document.addEventListener('mousemove', function (e) {
+		if (!drag) {
+			return;
+		}
+		var dx = e.clientX - drag.x;
+		var dy = e.clientY - drag.y;
+		if (!drag.started && Math.abs(dx) + Math.abs(dy) < 4) {
+			return;
+		}
+		if (!drag.started) {
+			drag.started = true;
+			send({ type: 'aimp-design-drag', phase: 'start', dx: 0, dy: 0 });
+		}
+		send({ type: 'aimp-design-drag', phase: 'move', dx: dx, dy: dy });
+	}, true);
+	document.addEventListener('mouseup', function (e) {
+		if (drag && drag.started) {
+			send({ type: 'aimp-design-drag', phase: 'end', dx: e.clientX - drag.x, dy: e.clientY - drag.y });
+			// The click that ends a drag does not select something else.
+			dragged = true;
+		}
+		drag = null;
+	}, true);
+	document.addEventListener('keydown', function (e) {
+		if (pick && /^Arrow(Left|Right|Up|Down)$/.test(e.key) && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
+			e.preventDefault();
+			send({ type: 'aimp-design-key', key: e.key, shift: e.shiftKey });
+		}
+	}, true);
+
 	document.addEventListener('click', function (e) {
+		if (pick && dragged) {
+			dragged = false;
+			e.preventDefault();
+			e.stopPropagation();
+			return;
+		}
 		if (pick) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -317,6 +452,8 @@
 			}
 			label.style.display = 'none';
 			drawMarks();
+		} else if (data.type === 'aimp-design-focus') {
+			showFocus(data);
 		} else if (data.type === 'aimp-design-show') {
 			// A part chosen in the studio (registered, or an own part with its selector).
 			selectedSel = data.selector || (data.id && cfg.elements[data.id] ? cfg.elements[data.id] : '');

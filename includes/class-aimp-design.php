@@ -51,7 +51,7 @@ class AIMP_Design {
 		// The studio's screen: room for the panel and the preview (admin-design.css hides the WordPress menu).
 		add_filter( 'admin_body_class', array( __CLASS__, 'body_class' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_assets' ) );
-		foreach ( array( 'save', 'publish', 'discard', 'restore', 'import', 'texts', 'look_save', 'look_load', 'look_delete', 'look_plan' ) as $action ) {
+		foreach ( array( 'css', 'save', 'publish', 'discard', 'restore', 'import', 'texts', 'look_save', 'look_load', 'look_delete', 'look_plan' ) as $action ) {
 			add_action( 'wp_ajax_aimp_design_' . $action, array( __CLASS__, 'ajax_' . $action ) );
 		}
 		add_action( 'wp_head', array( __CLASS__, 'print_style' ), 100 );
@@ -190,7 +190,7 @@ class AIMP_Design {
 		}
 		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
 		if ( isset( $elements['product-page'] ) ) {
-			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info', 'cz_steps', 'cz_flow', 'cz_bar', 'cz_summary', 'co_opts', 'acc_opts', 'footer_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts' );
+			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info' );
 		}
 		// The customizer as a whole (phase 7): steps, cards, the haberdashery, the bar on phones, the summary.
 		if ( isset( $elements['customizer'] ) ) {
@@ -923,7 +923,27 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'header_opts', 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_media', 'hero_buttons', 'arrow_opts', 'favicon', 'ks_opts', 'mosaic_opts', 'shop_cards', 'shop_tools', 'shop_badges', 'shop_cats', 'overview_opts', 'pp_buy', 'pp_info' );
+		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts' );
+	}
+
+	/**
+	 * Settings made on the server when the page is built: the preview loads again after a change. The groups of
+	 * reload_groups() whole, and from other groups only the settings that are not just CSS (a focal point or a colour
+	 * shows at once).
+	 *
+	 * @return string[]
+	 */
+	public static function reload_keys() {
+		$groups = self::groups();
+		$keys   = array( 'nosticky', 'noshrink', 'h_img', 'h_pimg', 'h_video', 'h_slides', 'h_interval', 'ks_hide_2', 'ks_hide_3', 'ks_step5', 'ks_speed', 'ks_noloops', 'ks_url', 'ks_nosparkle', 'ks_nopopup', 'mos_source', 'brand', 'b_new', 'b_sale', 'b_low', 'pp_sticky', 'pp_share', 'pp_layout', 'pp_brand_link', 'pp_count', 'pp_related', 'cz_nosparkle', 'ft_top', 'cz_norder', 'cz_nonotions' );
+		for ( $n = 1; $n <= 5; $n++ ) {
+			$keys[] = 'ks_icon_' . $n;
+			$keys[] = 'ks_img_' . $n;
+		}
+		foreach ( self::reload_groups() as $group ) {
+			$keys = array_merge( $keys, array_keys( isset( $groups[ $group ] ) ? $groups[ $group ] : array() ) );
+		}
+		return array_values( array_unique( $keys ) );
 	}
 
 	/**
@@ -2527,6 +2547,7 @@ class AIMP_Design {
 					'elements' => self::elements(),
 					'groups'   => self::groups(),
 					'reload'   => self::reload_groups(),
+					'reloadKeys' => self::reload_keys(),
 					'i18n'     => array(
 						'saving'      => __( 'Saving…', 'atelier-irisee-master-plugin' ),
 						'saved'       => __( 'Draft saved', 'atelier-irisee-master-plugin' ),
@@ -2571,6 +2592,12 @@ class AIMP_Design {
 						'addItem'       => __( 'Add a text', 'atelier-irisee-master-plugin' ),
 						'removeItem'    => __( 'Remove', 'atelier-irisee-master-plugin' ),
 						'wpMenu'        => __( 'WordPress menu', 'atelier-irisee-master-plugin' ),
+						'focal'         => __( 'Focal point', 'atelier-irisee-master-plugin' ),
+						'focalHint'     => __( 'Click or drag on the picture to choose the spot that stays in view.', 'atelier-irisee-master-plugin' ),
+						'notMoved'      => __( 'Not moved', 'atelier-irisee-master-plugin' ),
+						'sizeWord'      => __( 'Size', 'atelier-irisee-master-plugin' ),
+						'spaceAbove'    => __( 'Space above', 'atelier-irisee-master-plugin' ),
+						'spaceBelow'    => __( 'Space below', 'atelier-irisee-master-plugin' ),
 						'deviceComputer' => __( 'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.', 'atelier-irisee-master-plugin' ),
 						'devicePhone' => __( 'Showing the settings for phones. Click "Computer" at the top for the computer settings.', 'atelier-irisee-master-plugin' ),
 						'choose'      => __( 'Choose a picture', 'atelier-irisee-master-plugin' ),
@@ -2693,6 +2720,7 @@ class AIMP_Design {
 		};
 
 		$group( 'move', __( 'Position', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Tip: drag the part in the preview, or use the arrow keys (Shift: 10 px at a time). The preview shows where it was and how far it moved.', 'atelier-irisee-master-plugin' ) . '</p>';
 		$sub( $computer );
 		self::number( 'x', __( 'Left / right', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
 		self::number( 'y', __( 'Up / down', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
@@ -3854,6 +3882,16 @@ class AIMP_Design {
 		}
 		self::store( $changes );
 		wp_send_json_success( self::state() );
+	}
+
+	/**
+	 * While you change a setting: the "Whole site" and option CSS of the styles in the studio, at once, without
+	 * saving (the preview shows a focal point or a colour right away; the save follows on its own).
+	 */
+	public static function ajax_css() {
+		self::check();
+		$styles = self::clean( self::posted_json( 'styles' ) );
+		wp_send_json_success( array( 'css' => self::site_css( $styles ) . self::opts_css( $styles ) ) );
 	}
 
 	/** The draft becomes the live look; the look it replaces goes into the history. */

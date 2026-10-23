@@ -2206,4 +2206,10 @@ return array(
 	'Texts in the gold bar' => 'Textes de la barre dorée',
 	'These texts are the same as under Atelier Irisee → Settings. The preview shows your change after a moment; Publish saves them there.' => 'Ce sont les mêmes textes que sous Atelier Irisee → Réglages. L\'aperçu affiche votre modification après un instant ; Publier les y enregistre.',
 	'WordPress menu' => 'Menu WordPress',
+
+	// Design studio: live changes
+	'Click or drag on the picture to choose the spot that stays in view.' => 'Cliquez ou faites glisser sur la photo pour choisir l\'endroit qui reste visible.',
+	'Focal point' => 'Point focal',
+	'Not moved' => 'Pas déplacé',
+	'Tip: drag the part in the preview, or use the arrow keys (Shift: 10 px at a time). The preview shows where it was and how far it moved.' => 'Astuce : faites glisser l\'élément dans l\'aperçu, ou utilisez les flèches (Maj : 10 px à la fois). L\'aperçu montre où il était et de combien il a bougé.',
 );
