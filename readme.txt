@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.35.0
+Stable tag: 3.36.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,16 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.36.0 =
+* Design studio: changes show without the page refreshing.
+  * Only settings that change what the server builds (pictures, video, buttons, texts, …) still load the page again, and then without a white flash and at the same place: the new page is made behind the old one and swapped in.
+  * Everything else shows at once: the focal point of the hero picture, colours, badge colours, card options, hidden parts, star colour, cards per row, kit steps thread and many more.
+* Moving something: the preview shows where the part was (dashed), where it is now, an arrow and the distance ("→ 24 px  ↓ 10 px"); size and space get a label too, the focal point a cross.
+  * Drag a chosen part in the preview to move it, or use the arrow keys (Shift: 10 px). One Undo step per drag.
+  * Focal point: click or drag on the picture in the panel.
+* Fix: changes for computers only (position, size, space) did not show in the preview until the page was loaded again.
+* Fix: the Product page part showed the settings of the customizer, checkout, account, footer and more; it shows its own four blocks again. Those other settings now load the preview again when they need to.
 
 = 3.35.0 =
 * Design studio: the texts of the Atelier Irisee settings can be changed in the studio, with their part, on the Content tab ("Texts from the settings"):

@@ -115,7 +115,7 @@
 					overlay.style.display = 'none';
 				}
 			}, 450);
-		}, 1600);
+		}, 2500);
 	}
 
 	// "html body" in front (as AIMP_Design::prefixed()); a selector that starts at body gets only "html".
