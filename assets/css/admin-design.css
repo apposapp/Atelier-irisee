@@ -608,7 +608,7 @@
 	padding: 0;
 }
 
-.aimp-ds-group > legend + * {
+.aimp-ds-group > :not(legend) {
 	clear: both;
 }
 

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.34.0
+Stable tag: 3.35.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.35.0 =
+* Design studio: the texts of the Atelier Irisee settings can be changed in the studio, with their part, on the Content tab ("Texts from the settings"):
+  * the gold bar under the header (each text in Dutch, French and English; texts can be added and removed), the delivery time (buy bar, cart), the hero's tagline and text, every text of the kit steps bar, and the footer's company name, address, phone, email, newsletter text and copyright line.
+  * They are part of the draft (only the preview shows them) and Publish saves them in the settings; Undo works for them too.
+* More room: the WordPress menu is hidden in the studio (the button "WordPress menu" brings it back), the panel is wider, and the computer preview uses the full width of the screen.
+* Nothing in the panel is too wide any more (e.g. the hero's pictures, video and slides); long button texts wrap. Fix: the first slider of Position, Space and Title sizes was squeezed out of view.
 
 = 3.34.0 =
 * Design studio: click and change (almost) everything.
