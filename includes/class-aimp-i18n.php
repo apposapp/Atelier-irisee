@@ -173,11 +173,13 @@ class AIMP_I18n {
 		if ( class_exists( 'AIMP_Design', false ) ) {
 			$own = AIMP_Design::text( $text, $lang );
 			if ( null !== $own ) {
-				return $own;
+				return AIMP_Design::seen( $text, $own );
 			}
 		}
 		$dictionary = self::dictionary( $lang );
-		return isset( $dictionary[ $text ] ) ? $dictionary[ $text ] : $text;
+		$result     = isset( $dictionary[ $text ] ) ? $dictionary[ $text ] : $text;
+		// The studio's preview notes which text it showed, so a click on it opens that text.
+		return class_exists( 'AIMP_Design', false ) ? AIMP_Design::seen( $text, $result ) : $result;
 	}
 
 	/**

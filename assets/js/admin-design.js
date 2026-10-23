@@ -38,8 +38,18 @@
 	// The parts found on the page in the preview (null until it has loaded), and computer or phone settings.
 	var present = null;
 	var device = 'computer';
-	// Settings every part has: shown after the part's own settings, under "Fine-tuning".
-	var GENERIC = ['colors', 'size', 'space', 'radius', 'hide', 'move', 'anim'];
+	// Like Divi: a part's settings on three tabs. Content = the clicked text and the part's own settings,
+	// Design = how it looks, Advanced = where it sits, when it shows, how it moves.
+	var DESIGN = ['colors', 'image', 'size', 'space', 'radius'];
+	var ADVANCED = ['move', 'hide', 'anim'];
+	var activeTab = 'content';
+	// The shop text clicked in the preview ({ original, shown }), or that the clicked words are not a shop text.
+	var currentText = null;
+	var currentMiss = false;
+	// The shop texts on the page in the preview (originals), or null.
+	var pageTexts = null;
+	// "Only a text": a click on a shop text outside the registered parts.
+	cfg.elements.__text = { group: '', label: t.textOnly, selector: '', controls: [] };
 
 	function clone(value) {
 		return JSON.parse(JSON.stringify(value || {}));
@@ -348,7 +358,7 @@
 		var other = [];
 		Object.keys(cfg.elements).forEach(function (id) {
 			var el = cfg.elements[id];
-			if (term && (el.label + ' ' + el.group).toLowerCase().indexOf(term) === -1) {
+			if (id === '__text' || (term && (el.label + ' ' + el.group).toLowerCase().indexOf(term) === -1)) {
 				return;
 			}
 			if (!el.selector) {
@@ -395,8 +405,10 @@
 	}
 
 	// A chosen part: only its settings, without the list (‹ All parts goes back).
-	function select(id, scroll) {
+	function select(id, scroll, text, miss) {
 		current = id;
+		currentText = text || null;
+		currentMiss = !!miss && !text;
 		renderList();
 		showEdit();
 		if (scroll && cfg.elements[id].selector) {
@@ -428,32 +440,42 @@
 		edit.hidden = false;
 		focusMode(true);
 		var controls = cfg.elements[current].controls || [];
-		var own = controls.filter(function (key) {
-			return GENERIC.indexOf(key) === -1;
-		});
-		var generic = GENERIC.filter(function (key) {
-			return controls.indexOf(key) !== -1;
-		});
 		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
-			group.hidden = controls.indexOf(group.getAttribute('data-group')) === -1;
+			var key = group.getAttribute('data-group');
 			group.classList.remove('is-open');
+			if (key) {
+				group.hidden = controls.indexOf(key) === -1;
+				group.setAttribute('data-tab', DESIGN.indexOf(key) !== -1 ? 'design' : (ADVANCED.indexOf(key) !== -1 ? 'advanced' : 'content'));
+			}
 		});
-		// Its own settings, then "Fine-tuning" with the settings every part has.
+		// In order: the clicked text, the part's own settings, then design and advanced in a fixed order.
 		var home = edit.querySelector('.aimp-ds-groups');
-		own.concat(generic).forEach(function (key) {
+		home.appendChild(textGroup);
+		controls.filter(function (key) {
+			return DESIGN.indexOf(key) === -1 && ADVANCED.indexOf(key) === -1;
+		}).concat(DESIGN, ADVANCED).forEach(function (key) {
 			var group = edit.querySelector('.aimp-ds-group[data-group="' + key + '"]');
 			if (group) {
-				if (key === generic[0]) {
-					home.appendChild(fineTitle);
-				}
 				home.appendChild(group);
 			}
 		});
-		fineTitle.hidden = !generic.length || !own.length;
-		var first = edit.querySelector('.aimp-ds-group[data-group="' + (own[0] || generic[0]) + '"]');
-		if (first) {
-			first.classList.add('is-open');
+		textGroup.hidden = !currentText && !currentMiss;
+		renderTextGroup();
+		// The tabs that have something; a clicked text opens on Content.
+		var filled = {};
+		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
+			if (!group.hidden) {
+				filled[group.getAttribute('data-tab')] = true;
+			}
+		});
+		partTabs.querySelectorAll('button').forEach(function (button) {
+			button.hidden = !filled[button.getAttribute('data-ptab')];
+		});
+		partTabs.hidden = Object.keys(filled).length < 2;
+		if (currentText || currentMiss || !filled[activeTab]) {
+			activeTab = filled.content ? 'content' : (filled.design ? 'design' : 'advanced');
 		}
+		setTab(activeTab);
 		markGroups();
 		q('.aimp-ds-edit-name').textContent = cfg.elements[current].label;
 		var row = draft[current] || {};
@@ -534,10 +556,67 @@
 		markGroups();
 	}
 
+	// A tab of the chosen part: its blocks, the first one open.
+	function setTab(name) {
+		activeTab = name;
+		partTabs.querySelectorAll('button').forEach(function (button) {
+			var on = button.getAttribute('data-ptab') === name;
+			button.classList.toggle('is-active', on);
+			button.setAttribute('aria-selected', on ? 'true' : 'false');
+		});
+		var first = null;
+		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
+			var off = group.getAttribute('data-tab') !== name;
+			group.classList.toggle('is-off-tab', off);
+			group.classList.remove('is-open');
+			if (!off && !group.hidden && !first) {
+				first = group;
+			}
+		});
+		if (first) {
+			first.classList.add('is-open');
+		}
+	}
+
+	// The clicked shop text: its words in Dutch, French and English, nothing else.
+	function renderTextGroup() {
+		var body = textGroup.querySelector('.aimp-ds-textgroup-body');
+		body.innerHTML = '';
+		if (currentMiss && !currentText) {
+			var miss = document.createElement('p');
+			miss.className = 'description';
+			miss.textContent = t.textMiss;
+			body.appendChild(miss);
+			return;
+		}
+		if (!currentText) {
+			return;
+		}
+		var asked = currentText.original;
+		loadTexts().then(function () {
+			if (!currentText || currentText.original !== asked) {
+				return;
+			}
+			var row = null;
+			(texts || []).forEach(function (r) {
+				if (r[0] === asked) {
+					row = r;
+				}
+			});
+			body.appendChild(textEditor(row || [asked, '', '']));
+			var help = document.createElement('p');
+			help.className = 'description';
+			help.textContent = t.textHelp;
+			body.appendChild(help);
+		});
+	}
+
 	// A dot on the title of a folded block when one of its settings is changed.
 	function markGroups() {
 		var row = draft[current] || {};
-		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
+		var textToggle = textGroup.querySelector('.aimp-ds-group-toggle');
+		textToggle.classList.toggle('is-changed', !!(currentText && draftTexts[currentText.original]));
+		edit.querySelectorAll('.aimp-ds-group[data-group]').forEach(function (group) {
 			var fields = cfg.groups[group.getAttribute('data-group')] || {};
 			var changed = Object.keys(fields).some(function (key) {
 				return row[key] !== undefined;
@@ -735,19 +814,19 @@
 		return (String(text).match(/%(?:\d+\$)?[sdfu]/g) || []).sort();
 	}
 
+	var textsLoading = null;
 	function loadTexts() {
-		if (texts) {
-			return;
+		if (!textsLoading) {
+			textCount.textContent = t.loading;
+			textsLoading = post('texts').then(function (data) {
+				texts = data;
+				renderTexts();
+			}).catch(function (e) {
+				textsLoading = null;
+				textCount.textContent = e.message;
+			});
 		}
-		texts = [];
-		textCount.textContent = t.loading;
-		post('texts').then(function (data) {
-			texts = data;
-			renderTexts();
-		}).catch(function (e) {
-			texts = null;
-			textCount.textContent = e.message;
-		});
+		return textsLoading;
 	}
 
 	function renderTexts() {
@@ -760,6 +839,10 @@
 			if (textOwn.checked && !own) {
 				return false;
 			}
+			// Only the texts of the page in the preview (unless searching).
+			if (textPage.checked && pageTexts && !term && pageTexts.indexOf(row[0]) === -1) {
+				return false;
+			}
 			if (!term) {
 				return true;
 			}
@@ -770,8 +853,14 @@
 		textCount.textContent = fmt(t.textsShown, shown.length, found.length);
 		textBox.innerHTML = '';
 		shown.forEach(function (row) {
-			var original = row[0];
-			var item = document.createElement('div');
+			textBox.appendChild(textEditor(row));
+		});
+	}
+
+	// One text with a field per language (empty = the standard text).
+	function textEditor(row) {
+		var original = row[0];
+		var item = document.createElement('div');
 			item.className = 'aimp-ds-text' + (draftTexts[original] ? ' is-own' : '');
 			var head = document.createElement('p');
 			head.className = 'aimp-ds-text-original';
@@ -815,8 +904,7 @@
 				label.appendChild(input);
 				item.appendChild(label);
 			});
-			textBox.appendChild(item);
-		});
+		return item;
 	}
 
 	textSearch.addEventListener('input', function () {
@@ -824,6 +912,16 @@
 		textTimer = window.setTimeout(renderTexts, 200);
 	});
 	textOwn.addEventListener('change', renderTexts);
+	// "Only the texts on this page" (on unless searching).
+	var textPageLabel = document.createElement('label');
+	textPageLabel.className = 'aimp-ds-check';
+	var textPage = document.createElement('input');
+	textPage.type = 'checkbox';
+	textPage.checked = true;
+	textPageLabel.appendChild(textPage);
+	textPageLabel.appendChild(document.createTextNode(' ' + t.textsOnPage));
+	textOwn.closest('label').parentNode.insertBefore(textPageLabel, textOwn.closest('label'));
+	textPage.addEventListener('change', renderTexts);
 
 	/* ---------------- confirm by clicking twice ---------------- */
 
@@ -1053,9 +1151,6 @@
 	/* ---------------- folding blocks, computer or phone ---------------- */
 
 	// Every block of settings folds open with its title; one block at a time.
-	var fineTitle = document.createElement('p');
-	fineTitle.className = 'aimp-ds-fine';
-	fineTitle.textContent = t.fineTune;
 	edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
 		var legend = group.querySelector('legend');
 		if (!legend) {
@@ -1089,6 +1184,33 @@
 				child.setAttribute('data-device', mode);
 			}
 		});
+	});
+	var partTabs = document.createElement('div');
+	partTabs.className = 'aimp-ds-ptabs';
+	partTabs.setAttribute('role', 'tablist');
+	[['content', t.tabContent], ['design', t.tabDesign], ['advanced', t.tabAdvanced]].forEach(function (pair) {
+		var button = document.createElement('button');
+		button.type = 'button';
+		button.setAttribute('role', 'tab');
+		button.setAttribute('data-ptab', pair[0]);
+		button.textContent = pair[1];
+		button.addEventListener('click', function () {
+			setTab(pair[0]);
+		});
+		partTabs.appendChild(button);
+	});
+	edit.appendChild(partTabs);
+	var textGroup = document.createElement('fieldset');
+	textGroup.className = 'aimp-ds-group aimp-ds-textgroup';
+	textGroup.setAttribute('data-tab', 'content');
+	textGroup.innerHTML = '<legend><button type="button" class="aimp-ds-group-toggle"></button></legend><div class="aimp-ds-textgroup-body"></div>';
+	textGroup.querySelector('.aimp-ds-group-toggle').textContent = t.textTitle;
+	textGroup.querySelector('.aimp-ds-group-toggle').addEventListener('click', function () {
+		var open = !textGroup.classList.contains('is-open');
+		edit.querySelectorAll('.aimp-ds-group.is-open').forEach(function (other) {
+			other.classList.remove('is-open');
+		});
+		textGroup.classList.toggle('is-open', open);
 	});
 	var groupsHome = document.createElement('div');
 	groupsHome.className = 'aimp-ds-groups';
@@ -1162,17 +1284,22 @@
 			return;
 		}
 		if (e.data.type === 'aimp-design-ready') {
-			// The parts on this page: the list shows those first.
+			// The parts and shop texts on this page: the lists show those first.
 			present = Array.isArray(e.data.present) ? e.data.present : null;
+			pageTexts = Array.isArray(e.data.texts) ? e.data.texts : null;
+			if (texts) {
+				renderTexts();
+			}
 			renderList();
 			sendCss();
 			toFrame({ type: 'aimp-design-pick', on: pickBox.checked });
 			if (current) {
 				toFrame({ type: 'aimp-design-show', id: current });
 			}
-		} else if (e.data.type === 'aimp-design-select' && cfg.elements[e.data.id]) {
+		} else if (e.data.type === 'aimp-design-select' && (cfg.elements[e.data.id] || e.data.text || e.data.textMiss)) {
 			root.querySelector('.aimp-ds-tabs [data-tab="parts"]').click();
-			select(e.data.id, false);
+			// A click on a text: that text (in its part); on other words: the part, with a note.
+			select(cfg.elements[e.data.id] ? e.data.id : '__text', false, e.data.text && e.data.text.original ? e.data.text : null, e.data.textMiss);
 			var item = list.querySelector('.is-current');
 			if (item) {
 				item.scrollIntoView({ block: 'nearest' });

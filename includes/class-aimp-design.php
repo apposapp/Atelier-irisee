@@ -53,6 +53,9 @@ class AIMP_Design {
 			add_action( 'wp_ajax_aimp_design_' . $action, array( __CLASS__, 'ajax_' . $action ) );
 		}
 		add_action( 'wp_head', array( __CLASS__, 'print_style' ), 100 );
+		// The preview: which shop texts the page shows (a click on one opens it in the studio).
+		add_action( 'template_redirect', array( __CLASS__, 'start_seen' ), 1 );
+		add_action( 'wp_footer', array( __CLASS__, 'print_seen' ), 1000 );
 		add_action( 'wp_footer', array( __CLASS__, 'print_speed' ), 100 );
 		add_action( 'template_redirect', array( __CLASS__, 'preview_headers' ), 0 );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'preview_assets' ), 30 );
@@ -1201,6 +1204,40 @@ class AIMP_Design {
 		return isset( self::$texts[ $original ][ $lang ] ) ? self::$texts[ $original ][ $lang ] : null;
 	}
 
+	/** In the preview: original => text as shown, for every shop text on the page (null: not noting). */
+	private static $seen = null;
+
+	/**
+	 * A shop text as the page shows it (AIMP_I18n::translate()); noted in the studio's preview.
+	 *
+	 * @param string $original English original.
+	 * @param string $shown    The text on the page.
+	 * @return string The text on the page.
+	 */
+	public static function seen( $original, $shown ) {
+		if ( null !== self::$seen && '' !== trim( (string) $shown ) && count( self::$seen ) < 3000 ) {
+			self::$seen[ $original ] = (string) $shown;
+		}
+		return $shown;
+	}
+
+	public static function start_seen() {
+		if ( self::is_preview() ) {
+			self::$seen = array();
+		}
+	}
+
+	public static function print_seen() {
+		if ( null === self::$seen ) {
+			return;
+		}
+		$rows = array();
+		foreach ( self::$seen as $original => $shown ) {
+			$rows[] = array( (string) $original, $shown );
+		}
+		echo '<script>window.aimpDesignTexts=' . wp_json_encode( $rows ) . ';</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON (wp_json_encode escapes "</").
+	}
+
 	public static function purge() {
 		do_action( 'litespeed_purge_all' );
 	}
@@ -2189,7 +2226,14 @@ class AIMP_Design {
 						'noneHere'    => __( 'This page has no parts of its own to change; see the whole site below.', 'atelier-irisee-master-plugin' ),
 						'wholeSite'   => __( 'Whole site (colours, fonts, buttons, …)', 'atelier-irisee-master-plugin' ),
 						'otherPages'  => __( 'Parts of other pages', 'atelier-irisee-master-plugin' ),
-						'fineTune'    => __( 'Fine-tuning', 'atelier-irisee-master-plugin' ),
+						'tabContent'  => __( 'Content', 'atelier-irisee-master-plugin' ),
+						'tabDesign'   => __( 'Design', 'atelier-irisee-master-plugin' ),
+						'tabAdvanced' => __( 'Advanced', 'atelier-irisee-master-plugin' ),
+						'textTitle'   => __( 'Text', 'atelier-irisee-master-plugin' ),
+						'textOnly'    => __( 'Text', 'atelier-irisee-master-plugin' ),
+						'textHelp'    => __( 'Empty = the standard text. The preview shows your text after a moment; visitors see it after Publish.', 'atelier-irisee-master-plugin' ),
+						'textMiss'    => __( 'These words come from your own content (a product, a category, a page or a setting), not from the shop texts. Change them where they are made.', 'atelier-irisee-master-plugin' ),
+						'textsOnPage' => __( 'Only the texts on the page in the preview', 'atelier-irisee-master-plugin' ),
 						'deviceComputer' => __( 'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.', 'atelier-irisee-master-plugin' ),
 						'devicePhone' => __( 'Showing the settings for phones. Click "Computer" at the top for the computer settings.', 'atelier-irisee-master-plugin' ),
 						'choose'      => __( 'Choose a picture', 'atelier-irisee-master-plugin' ),

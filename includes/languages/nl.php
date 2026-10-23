@@ -2157,11 +2157,15 @@ return array(
 	'These take effect for visitors after publishing (LiteSpeed is emptied then).' => 'Dit werkt voor bezoekers na het publiceren (LiteSpeed wordt dan leeggemaakt).',
 
 	// Design studio: easier panel
-	'Fine-tuning' => 'Fijnafstelling',
 	'On this page' => 'Op deze pagina',
 	'Parts of other pages' => 'Onderdelen van andere pagina\'s',
 	'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.' => 'Je ziet de instellingen voor computers en tablets. Klik bovenaan op "Telefoon" voor de instellingen voor telefoons.',
 	'Showing the settings for phones. Click "Computer" at the top for the computer settings.' => 'Je ziet de instellingen voor telefoons. Klik bovenaan op "Computer" voor de instellingen voor computers.',
 	'This page has no parts of its own to change; see the whole site below.' => 'Deze pagina heeft geen eigen onderdelen om aan te passen; zie de hele site hieronder.',
 	'Whole site (colours, fonts, buttons, …)' => 'Hele site (kleuren, lettertypes, knoppen, …)',
+
+	// Design studio: Divi-like panel
+	'Empty = the standard text. The preview shows your text after a moment; visitors see it after Publish.' => 'Leeg = de standaardtekst. De voorbeeldweergave toont je tekst na een ogenblik; bezoekers zien hem na Publiceren.',
+	'Only the texts on the page in the preview' => 'Alleen de teksten op de pagina in de voorbeeldweergave',
+	'These words come from your own content (a product, a category, a page or a setting), not from the shop texts. Change them where they are made.' => 'Deze woorden komen uit je eigen inhoud (een product, een categorie, een pagina of een instelling), niet uit de winkelteksten. Pas ze aan waar ze gemaakt worden.',
 );

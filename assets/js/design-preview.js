@@ -58,6 +58,55 @@
 		return null;
 	}
 
+	/*
+	 * The shop text under the mouse: the page lists the texts it shows (window.aimpDesignTexts, [ original, shown ];
+	 * class-aimp-design.php). Texts with a number or name in them (%s, %d) are found as a pattern.
+	 */
+	var textIndex = null;
+	function norm(text) {
+		return String(text || '').replace(/\s+/g, ' ').trim();
+	}
+	function buildIndex() {
+		textIndex = { exact: {}, patterns: [] };
+		(window.aimpDesignTexts || []).forEach(function (row) {
+			var shown = norm(row[1]);
+			if (!shown) {
+				return;
+			}
+			if (/%(\d+\$)?[sdfu]/.test(shown)) {
+				var parts = shown.split(/%(?:\d+\$)?[sdfu]/).map(function (part) {
+					return part.replace(/[.*+?^${}()|\[\]\\]/g, '\\$&');
+				});
+				if (parts.join('').length >= 3) {
+					textIndex.patterns.push([new RegExp('^' + parts.join('.+?') + '$'), row[0]]);
+				}
+			} else if (!textIndex.exact[shown]) {
+				textIndex.exact[shown] = row[0];
+			}
+		});
+	}
+	function textAt(el) {
+		if (!textIndex) {
+			buildIndex();
+		}
+		// The clicked element, then up to three around it (a word in a button, a line in a card).
+		for (var depth = 0; el && el.nodeType === 1 && depth < 4; depth++, el = el.parentElement) {
+			var text = norm(el.textContent);
+			if (!text || text.length > 300) {
+				break;
+			}
+			if (textIndex.exact[text]) {
+				return { original: textIndex.exact[text], shown: text };
+			}
+			for (var i = 0; i < textIndex.patterns.length; i++) {
+				if (textIndex.patterns[i][0].test(text)) {
+					return { original: textIndex.patterns[i][1], shown: text };
+				}
+			}
+		}
+		return null;
+	}
+
 	document.addEventListener('mouseover', function (e) {
 		if (!pick) {
 			return;
@@ -76,12 +125,14 @@
 	document.addEventListener('click', function (e) {
 		if (pick) {
 			var hit = find(e.target);
+			var text = textAt(e.target);
 			e.preventDefault();
 			e.stopPropagation();
-			if (hit) {
-				selected = hit.id;
+			if (hit || text) {
+				selected = hit ? hit.id : '';
 				drawMarks();
-				send({ type: 'aimp-design-select', id: hit.id });
+				// The part, and the clicked shop text (or that the words clicked are not a shop text).
+				send({ type: 'aimp-design-select', id: hit ? hit.id : '', text: text, textMiss: !text && !!norm(e.target.textContent) });
 			}
 			return;
 		}
@@ -146,5 +197,20 @@
 			return false;
 		}
 	});
-	send({ type: 'aimp-design-ready', url: window.location.href, present: present });
+	// The texts are listed at the very end of the page: tell the studio once the page is read.
+	function ready() {
+		send({
+			type: 'aimp-design-ready',
+			url: window.location.href,
+			present: present,
+			texts: (window.aimpDesignTexts || []).map(function (row) {
+				return row[0];
+			})
+		});
+	}
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', ready);
+	} else {
+		ready();
+	}
 })();

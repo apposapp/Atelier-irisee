@@ -2157,11 +2157,15 @@ return array(
 	'These take effect for visitors after publishing (LiteSpeed is emptied then).' => 'Cela s\'applique aux visiteurs après la publication (LiteSpeed est alors vidé).',
 
 	// Design studio: easier panel
-	'Fine-tuning' => 'Réglages fins',
 	'On this page' => 'Sur cette page',
 	'Parts of other pages' => 'Éléments d\'autres pages',
 	'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.' => 'Vous voyez les réglages pour ordinateurs et tablettes. Cliquez sur « Téléphone » en haut pour les réglages des téléphones.',
 	'Showing the settings for phones. Click "Computer" at the top for the computer settings.' => 'Vous voyez les réglages pour téléphones. Cliquez sur « Ordinateur » en haut pour les réglages des ordinateurs.',
 	'This page has no parts of its own to change; see the whole site below.' => 'Cette page n\'a pas d\'éléments propres à modifier ; voir le site entier ci-dessous.',
 	'Whole site (colours, fonts, buttons, …)' => 'Site entier (couleurs, polices, boutons, …)',
+
+	// Design studio: Divi-like panel
+	'Empty = the standard text. The preview shows your text after a moment; visitors see it after Publish.' => 'Vide = le texte standard. L\'aperçu affiche votre texte après un instant ; les visiteurs le voient après Publier.',
+	'Only the texts on the page in the preview' => 'Seulement les textes de la page dans l\'aperçu',
+	'These words come from your own content (a product, a category, a page or a setting), not from the shop texts. Change them where they are made.' => 'Ces mots viennent de votre propre contenu (un produit, une catégorie, une page ou un réglage), pas des textes de la boutique. Modifiez-les là où ils sont créés.',
 );

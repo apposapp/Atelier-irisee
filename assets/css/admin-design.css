@@ -706,3 +706,108 @@
 .aimp-ds-order-field > .aimp-ds-sub {
 	display: none;
 }
+
+/* ------------------------------------------------------------------
+ * The chosen part like a Divi module: a coloured head, the tabs Content / Design / Advanced, folding blocks.
+ * ------------------------------------------------------------------ */
+.aimp-ds-edit {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+
+.aimp-ds-edit-head {
+	align-items: center;
+	margin: 0 -12px;
+	padding: 12px 14px;
+	background: #8a6a33;
+	color: #fff;
+}
+
+.aimp-ds-edit-head .aimp-ds-edit-name {
+	color: #fff;
+	font-size: 15px;
+}
+
+.aimp-ds-edit-head .aimp-ds-reset-one {
+	color: #f6efe2;
+	font-size: 12px;
+}
+
+.aimp-ds-ptabs {
+	display: flex;
+	margin: 0 -12px 12px;
+	background: #6b4f1e;
+}
+
+.aimp-ds-ptabs[hidden] {
+	display: none;
+}
+
+.aimp-ds-ptabs button {
+	flex: 1 1 0;
+	padding: 10px 6px;
+	border: 0;
+	border-bottom: 3px solid transparent;
+	background: none;
+	color: #f6efe2;
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-ds-ptabs button:hover,
+.aimp-ds-ptabs button:focus-visible {
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.aimp-ds-ptabs button.is-active {
+	border-bottom-color: #f6efe2;
+	background: rgba(255, 255, 255, 0.12);
+	color: #fff;
+}
+
+.aimp-ds-group.is-off-tab {
+	display: none !important;
+}
+
+.aimp-ds-back {
+	margin: 0 0 8px;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.aimp-ds-device-note {
+	margin-top: 0;
+}
+
+/* The clicked text: its languages under each other, roomy. */
+.aimp-ds-textgroup .aimp-ds-text {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.aimp-ds-textgroup .aimp-ds-text-original {
+	display: none;
+}
+
+.aimp-ds-textgroup .aimp-ds-text label {
+	display: grid;
+	grid-template-columns: 34px minmax(0, 1fr);
+	gap: 6px;
+	align-items: start;
+	margin-bottom: 8px;
+}
+
+.aimp-ds-textgroup .aimp-ds-text textarea {
+	width: 100%;
+	min-height: 54px;
+	resize: vertical;
+}
+
+.aimp-ds-textgroup .aimp-ds-text label > span {
+	padding-top: 6px;
+	color: #8a6a33;
+	font-weight: 700;
+}
