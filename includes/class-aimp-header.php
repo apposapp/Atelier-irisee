@@ -39,76 +39,130 @@ class AIMP_Header {
 
 	/**
 	 * Side menu: the item that links to the Haberdashery page gets "All haberdashery" and the kinds (Buttons,
-	 * Zips, …) as sub-items by itself, unless sub-items were added to it in Appearance → Menus.
+	 * Zips, …) as sub-items by itself, unless sub-items were added to it in Appearance → Menus. In the Design studio
+	 * (Side menu) this can be switched off, and the Fabrics and Patterns pages can get their categories the same way.
 	 *
 	 * @param array    $items Menu items (sorted).
 	 * @param stdClass $args  wp_nav_menu() arguments.
 	 * @return array
 	 */
 	public static function haberdashery_items( $items, $args ) {
-		$page = AIMP_Shop::page_for_type( 'haberdashery' );
-		if ( ! $page || ! isset( $args->theme_location ) || self::LOCATION !== $args->theme_location ) {
+		if ( ! isset( $args->theme_location ) || self::LOCATION !== $args->theme_location ) {
 			return $items;
 		}
-		$parent = null;
-		$at     = 0;
-		foreach ( array_values( $items ) as $i => $item ) {
-			if ( 'post_type' === $item->type && (int) $item->object_id === $page ) {
-				$parent = $item;
-				$at     = $i;
-				break;
+		$opt   = function ( $key ) {
+			return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'side-menu', $key ) : null;
+		};
+		$types = array();
+		if ( ! $opt( 'sm_nohab' ) ) {
+			$types[] = 'haberdashery';
+		}
+		if ( $opt( 'sm_fabrics' ) ) {
+			$types[] = 'fabrics';
+		}
+		if ( $opt( 'sm_patterns' ) ) {
+			$types[] = 'patterns';
+		}
+		$n = 0;
+		foreach ( $types as $type ) {
+			$page = AIMP_Shop::page_for_type( $type );
+			if ( ! $page ) {
+				continue;
 			}
-		}
-		if ( ! $parent ) {
-			return $items;
-		}
-		foreach ( $items as $item ) {
-			if ( (int) $item->menu_item_parent === (int) $parent->db_id ) {
-				return $items;
+			$items  = array_values( $items );
+			$parent = null;
+			$at     = 0;
+			foreach ( $items as $i => $item ) {
+				if ( 'post_type' === $item->type && (int) $item->object_id === $page ) {
+					$parent = $item;
+					$at     = $i;
+					break;
+				}
 			}
+			if ( ! $parent ) {
+				continue;
+			}
+			foreach ( $items as $item ) {
+				if ( (int) $item->menu_item_parent === (int) $parent->db_id ) {
+					continue 2;
+				}
+			}
+			$links = self::auto_links( $type, $page );
+			if ( ! $links ) {
+				continue;
+			}
+			$children = array();
+			foreach ( $links as $link ) {
+				// Negative ids cannot clash with real menu items.
+				$id         = -1 * ( 1000 + $n++ );
+				$children[] = new WP_Post(
+					(object) array(
+						'ID'               => $id,
+						'db_id'            => $id,
+						'menu_item_parent' => (string) $parent->db_id,
+						'object_id'        => $id,
+						'object'           => 'custom',
+						'type'             => 'custom',
+						'type_label'       => '',
+						'title'            => $link[1],
+						'url'              => $link[2],
+						'target'           => '',
+						'attr_title'       => '',
+						'description'      => '',
+						'xfn'              => '',
+						'classes'          => array( 'menu-item', 'menu-item-type-custom', 'aimp-menu-auto-' . $link[0] ),
+						'current'          => false,
+						'post_type'        => 'nav_menu_item',
+						'post_status'      => 'publish',
+						'menu_order'       => 0,
+					)
+				);
+			}
+			if ( ! in_array( 'menu-item-has-children', (array) $parent->classes, true ) ) {
+				$parent->classes[] = 'menu-item-has-children';
+			}
+			array_splice( $items, $at + 1, 0, $children );
 		}
-		$kinds = AIMP_Shop::haberdashery_kinds();
-		if ( ! $kinds ) {
-			return $items;
-		}
-		$url   = get_permalink( $page );
-		$links = array( array( 'all', __( 'All haberdashery', 'atelier-irisee-master-plugin' ), add_query_arg( 'aimp_all', 1, $url ) ) );
-		foreach ( $kinds as $kind => $item ) {
-			$links[] = array( $kind, $item[0], add_query_arg( 'aimp_cat', $item[1], $url ) );
-		}
-		$children = array();
-		foreach ( $links as $n => $link ) {
-			// Negative ids cannot clash with real menu items.
-			$id         = -1 * ( 1000 + $n );
-			$children[] = new WP_Post(
-				(object) array(
-					'ID'               => $id,
-					'db_id'            => $id,
-					'menu_item_parent' => (string) $parent->db_id,
-					'object_id'        => $id,
-					'object'           => 'custom',
-					'type'             => 'custom',
-					'type_label'       => '',
-					'title'            => $link[1],
-					'url'              => $link[2],
-					'target'           => '',
-					'attr_title'       => '',
-					'description'      => '',
-					'xfn'              => '',
-					'classes'          => array( 'menu-item', 'menu-item-type-custom', 'aimp-menu-hab-' . $link[0] ),
-					'current'          => false,
-					'post_type'        => 'nav_menu_item',
-					'post_status'      => 'publish',
-					'menu_order'       => 0,
-				)
-			);
-		}
-		if ( ! in_array( 'menu-item-has-children', (array) $parent->classes, true ) ) {
-			$parent->classes[] = 'menu-item-has-children';
-		}
-		$items = array_values( $items );
-		array_splice( $items, $at + 1, 0, $children );
 		return $items;
+	}
+
+	/**
+	 * The automatic sub-items of a shop page: [ key, title, address ].
+	 *
+	 * @param string $type haberdashery, fabrics or patterns.
+	 * @param int    $page Its page.
+	 * @return array
+	 */
+	private static function auto_links( $type, $page ) {
+		$url = get_permalink( $page );
+		if ( 'haberdashery' === $type ) {
+			$kinds = AIMP_Shop::haberdashery_kinds();
+			if ( ! $kinds ) {
+				return array();
+			}
+			$links = array( array( 'all', __( 'All haberdashery', 'atelier-irisee-master-plugin' ), add_query_arg( 'aimp_all', 1, $url ) ) );
+			foreach ( $kinds as $kind => $item ) {
+				$links[] = array( $kind, $item[0], add_query_arg( 'aimp_cat', $item[1], $url ) );
+			}
+			return $links;
+		}
+		// Fabrics and patterns: the categories right under the root that have products.
+		$root  = AIMP_Settings::get( 'fabrics' === $type ? 'fabric_cat' : 'pattern_cat' );
+		$terms = $root ? get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'parent'     => $root,
+				'hide_empty' => true,
+			)
+		) : array();
+		if ( ! $terms || is_wp_error( $terms ) ) {
+			return array();
+		}
+		$links = array( array( 'all', 'fabrics' === $type ? __( 'All fabrics', 'atelier-irisee-master-plugin' ) : __( 'All patterns', 'atelier-irisee-master-plugin' ), $url ) );
+		foreach ( $terms as $term ) {
+			$links[] = array( $term->slug, $term->name, add_query_arg( 'aimp_cat', $term->term_id, $url ) );
+		}
+		return $links;
 	}
 
 	public static function register_menu() {

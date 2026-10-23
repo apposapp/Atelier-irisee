@@ -244,3 +244,42 @@
 		animation: none;
 	}
 }
+
+/* Design studio (Hero): a video or slides behind the gold filter instead of the picture. */
+.aimp-hero.has-media {
+	isolation: isolate;
+}
+
+.aimp-hero-media {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	overflow: hidden;
+}
+
+.aimp-hero-video,
+.aimp-hero-slide {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: var(--aimp-hero-focus, 75% 40%);
+	background-position: var(--aimp-hero-focus, 75% 40%);
+	background-size: cover;
+}
+
+.aimp-hero-slide {
+	opacity: 0;
+	transition: opacity 1.2s ease;
+}
+
+.aimp-hero-slide.is-current {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-hero-slide {
+		transition: none;
+	}
+}

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.23.0
+Stable tag: 3.24.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,15 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.24.0 =
+* Design studio, phase 3 (header, menu, tab bar, search, hero):
+  * Header: scrolls away or stays on top, stays the same size or shrinks while scrolling, words under the icons on/off, colours of the numbers on the icons. Header icons: hide each one on computers or phones, and choose their order.
+  * "Menu" bar left, centre or right. Side menu: width, background, text colour and size, dropdowns all closed / all open / "All products" open, automatic sub-items for haberdashery (on/off), fabric and pattern categories, and a picture, contact details and social media icons under the menu.
+  * Gold info bar: seconds per text, only on the home page or not on cart and checkout, a link per text. Phone tab bar: which tabs (also Search, Favourites, Cart, Account), icons only.
+  * Language switch: flag, flag and code, or flag and name. Search: number of results, and fabrics, patterns, haberdashery or other products left out.
+  * Hero: own pictures for computers and phones with a focal point, a video, or slides that take turns; the filter colour and strength; full, three-quarter or half height; place of the text (computer and phone apart); buttons on/off, where they go, and a third button; where the arrow goes. New part: the hero seal (round logo).
+* Design studio: the list of parts is hidden while a part is open (it stayed visible).
 
 = 3.23.0 =
 * Design studio: clicking a part shows only the settings that part has (a title has no picture or corners, a picture part gets the picture and focal point), without the list; "‹ All parts" goes back.

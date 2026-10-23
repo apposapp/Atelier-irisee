@@ -36,7 +36,7 @@
 		function open() {
 			lastFocus = document.activeElement;
 			closers.forEach(function (entry) {
-				entry.set(entry.item === startOpen);
+				entry.set(openMode === 'all' || entry.item === startOpen);
 			});
 			panel.inert = false;
 			panel.setAttribute('aria-hidden', 'false');
@@ -112,6 +112,11 @@
 			}
 		});
 		startOpen = startOpen || parents[0] || null;
+		// Design studio (Side menu): every dropdown closed, or all of them open.
+		var openMode = panel.getAttribute('data-open') || '';
+		if (openMode === 'none') {
+			startOpen = null;
+		}
 
 		// Sub-items: a button next to the item (the rest of its row, with the arrow) opens them; they fade and
 		// unfold (see header.css).
@@ -139,7 +144,7 @@
 				btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 				wrap.inert = !open; // Closed sub-items can't be reached with Tab.
 			};
-			setOpen(item === startOpen);
+			setOpen(openMode === 'all' || item === startOpen);
 			closers.push({ item: item, set: setOpen });
 			btn.addEventListener('click', function () {
 				setOpen(!item.classList.contains('is-open'));
@@ -277,10 +282,12 @@
 				bar.classList.add('is-rotating');
 				show();
 				if (!reduce) {
+					// Design studio (Gold info bar): seconds per text.
+					var speed = parseFloat(bar.getAttribute('data-speed')) || 3.5;
 					timer = setInterval(function () {
 						index = (index + 1) % items.length;
 						show();
-					}, 3500);
+					}, speed * 1000);
 				}
 			}
 		};
@@ -361,10 +368,27 @@
 			if (!header.aimpReady) {
 				header.aimpReady = true;
 				setup(header);
-				trackOffset(header);
-				trackScroll(header);
+				// Design studio (Header): it can scroll away with the page, and stay the same size.
+				if (header.getAttribute('data-sticky') !== '0') {
+					trackOffset(header);
+				} else {
+					document.documentElement.style.setProperty('--aimp-header-offset', '0px');
+				}
+				if (header.getAttribute('data-shrink') !== '0') {
+					trackScroll(header);
+				}
 				setupInfoBar(header);
 				setupLanguages(header);
+				// Design studio (Phone tab bar): a Search tab opens the search in the header.
+				header.querySelectorAll('[data-aimp-tab-search]').forEach(function (tab) {
+					tab.addEventListener('click', function () {
+						var toggle = document.querySelector('[data-aimp-search-toggle]');
+						if (toggle) {
+							window.scrollTo({ top: 0 });
+							toggle.click();
+						}
+					});
+				});
 			}
 		});
 		if (!window.aimpCartCount) {

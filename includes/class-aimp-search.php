@@ -55,33 +55,92 @@ class AIMP_Search {
 	 * @param string $q Search words.
 	 * @return int[]
 	 */
+	/**
+	 * Number of results (Design studio → Search; 8 as standard).
+	 *
+	 * @return int
+	 */
+	private static function limit() {
+		$count = class_exists( 'AIMP_Design' ) ? (int) AIMP_Design::opt( 'header-search', 's_count', 0 ) : 0;
+		return $count > 0 ? $count : self::LIMIT;
+	}
+
+	/**
+	 * Which products are searched (Design studio → Search): fabrics, patterns, haberdashery and other products can
+	 * each be left out. An empty array searches everything.
+	 *
+	 * @return array Tax query clause.
+	 */
+	private static function type_query() {
+		if ( ! class_exists( 'AIMP_Design' ) ) {
+			return array();
+		}
+		$off   = array(
+			'fabrics'      => (bool) AIMP_Design::opt( 'header-search', 's_nofab' ),
+			'patterns'     => (bool) AIMP_Design::opt( 'header-search', 's_nopat' ),
+			'haberdashery' => (bool) AIMP_Design::opt( 'header-search', 's_nohab' ),
+		);
+		$other = (bool) AIMP_Design::opt( 'header-search', 's_noother' );
+		if ( ! $other && ! in_array( true, $off, true ) ) {
+			return array();
+		}
+		$keep = array();
+		$drop = array();
+		foreach ( $off as $type => $is_off ) {
+			if ( $is_off ) {
+				$drop = array_merge( $drop, AIMP_Shop::roots( $type ) );
+			} else {
+				$keep = array_merge( $keep, AIMP_Shop::roots( $type ) );
+			}
+		}
+		// Other products left out: only the shop sections that are kept.
+		if ( $other ) {
+			return array(
+				'taxonomy'         => 'product_cat',
+				'field'            => 'term_id',
+				'terms'            => $keep ? $keep : array( 0 ),
+				'include_children' => true,
+			);
+		}
+		return array(
+			'taxonomy'         => 'product_cat',
+			'field'            => 'term_id',
+			'terms'            => $drop,
+			'operator'         => 'NOT IN',
+			'include_children' => true,
+		);
+	}
+
 	private static function find( $q ) {
+		$limit  = self::limit();
 		$hidden = array(
 			'taxonomy' => 'product_visibility',
 			'field'    => 'name',
 			'terms'    => array( 'exclude-from-search' ),
 			'operator' => 'NOT IN',
 		);
+		$types  = self::type_query();
+		$tax    = $types ? array( 'relation' => 'AND', $hidden, $types ) : array( $hidden );
 		$ids    = get_posts(
 			array(
 				'post_type'        => 'product',
 				'post_status'      => 'publish',
 				's'                => $q,
-				'posts_per_page'   => self::LIMIT,
+				'posts_per_page'   => $limit,
 				'fields'           => 'ids',
 				'orderby'          => 'relevance',
-				'tax_query'        => array( $hidden ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- needed to hide products.
+				'tax_query'        => $tax, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- needed to hide products.
 				'suppress_filters' => false,
 			)
 		);
-		if ( count( $ids ) < self::LIMIT ) {
+		if ( count( $ids ) < $limit ) {
 			$sku = get_posts(
 				array(
 					'post_type'      => 'product',
 					'post_status'    => 'publish',
-					'posts_per_page' => self::LIMIT,
+					'posts_per_page' => $limit,
 					'fields'         => 'ids',
-					'tax_query'      => array( $hidden ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+					'tax_query'      => $tax, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 					'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- SKU search.
 						array(
 							'key'     => '_sku',
@@ -91,7 +150,7 @@ class AIMP_Search {
 					),
 				)
 			);
-			$ids = array_slice( array_values( array_unique( array_merge( $ids, $sku ) ) ), 0, self::LIMIT );
+			$ids = array_slice( array_values( array_unique( array_merge( $ids, $sku ) ) ), 0, $limit );
 		}
 		return array_map( 'intval', $ids );
 	}
@@ -103,7 +162,7 @@ class AIMP_Search {
 			wp_send_json_success( array( 'items' => array() ) );
 		}
 
-		$key = 'aimp_search_' . md5( strtolower( $q ) . '|' . AIMP_I18n::current() . '|' . AIMP_Shop::cache_version() );
+		$key = 'aimp_search_' . md5( strtolower( $q ) . '|' . AIMP_I18n::current() . '|' . AIMP_Shop::cache_version() . '|' . self::limit() . wp_json_encode( self::type_query() ) );
 		$ids = get_transient( $key );
 		if ( ! is_array( $ids ) ) {
 			$ids = self::find( $q );

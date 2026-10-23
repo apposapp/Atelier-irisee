@@ -72,9 +72,13 @@ class AIMP_Hero {
 		wp_enqueue_style( 'aimp-hero' );
 		wp_enqueue_script( 'aimp-hero' );
 
-		$image_id = absint( $atts['image'] ) ? absint( $atts['image'] ) : AIMP_Settings::get( 'hero_image' );
+		// Design studio (Hero): other pictures, a video, slides, buttons and where the arrow goes.
+		$design   = function ( $key, $default = null ) {
+			return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'hero', $key, $default ) : $default;
+		};
+		$image_id = absint( $atts['image'] ) ? absint( $atts['image'] ) : ( $design( 'h_img' ) ? (int) $design( 'h_img' ) : AIMP_Settings::get( 'hero_image' ) );
 		$image    = $image_id ? wp_get_attachment_image_url( $image_id, 'full' ) : '';
-		$phone_id = AIMP_Settings::get( 'hero_image_phone' );
+		$phone_id = $design( 'h_pimg' ) ? (int) $design( 'h_pimg' ) : AIMP_Settings::get( 'hero_image_phone' );
 		$phone    = $phone_id ? wp_get_attachment_image_url( $phone_id, 'large' ) : '';
 		$logo_id  = AIMP_Settings::get( 'hero_logo' );
 		$logo     = $logo_id ? wp_get_attachment_image_url( $logo_id, 'medium' ) : AIMP_Header::logo_url();
@@ -101,9 +105,38 @@ class AIMP_Hero {
 			$style .= '--aimp-hero-img-phone:url("' . esc_url_raw( $phone ) . '");';
 		}
 
+		$video_id = (int) $design( 'h_video', 0 );
+		$video    = $video_id ? wp_get_attachment_url( $video_id ) : '';
+		$slides   = array();
+		foreach ( (array) $design( 'h_slides', array() ) as $slide_id ) {
+			$slide_url = wp_get_attachment_image_url( (int) $slide_id, 'full' );
+			if ( $slide_url ) {
+				$slides[] = $slide_url;
+			}
+		}
+		// The first slide is the hero picture itself.
+		if ( $slides && $image ) {
+			array_unshift( $slides, $image );
+		}
+		$interval = (int) $design( 'h_interval', 0 );
+		// Where the arrow goes (Design studio → Hero arrow).
+		$arrow  = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'hero-arrow', 'ha_target', '' ) : '';
+		$anchor = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'hero-arrow', 'ha_anchor', '' ) : '';
+
 		ob_start();
 		?>
-		<section class="aimp-hero" data-aimp-hero style="<?php echo esc_attr( $style ); ?>">
+		<section class="aimp-hero<?php echo ( $video || count( $slides ) > 1 ) ? ' has-media' : ''; ?>" data-aimp-hero style="<?php echo esc_attr( $style ); ?>"<?php echo $arrow ? ' data-arrow="' . esc_attr( $arrow ) . '"' : ''; ?><?php echo '' !== $anchor ? ' data-anchor="' . esc_attr( $anchor ) . '"' : ''; ?><?php echo $interval ? ' data-interval="' . esc_attr( (string) $interval ) . '"' : ''; ?>>
+			<?php if ( $video || count( $slides ) > 1 ) : ?>
+				<div class="aimp-hero-media" aria-hidden="true">
+					<?php if ( $video ) : ?>
+						<video class="aimp-hero-video" src="<?php echo esc_url( $video ); ?>" autoplay muted loop playsinline<?php echo $image ? ' poster="' . esc_url( $image ) . '"' : ''; ?>></video>
+					<?php else : ?>
+						<?php foreach ( $slides as $index => $slide ) : ?>
+							<div class="aimp-hero-slide<?php echo 0 === $index ? ' is-current' : ''; ?>" style="background-image:url('<?php echo esc_url( $slide ); ?>')"></div>
+						<?php endforeach; ?>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
 			<div class="aimp-hero-inner">
 				<div class="aimp-hero-arch">
 					<?php if ( $logo ) : ?>
@@ -114,12 +147,22 @@ class AIMP_Hero {
 					<?php if ( '' !== $text ) : ?>
 						<p class="aimp-hero-text"><?php echo esc_html( $text ); ?></p>
 					<?php endif; ?>
+					<?php
+					// Design studio (Hero → Buttons): each standard button can go elsewhere or be left out, and a third
+					// one can be added (its text in the visitor's language: "NL | FR | EN" or one text).
+					$kit_url  = $design( 'hb1_off' ) ? '' : ( $design( 'hb1_url' ) ? $design( 'hb1_url' ) : $kit_url );
+					$shop_url = $design( 'hb2_off' ) ? '' : ( $design( 'hb2_url' ) ? $design( 'hb2_url' ) : $shop_url );
+					$third    = $design( 'hb3_text' ) && $design( 'hb3_url' ) ? AIMP_Settings::localized( (string) $design( 'hb3_text' ) ) : '';
+					?>
 					<div class="aimp-hero-buttons">
 						<?php if ( $kit_url ) : ?>
 							<a class="aimp-hero-button is-primary" href="<?php echo esc_url( $kit_url ); ?>"><?php esc_html_e( 'Make your sewing kit', 'atelier-irisee-master-plugin' ); ?></a>
 						<?php endif; ?>
 						<?php if ( $shop_url ) : ?>
 							<a class="aimp-hero-button is-outline" href="<?php echo esc_url( $shop_url ); ?>"><?php esc_html_e( 'Discover the shop', 'atelier-irisee-master-plugin' ); ?></a>
+						<?php endif; ?>
+						<?php if ( '' !== $third ) : ?>
+							<a class="aimp-hero-button is-outline" href="<?php echo esc_url( $design( 'hb3_url' ) ); ?>"><?php echo esc_html( $third ); ?></a>
 						<?php endif; ?>
 					</div>
 				</div>

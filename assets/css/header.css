@@ -981,3 +981,62 @@ body.aimp-has-header .aimp-configurator .aimp-topbar:has(> .aimp-languages:only-
 .aimp-header.is-menu-open .aimp-tabbar {
 	z-index: 1000;
 }
+
+/* Design studio additions (phase 3). A text of the gold info bar can link somewhere. */
+.aimp-header .aimp-info-bar-items li a {
+	color: inherit;
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+	text-underline-offset: 3px;
+}
+
+/* The language switch with its code or name next to the flag. */
+.aimp-header .aimp-lang-name {
+	color: var(--aimp-gold-text);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+}
+
+/* Under the side menu: a picture, contact details and social media icons. */
+.aimp-side-menu-extra {
+	display: flex;
+	flex-direction: column;
+	gap: 0.9rem;
+	margin-top: 1.5rem;
+	padding-top: 1.25rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.6);
+	color: #fff;
+}
+
+.aimp-side-menu-picture {
+	width: 100%;
+	height: auto;
+	border-radius: 12px;
+}
+
+.aimp-side-menu-contact {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.aimp-side-menu-socials {
+	display: flex;
+	gap: 0.8rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-side-menu-socials a {
+	display: inline-flex;
+	width: 1.6rem;
+	height: 1.6rem;
+	color: #fff;
+}
+
+.aimp-side-menu-socials svg {
+	width: 100%;
+	height: 100%;
+}

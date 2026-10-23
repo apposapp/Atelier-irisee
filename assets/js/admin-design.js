@@ -20,6 +20,7 @@
 	var liveTexts = clone(cfg.liveTexts);
 	var images = clone(cfg.images);
 	var siteCss = cfg.siteCss || '';
+	var files = clone(cfg.files);
 	var history = cfg.history || [];
 	var looks = cfg.looks || [];
 	var current = '';
@@ -99,6 +100,9 @@
 		live = clone(data.live);
 		liveTexts = clone(data.liveTexts);
 		siteCss = data.siteCss || '';
+		Object.keys(data.files || {}).forEach(function (id) {
+			files[id] = data.files[id];
+		});
 		Object.keys(data.images || {}).forEach(function (id) {
 			images[id] = data.images[id];
 		});
@@ -391,7 +395,7 @@
 			} else if (input.type === 'color') {
 				input.value = row[key] || '#ffffff';
 				input.closest('.aimp-ds-color').classList.toggle('is-set', !!row[key]);
-			} else if (input.tagName === 'SELECT' || input.type === 'text') {
+			} else if (input.tagName === 'SELECT' || input.tagName === 'TEXTAREA' || input.type === 'text' || input.type === 'url') {
 				input.value = row[key] !== undefined ? row[key] : '';
 			} else {
 				// "Standard" outside the range (e.g. -1 for corners): an empty box.
@@ -400,10 +404,30 @@
 			}
 		});
 		edit.querySelectorAll('[data-image]').forEach(function (box) {
-			var id = row[box.getAttribute('data-image')];
+			var value = row[box.getAttribute('data-image')];
 			var img = box.querySelector('.aimp-ds-image-preview');
-			img.hidden = !(id && images[id]);
-			img.src = id && images[id] ? images[id] : '';
+			if (img) {
+				img.hidden = !(value && images[value]);
+				img.src = value && images[value] ? images[value] : '';
+			}
+			// Several pictures (hero slides).
+			var gallery = box.querySelector('.aimp-ds-image-list');
+			if (gallery) {
+				gallery.innerHTML = '';
+				(Array.isArray(value) ? value : []).forEach(function (id) {
+					if (images[id]) {
+						var thumb = document.createElement('img');
+						thumb.src = images[id];
+						thumb.alt = '';
+						gallery.appendChild(thumb);
+					}
+				});
+			}
+			// A video: its file name.
+			var name = box.querySelector('.aimp-ds-file-name');
+			if (name) {
+				name.textContent = value ? (files[value] || '#' + value) : '';
+			}
 		});
 	}
 
@@ -412,7 +436,7 @@
 			return;
 		}
 		var row = draft[current] || {};
-		if (value === '' || value === null || value === false || (typeof value === 'number' && value === neutral(key))) {
+		if (value === '' || value === null || value === false || (Array.isArray(value) && !value.length) || (typeof value === 'number' && value === neutral(key))) {
 			delete row[key];
 		} else {
 			row[key] = value;
@@ -423,8 +447,19 @@
 			delete draft[current];
 		}
 		sendCss();
-		save();
+		save(reloads(key));
 		renderList();
+	}
+
+	// Whether a setting is made on the server when the page is built (the preview then loads again).
+	function reloads(key) {
+		var found = false;
+		(cfg.reload || []).forEach(function (group) {
+			if (cfg.groups[group] && cfg.groups[group][key] !== undefined) {
+				found = true;
+			}
+		});
+		return found;
 	}
 
 	edit.addEventListener('input', function (e) {
@@ -437,7 +472,7 @@
 			change(key, input.checked ? 1 : false);
 		} else if (input.tagName === 'SELECT') {
 			change(key, input.value);
-		} else if (input.type === 'text') {
+		} else if (input.type === 'text' || input.type === 'url' || input.tagName === 'TEXTAREA') {
 			change(key, input.value.trim());
 		} else if (input.type === 'color') {
 			input.closest('.aimp-ds-color').classList.add('is-set');
@@ -468,26 +503,47 @@
 		}
 	});
 
-	// A picture from the media library (a part's picture, the page background, the browser icon).
-	var mediaFrame = null;
+	// A picture from the media library (a part's picture, the page background, the browser icon), a video, or
+	// several pictures (hero slides).
+	var mediaFrames = {};
 	var mediaKey = '';
+	function mediaUrl(file) {
+		return file.sizes && file.sizes.large ? file.sizes.large.url : file.url;
+	}
 	edit.addEventListener('click', function (e) {
 		var button = e.target.closest('.aimp-ds-image-choose');
 		if (!button || !window.wp || !window.wp.media || !current) {
 			return;
 		}
 		mediaKey = button.getAttribute('data-image-key');
-		if (!mediaFrame) {
-			mediaFrame = window.wp.media({ title: t.choose, button: { text: t.use }, library: { type: 'image' }, multiple: false });
-			mediaFrame.on('select', function () {
-				var file = mediaFrame.state().get('selection').first().toJSON();
-				var url = file.sizes && file.sizes.large ? file.sizes.large.url : file.url;
-				images[file.id] = url;
-				change(mediaKey, file.id);
+		var kind = button.getAttribute('data-media') || 'image';
+		if (!mediaFrames[kind]) {
+			var frame = window.wp.media({
+				title: t.choose,
+				button: { text: t.use },
+				library: { type: kind === 'video' ? 'video' : 'image' },
+				multiple: kind === 'images' ? 'add' : false
+			});
+			frame.on('select', function () {
+				var chosen = frame.state().get('selection').toJSON();
+				if (kind === 'images') {
+					change(mediaKey, chosen.slice(0, 6).map(function (file) {
+						images[file.id] = mediaUrl(file);
+						return file.id;
+					}));
+				} else if (chosen[0]) {
+					if (kind === 'video') {
+						files[chosen[0].id] = chosen[0].filename;
+					} else {
+						images[chosen[0].id] = mediaUrl(chosen[0]);
+					}
+					change(mediaKey, chosen[0].id);
+				}
 				showEdit();
 			});
+			mediaFrames[kind] = frame;
 		}
-		mediaFrame.open();
+		mediaFrames[kind].open();
 	});
 
 	q('.aimp-ds-reset-one').addEventListener('click', function () {
