@@ -2155,4 +2155,13 @@ return array(
 	'The brand in the product data for Google' => 'Het merk in de productgegevens voor Google',
 	'The page you came from' => 'De pagina waar je vandaan kwam',
 	'These take effect for visitors after publishing (LiteSpeed is emptied then).' => 'Dit werkt voor bezoekers na het publiceren (LiteSpeed wordt dan leeggemaakt).',
+
+	// Design studio: easier panel
+	'Fine-tuning' => 'Fijnafstelling',
+	'On this page' => 'Op deze pagina',
+	'Parts of other pages' => 'Onderdelen van andere pagina\'s',
+	'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.' => 'Je ziet de instellingen voor computers en tablets. Klik bovenaan op "Telefoon" voor de instellingen voor telefoons.',
+	'Showing the settings for phones. Click "Computer" at the top for the computer settings.' => 'Je ziet de instellingen voor telefoons. Klik bovenaan op "Computer" voor de instellingen voor computers.',
+	'This page has no parts of its own to change; see the whole site below.' => 'Deze pagina heeft geen eigen onderdelen om aan te passen; zie de hele site hieronder.',
+	'Whole site (colours, fonts, buttons, …)' => 'Hele site (kleuren, lettertypes, knoppen, …)',
 );

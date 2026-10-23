@@ -52,7 +52,7 @@
 .aimp-ds-main {
 	display: grid;
 	flex: 1 1 auto;
-	grid-template-columns: 330px minmax(0, 1fr);
+	grid-template-columns: 380px minmax(0, 1fr);
 	gap: 12px;
 	min-height: 0;
 }
@@ -79,8 +79,6 @@
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
-	max-height: 38vh;
-	overflow-y: auto;
 	padding-right: 4px;
 }
 
@@ -551,4 +549,151 @@
 .aimp-ds-order .button-link {
 	padding: 0 0.25rem;
 	text-decoration: none;
+}
+
+/* ------------------------------------------------------------------
+ * Easier to work with: the parts of this page first, folding blocks of settings, only computer or phone.
+ * ------------------------------------------------------------------ */
+.aimp-ds-list-title {
+	margin: 4px 0 0;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.aimp-ds-fold {
+	margin-top: 10px;
+	border-top: 1px solid var(--ds-line);
+}
+
+.aimp-ds-fold > summary {
+	padding: 8px 4px 2px;
+	color: #50575e;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-ds-fold[open] {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.aimp-ds-edit-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.aimp-ds-edit-name {
+	font-size: 16px;
+}
+
+.aimp-ds-device-note {
+	margin: 6px 0 10px;
+	padding: 6px 8px;
+	border-radius: 6px;
+	background: var(--ds-gold-tint);
+	color: #6b4f1e;
+	font-size: 12px;
+}
+
+.aimp-ds-group {
+	padding: 0;
+}
+
+.aimp-ds-group legend {
+	float: left;
+	width: 100%;
+	padding: 0;
+}
+
+.aimp-ds-group > legend + * {
+	clear: both;
+}
+
+.aimp-ds-group-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 10px 12px;
+	border: 0;
+	background: none;
+	color: #1d2327;
+	font: inherit;
+	font-weight: 600;
+	text-align: left;
+	cursor: pointer;
+}
+
+.aimp-ds-group-toggle::after {
+	content: "";
+	width: 7px;
+	height: 7px;
+	margin-left: auto;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(45deg);
+	transition: transform 0.15s ease;
+}
+
+.aimp-ds-group.is-open .aimp-ds-group-toggle::after {
+	transform: rotate(-135deg);
+}
+
+.aimp-ds-group-toggle.is-changed::before {
+	content: "";
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--ds-gold);
+	order: 2;
+}
+
+.aimp-ds-group-toggle:hover,
+.aimp-ds-group-toggle:focus-visible {
+	background: #f6f7f7;
+}
+
+.aimp-ds-group.is-open .aimp-ds-group-toggle {
+	border-bottom: 1px solid var(--ds-line);
+	background: var(--ds-gold-tint);
+	color: #6b4f1e;
+}
+
+/* A folded block shows only its title. */
+.aimp-ds-group:not(.is-open) > :not(legend) {
+	display: none !important;
+}
+
+.aimp-ds-group.is-open > :not(legend) {
+	margin-right: 12px;
+	margin-left: 12px;
+}
+
+.aimp-ds-group.is-open > :not(legend):first-of-type,
+.aimp-ds-group.is-open > legend + * {
+	margin-top: 10px;
+}
+
+.aimp-ds-group.is-open > :last-child {
+	margin-bottom: 10px;
+}
+
+.aimp-ds-fine {
+	margin: 18px 0 6px;
+	color: #646970;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+/* Only the settings of the screen chosen at the top (the headings "Computer" / "Phone" too). */
+.aimp-ds[data-device-view="computer"] [data-device="phone"],
+.aimp-ds[data-device-view="computer"] [data-device-sub="phone"],
+.aimp-ds[data-device-view="phone"] [data-device="computer"],
+.aimp-ds[data-device-view="phone"] [data-device-sub="computer"] {
+	display: none !important;
 }

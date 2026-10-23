@@ -35,6 +35,11 @@
 	var saveAgain = false;
 	var textsChanged = false;
 	var frameOrigin = '';
+	// The parts found on the page in the preview (null until it has loaded), and computer or phone settings.
+	var present = null;
+	var device = 'computer';
+	// Settings every part has: shown after the part's own settings, under "Fine-tuning".
+	var GENERIC = ['colors', 'size', 'space', 'radius', 'hide', 'move', 'anim'];
 
 	function clone(value) {
 		return JSON.parse(JSON.stringify(value || {}));
@@ -292,26 +297,16 @@
 	var list = q('.aimp-ds-list');
 	var search = q('.aimp-ds-search');
 
-	function renderList() {
-		var term = search.value.trim().toLowerCase();
+	// Buttons for parts, under the name of their group (Header and menu, Shop pages, …).
+	function addItems(container, ids) {
 		var groups = {};
-		Object.keys(cfg.elements).forEach(function (id) {
-			var el = cfg.elements[id];
-			if (term && (el.label + ' ' + el.group).toLowerCase().indexOf(term) === -1) {
-				return;
-			}
-			(groups[el.group] = groups[el.group] || []).push(id);
+		ids.forEach(function (id) {
+			(groups[cfg.elements[id].group] = groups[cfg.elements[id].group] || []).push(id);
 		});
-		list.innerHTML = '';
-		// "Whole site" first.
-		Object.keys(groups).sort(function (a, b) {
-			var siteA = !cfg.elements[groups[a][0]].selector;
-			var siteB = !cfg.elements[groups[b][0]].selector;
-			return siteA === siteB ? 0 : (siteA ? -1 : 1);
-		}).forEach(function (group) {
+		Object.keys(groups).forEach(function (group) {
 			var h = document.createElement('h3');
 			h.textContent = group;
-			list.appendChild(h);
+			container.appendChild(h);
 			groups[group].forEach(function (id) {
 				var b = document.createElement('button');
 				b.type = 'button';
@@ -326,9 +321,59 @@
 				b.addEventListener('click', function () {
 					select(id, true);
 				});
-				list.appendChild(b);
+				container.appendChild(b);
 			});
 		});
+	}
+
+	// A folded section of the list ("Whole site", "Other pages"); open while searching or when it holds the chosen part.
+	function addFold(title, ids, open) {
+		if (!ids.length) {
+			return;
+		}
+		var fold = document.createElement('details');
+		fold.className = 'aimp-ds-fold';
+		fold.open = !!open || ids.indexOf(current) !== -1;
+		var summary = document.createElement('summary');
+		summary.textContent = title + ' (' + ids.length + ')';
+		fold.appendChild(summary);
+		addItems(fold, ids);
+		list.appendChild(fold);
+	}
+
+	function renderList() {
+		var term = search.value.trim().toLowerCase();
+		var site = [];
+		var here = [];
+		var other = [];
+		Object.keys(cfg.elements).forEach(function (id) {
+			var el = cfg.elements[id];
+			if (term && (el.label + ' ' + el.group).toLowerCase().indexOf(term) === -1) {
+				return;
+			}
+			if (!el.selector) {
+				site.push(id);
+			} else if (!present || present.indexOf(id) !== -1) {
+				here.push(id);
+			} else {
+				other.push(id);
+			}
+		});
+		list.innerHTML = '';
+		var h = document.createElement('p');
+		h.className = 'aimp-ds-list-title';
+		h.textContent = present ? t.onPage : t.allParts;
+		list.appendChild(h);
+		if (here.length) {
+			addItems(list, here);
+		} else {
+			var none = document.createElement('p');
+			none.className = 'description';
+			none.textContent = t.noneHere;
+			list.appendChild(none);
+		}
+		addFold(t.wholeSite, site, !!term);
+		addFold(t.otherPages, other, !!term);
 	}
 
 	search.addEventListener('input', renderList);
@@ -383,9 +428,33 @@
 		edit.hidden = false;
 		focusMode(true);
 		var controls = cfg.elements[current].controls || [];
+		var own = controls.filter(function (key) {
+			return GENERIC.indexOf(key) === -1;
+		});
+		var generic = GENERIC.filter(function (key) {
+			return controls.indexOf(key) !== -1;
+		});
 		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
 			group.hidden = controls.indexOf(group.getAttribute('data-group')) === -1;
+			group.classList.remove('is-open');
 		});
+		// Its own settings, then "Fine-tuning" with the settings every part has.
+		var home = edit.querySelector('.aimp-ds-groups');
+		own.concat(generic).forEach(function (key) {
+			var group = edit.querySelector('.aimp-ds-group[data-group="' + key + '"]');
+			if (group) {
+				if (key === generic[0]) {
+					home.appendChild(fineTitle);
+				}
+				home.appendChild(group);
+			}
+		});
+		fineTitle.hidden = !generic.length || !own.length;
+		var first = edit.querySelector('.aimp-ds-group[data-group="' + (own[0] || generic[0]) + '"]');
+		if (first) {
+			first.classList.add('is-open');
+		}
+		markGroups();
 		q('.aimp-ds-edit-name').textContent = cfg.elements[current].label;
 		var row = draft[current] || {};
 		edit.querySelectorAll('[data-key]').forEach(function (input) {
@@ -462,6 +531,22 @@
 		sendCss();
 		save(reloads(key));
 		renderList();
+		markGroups();
+	}
+
+	// A dot on the title of a folded block when one of its settings is changed.
+	function markGroups() {
+		var row = draft[current] || {};
+		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
+			var fields = cfg.groups[group.getAttribute('data-group')] || {};
+			var changed = Object.keys(fields).some(function (key) {
+				return row[key] !== undefined;
+			});
+			var toggle = group.querySelector('.aimp-ds-group-toggle');
+			if (toggle) {
+				toggle.classList.toggle('is-changed', changed);
+			}
+		});
 	}
 
 	// Whether a setting is made on the server when the page is built (the preview then loads again).
@@ -965,6 +1050,61 @@
 		});
 	});
 
+	/* ---------------- folding blocks, computer or phone ---------------- */
+
+	// Every block of settings folds open with its title; one block at a time.
+	var fineTitle = document.createElement('p');
+	fineTitle.className = 'aimp-ds-fine';
+	fineTitle.textContent = t.fineTune;
+	edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
+		var legend = group.querySelector('legend');
+		if (!legend) {
+			return;
+		}
+		var toggle = document.createElement('button');
+		toggle.type = 'button';
+		toggle.className = 'aimp-ds-group-toggle';
+		toggle.textContent = legend.textContent;
+		legend.textContent = '';
+		legend.appendChild(toggle);
+		toggle.addEventListener('click', function () {
+			var open = !group.classList.contains('is-open');
+			edit.querySelectorAll('.aimp-ds-group.is-open').forEach(function (other) {
+				other.classList.remove('is-open');
+			});
+			group.classList.toggle('is-open', open);
+			if (open) {
+				group.scrollIntoView({ block: 'nearest' });
+			}
+		});
+		// Settings under a "Computer" or "Phone" heading belong to that screen.
+		var mode = '';
+		Array.prototype.forEach.call(group.children, function (child) {
+			if (child.classList.contains('aimp-ds-sub')) {
+				mode = child.getAttribute('data-device-sub') || '';
+			}
+			if (mode && child.tagName !== 'LEGEND') {
+				child.setAttribute('data-device', mode);
+			}
+		});
+	});
+	var groupsHome = document.createElement('div');
+	groupsHome.className = 'aimp-ds-groups';
+	edit.appendChild(groupsHome);
+	edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
+		groupsHome.appendChild(group);
+	});
+	var deviceNote = q('.aimp-ds-device-note');
+
+	function setDevice(name) {
+		device = name;
+		root.setAttribute('data-device-view', name);
+		if (deviceNote) {
+			deviceNote.textContent = name === 'phone' ? t.devicePhone : t.deviceComputer;
+		}
+	}
+	setDevice('computer');
+
 	/* ---------------- the preview ---------------- */
 
 	var pageSelect = q('.aimp-ds-page');
@@ -1000,6 +1140,8 @@
 	root.querySelectorAll('.aimp-ds-devices button').forEach(function (b) {
 		b.addEventListener('click', function () {
 			width = parseInt(b.getAttribute('data-width'), 10);
+			// Phone: the settings for phones; computer and tablet: those for computers.
+			setDevice(width < 700 ? 'phone' : 'computer');
 			root.querySelectorAll('.aimp-ds-devices button').forEach(function (other) {
 				other.setAttribute('aria-pressed', other === b ? 'true' : 'false');
 			});
@@ -1018,6 +1160,9 @@
 			return;
 		}
 		if (e.data.type === 'aimp-design-ready') {
+			// The parts on this page: the list shows those first.
+			present = Array.isArray(e.data.present) ? e.data.present : null;
+			renderList();
 			sendCss();
 			toFrame({ type: 'aimp-design-pick', on: pickBox.checked });
 			if (current) {

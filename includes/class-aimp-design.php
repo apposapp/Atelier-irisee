@@ -46,6 +46,8 @@ class AIMP_Design {
 	public static function init() {
 		// After the main Atelier Irisee item (AIMP_Settings::add_menu(), priority 60).
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 61 );
+		// The studio uses the whole screen: no notices of WordPress or other plugins above it.
+		add_action( 'in_admin_header', array( __CLASS__, 'quiet_screen' ), 1000 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_assets' ) );
 		foreach ( array( 'save', 'publish', 'discard', 'restore', 'import', 'texts', 'look_save', 'look_load', 'look_delete', 'look_plan' ) as $action ) {
 			add_action( 'wp_ajax_aimp_design_' . $action, array( __CLASS__, 'ajax_' . $action ) );
@@ -2177,6 +2179,14 @@ class AIMP_Design {
 						'restore'     => __( 'Put in draft', 'atelier-irisee-master-plugin' ),
 						'pick'        => __( 'Click a part of the page, or choose it from the list.', 'atelier-irisee-master-plugin' ),
 						'thisPage'    => __( 'The page you came from', 'atelier-irisee-master-plugin' ),
+						'onPage'      => __( 'On this page', 'atelier-irisee-master-plugin' ),
+						'allParts'    => __( 'All parts', 'atelier-irisee-master-plugin' ),
+						'noneHere'    => __( 'This page has no parts of its own to change; see the whole site below.', 'atelier-irisee-master-plugin' ),
+						'wholeSite'   => __( 'Whole site (colours, fonts, buttons, …)', 'atelier-irisee-master-plugin' ),
+						'otherPages'  => __( 'Parts of other pages', 'atelier-irisee-master-plugin' ),
+						'fineTune'    => __( 'Fine-tuning', 'atelier-irisee-master-plugin' ),
+						'deviceComputer' => __( 'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.', 'atelier-irisee-master-plugin' ),
+						'devicePhone' => __( 'Showing the settings for phones. Click "Computer" at the top for the computer settings.', 'atelier-irisee-master-plugin' ),
 						'choose'      => __( 'Choose a picture', 'atelier-irisee-master-plugin' ),
 						'use'         => __( 'Use this picture', 'atelier-irisee-master-plugin' ),
 						'loading'     => __( 'Loading…', 'atelier-irisee-master-plugin' ),
@@ -2288,8 +2298,10 @@ class AIMP_Design {
 		$group    = function ( $key, $title ) {
 			echo '<fieldset class="aimp-ds-group" data-group="' . esc_attr( $key ) . '" hidden><legend>' . esc_html( $title ) . '</legend>';
 		};
-		$sub      = function ( $title ) {
-			echo '<p class="aimp-ds-sub">' . esc_html( $title ) . '</p>';
+		// A "Computer" or "Phone" heading: the studio shows the settings of the screen chosen at the top.
+		$sub      = function ( $title ) use ( $computer, $phone ) {
+			$device = $title === $computer ? 'computer' : ( $title === $phone ? 'phone' : '' );
+			echo '<p class="aimp-ds-sub"' . ( '' !== $device ? ' data-device-sub="' . esc_attr( $device ) . '"' : '' ) . '>' . esc_html( $title ) . '</p>';
 		};
 
 		$group( 'move', __( 'Position', 'atelier-irisee-master-plugin' ) );
@@ -3202,6 +3214,16 @@ class AIMP_Design {
 		echo '</fieldset>';
 	}
 
+	public static function quiet_screen() {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( $screen && false !== strpos( (string) $screen->id, 'aimp-design' ) ) {
+			remove_all_actions( 'admin_notices' );
+			remove_all_actions( 'all_admin_notices' );
+			remove_all_actions( 'network_admin_notices' );
+			remove_all_actions( 'user_admin_notices' );
+		}
+	}
+
 	public static function render_page() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
@@ -3241,6 +3263,7 @@ class AIMP_Design {
 								<strong class="aimp-ds-edit-name"></strong>
 								<button type="button" class="button-link aimp-ds-reset-one"><?php esc_html_e( 'Reset this part', 'atelier-irisee-master-plugin' ); ?></button>
 							</div>
+							<p class="aimp-ds-device-note"></p>
 							<?php self::render_groups(); ?>
 						</div>
 					</section>

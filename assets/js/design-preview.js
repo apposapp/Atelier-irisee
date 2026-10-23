@@ -138,5 +138,13 @@
 			window.scrollTo(0, parseInt(scroll, 10) || 0);
 		}
 	} catch (err) {}
-	send({ type: 'aimp-design-ready', url: window.location.href });
+	// The parts on this page, so the studio lists those first.
+	var present = ids.filter(function (id) {
+		try {
+			return !!document.querySelector(cfg.elements[id]);
+		} catch (e) {
+			return false;
+		}
+	});
+	send({ type: 'aimp-design-ready', url: window.location.href, present: present });
 })();

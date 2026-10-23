@@ -2155,4 +2155,13 @@ return array(
 	'The brand in the product data for Google' => 'La marque dans les données produit pour Google',
 	'The page you came from' => 'La page d\'où vous venez',
 	'These take effect for visitors after publishing (LiteSpeed is emptied then).' => 'Cela s\'applique aux visiteurs après la publication (LiteSpeed est alors vidé).',
+
+	// Design studio: easier panel
+	'Fine-tuning' => 'Réglages fins',
+	'On this page' => 'Sur cette page',
+	'Parts of other pages' => 'Éléments d\'autres pages',
+	'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.' => 'Vous voyez les réglages pour ordinateurs et tablettes. Cliquez sur « Téléphone » en haut pour les réglages des téléphones.',
+	'Showing the settings for phones. Click "Computer" at the top for the computer settings.' => 'Vous voyez les réglages pour téléphones. Cliquez sur « Ordinateur » en haut pour les réglages des ordinateurs.',
+	'This page has no parts of its own to change; see the whole site below.' => 'Cette page n\'a pas d\'éléments propres à modifier ; voir le site entier ci-dessous.',
+	'Whole site (colours, fonts, buttons, …)' => 'Site entier (couleurs, polices, boutons, …)',
 );
