@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.28.0
+Stable tag: 3.29.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,14 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.29.0 =
+* Design studio, phase 8: new parts for the cart, checkout, my account, log in and favourites.
+  * Cart: no discount code field, no "Update cart", no delivery line, payment logos or "Continue shopping", no "You may also like" or "Popular right now"; the totals on the left or scrolling with the page; the size of the pictures.
+  * Checkout: no steps, "Your order" on the left or folded at first, no discount code / gift card box, no order notes field, no "Create an account" after ordering, an extra line on the thank-you page (NL | FR | EN).
+  * My account: the tab that opens first, tabs hidden, the tabs above the page, no "Hello …".
+  * Log in and register: no picture or logo, the width of the form, the colour behind the pop-up.
+  * Favourites: cards per row on computers and phones, the colour of the hearts everywhere, no message after adding one.
 
 = 3.28.0 =
 * Design studio, phase 7 (customizer), new part "Customizer (whole)":

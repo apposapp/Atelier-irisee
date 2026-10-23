@@ -155,7 +155,7 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<?php if ( $data['crosssells'] ) : ?>
-			<section class="aimp-product-section">
+			<section class="aimp-product-section aimp-cart-cross">
 				<h3><?php esc_html_e( 'You may also like', 'atelier-irisee-master-plugin' ); ?></h3>
 				<ul class="aimp-grid aimp-product-cards">
 					<?php

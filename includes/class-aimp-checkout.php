@@ -30,6 +30,26 @@ class AIMP_Checkout {
 		// Confirmation step: a thank-you block on top, next steps (and an account offer) below the order.
 		add_action( 'woocommerce_before_thankyou', array( __CLASS__, 'thankyou_top' ), 5 );
 		add_action( 'woocommerce_thankyou', array( __CLASS__, 'thankyou_bottom' ), 30 );
+		// Design studio (Checkout): no order notes field.
+		add_filter( 'woocommerce_enable_order_notes_field', array( __CLASS__, 'order_notes' ), 20 );
+	}
+
+	/**
+	 * @param bool $enabled Whether WooCommerce shows the order notes field.
+	 * @return bool
+	 */
+	public static function order_notes( $enabled ) {
+		return self::design( 'co_nonotes' ) ? false : $enabled;
+	}
+
+	/**
+	 * A Design studio setting of the checkout.
+	 *
+	 * @param string $key Setting.
+	 * @return mixed
+	 */
+	private static function design( $key ) {
+		return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'checkout-page', $key, '' ) : '';
 	}
 
 	/**
@@ -75,6 +95,9 @@ class AIMP_Checkout {
 				?>
 			</h2>
 			<p class="aimp-thankyou-intro"><?php esc_html_e( 'We have received your order. You will get a confirmation by email.', 'atelier-irisee-master-plugin' ); ?></p>
+			<?php if ( '' !== (string) self::design( 'co_thanks' ) ) : ?>
+				<p class="aimp-thankyou-intro aimp-thankyou-extra"><?php echo esc_html( AIMP_Settings::localized( self::design( 'co_thanks' ) ) ); ?></p>
+			<?php endif; ?>
 			<ul class="aimp-thankyou-facts">
 				<?php foreach ( $facts as $label => $value ) : ?>
 					<?php if ( '' !== (string) $value ) : ?>
@@ -299,7 +322,7 @@ class AIMP_Checkout {
 			</ol>
 			<?php if ( $summary ) : ?>
 				<div class="aimp-checkout-layout">
-					<details class="aimp-checkout-summary" open data-aimp-checkout-summary>
+					<details class="aimp-checkout-summary"<?php echo self::design( 'co_closed' ) ? '' : ' open'; ?> data-aimp-checkout-summary>
 						<summary>
 							<span class="aimp-checkout-summary-title"><?php esc_html_e( 'Your order', 'atelier-irisee-master-plugin' ); ?></span>
 							<span class="aimp-checkout-summary-count">(<?php echo (int) AIMP_Cart_Page::summary_count(); ?>)</span>

@@ -43,8 +43,10 @@ class AIMP_Account {
 	}
 
 	private static function current_tab() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- tab selection only.
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'personal';
+		// Design studio (My account): the tab that opens first.
+		$first = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'account-page', 'acc_first', '' ) : '';
+		$first = array_key_exists( $first, self::tabs() ) ? $first : 'personal';
+		$tab   = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : $first; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- tab selection only.
 		return array_key_exists( $tab, self::tabs() ) ? $tab : 'personal';
 	}
 

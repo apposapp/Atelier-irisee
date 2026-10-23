@@ -118,10 +118,15 @@ class AIMP_Design {
 			'customizer'      => array( $config, __( 'Customizer (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator[data-aimp-configurator]' ),
 			'config-steps'    => array( $config, __( 'Step indicator', 'atelier-irisee-master-plugin' ), '.aimp-configurator .aimp-steps' ),
 			'config-title'    => array( $config, __( 'Details titles', 'atelier-irisee-master-plugin' ), '.aimp-details-title' ),
+			'cart-page'       => array( $cart, __( 'Cart page (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator.aimp-cart' ),
+			'checkout-page'   => array( $cart, __( 'Checkout (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator.aimp-checkout' ),
+			'favorites-page'  => array( $cart, __( 'Favourites page (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator.aimp-favorites' ),
 			'cart-items'      => array( $cart, __( 'Cart items', 'atelier-irisee-master-plugin' ), '.aimp-cart-items' ),
 			'cart-side'       => array( $cart, __( 'Cart totals', 'atelier-irisee-master-plugin' ), '.aimp-cart-side' ),
 			'cart-coupon'     => array( $cart, __( 'Discount code field', 'atelier-irisee-master-plugin' ), '.aimp-cart-coupon' ),
 			'cart-empty'      => array( $cart, __( 'Empty cart', 'atelier-irisee-master-plugin' ), '.aimp-cart-empty' ),
+			'account-page'    => array( $account, __( 'My account (whole)', 'atelier-irisee-master-plugin' ), '.aimp-account:not(.aimp-account--guest)' ),
+			'login-forms'     => array( $account, __( 'Log in and register', 'atelier-irisee-master-plugin' ), '.aimp-el' ),
 			'account-tabs'    => array( $account, __( 'Account tabs', 'atelier-irisee-master-plugin' ), '.aimp-account-tabs' ),
 			'account-title'   => array( $account, __( 'Account titles', 'atelier-irisee-master-plugin' ), '.aimp-account-title' ),
 			'account-hello'   => array( $account, __( 'Welcome text', 'atelier-irisee-master-plugin' ), '.aimp-account-hello' ),
@@ -175,11 +180,23 @@ class AIMP_Design {
 		}
 		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
 		if ( isset( $elements['product-page'] ) ) {
-			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info', 'cz_steps', 'cz_flow', 'cz_bar', 'cz_summary' );
+			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info', 'cz_steps', 'cz_flow', 'cz_bar', 'cz_summary', 'co_opts', 'acc_opts' );
 		}
 		// The customizer as a whole (phase 7): steps, cards, the haberdashery, the bar on phones, the summary.
 		if ( isset( $elements['customizer'] ) ) {
 			$elements['customizer']['controls'] = array( 'cz_steps', 'cz_cards', 'cz_flow', 'cz_bar', 'cz_summary' );
+		}
+		// Cart, checkout, account, login, favourites (phase 8).
+		foreach ( array(
+			'cart-page'      => 'cart_opts',
+			'checkout-page'  => 'co_opts',
+			'account-page'   => 'acc_opts',
+			'login-forms'    => 'log_opts',
+			'favorites-page' => 'fav_opts',
+		) as $id => $group ) {
+			if ( isset( $elements[ $id ] ) ) {
+				$elements[ $id ]['controls'] = array( $group, 'space', 'colors', 'radius' );
+			}
 		}
 		// The overall look of the site: no part of the page to click, chosen from the list.
 		$site = __( 'Whole site', 'atelier-irisee-master-plugin' );
@@ -456,6 +473,41 @@ class AIMP_Design {
 				'pp_share'   => 'bool',
 			),
 			'pp_info'     => self::product_info_fields(),
+			// Cart, checkout, account, login, favourites (phase 8).
+			'cart_opts'   => array(
+				'cart_nocoupon'   => 'bool',
+				'cart_noupdate'   => 'bool',
+				'cart_notrust'    => 'bool',
+				'cart_nopayments' => 'bool',
+				'cart_nocontinue' => 'bool',
+				'cart_nocross'    => 'bool',
+				'cart_nopopular'  => 'bool',
+				'cart_left'       => 'bool',
+				'cart_nosticky'   => 'bool',
+				'cart_thumb'      => array( 0, 160, 0 ),
+			),
+			'co_opts'     => array(
+				'co_nosteps'    => 'bool',
+				'co_left'       => 'bool',
+				'co_closed'     => 'bool',
+				'co_nocodes'    => 'bool',
+				'co_nonotes'    => 'bool',
+				'co_noaccount'  => 'bool',
+				'co_thanks'     => 'text',
+			),
+			'acc_opts'    => self::account_fields(),
+			'log_opts'    => array(
+				'log_noimage' => 'bool',
+				'log_nologo'  => 'bool',
+				'log_width'   => array( 0, 1000, 0 ),
+				'log_overlay' => 'color',
+			),
+			'fav_opts'    => array(
+				'fav_cols'    => array( 0, 8, 0 ),
+				'fav_pcols'   => array( 0, 3, 0 ),
+				'fav_heart'   => 'color',
+				'fav_notoast' => 'bool',
+			),
 			// The customizer (phase 7).
 			'cz_steps'    => array(
 				'cz_progress'      => array( 'select', array( '', 'bar', 'none' ) ),
@@ -541,6 +593,24 @@ class AIMP_Design {
 		foreach ( array( 'configurator', 'fabrics', 'patterns', 'haberdashery', 'giftcards' ) as $section ) {
 			$fields[ 'ov_order_' . $section ] = array( 0, 6, 0 );
 			$fields[ 'ov_sub_' . $section ]   = 'text';
+		}
+		return $fields;
+	}
+
+	/**
+	 * My account: the tab that opens first, tabs hidden, the tabs above the page, no "Hello".
+	 *
+	 * @return array
+	 */
+	private static function account_fields() {
+		$tabs   = class_exists( 'AIMP_Account' ) ? array_keys( AIMP_Account::tabs() ) : array( 'personal', 'orders', 'refund', 'giftcards' );
+		$fields = array(
+			'acc_first'   => array( 'select', array_merge( array( '' ), array_values( array_diff( $tabs, array( 'personal' ) ) ) ) ),
+			'acc_top'     => 'bool',
+			'acc_nohello' => 'bool',
+		);
+		foreach ( $tabs as $tab ) {
+			$fields[ 'acc_hide_' . $tab ] = 'bool';
 		}
 		return $fields;
 	}
@@ -1637,6 +1707,85 @@ class AIMP_Design {
 		}
 		if ( $get( 'product-page', 'pp_stars' ) ) {
 			$css .= $pp . ' .star-rating,' . $pp . ' .star-rating span::before,' . $pp . ' p.stars a{color:' . $get( 'product-page', 'pp_stars' ) . '!important}';
+		}
+
+		// Cart: parts left out, the totals on the left or not sticky, the size of the pictures.
+		$cart = 'html body .aimp-configurator.aimp-cart';
+		foreach ( array(
+			'cart_nocoupon'   => ' .aimp-cart-coupon',
+			'cart_noupdate'   => ' .aimp-cart-update',
+			'cart_notrust'    => ' .aimp-cart-trust .aimp-delivery-line',
+			'cart_nopayments' => ' .aimp-cart-payments',
+			'cart_nocontinue' => ' .aimp-cart-continue',
+			'cart_nocross'    => ' .aimp-cart-cross',
+			'cart_nopopular'  => ' .aimp-cart-suggestions',
+		) as $key => $selector ) {
+			if ( $get( 'cart-page', $key ) ) {
+				$css .= $cart . $selector . '{display:none!important}';
+			}
+		}
+		if ( $get( 'cart-page', 'cart_left' ) ) {
+			$computer .= $cart . ' .aimp-cart-layout{grid-template-columns:minmax(0,2fr) minmax(0,3fr)!important}' . $cart . ' .aimp-cart-side{order:-1}';
+		}
+		if ( $get( 'cart-page', 'cart_nosticky' ) ) {
+			$css .= $cart . ' .aimp-cart-side{position:static!important}';
+		}
+		if ( $get( 'cart-page', 'cart_thumb' ) ) {
+			$css .= $cart . ' .aimp-cart-thumb{width:' . (int) $get( 'cart-page', 'cart_thumb' ) . 'px!important;flex:0 0 ' . (int) $get( 'cart-page', 'cart_thumb' ) . 'px!important}' . $cart . ' .aimp-cart-thumb img{width:100%!important;height:auto!important}';
+		}
+		// Checkout: the steps, "Your order" on the left, the discount code box, "Create an account" after ordering.
+		$co = 'html body .aimp-configurator.aimp-checkout';
+		if ( $get( 'checkout-page', 'co_nosteps' ) ) {
+			$css .= $co . ' .aimp-checkout-steps{display:none!important}';
+		}
+		if ( $get( 'checkout-page', 'co_left' ) ) {
+			$computer .= $co . ' .aimp-checkout-layout{grid-template-columns:minmax(280px,380px) minmax(0,1fr)!important;grid-template-areas:"summary main"!important}';
+		}
+		if ( $get( 'checkout-page', 'co_nocodes' ) ) {
+			$css .= $co . ' .aimp-checkout-codes{display:none!important}';
+		}
+		if ( $get( 'checkout-page', 'co_noaccount' ) ) {
+			$css .= 'html body .aimp-thankyou-account{display:none!important}';
+		}
+		// My account: tabs hidden, the tabs above the page, no "Hello".
+		$acc = 'html body .aimp-account:not(.aimp-account--guest)';
+		foreach ( array_keys( self::account_fields() ) as $key ) {
+			if ( 0 === strpos( $key, 'acc_hide_' ) && $get( 'account-page', $key ) ) {
+				$css .= $acc . ' .aimp-account-tabs li:has(> a[href*="tab=' . substr( $key, 9 ) . '"]){display:none!important}';
+			}
+		}
+		if ( $get( 'account-page', 'acc_top' ) ) {
+			$computer .= $acc . ' .aimp-account-layout{grid-template-columns:minmax(0,1fr)!important}' . $acc . ' .aimp-account-tabs{position:static!important}' . $acc . ' .aimp-account-tabs ul{display:flex!important;flex-wrap:wrap;gap:.5rem}';
+		}
+		if ( $get( 'account-page', 'acc_nohello' ) ) {
+			$css .= $acc . ' .aimp-account-hello{display:none!important}';
+		}
+		// Log in and register: the picture, the logo, the width, the dark layer behind the pop-up.
+		if ( $get( 'login-forms', 'log_noimage' ) ) {
+			$css .= 'html body .aimp-el .aimp-el-image{display:none!important}';
+		}
+		if ( $get( 'login-forms', 'log_nologo' ) ) {
+			$css .= 'html body .aimp-el .aimp-el-logo{display:none!important}';
+		}
+		if ( $get( 'login-forms', 'log_width' ) ) {
+			$css .= 'html body .aimp-el{--aimp-el-width:' . (int) $get( 'login-forms', 'log_width' ) . 'px!important}';
+		}
+		if ( $get( 'login-forms', 'log_overlay' ) ) {
+			$css .= 'html body .aimp-el{--aimp-el-overlay:color-mix(in srgb,' . $get( 'login-forms', 'log_overlay' ) . ' 70%,transparent)!important}';
+		}
+		// Favourites: cards per row, the colour of the hearts (everywhere), no message after a click.
+		$fav = 'html body .aimp-configurator.aimp-favorites .aimp-favorites-grid';
+		if ( $get( 'favorites-page', 'fav_cols' ) ) {
+			$computer .= $fav . '{grid-template-columns:repeat(' . (int) $get( 'favorites-page', 'fav_cols' ) . ',minmax(0,1fr))!important}';
+		}
+		if ( $get( 'favorites-page', 'fav_pcols' ) ) {
+			$phone .= $fav . '{grid-template-columns:repeat(' . (int) $get( 'favorites-page', 'fav_pcols' ) . ',minmax(0,1fr))!important}';
+		}
+		if ( $get( 'favorites-page', 'fav_heart' ) ) {
+			$css .= 'html body .aimp-fav{color:' . $get( 'favorites-page', 'fav_heart' ) . '!important;border-color:' . $get( 'favorites-page', 'fav_heart' ) . '!important}';
+		}
+		if ( $get( 'favorites-page', 'fav_notoast' ) ) {
+			$css .= 'html body .aimp-fav-toast{display:none!important}';
 		}
 
 		// Customizer: cards per row, what a card shows, the size chart, the sheet, the bar on phones.
@@ -2738,6 +2887,63 @@ class AIMP_Design {
 		self::color( 'cz_bar_bg', __( 'Background', 'atelier-irisee-master-plugin' ) );
 		self::color( 'cz_bar_fg', __( 'Text colour', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'cz_nosparkle', __( 'The next button does not sparkle', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		// Cart, checkout, account, login, favourites (phase 8).
+		$group( 'cart_opts', __( 'Cart page', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cart_nocoupon', __( 'No discount code field', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cart_noupdate', __( 'No "Update cart" button', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cart_notrust', __( 'No delivery line under the totals', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cart_nopayments', __( 'No payment logos', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cart_nocontinue', __( 'No "Continue shopping"', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cart_nocross', __( 'No "You may also like"', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cart_nopopular', __( 'No "Popular right now" in an empty cart', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cart_left', __( 'The totals on the left (computers)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cart_nosticky', __( 'The totals scroll with the page', 'atelier-irisee-master-plugin' ) );
+		self::number( 'cart_thumb', __( 'Size of the pictures (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 160, 'px' );
+		echo '</fieldset>';
+
+		$group( 'co_opts', __( 'Checkout', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'co_nosteps', __( 'No steps above the checkout', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'co_left', __( '"Your order" on the left (computers)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'co_closed', __( '"Your order" starts folded', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'co_nocodes', __( 'No discount code or gift card box', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'co_nonotes', __( 'No order notes field', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'co_noaccount', __( 'No "Create an account" after ordering', 'atelier-irisee-master-plugin' ) );
+		$field( 'co_thanks', __( 'An extra line on the thank-you page', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+		echo '</fieldset>';
+
+		$group( 'acc_opts', __( 'My account', 'atelier-irisee-master-plugin' ) );
+		$acc_tabs = class_exists( 'AIMP_Account' ) ? AIMP_Account::tabs() : array();
+		$first    = array( '' => isset( $acc_tabs['personal'] ) ? $acc_tabs['personal'] . ' (' . $standard . ')' : $standard );
+		foreach ( $acc_tabs as $tab => $name ) {
+			if ( 'personal' !== $tab ) {
+				$first[ $tab ] = $name;
+			}
+		}
+		self::choice( 'acc_first', __( 'Opens with', 'atelier-irisee-master-plugin' ), $first );
+		self::check_box( 'acc_top', __( 'The tabs above the page (computers)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'acc_nohello', __( 'No "Hello …" at the top', 'atelier-irisee-master-plugin' ) );
+		$sub( __( 'Hide a tab', 'atelier-irisee-master-plugin' ) );
+		foreach ( $acc_tabs as $tab => $name ) {
+			self::check_box( 'acc_hide_' . $tab, $name );
+		}
+		echo '</fieldset>';
+
+		$group( 'log_opts', __( 'Log in and register', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'log_noimage', __( 'No picture next to the form', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'log_nologo', __( 'No logo above the form', 'atelier-irisee-master-plugin' ) );
+		self::number( 'log_width', __( 'Width of the form (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 1000, 'px' );
+		self::color( 'log_overlay', __( 'Colour behind the pop-up', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The picture, logo and texts themselves are set under WooCommerce → Login & registration.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'fav_opts', __( 'Favourites', 'atelier-irisee-master-plugin' ) );
+		$sub( __( 'Cards per row (0 = standard)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'fav_cols', $computer, 0, 8, '' );
+		self::number( 'fav_pcols', $phone, 0, 3, '' );
+		self::color( 'fav_heart', __( 'Colour of the hearts (everywhere)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'fav_notoast', __( 'No message after adding a favourite', 'atelier-irisee-master-plugin' ) );
 		echo '</fieldset>';
 
 		$group( 'cz_summary', __( 'Summary', 'atelier-irisee-master-plugin' ) );
