@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 <footer class="aimp-footer">
 	<div class="aimp-footer-columns">
 
-		<div class="aimp-footer-col">
+		<div class="aimp-footer-col aimp-footer-col--contact">
 			<?php if ( '' !== $data['company'] ) : ?>
 				<h2 class="aimp-footer-title"><?php echo esc_html( $data['company'] ); ?></h2>
 			<?php endif; ?>
@@ -41,7 +41,7 @@ defined( 'ABSPATH' ) || exit;
 			<?php endif; ?>
 		</div>
 
-		<div class="aimp-footer-col">
+		<div class="aimp-footer-col aimp-footer-col--account">
 			<h2 class="aimp-footer-title"><?php esc_html_e( 'My account', 'atelier-irisee-master-plugin' ); ?></h2>
 			<?php if ( '' !== $data['account_menu'] ) : ?>
 				<?php echo $data['account_menu']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nav_menu() output. ?>
@@ -54,12 +54,12 @@ defined( 'ABSPATH' ) || exit;
 			<?php endif; ?>
 		</div>
 
-		<div class="aimp-footer-col">
+		<div class="aimp-footer-col aimp-footer-col--service">
 			<h2 class="aimp-footer-title"><?php esc_html_e( 'Customer service', 'atelier-irisee-master-plugin' ); ?></h2>
 			<?php echo $data['service_menu']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nav_menu() output. ?>
 		</div>
 
-		<div class="aimp-footer-col">
+		<div class="aimp-footer-col aimp-footer-col--newsletter">
 			<h2 class="aimp-footer-title"><?php esc_html_e( 'Newsletter', 'atelier-irisee-master-plugin' ); ?></h2>
 			<p class="aimp-newsletter-intro"><?php echo '' !== $data['newsletter_text'] ? nl2br( esc_html( $data['newsletter_text'] ) ) : esc_html__( 'Subscribe to our newsletter to stay up to date.', 'atelier-irisee-master-plugin' ); ?></p>
 			<form class="aimp-newsletter" data-aimp-newsletter novalidate>
@@ -103,4 +103,8 @@ defined( 'ABSPATH' ) || exit;
 		<?php echo $data['legal_menu']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nav_menu() output. ?>
 		<p class="aimp-footer-copyright"><?php echo esc_html( $data['copyright'] ); ?></p>
 	</div>
+	<?php if ( class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'footer', 'ft_top' ) ) : ?>
+		<?php // Design studio: back to the top of the page (footer.js scrolls smoothly). ?>
+		<a class="aimp-footer-top" href="#" data-aimp-top><span aria-hidden="true">↑</span> <?php esc_html_e( 'Back to top', 'atelier-irisee-master-plugin' ); ?></a>
+	<?php endif; ?>
 </footer>

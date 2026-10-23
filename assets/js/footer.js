@@ -260,3 +260,86 @@
 	}
 	apply();
 })();
+
+/**
+ * Design studio (Newsletter): the sign-up in a pop-up after some seconds, once per visitor, never to subscribers
+ * (the form and its answers work as in the footer). Design studio (Footer): "Back to top".
+ */
+(function () {
+	'use strict';
+
+	document.addEventListener('click', function (e) {
+		var top = e.target.closest ? e.target.closest('[data-aimp-top]') : null;
+		if (top) {
+			e.preventDefault();
+			var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+		}
+	});
+
+	var cfg = window.aimpFooter;
+	var form = document.querySelector('.aimp-footer [data-aimp-newsletter]');
+	var SEEN = 'aimp_nl_popup';
+	if (!cfg || !cfg.popup || !form || /(?:^|;\s*)aimp_nl=/.test(document.cookie)) {
+		return;
+	}
+	try {
+		if (window.localStorage.getItem(SEEN)) {
+			return;
+		}
+	} catch (e) {
+		return;
+	}
+	window.setTimeout(function () {
+		// Not over an open sheet or pop-up, and not once the visitor is subscribed (the footer form is hidden then).
+		if (form.hidden || document.documentElement.classList.contains('aimp-sheet-open') || document.querySelector('.aimp-el-modal.is-open, .aimp-howto-dialog')) {
+			return;
+		}
+		try {
+			window.localStorage.setItem(SEEN, '1');
+		} catch (e) {}
+		var dialog = document.createElement('div');
+		dialog.className = 'aimp-nl-popup';
+		dialog.innerHTML = '<div class="aimp-nl-popup-backdrop"></div>' +
+			'<div class="aimp-nl-popup-card" role="dialog" aria-modal="true" aria-labelledby="aimp-nl-popup-title">' +
+			'<button type="button" class="aimp-nl-popup-close">×</button><h2 class="aimp-nl-popup-title" id="aimp-nl-popup-title"></h2></div>';
+		var card = dialog.querySelector('.aimp-nl-popup-card');
+		card.querySelector('.aimp-nl-popup-close').setAttribute('aria-label', cfg.close || 'Close');
+		card.querySelector('.aimp-nl-popup-title').textContent = cfg.popupTitle || '';
+		Array.prototype.forEach.call(form.parentNode.children, function (el) {
+			if (el.classList.contains('aimp-footer-title')) {
+				return;
+			}
+			var copy = el.cloneNode(true);
+			copy.querySelectorAll('[id]').forEach(function (node) {
+				node.id += '-popup';
+			});
+			copy.querySelectorAll('label[for]').forEach(function (node) {
+				node.setAttribute('for', node.getAttribute('for') + '-popup');
+			});
+			card.appendChild(copy);
+		});
+		var onKey = function (e) {
+			if (e.key === 'Escape') {
+				close();
+			}
+		};
+		var close = function () {
+			if (dialog.parentNode) {
+				dialog.parentNode.removeChild(dialog);
+			}
+			document.removeEventListener('keydown', onKey);
+		};
+		dialog.addEventListener('click', function (e) {
+			if (e.target.closest('.aimp-nl-popup-close') || e.target.classList.contains('aimp-nl-popup-backdrop')) {
+				close();
+			}
+		});
+		document.addEventListener('keydown', onKey);
+		document.body.appendChild(dialog);
+		var input = card.querySelector('input[type="email"]');
+		if (input) {
+			input.focus();
+		}
+	}, cfg.popup * 1000);
+})();

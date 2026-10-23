@@ -10,7 +10,7 @@
 	var SELECTOR = '.woocommerce-message, .woocommerce-info, .woocommerce-error, .wc-block-components-notice-banner';
 	// Notices that are part of a form or page, not a message: leave them alone.
 	var SKIP = '.woocommerce-form-login-toggle, .woocommerce-form-coupon-toggle, .cart-empty, .woocommerce-no-products-found, .wc-block-components-notice-banner .wc-block-components-notice-banner';
-	var DELAY = 4000;
+	var DELAY = t.delay > 0 ? t.delay * 1000 : 4000;
 
 	// Inline !important styles, so no theme rule (Divi uses !important on notices) can keep the notice visible.
 	function hide(notice) {

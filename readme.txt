@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.29.0
+Stable tag: 3.30.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,14 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.30.0 =
+* Design studio, phase 9: footer, newsletter, gift cards, messages and emails.
+  * Footer: columns per row on computers, centred text, a "Back to top" button, each column hidden or moved.
+  * Newsletter: the button next to the field; a sign-up pop-up after a number of seconds with its own title (NL | FR | EN), once per visitor and never to subscribers.
+  * Gift card choices: designs per row, the colours of the chosen amount.
+  * Messages (Whole site): how long success messages stay, floating at the top or bottom of the screen, their colours and the error colour.
+  * Emails (Whole site): gold and text colours, the background, an own logo, no gold frame, an extra line at the bottom (NL | FR | EN).
 
 = 3.29.0 =
 * Design studio, phase 8: new parts for the cart, checkout, my account, log in and favourites.

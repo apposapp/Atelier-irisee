@@ -114,6 +114,7 @@ class AIMP_Design {
 			'product-price'   => array( $product, __( 'Product price', 'atelier-irisee-master-plugin' ), '.aimp-buy-price' ),
 			'product-desc'    => array( $product, __( 'Description', 'atelier-irisee-master-plugin' ), '.aimp-description' ),
 			'product-specs'   => array( $product, __( 'Specifications', 'atelier-irisee-master-plugin' ), '.aimp-info-list' ),
+			'giftcard-form'   => array( $product, __( 'Gift card choices', 'atelier-irisee-master-plugin' ), '.aimp-gc-form' ),
 			'product-recommend' => array( $product, __( 'Recommended products', 'atelier-irisee-master-plugin' ), '.aimp-recommended' ),
 			'customizer'      => array( $config, __( 'Customizer (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator[data-aimp-configurator]' ),
 			'config-steps'    => array( $config, __( 'Step indicator', 'atelier-irisee-master-plugin' ), '.aimp-configurator .aimp-steps' ),
@@ -169,6 +170,8 @@ class AIMP_Design {
 			'shop'            => array( 'shop_grid', 'shop_cards', 'shop_tools', 'shop_badges', 'shop_cats' ),
 			'overview'        => array( 'overview_opts' ),
 			'mosaic'          => array( 'mosaic_opts' ),
+			'footer'          => array( 'footer_opts' ),
+			'newsletter'      => array( 'nl_opts' ),
 		) as $id => $more ) {
 			if ( isset( $elements[ $id ] ) ) {
 				$elements[ $id ]['controls'] = array_merge( $elements[ $id ]['controls'], $more );
@@ -180,13 +183,16 @@ class AIMP_Design {
 		}
 		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
 		if ( isset( $elements['product-page'] ) ) {
-			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info', 'cz_steps', 'cz_flow', 'cz_bar', 'cz_summary', 'co_opts', 'acc_opts' );
+			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info', 'cz_steps', 'cz_flow', 'cz_bar', 'cz_summary', 'co_opts', 'acc_opts', 'footer_opts', 'nl_opts', 'notice_opts', 'email_opts' );
 		}
 		// The customizer as a whole (phase 7): steps, cards, the haberdashery, the bar on phones, the summary.
 		if ( isset( $elements['customizer'] ) ) {
 			$elements['customizer']['controls'] = array( 'cz_steps', 'cz_cards', 'cz_flow', 'cz_bar', 'cz_summary' );
 		}
 		// Cart, checkout, account, login, favourites (phase 8).
+		if ( isset( $elements['giftcard-form'] ) ) {
+			$elements['giftcard-form']['controls'] = array( 'gc_opts', 'space', 'colors', 'radius' );
+		}
 		foreach ( array(
 			'cart-page'      => 'cart_opts',
 			'checkout-page'  => 'co_opts',
@@ -207,6 +213,8 @@ class AIMP_Design {
 			'site-cards'   => array( __( 'Cards and shadows', 'atelier-irisee-master-plugin' ), array( 'cards', 'shadows' ) ),
 			'site-page'    => array( __( 'Page background, width and lines', 'atelier-irisee-master-plugin' ), array( 'background', 'width', 'lines' ) ),
 			'site-effects' => array( __( 'Effects, icons and browser icon', 'atelier-irisee-master-plugin' ), array( 'effects', 'icons', 'loading', 'focus', 'favicon' ) ),
+			'site-notices' => array( __( 'Messages (added to cart, errors)', 'atelier-irisee-master-plugin' ), array( 'notice_opts' ) ),
+			'site-emails'  => array( __( 'Emails', 'atelier-irisee-master-plugin' ), array( 'email_opts' ) ),
 		) as $id => $row ) {
 			$elements[ $id ] = array(
 				'group'    => $site,
@@ -473,6 +481,33 @@ class AIMP_Design {
 				'pp_share'   => 'bool',
 			),
 			'pp_info'     => self::product_info_fields(),
+			// Footer, newsletter, gift cards, messages, emails (phase 9).
+			'footer_opts' => self::footer_fields(),
+			'nl_opts'     => array(
+				'nl_popup'       => array( 0, 120, 0 ),
+				'nl_popup_title' => 'text',
+				'nl_wide'        => 'bool',
+			),
+			'gc_opts'     => array(
+				'gc_cols'     => array( 0, 6, 0 ),
+				'gc_chip'     => 'color',
+				'gc_chip_fg'  => 'color',
+			),
+			'notice_opts' => array(
+				'nt_time'   => array( 0, 20, 0 ),
+				'nt_pos'    => array( 'select', array( '', 'top', 'bottom' ) ),
+				'nt_bg'     => 'color',
+				'nt_fg'     => 'color',
+				'nt_err_bg' => 'color',
+			),
+			'email_opts'  => array(
+				'em_gold'    => 'color',
+				'em_brown'   => 'color',
+				'em_bg'      => 'color',
+				'em_logo'    => 'image',
+				'em_noframe' => 'bool',
+				'em_footer'  => 'text',
+			),
 			// Cart, checkout, account, login, favourites (phase 8).
 			'cart_opts'   => array(
 				'cart_nocoupon'   => 'bool',
@@ -593,6 +628,38 @@ class AIMP_Design {
 		foreach ( array( 'configurator', 'fabrics', 'patterns', 'haberdashery', 'giftcards' ) as $section ) {
 			$fields[ 'ov_order_' . $section ] = array( 0, 6, 0 );
 			$fields[ 'ov_sub_' . $section ]   = 'text';
+		}
+		return $fields;
+	}
+
+	/**
+	 * The footer columns: key => label (class aimp-footer-col--{key}).
+	 *
+	 * @return array
+	 */
+	public static function footer_columns() {
+		return array(
+			'contact'    => __( 'Contact details', 'atelier-irisee-master-plugin' ),
+			'account'    => __( 'My account', 'atelier-irisee-master-plugin' ),
+			'service'    => __( 'Customer service', 'atelier-irisee-master-plugin' ),
+			'newsletter' => __( 'Newsletter', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * The footer: columns per row, centred, a "back to top" button; per column hidden and its place.
+	 *
+	 * @return array
+	 */
+	private static function footer_fields() {
+		$fields = array(
+			'ft_cols'  => array( 0, 4, 0 ),
+			'ft_align' => array( 'select', array( '', 'center' ) ),
+			'ft_top'   => 'bool',
+		);
+		foreach ( array_keys( self::footer_columns() ) as $col ) {
+			$fields[ 'ft_hide_' . $col ]  = 'bool';
+			$fields[ 'ft_order_' . $col ] = array( 0, 4, 0 );
 		}
 		return $fields;
 	}
@@ -1707,6 +1774,59 @@ class AIMP_Design {
 		}
 		if ( $get( 'product-page', 'pp_stars' ) ) {
 			$css .= $pp . ' .star-rating,' . $pp . ' .star-rating span::before,' . $pp . ' p.stars a{color:' . $get( 'product-page', 'pp_stars' ) . '!important}';
+		}
+
+		// Footer: columns per row, centred, columns hidden or moved.
+		$ft = 'html body .aimp-footer';
+		if ( $get( 'footer', 'ft_cols' ) ) {
+			$computer .= $ft . ' .aimp-footer-columns{grid-template-columns:repeat(' . (int) $get( 'footer', 'ft_cols' ) . ',minmax(0,1fr))!important}';
+		}
+		if ( 'center' === $get( 'footer', 'ft_align' ) ) {
+			$css .= $ft . ' :is(.aimp-footer-columns,.aimp-footer-bottom){text-align:center}' . $ft . ' :is(.aimp-footer-socials,.aimp-footer-menu,.aimp-footer-payments,.aimp-footer-bottom .menu){justify-content:center}' . $ft . ' .aimp-newsletter{align-items:center}';
+		}
+		foreach ( array_keys( self::footer_columns() ) as $col ) {
+			if ( $get( 'footer', 'ft_hide_' . $col ) ) {
+				$css .= $ft . ' .aimp-footer-col--' . $col . '{display:none!important}';
+			}
+			if ( $get( 'footer', 'ft_order_' . $col ) ) {
+				$css .= $ft . ' .aimp-footer-col--' . $col . '{order:' . (int) $get( 'footer', 'ft_order_' . $col ) . '}';
+			}
+		}
+		if ( $get( 'newsletter', 'nl_wide' ) ) {
+			$css .= 'html body .aimp-newsletter{flex-direction:row!important;flex-wrap:wrap;align-items:stretch!important}html body .aimp-newsletter input[type="email"]{flex:1 1 12rem}';
+		}
+		// Gift card choices: designs per row, the chosen amount's colours.
+		if ( $get( 'giftcard-form', 'gc_cols' ) ) {
+			$css .= 'html body .aimp-gc-designs{grid-template-columns:repeat(' . (int) $get( 'giftcard-form', 'gc_cols' ) . ',minmax(0,1fr))!important}';
+		}
+		$chip = '';
+		if ( $get( 'giftcard-form', 'gc_chip' ) ) {
+			$chip .= 'background:' . $get( 'giftcard-form', 'gc_chip' ) . '!important;border-color:' . $get( 'giftcard-form', 'gc_chip' ) . '!important;';
+		}
+		if ( $get( 'giftcard-form', 'gc_chip_fg' ) ) {
+			$chip .= 'color:' . $get( 'giftcard-form', 'gc_chip_fg' ) . '!important;';
+		}
+		if ( '' !== $chip ) {
+			$css .= 'html body .aimp-gc-chip:has(input:checked),html body .aimp-gc-chip:has(input:checked) :is(.amount,bdi){' . $chip . '}';
+		}
+		// Messages: colours and a fixed place at the top or bottom of the screen.
+		$nb = 'html body .aimp-notice-box';
+		$ok = '';
+		if ( $get( 'site-notices', 'nt_bg' ) ) {
+			$ok .= 'background:' . $get( 'site-notices', 'nt_bg' ) . '!important;border-color:' . $get( 'site-notices', 'nt_bg' ) . '!important;';
+		}
+		if ( $get( 'site-notices', 'nt_fg' ) ) {
+			$ok .= 'color:' . $get( 'site-notices', 'nt_fg' ) . '!important;';
+		}
+		if ( '' !== $ok ) {
+			$css .= $nb . ':not(.woocommerce-error):not(.is-error){' . $ok . '}' . $nb . ':not(.woocommerce-error):not(.is-error) a{color:inherit!important}';
+		}
+		if ( $get( 'site-notices', 'nt_err_bg' ) ) {
+			$css .= $nb . ':is(.woocommerce-error,.is-error){background:' . $get( 'site-notices', 'nt_err_bg' ) . '!important;border-color:' . $get( 'site-notices', 'nt_err_bg' ) . '!important}';
+		}
+		if ( $get( 'site-notices', 'nt_pos' ) ) {
+			$css .= 'html body .woocommerce-notices-wrapper:has(.aimp-notice-box:not(.aimp-notice-hidden)){position:fixed!important;left:50%;z-index:100000;display:flex;flex-direction:column;gap:.5rem;width:min(560px,calc(100% - 32px));margin:0!important;transform:translateX(-50%);' .
+				( 'top' === $get( 'site-notices', 'nt_pos' ) ? 'top:calc(var(--aimp-sticky-top,0px) + 12px)' : 'bottom:calc(var(--aimp-tabbar-h,0px) + 16px)' ) . '}';
 		}
 
 		// Cart: parts left out, the totals on the left or not sticky, the size of the pictures.
@@ -2887,6 +3007,67 @@ class AIMP_Design {
 		self::color( 'cz_bar_bg', __( 'Background', 'atelier-irisee-master-plugin' ) );
 		self::color( 'cz_bar_fg', __( 'Text colour', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'cz_nosparkle', __( 'The next button does not sparkle', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		// Footer, newsletter, gift cards, messages, emails (phase 9).
+		$group( 'footer_opts', __( 'Footer layout', 'atelier-irisee-master-plugin' ) );
+		self::number( 'ft_cols', __( 'Columns per row on computers (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 4, '' );
+		self::choice(
+			'ft_align',
+			__( 'Text', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Left (standard)', 'atelier-irisee-master-plugin' ),
+				'center' => __( 'Centre', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'ft_top', __( 'A "Back to top" button', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Place 1 = first. 0 = the standard place.', 'atelier-irisee-master-plugin' ) . '</p>';
+		foreach ( self::footer_columns() as $col => $name ) {
+			echo '<div class="aimp-ds-icon-row"><strong>' . esc_html( $name ) . '</strong>';
+			self::check_box( 'ft_hide_' . $col, __( 'Hide', 'atelier-irisee-master-plugin' ) );
+			self::number( 'ft_order_' . $col, __( 'Place', 'atelier-irisee-master-plugin' ), 0, 4, '' );
+			echo '</div>';
+		}
+		echo '</fieldset>';
+
+		$group( 'nl_opts', __( 'Newsletter', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'nl_wide', __( 'The button next to the field', 'atelier-irisee-master-plugin' ) );
+		self::number( 'nl_popup', __( 'A pop-up with the sign-up after (0 = no pop-up)', 'atelier-irisee-master-plugin' ), 0, 120, __( 'seconds', 'atelier-irisee-master-plugin' ) );
+		$field( 'nl_popup_title', __( 'Title of the pop-up', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+		echo '<p class="description">' . esc_html__( 'The pop-up shows once per visitor, never to subscribers. The texts come from the footer settings and the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'gc_opts', __( 'Gift card choices', 'atelier-irisee-master-plugin' ) );
+		self::number( 'gc_cols', __( 'Designs per row (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 6, '' );
+		self::color( 'gc_chip', __( 'Chosen amount: background', 'atelier-irisee-master-plugin' ) );
+		self::color( 'gc_chip_fg', __( 'Chosen amount: text', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'notice_opts', __( 'Messages', 'atelier-irisee-master-plugin' ) );
+		self::number( 'nt_time', __( 'Messages disappear after (0 = standard, 4)', 'atelier-irisee-master-plugin' ), 0, 20, __( 'seconds', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'nt_pos',
+			__( 'Place', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'In the page (standard)', 'atelier-irisee-master-plugin' ),
+				'top'    => __( 'Floating at the top of the screen', 'atelier-irisee-master-plugin' ),
+				'bottom' => __( 'Floating at the bottom of the screen', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::color( 'nt_bg', __( 'Background', 'atelier-irisee-master-plugin' ) );
+		self::color( 'nt_fg', __( 'Text colour', 'atelier-irisee-master-plugin' ) );
+		self::color( 'nt_err_bg', __( 'Errors: background', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Errors stay until they are closed.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'email_opts', __( 'Emails', 'atelier-irisee-master-plugin' ) );
+		self::color( 'em_gold', __( 'Gold (titles, lines, links)', 'atelier-irisee-master-plugin' ) );
+		self::color( 'em_brown', __( 'Text colour', 'atelier-irisee-master-plugin' ) );
+		self::color( 'em_bg', __( 'Background around the email', 'atelier-irisee-master-plugin' ) );
+		self::picture_field( 'em_logo', __( 'Logo at the top', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'em_noframe', __( 'No gold frame around the email', 'atelier-irisee-master-plugin' ) );
+		$field( 'em_footer', __( 'An extra line at the bottom', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+		echo '<p class="description">' . esc_html__( 'For the WooCommerce emails (orders, accounts), when "Atelier Irisee style for WooCommerce emails" is on in the settings. Emails cannot be shown in the preview; they use what is published.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		// Cart, checkout, account, login, favourites (phase 8).

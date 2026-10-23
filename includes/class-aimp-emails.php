@@ -25,17 +25,18 @@ class AIMP_Emails {
 		if ( ! AIMP_Settings::get( 'email_style' ) ) {
 			return;
 		}
+		// Read when an email is made (the Design studio's settings are not known this early).
 		$colours = array(
-			'woocommerce_email_base_color'            => self::GOLD,
-			'woocommerce_email_background_color'      => '#faf6ef',
+			'woocommerce_email_base_color'            => array( __CLASS__, 'gold' ),
+			'woocommerce_email_background_color'      => array( __CLASS__, 'background' ),
 			'woocommerce_email_body_background_color' => '#ffffff',
-			'woocommerce_email_text_color'            => self::BROWN,
+			'woocommerce_email_text_color'            => array( __CLASS__, 'brown' ),
 		);
 		foreach ( $colours as $option => $colour ) {
 			add_filter(
 				'pre_option_' . $option,
 				function () use ( $colour ) {
-					return $colour;
+					return is_array( $colour ) ? call_user_func( $colour ) : $colour;
 				}
 			);
 		}
@@ -43,6 +44,44 @@ class AIMP_Emails {
 		add_filter( 'default_option_woocommerce_email_header_image', array( __CLASS__, 'header_image' ) );
 		add_filter( 'woocommerce_email_footer_text', array( __CLASS__, 'footer_text' ), 20 );
 		add_filter( 'woocommerce_email_styles', array( __CLASS__, 'styles' ), 20 );
+	}
+
+	/**
+	 * A Design studio setting of the emails (what is published: emails have no preview).
+	 *
+	 * @param string $key     Setting.
+	 * @param mixed  $default When it is not set.
+	 * @return mixed
+	 */
+	private static function design( $key, $default = '' ) {
+		return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'site-emails', $key, $default ) : $default;
+	}
+
+	/**
+	 * The gold of the emails (Design studio, else the brand gold).
+	 *
+	 * @return string
+	 */
+	public static function gold() {
+		return (string) self::design( 'em_gold', self::GOLD );
+	}
+
+	/**
+	 * The background around the emails (Design studio, else a light cream).
+	 *
+	 * @return string
+	 */
+	public static function background() {
+		return (string) self::design( 'em_bg', '#faf6ef' );
+	}
+
+	/**
+	 * The text colour of the emails (Design studio, else the brand brown).
+	 *
+	 * @return string
+	 */
+	public static function brown() {
+		return (string) self::design( 'em_brown', self::BROWN );
 	}
 
 	/**
@@ -56,9 +95,9 @@ class AIMP_Emails {
 	public static function button( $text, $url ) {
 		return sprintf(
 			'<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin:24px auto;border-collapse:separate"><tr><td align="center" bgcolor="#ffffff" style="border:3px double %1$s;border-radius:100px;mso-padding-alt:12px 28px"><a href="%2$s" target="_blank" style="display:inline-block;padding:12px 28px;min-height:20px;color:%3$s;font-weight:bold;font-size:16px;line-height:20px;text-decoration:none;border-radius:100px">%4$s</a></td></tr></table>',
-			self::GOLD,
+			self::gold(),
 			esc_url( $url ),
-			self::BROWN,
+			self::brown(),
 			esc_html( $text )
 		);
 	}
@@ -143,6 +182,11 @@ class AIMP_Emails {
 	 * @return string
 	 */
 	public static function header_image( $value ) {
+		// Design studio (Emails): its own logo first.
+		$own = absint( self::design( 'em_logo', 0 ) );
+		if ( $own && wp_get_attachment_image_url( $own, 'medium' ) ) {
+			return (string) wp_get_attachment_image_url( $own, 'medium' );
+		}
 		if ( is_string( $value ) && '' !== $value ) {
 			return $value;
 		}
@@ -172,10 +216,13 @@ class AIMP_Emails {
 				(string) AIMP_Footer::get( 'email' ),
 			)
 		);
+		// Design studio (Emails): an extra line at the bottom.
+		$extra = (string) self::design( 'em_footer', '' );
+		$extra = '' !== $extra ? '<br>' . esc_html( AIMP_Settings::localized( $extra ) ) : '';
 		if ( ! $parts ) {
-			return $text;
+			return $text . $extra;
 		}
-		return esc_html( implode( ' · ', $parts ) ) . ( '' !== trim( (string) $text ) ? '<br>' . $text : '' );
+		return esc_html( implode( ' · ', $parts ) ) . ( '' !== trim( (string) $text ) ? '<br>' . $text : '' ) . $extra;
 	}
 
 	/**
@@ -183,8 +230,8 @@ class AIMP_Emails {
 	 * @return string
 	 */
 	public static function styles( $css ) {
-		$gold  = self::GOLD;
-		$brown = self::BROWN;
+		$gold  = self::gold();
+		$brown = self::brown();
 		return $css . "
 			#template_header { background-color: #ffffff !important; border-bottom: 5px double {$gold}; }
 			#template_header h1, #template_header h1 a { color: {$gold} !important; text-shadow: none; font-family: 'Trajan Pro', 'Cinzel', Georgia, 'Times New Roman', serif; letter-spacing: 0.04em; }
@@ -209,6 +256,6 @@ class AIMP_Emails {
 				#template_container, #template_header, #body_content, #template_body { background-color: #fbf7f0 !important; }
 				#body_content_inner, #body_content_inner p, #body_content_inner td, #body_content_inner th { color: {$brown} !important; }
 			}
-		";
+		" . ( self::design( 'em_noframe' ) ? '#template_container { border: 0 !important; border-radius: 0 !important; } #template_header { border-bottom: 0 !important; }' : '' );
 	}
 }

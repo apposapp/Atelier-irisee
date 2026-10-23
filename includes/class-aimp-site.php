@@ -92,6 +92,8 @@ class AIMP_Site {
 	public static function strings() {
 		return array(
 			'close' => __( 'Close', 'atelier-irisee-master-plugin' ),
+			// Design studio (Messages): seconds before success messages disappear (0 = standard).
+			'delay' => class_exists( 'AIMP_Design' ) ? (int) AIMP_Design::opt( 'site-notices', 'nt_time', 0 ) : 0,
 		);
 	}
 
