@@ -1787,7 +1787,6 @@ return array(
 	'Small title' => 'Petit titre',
 	'Soft' => 'Douce',
 	'Solid (standard)' => 'Continue (standard)',
-	'Space above and below' => 'Espace au-dessus et en dessous',
 	'Sparkles' => 'Étincelles',
 	'Stitched (dashes)' => 'Surpiqué (tirets)',
 	'Stronger' => 'Plus marquée',
@@ -2212,4 +2211,20 @@ return array(
 	'Focal point' => 'Point focal',
 	'Not moved' => 'Pas déplacé',
 	'Tip: drag the part in the preview, or use the arrow keys (Shift: 10 px at a time). The preview shows where it was and how far it moved.' => 'Astuce : faites glisser l\'élément dans l\'aperçu, ou utilisez les flèches (Maj : 10 px à la fois). L\'aperçu montre où il était et de combien il a bougé.',
+
+	// Design studio: spacing
+	'Margin' => 'Marge',
+	'Margin (outside)' => 'Marge (extérieur)',
+	'Margin is the space outside the part, padding the space inside it (in px). Empty = standard. Tip: drag the coloured bands of the chosen part in the preview.' => 'La marge est l\'espace à l\'extérieur de l\'élément, le padding l\'espace à l\'intérieur (en px). Vide = standard. Astuce : faites glisser les bandes colorées de l\'élément choisi dans l\'aperçu.',
+	'Margin: the same on all sides' => 'Marge : identique de tous les côtés',
+	'Padding' => 'Padding',
+	'Padding (inside)' => 'Padding (intérieur)',
+	'Padding: the same on all sides' => 'Padding : identique de tous les côtés',
+	'Showing the settings for tablets: spacing has its own values here (empty = as on computers); the other settings are those for computers.' => 'Vous voyez les réglages pour tablettes : l\'espacement a ici ses propres valeurs (vide = comme sur ordinateur) ; les autres réglages sont ceux des ordinateurs.',
+	'Spacing' => 'Espacement',
+	'bottom' => 'en bas',
+	'left' => 'à gauche',
+	'right' => 'à droite',
+	'standard' => 'standard',
+	'top' => 'en haut',
 );

@@ -32,6 +32,9 @@ class AIMP_Design {
 
 	const PAGE = 'aimp-design';
 
+	/** Up to this width a screen counts as a tablet (its own spacing; the rest as on computers). */
+	const TABLET = 1024;
+
 	const NONCE = 'aimp_design';
 
 	/** The query argument of the preview inside the studio. */
@@ -253,12 +256,7 @@ class AIMP_Design {
 				'zoom'  => array( 40, 250, 100 ),
 				'pzoom' => array( 40, 250, 100 ),
 			),
-			'space'      => array(
-				'mt'  => array( -150, 300, 0 ),
-				'mb'  => array( -150, 300, 0 ),
-				'pmt' => array( -150, 300, 0 ),
-				'pmb' => array( -150, 300, 0 ),
-			),
+			'space'      => self::space_fields(),
 			'hide'       => array(
 				'hide'  => 'bool',
 				'phide' => 'bool',
@@ -657,6 +655,25 @@ class AIMP_Design {
 		foreach ( array( 'configurator', 'fabrics', 'patterns', 'haberdashery', 'giftcards' ) as $section ) {
 			$fields[ 'ov_order_' . $section ] = array( 0, 6, 0 );
 			$fields[ 'ov_sub_' . $section ]   = 'text';
+		}
+		return $fields;
+	}
+
+	/**
+	 * Spacing like Divi: margin (mt, mr, mb, ml) and padding (padt, padr, padb, padl) for computers (no prefix),
+	 * tablets ("t") and phones ("p"). "Standard" is outside the range, so 0 is a value of its own.
+	 *
+	 * @return array
+	 */
+	public static function space_fields() {
+		$fields = array();
+		foreach ( array( '', 't', 'p' ) as $prefix ) {
+			foreach ( array( 'mt', 'mr', 'mb', 'ml' ) as $side ) {
+				$fields[ $prefix . $side ] = array( -150, 300, -999 );
+			}
+			foreach ( array( 'padt', 'padr', 'padb', 'padl' ) as $side ) {
+				$fields[ $prefix . $side ] = array( 0, 300, -1 );
+			}
 		}
 		return $fields;
 	}
@@ -1096,6 +1113,10 @@ class AIMP_Design {
 						$row[ $key ] = (string) $value;
 					}
 				} elseif ( is_array( $rule ) && is_numeric( $value ) ) {
+					// "Standard" (it can lie outside the range, e.g. -999 for a margin) is no setting.
+					if ( (int) round( (float) $value ) === $rule[2] ) {
+						continue;
+					}
 					$number = max( $rule[0], min( $rule[1], (int) round( (float) $value ) ) );
 					if ( $number !== $rule[2] ) {
 						$row[ $key ] = $number;
@@ -1551,6 +1572,7 @@ class AIMP_Design {
 		$elements = self::elements();
 		$all      = '';
 		$computer = '';
+		$tablet   = '';
 		$phone    = '';
 		foreach ( $styles as $id => $row ) {
 			$element = self::element_of( $id, $row, $elements );
@@ -1617,11 +1639,20 @@ class AIMP_Design {
 				if ( isset( $row[ $prefix . 'zoom' ] ) ) {
 					$css .= 'zoom:' . ( (int) $row[ $prefix . 'zoom' ] / 100 ) . '!important;';
 				}
-				if ( isset( $row[ $prefix . 'mt' ] ) ) {
-					$css .= 'margin-top:' . (int) $row[ $prefix . 'mt' ] . 'px!important;';
-				}
-				if ( isset( $row[ $prefix . 'mb' ] ) ) {
-					$css .= 'margin-bottom:' . (int) $row[ $prefix . 'mb' ] . 'px!important;';
+				$sides = array(
+					'mt'   => 'margin-top',
+					'mr'   => 'margin-right',
+					'mb'   => 'margin-bottom',
+					'ml'   => 'margin-left',
+					'padt' => 'padding-top',
+					'padr' => 'padding-right',
+					'padb' => 'padding-bottom',
+					'padl' => 'padding-left',
+				);
+				foreach ( $sides as $key => $property ) {
+					if ( isset( $row[ $prefix . $key ] ) ) {
+						$css .= $property . ':' . (int) $row[ $prefix . $key ] . 'px!important;';
+					}
 				}
 				if ( ! empty( $row[ $prefix . 'hide' ] ) ) {
 					$css .= 'display:none!important;';
@@ -1629,9 +1660,13 @@ class AIMP_Design {
 				return $css;
 			};
 			$desktop = $device( '' );
+			$mid     = $device( 't' );
 			$mobile  = $device( 'p' );
 			if ( '' !== $desktop ) {
 				$computer .= $selector . '{' . $desktop . '}';
+			}
+			if ( '' !== $mid ) {
+				$tablet .= $selector . '{' . $mid . '}';
 			}
 			if ( '' !== $mobile ) {
 				$phone .= $selector . '{' . $mobile . '}';
@@ -1640,6 +1675,10 @@ class AIMP_Design {
 		$css = self::site_css( $styles ) . self::opts_css( $styles ) . $all;
 		if ( '' !== $computer ) {
 			$css .= '@media (min-width:' . ( self::PHONE + 1 ) . 'px){' . $computer . '}';
+		}
+		// Tablets: their own spacing where it is set, after the computer values.
+		if ( '' !== $tablet ) {
+			$css .= '@media (min-width:' . ( self::PHONE + 1 ) . 'px) and (max-width:' . self::TABLET . 'px){' . $tablet . '}';
 		}
 		if ( '' !== $phone ) {
 			$css .= '@media (max-width:' . self::PHONE . 'px){' . $phone . '}';
@@ -2541,6 +2580,7 @@ class AIMP_Design {
 					'nonce'    => wp_create_nonce( self::NONCE ),
 					'param'    => self::PREVIEW,
 					'phone'    => self::PHONE,
+					'tablet'   => self::TABLET,
 					'pages'    => self::pages(),
 					'settingTexts' => self::setting_fields(),
 					'editPost' => admin_url( 'post.php?post=%d&action=edit' ),
@@ -2598,6 +2638,14 @@ class AIMP_Design {
 						'sizeWord'      => __( 'Size', 'atelier-irisee-master-plugin' ),
 						'spaceAbove'    => __( 'Space above', 'atelier-irisee-master-plugin' ),
 						'spaceBelow'    => __( 'Space below', 'atelier-irisee-master-plugin' ),
+						'deviceTablet'  => __( 'Showing the settings for tablets: spacing has its own values here (empty = as on computers); the other settings are those for computers.', 'atelier-irisee-master-plugin' ),
+						'marginWord'    => __( 'Margin', 'atelier-irisee-master-plugin' ),
+						'paddingWord'   => __( 'Padding', 'atelier-irisee-master-plugin' ),
+						'sideTop'       => __( 'top', 'atelier-irisee-master-plugin' ),
+						'sideRight'     => __( 'right', 'atelier-irisee-master-plugin' ),
+						'sideBottom'    => __( 'bottom', 'atelier-irisee-master-plugin' ),
+						'sideLeft'      => __( 'left', 'atelier-irisee-master-plugin' ),
+						'standardWord'  => __( 'standard', 'atelier-irisee-master-plugin' ),
 						'deviceComputer' => __( 'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.', 'atelier-irisee-master-plugin' ),
 						'devicePhone' => __( 'Showing the settings for phones. Click "Computer" at the top for the computer settings.', 'atelier-irisee-master-plugin' ),
 						'choose'      => __( 'Choose a picture', 'atelier-irisee-master-plugin' ),
@@ -2644,6 +2692,41 @@ class AIMP_Design {
 			(int) $max,
 			esc_html( $unit )
 		);
+	}
+
+	/**
+	 * Spacing like Divi: an outer box (margin) and an inner box (padding), each with a field per side, "the same on
+	 * all sides" and "Standard".
+	 *
+	 * @param string $prefix '' (computers), t (tablets) or p (phones).
+	 * @param string $device desktop, tablet or phone (the studio shows the screen chosen at the top).
+	 */
+	private static function box_model( $prefix, $device ) {
+		$field = function ( $key, $side, $min ) {
+			return '<input type="number" class="aimp-ds-bm-' . esc_attr( $side ) . '" data-key="' . esc_attr( $key ) . '" min="' . (int) $min . '" max="300" step="1" aria-label="' . esc_attr( $side ) . '">';
+		};
+		$margin  = array();
+		$padding = array();
+		foreach ( array( 't' => 'top', 'r' => 'right', 'b' => 'bottom', 'l' => 'left' ) as $short => $side ) {
+			$margin[ $side ]  = $field( $prefix . 'm' . $short, $side, -150 );
+			$padding[ $side ] = $field( $prefix . 'pad' . $short, $side, 0 );
+		}
+		$keys = function ( $base ) use ( $prefix ) {
+			return implode( ',', array_map( function ( $s ) use ( $prefix, $base ) {
+				return $prefix . $base . $s;
+			}, array( 't', 'r', 'b', 'l' ) ) );
+		};
+		echo '<div class="aimp-ds-boxmodel" data-device="' . esc_attr( $device ) . '">';
+		echo '<div class="aimp-ds-bm-margin" data-bm="margin"><span class="aimp-ds-bm-label">' . esc_html__( 'Margin (outside)', 'atelier-irisee-master-plugin' ) . '</span>';
+		echo $margin['top'] . $margin['left'] . $margin['right'] . $margin['bottom']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $field.
+		echo '<div class="aimp-ds-bm-padding" data-bm="padding"><span class="aimp-ds-bm-label">' . esc_html__( 'Padding (inside)', 'atelier-irisee-master-plugin' ) . '</span>';
+		echo $padding['top'] . $padding['left'] . $padding['right'] . $padding['bottom']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $field.
+		echo '<div class="aimp-ds-bm-core"></div></div></div>';
+		echo '<div class="aimp-ds-bm-tools">';
+		echo '<label class="aimp-ds-check"><input type="checkbox" class="aimp-ds-bm-link" data-link="margin"> ' . esc_html__( 'Margin: the same on all sides', 'atelier-irisee-master-plugin' ) . '</label>';
+		echo '<label class="aimp-ds-check"><input type="checkbox" class="aimp-ds-bm-link" data-link="padding"> ' . esc_html__( 'Padding: the same on all sides', 'atelier-irisee-master-plugin' ) . '</label>';
+		echo '<button type="button" class="button-link" data-clear="' . esc_attr( $keys( 'm' ) . ',' . $keys( 'pad' ) ) . '">' . esc_html__( 'Standard', 'atelier-irisee-master-plugin' ) . '</button>';
+		echo '</div></div>';
 	}
 
 	/**
@@ -2734,13 +2817,15 @@ class AIMP_Design {
 		self::number( 'pzoom', $phone, 40, 250, '%' );
 		echo '</fieldset>';
 
-		$group( 'space', __( 'Space above and below', 'atelier-irisee-master-plugin' ) );
-		$sub( $computer );
-		self::number( 'mt', __( 'Space above', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
-		self::number( 'mb', __( 'Space below', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
-		$sub( $phone );
-		self::number( 'pmt', __( 'Space above', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
-		self::number( 'pmb', __( 'Space below', 'atelier-irisee-master-plugin' ), -150, 300, 'px' );
+		$group( 'space', __( 'Spacing', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Margin is the space outside the part, padding the space inside it (in px). Empty = standard. Tip: drag the coloured bands of the chosen part in the preview.', 'atelier-irisee-master-plugin' ) . '</p>';
+		foreach ( array(
+			''  => 'desktop',
+			't' => 'tablet',
+			'p' => 'phone',
+		) as $prefix => $device ) {
+			self::box_model( $prefix, $device );
+		}
 		echo '</fieldset>';
 
 		$group( 'hide', __( 'Show or hide', 'atelier-irisee-master-plugin' ) );

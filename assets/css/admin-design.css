@@ -1046,3 +1046,101 @@ body.aimp-ds-screen .aimp-ds {
 	font-size: 11px;
 	pointer-events: none;
 }
+
+/* Tablets: a view of their own for spacing; the other settings are those for computers. */
+.aimp-ds[data-device-view="computer"] [data-device="tablet"],
+.aimp-ds[data-device-view="tablet"] [data-device="desktop"],
+.aimp-ds[data-device-view="tablet"] [data-device="phone"],
+.aimp-ds[data-device-view="phone"] [data-device="desktop"],
+.aimp-ds[data-device-view="phone"] [data-device="tablet"],
+.aimp-ds[data-device-view="computer"] [data-device="phone"] {
+	display: none !important;
+}
+
+/* Spacing like Divi: margin outside (orange), padding inside (green), a field on each side. */
+.aimp-ds-boxmodel {
+	margin: 4px 0 6px;
+}
+
+.aimp-ds-bm-margin,
+.aimp-ds-bm-padding {
+	position: relative;
+	display: grid;
+	grid-template-columns: 58px minmax(0, 1fr) 58px;
+	grid-template-rows: auto auto auto;
+	gap: 4px;
+	align-items: center;
+	justify-items: center;
+	padding: 18px 6px 6px;
+	border-radius: 6px;
+}
+
+.aimp-ds-bm-margin {
+	border: 1px dashed #e8892b;
+	background: rgba(247, 166, 74, 0.14);
+}
+
+.aimp-ds-bm-padding {
+	grid-column: 2;
+	grid-row: 2;
+	width: 100%;
+	border: 1px dashed #3f9a5c;
+	background: rgba(94, 180, 120, 0.14);
+}
+
+.aimp-ds-bm-label {
+	position: absolute;
+	top: 2px;
+	left: 8px;
+	color: #50575e;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+}
+
+.aimp-ds-boxmodel input[type="number"] {
+	width: 58px;
+	min-height: 28px;
+	padding: 0 4px;
+	text-align: center;
+}
+
+.aimp-ds-boxmodel .aimp-ds-bm-top {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.aimp-ds-boxmodel .aimp-ds-bm-left {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+.aimp-ds-boxmodel .aimp-ds-bm-right {
+	grid-column: 3;
+	grid-row: 2;
+}
+
+.aimp-ds-boxmodel .aimp-ds-bm-bottom {
+	grid-column: 2;
+	grid-row: 3;
+}
+
+.aimp-ds-bm-core {
+	grid-column: 2;
+	grid-row: 2;
+	width: 100%;
+	min-height: 26px;
+	border: 1px solid #8c8f94;
+	border-radius: 3px;
+	background: #fff;
+}
+
+.aimp-ds-bm-tools {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 12px;
+	align-items: center;
+	margin-top: 6px;
+	font-size: 12px;
+}

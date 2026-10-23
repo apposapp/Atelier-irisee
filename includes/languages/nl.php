@@ -1787,7 +1787,6 @@ return array(
 	'Small title' => 'Kleine titel',
 	'Soft' => 'Zacht',
 	'Solid (standard)' => 'Doorlopend (standaard)',
-	'Space above and below' => 'Ruimte boven en onder',
 	'Sparkles' => 'Glinsteringen',
 	'Stitched (dashes)' => 'Gestikt (streepjes)',
 	'Stronger' => 'Sterker',
@@ -2212,4 +2211,20 @@ return array(
 	'Focal point' => 'Focuspunt',
 	'Not moved' => 'Niet verplaatst',
 	'Tip: drag the part in the preview, or use the arrow keys (Shift: 10 px at a time). The preview shows where it was and how far it moved.' => 'Tip: sleep het onderdeel in de voorbeeldweergave, of gebruik de pijltjestoetsen (Shift: 10 px per keer). De voorbeeldweergave toont waar het stond en hoe ver het verschoof.',
+
+	// Design studio: spacing
+	'Margin' => 'Marge',
+	'Margin (outside)' => 'Marge (buiten)',
+	'Margin is the space outside the part, padding the space inside it (in px). Empty = standard. Tip: drag the coloured bands of the chosen part in the preview.' => 'Marge is de ruimte buiten het onderdeel, padding de ruimte erbinnen (in px). Leeg = standaard. Tip: sleep de gekleurde banden van het gekozen onderdeel in de voorbeeldweergave.',
+	'Margin: the same on all sides' => 'Marge: overal hetzelfde',
+	'Padding' => 'Padding',
+	'Padding (inside)' => 'Padding (binnen)',
+	'Padding: the same on all sides' => 'Padding: overal hetzelfde',
+	'Showing the settings for tablets: spacing has its own values here (empty = as on computers); the other settings are those for computers.' => 'Je ziet de instellingen voor tablets: de tussenruimte heeft hier eigen waarden (leeg = zoals op computers); de andere instellingen zijn die voor computers.',
+	'Spacing' => 'Tussenruimte',
+	'bottom' => 'onder',
+	'left' => 'links',
+	'right' => 'rechts',
+	'standard' => 'standaard',
+	'top' => 'boven',
 );

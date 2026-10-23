@@ -188,9 +188,14 @@
 		}).join(',');
 	}
 
+	// Spacing like Divi: margin and padding on every side (key => CSS property).
+	var SIDES = [['mt', 'margin-top'], ['mr', 'margin-right'], ['mb', 'margin-bottom'], ['ml', 'margin-left'],
+		['padt', 'padding-top'], ['padr', 'padding-right'], ['padb', 'padding-bottom'], ['padl', 'padding-left']];
+
 	function css(styles) {
 		var all = '';
 		var computer = '';
+		var tablet = '';
 		var phone = '';
 		Object.keys(styles).forEach(function (id) {
 			var el = cfg.elements[id];
@@ -252,21 +257,24 @@
 				if (row[p + 'zoom'] !== undefined) {
 					out += 'zoom:' + (parseInt(row[p + 'zoom'], 10) / 100) + '!important;';
 				}
-				if (row[p + 'mt'] !== undefined) {
-					out += 'margin-top:' + parseInt(row[p + 'mt'], 10) + 'px!important;';
-				}
-				if (row[p + 'mb'] !== undefined) {
-					out += 'margin-bottom:' + parseInt(row[p + 'mb'], 10) + 'px!important;';
-				}
+				SIDES.forEach(function (pair) {
+					if (row[p + pair[0]] !== undefined) {
+						out += pair[1] + ':' + parseInt(row[p + pair[0]], 10) + 'px!important;';
+					}
+				});
 				if (row[p + 'hide']) {
 					out += 'display:none!important;';
 				}
 				return out;
 			};
 			var d = device('');
+			var tb = device('t');
 			var m = device('p');
 			if (d) {
 				computer += sel + '{' + d + '}';
+			}
+			if (tb) {
+				tablet += sel + '{' + tb + '}';
 			}
 			if (m) {
 				phone += sel + '{' + m + '}';
@@ -275,6 +283,10 @@
 		var out = all;
 		if (computer) {
 			out += '@media (min-width:' + (parseInt(cfg.phone, 10) + 1) + 'px){' + computer + '}';
+		}
+		// Tablets: their own spacing where it is set (as AIMP_Design::css()).
+		if (tablet) {
+			out += '@media (min-width:' + (parseInt(cfg.phone, 10) + 1) + 'px) and (max-width:' + (parseInt(cfg.tablet, 10) || 1024) + 'px){' + tablet + '}';
 		}
 		if (phone) {
 			out += '@media (max-width:' + cfg.phone + 'px){' + phone + '}';
@@ -498,6 +510,7 @@
 		toFrame({ type: 'aimp-design-show', id: '' });
 		renderList();
 		showEdit();
+		sendSpacing();
 	});
 
 	function showEdit() {
@@ -593,6 +606,11 @@
 				list.appendChild(li);
 			});
 		});
+		edit.querySelectorAll('.aimp-ds-boxmodel[data-device="tablet"] input[type="number"]').forEach(function (input) {
+			var computerKey = input.getAttribute('data-key').replace(/^t/, '');
+			input.placeholder = row[computerKey] !== undefined ? row[computerKey] : '';
+		});
+		sendSpacing();
 		edit.querySelectorAll('[data-image]').forEach(function (box) {
 			var value = row[box.getAttribute('data-image')];
 			var img = box.querySelector('.aimp-ds-image-preview');
@@ -703,8 +721,13 @@
 		if (!el || !el.selector) {
 			return;
 		}
-		var p = /^p(x|y|zoom|mt|mb)$/.test(key) ? 'p' : '';
-		var base = key.replace(/^p(?=(x|y|zoom|mt|mb)$)/, '');
+		var space = key.match(/^([tp]?)(m[trbl]|pad[trbl])$/);
+		if (space) {
+			toFrame({ type: 'aimp-design-focus', kind: 'box', selector: el.selector, label: spaceLabel(space[2]) + ' ' + (row[key] !== undefined ? row[key] + ' px' : t.standardWord) });
+			return;
+		}
+		var p = /^p(x|y|zoom)$/.test(key) ? 'p' : '';
+		var base = key.replace(/^p(?=(x|y|zoom)$)/, '');
 		if (base === 'x' || base === 'y') {
 			var x = parseInt(row[p + 'x'] || 0, 10);
 			var y = parseInt(row[p + 'y'] || 0, 10);
@@ -722,6 +745,40 @@
 			toFrame({ type: 'aimp-design-focus', kind: 'space', side: base === 'mt' ? 'top' : 'bottom', selector: el.selector, value: parseInt(row[p + base] || 0, 10), label: (base === 'mt' ? t.spaceAbove : t.spaceBelow) + ' ' + parseInt(row[p + base] || 0, 10) + ' px' });
 		} else if (key === 'fx' || key === 'fy') {
 			toFrame({ type: 'aimp-design-focus', kind: 'focal', selector: el.selector, fx: row.fx !== undefined ? row.fx : 50, fy: row.fy !== undefined ? row.fy : 50, label: t.focal + ' ' + (row.fx !== undefined ? row.fx : 50) + '% / ' + (row.fy !== undefined ? row.fy : 50) + '%' });
+		}
+	}
+
+	// "Margin top", "Padding left", … for a spacing key without its screen prefix.
+	function spaceLabel(base) {
+		var side = { t: t.sideTop, r: t.sideRight, b: t.sideBottom, l: t.sideLeft }[base.slice(-1)];
+		return (base.indexOf('pad') === 0 ? t.paddingWord : t.marginWord) + ' ' + side;
+	}
+
+	// The preview shows the margin and padding bands of the chosen part, with handles to drag.
+	function sendSpacing() {
+		var el = cfg.elements[current];
+		var on = !!(el && el.selector && (el.controls || []).indexOf('space') !== -1);
+		var labels = {};
+		SIDES.forEach(function (pair) {
+			labels[pair[0]] = spaceLabel(pair[0]);
+		});
+		toFrame({ type: 'aimp-design-spacing', on: on, selector: on ? el.selector : '', labels: labels });
+	}
+
+	// A band dragged in the preview: the value for the screen chosen at the top (one Undo step per drag).
+	function onSpaceDrag(data) {
+		var el = cfg.elements[current];
+		if (!el || (el.controls || []).indexOf('space') === -1 || !/^(m[trbl]|pad[trbl])$/.test(data.key)) {
+			return;
+		}
+		var prefix = device === 'phone' ? 'p' : (device === 'tablet' ? 't' : '');
+		var min = data.key.indexOf('pad') === 0 ? 0 : -150;
+		if (data.phase !== 'start') {
+			lastSnap = Date.now();
+		}
+		change(prefix + data.key, Math.max(min, Math.min(300, Math.round(data.value))));
+		if (data.phase === 'end') {
+			showEdit();
 		}
 	}
 
@@ -1276,6 +1333,10 @@
 		} else {
 			var n = parseInt(input.value, 10);
 			if (isNaN(n)) {
+				var standard = neutral(key);
+				if (input.value === '' && standard !== null && standard < parseInt(input.min, 10)) {
+					change(key, '');
+				}
 				return;
 			}
 			n = Math.max(parseInt(input.min, 10), Math.min(parseInt(input.max, 10), n));
@@ -1301,6 +1362,28 @@
 		});
 		change(list.getAttribute('data-order'), standard ? '' : keys.join(','));
 	}
+	// Spacing: with "the same on all sides" on, a value goes to the four sides of that box.
+	edit.addEventListener('input', function (e) {
+		var input = e.target;
+		var model = input.closest('.aimp-ds-boxmodel');
+		var area = input.closest('[data-bm]');
+		if (!model || !area || input.type !== 'number') {
+			return;
+		}
+		var kind = area.getAttribute('data-bm');
+		var link = model.querySelector('.aimp-ds-bm-link[data-link="' + kind + '"]');
+		if (!link || !link.checked) {
+			return;
+		}
+		Array.prototype.forEach.call(area.querySelectorAll(':scope > input[type="number"]'), function (other) {
+			if (other !== input) {
+				other.value = input.value;
+				var n = parseInt(input.value, 10);
+				change(other.getAttribute('data-key'), isNaN(n) ? '' : n);
+			}
+		});
+	});
+
 	edit.addEventListener('click', function (e) {
 		var move = e.target.closest('[data-move]');
 		if (!move) {
@@ -1866,7 +1949,7 @@
 		device = name;
 		root.setAttribute('data-device-view', name);
 		if (deviceNote) {
-			deviceNote.textContent = name === 'phone' ? t.devicePhone : t.deviceComputer;
+			deviceNote.textContent = name === 'phone' ? t.devicePhone : (name === 'tablet' ? t.deviceTablet : t.deviceComputer);
 		}
 	}
 	setDevice('computer');
@@ -1959,7 +2042,7 @@
 		b.addEventListener('click', function () {
 			width = parseInt(b.getAttribute('data-width'), 10);
 			// Phone: the settings for phones; computer and tablet: those for computers.
-			setDevice(width < 700 ? 'phone' : 'computer');
+			setDevice(width < 700 ? 'phone' : (width < 1100 ? 'tablet' : 'computer'));
 			root.querySelectorAll('.aimp-ds-devices button').forEach(function (other) {
 				other.setAttribute('aria-pressed', other === b ? 'true' : 'false');
 			});
@@ -2029,6 +2112,10 @@
 			onDrag(e.data);
 			return;
 		}
+		if (e.data.type === 'aimp-design-space') {
+			onSpaceDrag(e.data);
+			return;
+		}
 		if (e.data.type === 'aimp-design-key') {
 			nudge(e.data.key, e.data.shift);
 			return;
@@ -2048,8 +2135,9 @@
 			sendCss();
 			toFrame({ type: 'aimp-design-pick', on: pickBox.checked });
 			if (current) {
-				toFrame({ type: 'aimp-design-show', id: current });
+				toFrame({ type: 'aimp-design-show', id: current, selector: cfg.elements[current] ? cfg.elements[current].selector : '', scroll: false });
 			}
+			sendSpacing();
 		} else if (e.data.type === 'aimp-design-select' && (cfg.elements[e.data.id] || e.data.text || e.data.textMiss || (e.data.path && e.data.path.length))) {
 			root.querySelector('.aimp-ds-tabs [data-tab="parts"]').click();
 			// A click on a text: that text (in its part); on other words: the part, with a note.

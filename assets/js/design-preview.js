@@ -118,6 +118,153 @@
 		}, 2500);
 	}
 
+	/*
+	 * Spacing like Divi's visual builder: the chosen part's margin (orange, outside) and padding (green, inside) as
+	 * bands, with a handle per side to drag. The studio turns them on for parts with spacing (aimp-design-spacing).
+	 */
+	var spacing = { on: false, selector: '', labels: {} };
+	var bands = document.createElement('div');
+	bands.setAttribute('data-aimp-ds-layer', '');
+	bands.setAttribute('aria-hidden', 'true');
+	bands.style.cssText = 'position:fixed;inset:0;z-index:2147483645;pointer-events:none;display:none';
+	document.documentElement.appendChild(bands);
+	var spaceDrag = null;
+	var bandsFrame = 0;
+	function spacingOf(el) {
+		var cs = window.getComputedStyle(el);
+		return {
+			mt: parseFloat(cs.marginTop) || 0,
+			mr: parseFloat(cs.marginRight) || 0,
+			mb: parseFloat(cs.marginBottom) || 0,
+			ml: parseFloat(cs.marginLeft) || 0,
+			padt: parseFloat(cs.paddingTop) || 0,
+			padr: parseFloat(cs.paddingRight) || 0,
+			padb: parseFloat(cs.paddingBottom) || 0,
+			padl: parseFloat(cs.paddingLeft) || 0
+		};
+	}
+	function band(left, top, width, height, color) {
+		if (width <= 0 || height <= 0) {
+			return;
+		}
+		var d = document.createElement('div');
+		d.style.cssText = 'position:fixed;left:' + left + 'px;top:' + top + 'px;width:' + width + 'px;height:' + height + 'px;background:' + color;
+		bands.appendChild(d);
+	}
+	function handle(key, x, y, vertical, color) {
+		var d = document.createElement('div');
+		d.setAttribute('data-aimp-ds-layer', '');
+		d.setAttribute('data-space', key);
+		d.title = spacing.labels[key] || key;
+		d.style.cssText = 'position:fixed;left:' + (x - (vertical ? 14 : 4)) + 'px;top:' + (y - (vertical ? 4 : 14)) + 'px;width:' + (vertical ? 28 : 8) + 'px;height:' + (vertical ? 8 : 28) +
+			'px;border-radius:8px;background:' + color + ';border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);pointer-events:auto;cursor:' + (vertical ? 'ns-resize' : 'ew-resize');
+		bands.appendChild(d);
+	}
+	function drawBands() {
+		bandsFrame = 0;
+		bands.innerHTML = '';
+		var el = null;
+		if (spacing.on && pick && spacing.selector) {
+			try {
+				el = document.querySelector(prefixed(spacing.selector));
+			} catch (e) {}
+		}
+		if (!el) {
+			bands.style.display = 'none';
+			return;
+		}
+		bands.style.display = 'block';
+		var r = el.getBoundingClientRect();
+		var s = spacingOf(el);
+		var margin = 'rgba(247,166,74,.35)';
+		var padding = 'rgba(94,180,120,.35)';
+		var mt = Math.max(0, s.mt);
+		var mb = Math.max(0, s.mb);
+		var ml = Math.max(0, s.ml);
+		var mr = Math.max(0, s.mr);
+		band(r.left - ml, r.top - mt, r.width + ml + mr, mt, margin);
+		band(r.left - ml, r.bottom, r.width + ml + mr, mb, margin);
+		band(r.left - ml, r.top, ml, r.height, margin);
+		band(r.right, r.top, mr, r.height, margin);
+		band(r.left, r.top, r.width, s.padt, padding);
+		band(r.left, r.bottom - s.padb, r.width, s.padb, padding);
+		band(r.left, r.top + s.padt, s.padl, r.height - s.padt - s.padb, padding);
+		band(r.right - s.padr, r.top + s.padt, s.padr, r.height - s.padt - s.padb, padding);
+		var cx = r.left + r.width / 2;
+		var cy = r.top + r.height / 2;
+		var orange = '#e8892b';
+		var green = '#3f9a5c';
+		handle('mt', cx - 22, r.top - s.mt, true, orange);
+		handle('mb', cx - 22, r.bottom + s.mb, true, orange);
+		handle('ml', r.left - s.ml, cy - 22, false, orange);
+		handle('mr', r.right + s.mr, cy - 22, false, orange);
+		handle('padt', cx + 22, r.top + s.padt, true, green);
+		handle('padb', cx + 22, r.bottom - s.padb, true, green);
+		handle('padl', r.left + s.padl, cy + 22, false, green);
+		handle('padr', r.right - s.padr, cy + 22, false, green);
+		if (spaceDrag) {
+			var label = document.createElement('div');
+			label.textContent = (spacing.labels[spaceDrag.key] || spaceDrag.key) + ' ' + spaceDrag.value + ' px';
+			label.style.cssText = 'position:fixed;left:' + Math.max(4, Math.min(spaceDrag.x + 14, window.innerWidth - 220)) + 'px;top:' + Math.max(4, spaceDrag.y - 34) + 'px;padding:3px 10px;border-radius:100px;background:#8a6a33;color:#fff;font:600 13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;white-space:nowrap';
+			bands.appendChild(label);
+		}
+	}
+	function redrawBands() {
+		if (!bandsFrame) {
+			bandsFrame = window.requestAnimationFrame(drawBands);
+		}
+	}
+	window.addEventListener('scroll', redrawBands, true);
+	window.addEventListener('resize', redrawBands);
+	// Dragging a handle: the new value (the spacing it had plus the distance, in the direction that makes it bigger).
+	var GROW = { mt: [0, -1], mb: [0, 1], ml: [-1, 0], mr: [1, 0], padt: [0, 1], padb: [0, -1], padl: [1, 0], padr: [-1, 0] };
+	document.addEventListener('mousedown', function (e) {
+		var knob = e.target.closest ? e.target.closest('[data-space]') : null;
+		if (!knob) {
+			return;
+		}
+		var el = null;
+		try {
+			el = document.querySelector(prefixed(spacing.selector));
+		} catch (err) {}
+		if (!el) {
+			return;
+		}
+		var key = knob.getAttribute('data-space');
+		spaceDrag = { key: key, start: spacingOf(el)[key], x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, value: Math.round(spacingOf(el)[key]), started: false };
+		e.preventDefault();
+		e.stopPropagation();
+	}, true);
+	document.addEventListener('mousemove', function (e) {
+		if (!spaceDrag) {
+			return;
+		}
+		var grow = GROW[spaceDrag.key];
+		spaceDrag.x = e.clientX;
+		spaceDrag.y = e.clientY;
+		spaceDrag.value = Math.round(spaceDrag.start + (e.clientX - spaceDrag.x0) * grow[0] + (e.clientY - spaceDrag.y0) * grow[1]);
+		// Only a real drag changes something (a click on a handle does not).
+		if (!spaceDrag.started) {
+			spaceDrag.started = true;
+			send({ type: 'aimp-design-space', phase: 'start', key: spaceDrag.key, value: spaceDrag.value });
+		}
+		send({ type: 'aimp-design-space', phase: 'move', key: spaceDrag.key, value: spaceDrag.value });
+		redrawBands();
+		e.stopPropagation();
+	}, true);
+	document.addEventListener('mouseup', function (e) {
+		if (!spaceDrag) {
+			return;
+		}
+		if (spaceDrag.started) {
+			send({ type: 'aimp-design-space', phase: 'end', key: spaceDrag.key, value: spaceDrag.value });
+		}
+		spaceDrag = null;
+		dragged = true;
+		redrawBands();
+		e.stopPropagation();
+	}, true);
+
 	// "html body" in front (as AIMP_Design::prefixed()); a selector that starts at body gets only "html".
 	function prefixed(selector, extra) {
 		return selector.split(',').map(function (part) {
@@ -300,7 +447,7 @@
 	}
 
 	document.addEventListener('mouseover', function (e) {
-		if (!pick) {
+		if (!pick || (e.target.closest && e.target.closest('[data-aimp-ds-layer]'))) {
 			return;
 		}
 		var el = target(e.target);
@@ -327,7 +474,7 @@
 	var drag = null;
 	var dragged = false;
 	document.addEventListener('mousedown', function (e) {
-		if (!pick || !selectedSel || e.button !== 0) {
+		if (!pick || !selectedSel || e.button !== 0 || spaceDrag || (e.target.closest && e.target.closest('[data-aimp-ds-layer]'))) {
 			return;
 		}
 		var el = null;
@@ -431,8 +578,12 @@
 			return;
 		}
 		var data = e.data;
-		if (data.type === 'aimp-design-css') {
+		if (data.type === 'aimp-design-spacing') {
+			spacing = { on: !!data.on, selector: String(data.selector || ''), labels: data.labels || {} };
+			redrawBands();
+		} else if (data.type === 'aimp-design-css') {
 			style.textContent = String(data.css || '');
+			redrawBands();
 			// Slower or faster animations (the speed script of class-aimp-design.php).
 			window.aimpDesignSpeed = data.speeds || {};
 			if (window.aimpDesignSpeedApply) {
@@ -452,6 +603,7 @@
 			}
 			label.style.display = 'none';
 			drawMarks();
+			redrawBands();
 		} else if (data.type === 'aimp-design-focus') {
 			showFocus(data);
 		} else if (data.type === 'aimp-design-show') {
