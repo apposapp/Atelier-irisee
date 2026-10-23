@@ -249,14 +249,16 @@
 	function setupStickyBuy(root) {
 		var bar = root.querySelector('[data-aimp-buy]');
 		var add = bar ? bar.querySelector('.aimp-add-to-cart:not([disabled])') : null;
-		if (!add || bar.hasAttribute('data-giftcard') || !('IntersectionObserver' in window) || !window.matchMedia) {
+		// Design studio: on every screen, or never.
+		var mode = root.getAttribute('data-pp-sticky') || '';
+		if (!add || mode === 'none' || bar.hasAttribute('data-giftcard') || !('IntersectionObserver' in window) || !window.matchMedia) {
 			return;
 		}
-		var phone = window.matchMedia('(max-width: 700px)');
+		var phone = window.matchMedia(mode === 'all' ? 'all' : '(max-width: 700px)');
 		var price = bar.querySelector('[data-aimp-price]');
 		var title = root.querySelector('.aimp-product-title');
 		var sticky = document.createElement('div');
-		sticky.className = 'aimp-sticky-buy';
+		sticky.className = 'aimp-sticky-buy' + (mode === 'all' ? ' aimp-sticky-buy--all' : '');
 		sticky.setAttribute('aria-hidden', 'true');
 		sticky.innerHTML =
 			'<div class="aimp-sticky-buy-text"><span class="aimp-sticky-buy-name"></span><span class="aimp-sticky-buy-price"></span></div>' +
@@ -294,6 +296,129 @@
 		}
 	}
 
+	/**
+	 * Design studio: the blocks under the pictures as dropdowns (the first one open) or as tabs, in the order they
+	 * are shown in.
+	 */
+	function setupLayout(root) {
+		var layout = root.getAttribute('data-pp-layout');
+		if (layout !== 'accordion' && layout !== 'tabs') {
+			return;
+		}
+		var blocks = Array.prototype.filter.call(root.children, function (el) {
+			return /(^|\s)aimp-pp-(?!recommend)/.test(el.className) && el.querySelector('h2, h3') && window.getComputedStyle(el).display !== 'none';
+		});
+		var order = function (el) {
+			return parseInt(window.getComputedStyle(el).order, 10) || 0;
+		};
+		blocks.sort(function (a, b) {
+			return order(a) - order(b);
+		});
+		if (!blocks.length) {
+			return;
+		}
+		var opens = [];
+		if (layout === 'accordion') {
+			blocks.forEach(function (el, i) {
+				var head = el.querySelector('h2, h3');
+				var details = document.createElement('details');
+				details.className = 'aimp-pp-acc';
+				details.open = i === 0;
+				var summary = document.createElement('summary');
+				summary.className = 'aimp-pp-acc-title';
+				summary.textContent = head.textContent;
+				head.parentNode.removeChild(head);
+				var body = document.createElement('div');
+				body.className = 'aimp-pp-acc-body';
+				while (el.firstChild) {
+					body.appendChild(el.firstChild);
+				}
+				details.appendChild(summary);
+				details.appendChild(body);
+				el.appendChild(details);
+				el.classList.add('is-accordion');
+				opens.push(function () {
+					details.open = true;
+				});
+			});
+		} else {
+			var nav = document.createElement('div');
+			nav.className = 'aimp-pp-tabs';
+			nav.setAttribute('role', 'tablist');
+			var tabs = [];
+			var show = function (n) {
+				blocks.forEach(function (el, i) {
+					el.classList.toggle('is-tab-hidden', i !== n);
+					tabs[i].setAttribute('aria-selected', i === n ? 'true' : 'false');
+					tabs[i].tabIndex = i === n ? 0 : -1;
+				});
+			};
+			blocks.forEach(function (el, i) {
+				var head = el.querySelector('h2, h3');
+				var tab = document.createElement('button');
+				tab.type = 'button';
+				tab.className = 'aimp-pp-tab';
+				tab.setAttribute('role', 'tab');
+				tab.textContent = head.textContent;
+				head.classList.add('screen-reader-text');
+				el.classList.add('is-tab');
+				el.setAttribute('role', 'tabpanel');
+				tab.addEventListener('click', function () {
+					show(i);
+				});
+				tab.addEventListener('keydown', function (e) {
+					var step = e.key === 'ArrowRight' ? 1 : (e.key === 'ArrowLeft' ? -1 : 0);
+					if (step) {
+						e.preventDefault();
+						var next = (i + step + tabs.length) % tabs.length;
+						show(next);
+						tabs[next].focus();
+					}
+				});
+				tabs.push(tab);
+				nav.appendChild(tab);
+				opens.push(function () {
+					show(i);
+				});
+			});
+			// The tabs right before the first block (same order: the flex layout keeps them together).
+			nav.style.order = window.getComputedStyle(blocks[0]).order;
+			blocks[0].parentNode.insertBefore(nav, blocks[0]);
+			show(0);
+		}
+		// "3 reviews" next to the stars opens the reviews.
+		root.addEventListener('click', function (e) {
+			var link = e.target.closest ? e.target.closest('a[href^="#aimp-"]') : null;
+			var target = link ? document.getElementById(link.getAttribute('href').slice(1)) : null;
+			var i = target ? blocks.indexOf(target) : -1;
+			if (i !== -1) {
+				opens[i]();
+			}
+		});
+	}
+
+	// Design studio: "Copy link" in the share buttons.
+	function setupShare(root) {
+		root.querySelectorAll('[data-aimp-copy]').forEach(function (button) {
+			var label = button.textContent;
+			button.addEventListener('click', function () {
+				var done = function () {
+					button.textContent = t.linkCopied || label;
+					setTimeout(function () {
+						button.textContent = label;
+					}, 2000);
+				};
+				if (navigator.clipboard && navigator.clipboard.writeText) {
+					navigator.clipboard.writeText(button.getAttribute('data-aimp-copy')).then(done, function () {
+						window.prompt('', button.getAttribute('data-aimp-copy'));
+					});
+				} else {
+					window.prompt('', button.getAttribute('data-aimp-copy'));
+				}
+			});
+		});
+	}
+
 	function boot() {
 		document.querySelectorAll('[data-aimp-product]').forEach(function (root) {
 			if (root.aimpProductReady) {
@@ -306,6 +431,8 @@
 			setupMeasureGuide(root);
 			setupGiftcardDesign(root);
 			setupLanguages(root);
+			setupShare(root);
+			setupLayout(root);
 		});
 	}
 
@@ -465,7 +592,7 @@
 		var home = document.createComment('aimp-recommend-box');
 		box.parentNode.insertBefore(home, box);
 		var section = document.createElement('section');
-		section.className = 'aimp-product-section aimp-recommend-section';
+		section.className = 'aimp-product-section aimp-recommend-section aimp-pp-recommend';
 		page.appendChild(section);
 		var phone = window.matchMedia('(max-width: 700px)');
 		function place() {

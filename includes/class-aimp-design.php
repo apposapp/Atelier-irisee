@@ -105,6 +105,7 @@ class AIMP_Design {
 			'card-name'       => array( $shop, __( 'Product names on cards', 'atelier-irisee-master-plugin' ), '.aimp-card-name' ),
 			'card-price'      => array( $shop, __( 'Prices on cards', 'atelier-irisee-master-plugin' ), '.aimp-card-price' ),
 			'mosaic'          => array( $shop, __( 'Mosaic', 'atelier-irisee-master-plugin' ), '.aimp-mosaic-grid' ),
+			'product-page'    => array( $product, __( 'Product page (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator.aimp-product' ),
 			'product-title'   => array( $product, __( 'Product title', 'atelier-irisee-master-plugin' ), '.aimp-product-title' ),
 			'product-brand'   => array( $product, __( 'Brand', 'atelier-irisee-master-plugin' ), '.aimp-product-brand' ),
 			'product-subtitle' => array( $product, __( 'Product subtitle', 'atelier-irisee-master-plugin' ), '.aimp-product-subtitle' ),
@@ -170,6 +171,10 @@ class AIMP_Design {
 		// The hero: its own pictures, video, slides, filter, place of the text and buttons.
 		if ( isset( $elements['hero'] ) ) {
 			$elements['hero']['controls'] = array( 'hero_media', 'hero_tint', 'hero_layout', 'hero_buttons', 'space', 'hide', 'anim' );
+		}
+		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
+		if ( isset( $elements['product-page'] ) ) {
+			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info' );
 		}
 		// The overall look of the site: no part of the page to click, chosen from the list.
 		$site = __( 'Whole site', 'atelier-irisee-master-plugin' );
@@ -429,6 +434,23 @@ class AIMP_Design {
 				'mos_noprice'   => 'bool',
 				'mos_hover'     => array( 'select', array( '', 'none', 'lift' ) ),
 			),
+			// The product page (phase 6).
+			'pp_blocks'   => self::product_block_fields(),
+			'pp_gallery'  => array(
+				'g_thumbs' => array( 'select', array( '', 'left', 'none' ) ),
+				'g_ratio'  => array( 'select', array( '', 'square', 'portrait', 'landscape' ) ),
+				'g_split'  => array( 'select', array( '', 'wide', 'narrow' ) ),
+				'g_right'  => 'bool',
+				'g_nozoom' => 'bool',
+			),
+			'pp_buy'      => array(
+				'pp_sticky'  => array( 'select', array( '', 'all', 'none' ) ),
+				'pp_notrust' => 'bool',
+				'pp_nolow'   => 'bool',
+				'pp_noalert' => 'bool',
+				'pp_share'   => 'bool',
+			),
+			'pp_info'     => self::product_info_fields(),
 		);
 	}
 
@@ -484,6 +506,97 @@ class AIMP_Design {
 	}
 
 	/**
+	 * The blocks under the pictures of a product page: key => label (their class is aimp-pp-{key}).
+	 *
+	 * @return array
+	 */
+	public static function product_blocks() {
+		return array(
+			'description' => __( 'Description', 'atelier-irisee-master-plugin' ),
+			'recommend'   => __( 'Recommended product and kit buttons (phones)', 'atelier-irisee-master-plugin' ),
+			'inspiration' => __( 'Inspiration', 'atelier-irisee-master-plugin' ),
+			'ideal'       => __( 'Ideal for', 'atelier-irisee-master-plugin' ),
+			'details'     => __( 'Details', 'atelier-irisee-master-plugin' ),
+			'fitting'     => __( 'Fits these patterns / Suggested patterns', 'atelier-irisee-master-plugin' ),
+			'sizes'       => __( 'Size chart', 'atelier-irisee-master-plugin' ),
+			'fabrics'     => __( 'Recommended fabrics', 'atelier-irisee-master-plugin' ),
+			'reviews'     => __( 'Reviews', 'atelier-irisee-master-plugin' ),
+			'related'     => __( 'You may also like', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * The specification and washing subjects of fabrics and haberdashery: key => label (tile class aimp-washing-tile--{key}).
+	 *
+	 * @return array
+	 */
+	public static function product_spec_subjects() {
+		return array(
+			'composition'   => __( 'Fabric composition', 'atelier-irisee-master-plugin' ),
+			'type'          => __( 'Type', 'atelier-irisee-master-plugin' ),
+			'colour'        => __( 'Colour', 'atelier-irisee-master-plugin' ),
+			'width'         => __( 'Width', 'atelier-irisee-master-plugin' ),
+			'length'        => __( 'Length', 'atelier-irisee-master-plugin' ),
+			'weight'        => __( 'Fabric weight', 'atelier-irisee-master-plugin' ),
+			'diameter'      => __( 'Diameter', 'atelier-irisee-master-plugin' ),
+			'material'      => __( 'Material', 'atelier-irisee-master-plugin' ),
+			'finish'        => __( 'Finish', 'atelier-irisee-master-plugin' ),
+			'mounting'      => __( 'Mounting', 'atelier-irisee-master-plugin' ),
+			'certification' => __( 'Certification', 'atelier-irisee-master-plugin' ),
+			'washing'       => __( 'Washing', 'atelier-irisee-master-plugin' ),
+			'drying'        => __( 'Drying', 'atelier-irisee-master-plugin' ),
+			'ironing'       => __( 'Ironing', 'atelier-irisee-master-plugin' ),
+			'tips'          => __( 'Tips', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * The blocks of a product page: their order on computers and phones, hidden per screen, and shown as they are,
+	 * as dropdowns or as tabs.
+	 *
+	 * @return array
+	 */
+	private static function product_block_fields() {
+		$keys   = array_keys( self::product_blocks() );
+		$fields = array(
+			'pp_order'  => array( 'order', $keys ),
+			'pp_porder' => array( 'order', $keys ),
+		);
+		foreach ( $keys as $key ) {
+			$fields[ 'pp_hide_' . $key ]  = 'bool';
+			$fields[ 'pp_phide_' . $key ] = 'bool';
+		}
+		return $fields;
+	}
+
+	/**
+	 * The information on a product page: the blocks as dropdowns or tabs, the brand as a link, the "Ideal for"
+	 * icons, the specifications shown, the product cards, the size chart and the review stars.
+	 *
+	 * @return array
+	 */
+	private static function product_info_fields() {
+		$fields = array(
+			'pp_layout'     => array( 'select', array( '', 'accordion', 'tabs' ) ),
+			'pp_brand_link' => 'bool',
+			'pp_ideal_size' => array( 0, 120, 0 ),
+		);
+		foreach ( array_keys( self::product_spec_subjects() ) as $subject ) {
+			$fields[ 'pp_nospec_' . $subject ] = 'bool';
+		}
+		return array_merge(
+			$fields,
+			array(
+				'pp_count'     => array( 0, 8, 0 ),
+				'pp_related'   => array( 0, 12, 0 ),
+				'pp_cards'     => array( 0, 8, 0 ),
+				'pp_nomeasure' => 'bool',
+				'pp_stars'     => 'color',
+			)
+		);
+	}
+
+	/**
 	 * The kit steps bar's own settings: steps 2 and 3 can be left out and a fifth one added; per step a drawing or a
 	 * picture; the thread, the needle's speed, loops, the button and the customizer's first-visit pop-up.
 	 *
@@ -536,7 +649,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'header_opts', 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_media', 'hero_buttons', 'arrow_opts', 'favicon', 'ks_opts', 'mosaic_opts', 'shop_cards', 'shop_tools', 'shop_badges', 'shop_cats', 'overview_opts' );
+		return array( 'header_opts', 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_media', 'hero_buttons', 'arrow_opts', 'favicon', 'ks_opts', 'mosaic_opts', 'shop_cards', 'shop_tools', 'shop_badges', 'shop_cats', 'overview_opts', 'pp_buy', 'pp_info' );
 	}
 
 	/**
@@ -618,6 +731,13 @@ class AIMP_Design {
 					$font = trim( preg_replace( '/[^A-Za-z0-9 ]/', '', (string) $value ) );
 					if ( '' !== $font ) {
 						$row[ $key ] = substr( $font, 0, 60 );
+					}
+				} elseif ( is_array( $rule ) && 'order' === $rule[0] ) {
+					// An order of blocks: the known ones, each once; the ones left out keep their standard place after them.
+					$list = array_values( array_unique( array_intersect( array_map( 'trim', explode( ',', (string) $value ) ), $rule[1] ) ) );
+					$list = array_merge( $list, array_values( array_diff( $rule[1], $list ) ) );
+					if ( $list !== $rule[1] ) {
+						$row[ $key ] = implode( ',', $list );
 					}
 				} elseif ( is_array( $rule ) && 'select' === $rule[0] ) {
 					if ( '' !== $value && in_array( (string) $value, $rule[1], true ) ) {
@@ -1335,6 +1455,80 @@ class AIMP_Design {
 			$css .= 'html body .aimp-configurator .aimp-mosaic-tile a:is(:hover,:focus-visible) img{transform:none!important}';
 		} elseif ( 'lift' === $get( 'mosaic', 'mos_hover' ) ) {
 			$css .= 'html body .aimp-configurator .aimp-mosaic-tile a:is(:hover,:focus-visible) img{transform:none!important}html body .aimp-configurator .aimp-mosaic-tile{transition:transform .25s ease,box-shadow .25s ease}html body .aimp-configurator .aimp-mosaic-tile:hover{transform:translateY(-4px);box-shadow:0 10px 24px color-mix(in srgb,var(--aimp-site-brown,#613907) 22%,transparent)}';
+		}
+
+		// Product page: the order of the blocks (computers, phones) and blocks hidden per screen.
+		$pp    = 'html body .aimp-configurator.aimp-product';
+		$order = function ( $list ) use ( $pp ) {
+			$out = $pp . '>*{order:9!important}' . $pp . '>:is(.aimp-product-topbar,.woocommerce-notices-wrapper){order:0!important}' . $pp . '>.aimp-product-main{order:1!important}';
+			foreach ( explode( ',', $list ) as $i => $block ) {
+				$out .= $pp . '>.aimp-pp-' . sanitize_html_class( $block ) . '{order:' . ( 10 + $i ) . '!important}';
+			}
+			return $out;
+		};
+		if ( $get( 'product-page', 'pp_order' ) ) {
+			$computer .= $pp . '{display:flex!important;flex-direction:column!important}' . $order( $get( 'product-page', 'pp_order' ) );
+		}
+		if ( $get( 'product-page', 'pp_porder' ) ) {
+			$phone .= $order( $get( 'product-page', 'pp_porder' ) );
+		}
+		foreach ( array_keys( self::product_blocks() ) as $block ) {
+			if ( $get( 'product-page', 'pp_hide_' . $block ) ) {
+				$computer .= $pp . '>.aimp-pp-' . $block . '{display:none!important}';
+			}
+			if ( $get( 'product-page', 'pp_phide_' . $block ) ) {
+				$phone .= $pp . '>.aimp-pp-' . $block . '{display:none!important}';
+			}
+		}
+		// The pictures: thumbnails on the left or none (dots), the shape, no zoom, the picture's width and side.
+		$g = $pp . ' .aimp-gallery';
+		if ( 'left' === $get( 'product-page', 'g_thumbs' ) ) {
+			$computer .= $g . '{display:grid!important;grid-template-columns:64px minmax(0,1fr);gap:.6rem;align-items:start}' . $g . ' .aimp-gallery-main{grid-column:2;grid-row:1}' . $g . ' .aimp-gallery-thumbs{grid-column:1;grid-row:1;grid-template-columns:minmax(0,1fr)!important;margin-top:0!important}';
+		} elseif ( 'none' === $get( 'product-page', 'g_thumbs' ) ) {
+			$computer .= $g . ' .aimp-gallery-thumbs{display:none!important}' . $g . ' .aimp-gallery-dots{display:flex!important;justify-content:center;gap:.5rem;margin-top:.6rem}' . $g . ' .aimp-gallery-dot{width:.6rem;height:.6rem;min-height:0;padding:0;border:1px solid var(--aimp-gold);border-radius:50%;background:transparent;cursor:pointer}' . $g . ' .aimp-gallery-dot.is-active{background:var(--aimp-gold)}';
+		}
+		if ( isset( $ratios[ $get( 'product-page', 'g_ratio' ) ] ) ) {
+			$css .= $g . ' .aimp-gallery-main img{width:100%;aspect-ratio:' . $ratios[ $get( 'product-page', 'g_ratio' ) ] . '!important;object-fit:cover}';
+		}
+		if ( $get( 'product-page', 'g_nozoom' ) ) {
+			$css .= $g . ' .aimp-gallery-main.is-zooming img{transform:none!important}';
+		}
+		$split = $get( 'product-page', 'g_split' );
+		if ( $split || $get( 'product-page', 'g_right' ) ) {
+			$cols = 'wide' === $split ? array( 3, 2 ) : ( 'narrow' === $split ? array( 2, 3 ) : array( 1, 1 ) );
+			if ( $get( 'product-page', 'g_right' ) ) {
+				$cols = array_reverse( $cols );
+			}
+			$css .= '@media (min-width:1025px){' . $pp . ' .aimp-product-main{grid-template-columns:minmax(0,' . $cols[0] . 'fr) minmax(0,' . $cols[1] . 'fr)!important}' .
+				( $get( 'product-page', 'g_right' ) ? $pp . ' .aimp-product-main>.aimp-product-media{order:2}' : '' ) . '}';
+		}
+		// The buy bar: the delivery line, "Only … left", "Email me when it's back".
+		foreach ( array(
+			'pp_notrust' => '.aimp-delivery-line',
+			'pp_nolow'   => '.aimp-low-stock',
+			'pp_noalert' => '.aimp-stock-alert',
+		) as $key => $selector ) {
+			if ( $get( 'product-page', $key ) ) {
+				$css .= $pp . ' ' . $selector . '{display:none!important}';
+			}
+		}
+		// The information: "Ideal for" icons, specifications left out, cards per row, the size chart, review stars.
+		if ( $get( 'product-page', 'pp_ideal_size' ) ) {
+			$css .= $pp . ' .aimp-ideal-card svg{width:' . (int) $get( 'product-page', 'pp_ideal_size' ) . 'px!important;height:' . (int) $get( 'product-page', 'pp_ideal_size' ) . 'px!important}';
+		}
+		foreach ( array_keys( self::product_spec_subjects() ) as $subject ) {
+			if ( $get( 'product-page', 'pp_nospec_' . $subject ) ) {
+				$css .= $pp . ' .aimp-washing-tile--' . $subject . '{display:none!important}';
+			}
+		}
+		if ( $get( 'product-page', 'pp_cards' ) ) {
+			$css .= '@media (min-width:1025px){' . $pp . ' .aimp-product-cards{grid-template-columns:repeat(' . (int) $get( 'product-page', 'pp_cards' ) . ',minmax(0,1fr))!important}}';
+		}
+		if ( $get( 'product-page', 'pp_nomeasure' ) ) {
+			$css .= $pp . ' .aimp-measure-button{display:none!important}';
+		}
+		if ( $get( 'product-page', 'pp_stars' ) ) {
+			$css .= $pp . ' .star-rating,' . $pp . ' .star-rating span::before,' . $pp . ' p.stars a{color:' . $get( 'product-page', 'pp_stars' ) . '!important}';
 		}
 
 		if ( '' !== $computer ) {
@@ -2256,6 +2450,105 @@ class AIMP_Design {
 			$field( 'ov_sub_' . $section, __( 'Line under the name', 'atelier-irisee-master-plugin' ) );
 			echo '</div>';
 		}
+		echo '</fieldset>';
+
+		// Product page (phase 6).
+		$blocks     = self::product_blocks();
+		$order_list = function ( $key, $label ) use ( $blocks, $standard ) {
+			echo '<div class="aimp-ds-order-field"><p class="aimp-ds-sub">' . esc_html( $label ) . '</p><ol class="aimp-ds-order" data-order="' . esc_attr( $key ) . '">';
+			$n = 0;
+			foreach ( $blocks as $block => $name ) {
+				echo '<li draggable="true" data-block="' . esc_attr( $block ) . '" data-std="' . esc_attr( $n++ ) . '"><span class="aimp-ds-order-grip" aria-hidden="true">⋮⋮</span><span class="aimp-ds-order-name">' . esc_html( $name ) . '</span>';
+				echo '<button type="button" class="button-link" data-move="-1" aria-label="' . esc_attr__( 'Up', 'atelier-irisee-master-plugin' ) . '">↑</button><button type="button" class="button-link" data-move="1" aria-label="' . esc_attr__( 'Down', 'atelier-irisee-master-plugin' ) . '">↓</button></li>';
+			}
+			echo '</ol><button type="button" class="button-link" data-clear="' . esc_attr( $key ) . '">' . esc_html( $standard ) . '</button></div>';
+		};
+		$group( 'pp_blocks', __( 'Blocks under the pictures', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Drag the blocks (or use the arrows) to put them in order. A block only shows on products that have it.', 'atelier-irisee-master-plugin' ) . '</p>';
+		$order_list( 'pp_order', $computer );
+		$order_list( 'pp_porder', $phone );
+		$sub( __( 'Hide a block', 'atelier-irisee-master-plugin' ) );
+		foreach ( $blocks as $block => $name ) {
+			echo '<div class="aimp-ds-icon-row"><strong>' . esc_html( $name ) . '</strong>';
+			self::check_box( 'pp_hide_' . $block, __( 'Hide on computers', 'atelier-irisee-master-plugin' ) );
+			self::check_box( 'pp_phide_' . $block, __( 'Hide on phones', 'atelier-irisee-master-plugin' ) );
+			echo '</div>';
+		}
+		echo '</fieldset>';
+
+		$group( 'pp_gallery', __( 'Product pictures', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'g_thumbs',
+			__( 'Small pictures (computers)', 'atelier-irisee-master-plugin' ),
+			array(
+				''     => __( 'Under the picture (standard)', 'atelier-irisee-master-plugin' ),
+				'left' => __( 'Left of the picture', 'atelier-irisee-master-plugin' ),
+				'none' => __( 'None, dots under the picture', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'g_ratio',
+			__( 'Picture shape', 'atelier-irisee-master-plugin' ),
+			array(
+				''          => $standard,
+				'square'    => __( 'Square', 'atelier-irisee-master-plugin' ),
+				'portrait'  => __( 'Upright (3:4)', 'atelier-irisee-master-plugin' ),
+				'landscape' => __( 'Wide (4:3)', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'g_split',
+			__( 'Width of the picture (large screens)', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Half (standard)', 'atelier-irisee-master-plugin' ),
+				'wide'   => __( 'Wider than the information', 'atelier-irisee-master-plugin' ),
+				'narrow' => __( 'Narrower than the information', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'g_right', __( 'The picture on the right (large screens)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'g_nozoom', __( 'No zoom under the mouse', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'pp_buy', __( 'Buy bar', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'pp_sticky',
+			__( 'Slim buy bar at the bottom once the buy bar has scrolled away', 'atelier-irisee-master-plugin' ),
+			array(
+				''     => __( 'On phones (standard)', 'atelier-irisee-master-plugin' ),
+				'all'  => __( 'On every screen', 'atelier-irisee-master-plugin' ),
+				'none' => __( 'Never', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'pp_notrust', __( 'No delivery line under the buy bar', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'pp_nolow', __( 'No "Only … left"', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'pp_noalert', __( 'No "Email me when it\'s back" on sold-out products', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'pp_share', __( 'Share buttons (WhatsApp, Facebook, Pinterest, email, copy link)', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The texts (delivery line, sold out, back in stock) can be changed in the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'pp_info', __( 'Information', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'pp_layout',
+			__( 'The blocks under the pictures', 'atelier-irisee-master-plugin' ),
+			array(
+				''          => __( 'One under the other (standard)', 'atelier-irisee-master-plugin' ),
+				'accordion' => __( 'As dropdowns (the first one open)', 'atelier-irisee-master-plugin' ),
+				'tabs'      => __( 'As tabs', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'pp_brand_link', __( 'The brand links to all products of that brand', 'atelier-irisee-master-plugin' ) );
+		self::number( 'pp_ideal_size', __( '"Ideal for" icons (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 120, 'px' );
+		$sub( __( 'Specifications and washing: leave out', 'atelier-irisee-master-plugin' ) );
+		foreach ( self::product_spec_subjects() as $subject => $name ) {
+			self::check_box( 'pp_nospec_' . $subject, $name );
+		}
+		$sub( __( 'Product cards (patterns, fabrics, you may also like)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'pp_count', __( 'Fitting patterns and recommended fabrics shown (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 8, '' );
+		self::number( 'pp_related', __( '"You may also like" products (0 = standard, 4)', 'atelier-irisee-master-plugin' ), 0, 12, '' );
+		self::number( 'pp_cards', __( 'Cards per row on large screens (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 8, '' );
+		$sub( __( 'Size chart and reviews', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'pp_nomeasure', __( 'No "How to measure" button', 'atelier-irisee-master-plugin' ) );
+		self::color( 'pp_stars', __( 'Colour of the review stars', 'atelier-irisee-master-plugin' ) );
 		echo '</fieldset>';
 	}
 

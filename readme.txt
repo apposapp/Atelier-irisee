@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.26.0
+Stable tag: 3.27.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.27.0 =
+* Design studio, phase 6 (product page), new part "Product page (whole)":
+  * Blocks under the pictures (description, inspiration, ideal for, details, fitting patterns, size chart, recommended fabrics, reviews, you may also like): drag them in order, separately for computers and phones, hide them per screen, and show them one under the other, as dropdowns or as tabs.
+  * Pictures: small pictures under or left of the picture, or dots; the picture shape; no zoom; the picture wider or narrower than the information and on the left or right.
+  * Buy bar: the slim bar at the bottom on phones, on every screen or never; no delivery line, no "Only … left", no "Email me when it's back"; share buttons (WhatsApp, Facebook, Pinterest, email, copy link).
+  * Information: the brand as a link to its products, the size of the "Ideal for" icons, specification and washing lines left out, how many fitting patterns, recommended fabrics and "You may also like" products, cards per row, no "How to measure" button, the colour of the review stars.
 
 = 3.26.0 =
 * Design studio, phase 5 (shop pages), new part "Shop (product list)":

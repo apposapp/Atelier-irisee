@@ -42,6 +42,18 @@ $aimp_show_detail = ! $aimp_own_specs && ! $aimp_pattern && ! $aimp_giftcard && 
 $aimp_show_review = wc_reviews_enabled() && comments_open( $aimp_id ) && is_singular( 'product' ) && (int) get_queried_object_id() === $aimp_id;
 $aimp_skills      = AIMP_Catalog::skill_levels();
 
+// Design studio (Product page): the settings that change the markup.
+$aimp_pp     = function ( $aimp_key, $aimp_fallback = null ) {
+	return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'product-page', $aimp_key, $aimp_fallback ) : $aimp_fallback;
+};
+$aimp_layout = (string) $aimp_pp( 'pp_layout', '' );
+$aimp_sticky = (string) $aimp_pp( 'pp_sticky', '' );
+$aimp_count  = (int) $aimp_pp( 'pp_count', 0 );
+if ( $aimp_count ) {
+	$data['fitting'] = array_slice( $data['fitting'], 0, $aimp_count );
+	$data['fabrics'] = array_slice( $data['fabrics'], 0, $aimp_count );
+}
+
 /**
  * A dropdown with a gold title and a gold arrow on the right; closed when the page loads.
  *
@@ -66,7 +78,7 @@ $aimp_tiles = function ( $aimp_lines ) {
 	}
 	$aimp_html = '<ul class="aimp-washing-grid">';
 	foreach ( $aimp_lines as $aimp_subject => $aimp_line ) {
-		$aimp_html .= '<li class="aimp-washing-tile">' . AIMP_Product_Page::fabric_icon( $aimp_subject ) .
+		$aimp_html .= '<li class="aimp-washing-tile aimp-washing-tile--' . esc_attr( $aimp_subject ) . '">' . AIMP_Product_Page::fabric_icon( $aimp_subject ) .
 			'<span><strong>' . esc_html( $aimp_line[0] ) . '</strong>' . nl2br( esc_html( $aimp_line[1] ) ) . '</span></li>';
 	}
 	return $aimp_html . '</ul>';
@@ -74,7 +86,7 @@ $aimp_tiles = function ( $aimp_lines ) {
 $aimp_washing_html = $aimp_fabric ? $aimp_tiles( $aimp_fabric['washing'] ) : '';
 $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $aimp_notion ? $aimp_tiles( $aimp_notion['specs'] ) : '' );
 ?>
-<div class="aimp-configurator aimp-product alignwide<?php echo $aimp_fabric ? ' aimp-product--fabric' : ''; ?><?php echo $aimp_notion ? ' aimp-product--notion aimp-product--' . esc_attr( $aimp_notion['kind'] ) : ''; ?><?php echo $aimp_pattern ? ' aimp-product--pattern' : ''; ?><?php echo $aimp_giftcard ? ' aimp-product--giftcard' : ''; ?>" data-aimp-product="<?php echo esc_attr( $aimp_id ); ?>">
+<div class="aimp-configurator aimp-product alignwide<?php echo $aimp_fabric ? ' aimp-product--fabric' : ''; ?><?php echo $aimp_notion ? ' aimp-product--notion aimp-product--' . esc_attr( $aimp_notion['kind'] ) : ''; ?><?php echo $aimp_pattern ? ' aimp-product--pattern' : ''; ?><?php echo $aimp_giftcard ? ' aimp-product--giftcard' : ''; ?>" data-aimp-product="<?php echo esc_attr( $aimp_id ); ?>"<?php echo $aimp_layout ? ' data-pp-layout="' . esc_attr( $aimp_layout ) . '"' : ''; ?><?php echo $aimp_sticky ? ' data-pp-sticky="' . esc_attr( $aimp_sticky ) . '"' : ''; ?>>
 
 	<div class="aimp-topbar aimp-product-topbar">
 		<?php
@@ -113,7 +125,14 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 			<h1 class="aimp-product-title"><?php echo esc_html( wp_strip_all_tags( $the_product->get_name() ) ); ?></h1>
 			<?php $aimp_brand = AIMP_Product_Page::brand( $the_product ); ?>
 			<?php if ( '' !== $aimp_brand ) : ?>
-				<p class="aimp-product-brand"><?php echo esc_html( $aimp_brand ); ?></p>
+				<?php $aimp_brand_url = $aimp_pp( 'pp_brand_link' ) ? AIMP_Product_Page::brand_url( $the_product ) : ''; ?>
+				<p class="aimp-product-brand">
+					<?php if ( '' !== $aimp_brand_url ) : ?>
+						<a href="<?php echo esc_url( $aimp_brand_url ); ?>"><?php echo esc_html( $aimp_brand ); ?></a>
+					<?php else : ?>
+						<?php echo esc_html( $aimp_brand ); ?>
+					<?php endif; ?>
+				</p>
 			<?php endif; ?>
 
 			<?php if ( wc_review_ratings_enabled() && $the_product->get_rating_count() > 0 ) : ?>
@@ -215,6 +234,10 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 				<div class="aimp-product-price">
 					<p class="aimp-details-price price"><?php echo wp_kses_post( $the_product->get_price_html() ); ?></p>
 				</div>
+			<?php endif; ?>
+
+			<?php if ( $aimp_pp( 'pp_share' ) ) : ?>
+				<?php echo AIMP_Product_Page::share_html( $the_product, $aimp_first ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in share_html(). ?>
 			<?php endif; ?>
 
 			<?php
@@ -361,7 +384,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 	<?php if ( $aimp_insp_cards ) : ?>
 		<?php // Fabrics: up to three inspiration cards across the full width. ?>
-		<section class="aimp-inspiration">
+		<section class="aimp-inspiration aimp-pp-inspiration">
 		<h3><?php esc_html_e( 'Inspiration', 'atelier-irisee-master-plugin' ); ?></h3>
 		<ul class="aimp-inspiration-grid">
 			<?php foreach ( $aimp_insp_cards as $aimp_card ) : ?>
@@ -380,7 +403,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 	<?php if ( $aimp_notion && $aimp_notion['ideal_for'] ) : ?>
 		<?php // Buttons: up to four kinds of clothes, each with its icon, in the place of the fabric inspiration cards. ?>
-		<section class="aimp-inspiration aimp-ideal-for">
+		<section class="aimp-inspiration aimp-ideal-for aimp-pp-ideal">
 		<h3><?php esc_html_e( 'Ideal for', 'atelier-irisee-master-plugin' ); ?></h3>
 		<ul class="aimp-inspiration-grid aimp-ideal-grid">
 			<?php foreach ( $aimp_notion['ideal_for'] as $aimp_ideal ) : ?>
@@ -395,7 +418,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 	<?php if ( $aimp_own_specs && ( $aimp_has_desc || $aimp_washing_html || $aimp_specs_html ) ) : ?>
 		<?php // Fabrics and buttons: description on the left; washing instructions and specifications (dropdowns) on the right. ?>
-		<section class="aimp-product-section aimp-product-row<?php echo $aimp_has_desc && ( $aimp_washing_html || $aimp_specs_html ) ? '' : ' is-single'; ?>">
+		<section class="aimp-product-section aimp-product-row aimp-pp-description<?php echo $aimp_has_desc && ( $aimp_washing_html || $aimp_specs_html ) ? '' : ' is-single'; ?>">
 			<?php if ( $aimp_has_desc ) : ?>
 				<div>
 					<h3><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h3>
@@ -416,21 +439,21 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 			<?php endif; ?>
 		</section>
 	<?php elseif ( ! $aimp_own_specs && ! $aimp_pattern && $aimp_has_desc ) : ?>
-		<section class="aimp-product-section aimp-product-desc">
+		<section class="aimp-product-section aimp-product-desc aimp-pp-description">
 			<h3><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h3>
 			<div class="aimp-description aimp-product-description"><?php echo wc_format_content( $aimp_description ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- product content, filtered like the WooCommerce description tab. ?></div>
 		</section>
 	<?php endif; ?>
 
 	<?php if ( $aimp_show_detail ) : ?>
-		<section class="aimp-product-section">
+		<section class="aimp-product-section aimp-pp-details">
 			<h3><?php esc_html_e( 'Details', 'atelier-irisee-master-plugin' ); ?></h3>
 			<?php wc_display_product_attributes( $the_product ); ?>
 		</section>
 	<?php endif; ?>
 
 	<?php if ( $data['fitting'] ) : ?>
-		<section class="aimp-product-section aimp-product-suggested">
+		<section class="aimp-product-section aimp-product-suggested aimp-pp-fitting">
 			<h3><?php echo esc_html( $aimp_notion ? __( 'Fits these patterns', 'atelier-irisee-master-plugin' ) : __( 'Suggested patterns', 'atelier-irisee-master-plugin' ) ); ?></h3>
 			<ul class="aimp-grid aimp-product-cards">
 				<?php
@@ -444,7 +467,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 	<?php if ( ! empty( $data['size_table'] ) ) : ?>
 		<?php // Patterns: the accessories (left) and the sizes with measurements and fabric (right), per design. ?>
-		<section class="aimp-product-section aimp-pattern-needs">
+		<section class="aimp-product-section aimp-pattern-needs aimp-pp-sizes">
 			<?php foreach ( $data['size_table'] as $aimp_group ) : ?>
 				<?php if ( '' !== $aimp_group['name'] ) : ?>
 					<h3 class="aimp-pattern-needs-design"><?php echo esc_html( $aimp_group['name'] ); ?></h3>
@@ -499,7 +522,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 	<?php endif; ?>
 
 	<?php if ( $data['fabrics'] ) : ?>
-		<section class="aimp-product-section">
+		<section class="aimp-product-section aimp-pp-fabrics">
 			<h3><?php esc_html_e( 'Recommended fabrics', 'atelier-irisee-master-plugin' ); ?></h3>
 			<ul class="aimp-grid aimp-product-cards">
 				<?php
@@ -512,13 +535,13 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 	<?php endif; ?>
 
 	<?php if ( $aimp_show_review ) : ?>
-		<section class="aimp-product-section aimp-product-reviews" id="aimp-reviews">
+		<section class="aimp-product-section aimp-product-reviews aimp-pp-reviews" id="aimp-reviews">
 			<?php comments_template(); ?>
 		</section>
 	<?php endif; ?>
 
 	<?php if ( $data['related'] ) : ?>
-		<section class="aimp-product-section">
+		<section class="aimp-product-section aimp-pp-related">
 			<h3><?php esc_html_e( 'You may also like', 'atelier-irisee-master-plugin' ); ?></h3>
 			<ul class="aimp-grid aimp-product-cards">
 				<?php

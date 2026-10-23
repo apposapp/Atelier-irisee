@@ -1159,73 +1159,74 @@ html:has(.aimp-product-reviews) {
 /* ------------------------------------------------------------------
  * Phones: the slim buy bar at the bottom once the buy bar has scrolled away (product.js), above the tab bar.
  * ------------------------------------------------------------------ */
-.aimp-sticky-buy {
-	display: none;
+/* Phones (and every screen when the Design studio says so: aimp-sticky-buy--all). */
+@media (min-width: 701px) {
+	.aimp-sticky-buy:not(.aimp-sticky-buy--all) {
+		display: none !important;
+	}
 }
 
-@media (max-width: 700px) {
-	.aimp-sticky-buy {
-		position: fixed;
-		right: 0;
-		bottom: var(--aimp-tabbar-h, env(safe-area-inset-bottom, 0px));
-		left: 0;
-		z-index: 990;
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.55rem 1rem;
-		border-top: 1px solid var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
-		background: rgba(255, 255, 255, 0.97);
-		box-shadow: 0 -6px 18px color-mix(in srgb, var(--aimp-site-brown, #613907) 10%, transparent);
-		color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
-		transform: translateY(110%);
-		visibility: hidden;
-		transition: transform 0.25s ease, visibility 0s linear 0.25s;
-	}
+.aimp-sticky-buy {
+	position: fixed;
+	right: 0;
+	bottom: var(--aimp-tabbar-h, env(safe-area-inset-bottom, 0px));
+	left: 0;
+	z-index: 990;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.55rem 1rem;
+	border-top: 1px solid var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+	background: rgba(255, 255, 255, 0.97);
+	box-shadow: 0 -6px 18px color-mix(in srgb, var(--aimp-site-brown, #613907) 10%, transparent);
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	transform: translateY(110%);
+	visibility: hidden;
+	transition: transform 0.25s ease, visibility 0s linear 0.25s;
+}
 
-	.aimp-sticky-buy.is-visible {
-		transform: translateY(0);
-		visibility: visible;
-		transition: transform 0.25s ease;
-	}
+.aimp-sticky-buy.is-visible {
+	transform: translateY(0);
+	visibility: visible;
+	transition: transform 0.25s ease;
+}
 
-	.aimp-sticky-buy-text {
-		display: flex;
-		flex: 1 1 auto;
-		flex-direction: column;
-		min-width: 0;
-		line-height: 1.25;
-	}
+.aimp-sticky-buy-text {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-width: 0;
+	line-height: 1.25;
+}
 
-	.aimp-sticky-buy-name {
-		overflow: hidden;
-		font-size: 12px;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
+.aimp-sticky-buy-name {
+	overflow: hidden;
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
 
-	.aimp-sticky-buy-price {
-		color: var(--aimp-brown, var(--aimp-site-brown, #613907));
-		font-weight: 700;
-	}
+.aimp-sticky-buy-price {
+	color: var(--aimp-brown, var(--aimp-site-brown, #613907));
+	font-weight: 700;
+}
 
-	.aimp-sticky-buy-price del {
-		opacity: 0.6;
-		font-weight: 400;
-	}
+.aimp-sticky-buy-price del {
+	opacity: 0.6;
+	font-weight: 400;
+}
 
-	.aimp-sticky-buy-button {
-		flex: 0 0 auto;
-		min-height: 44px;
-		padding: 0.55rem 1.1rem;
-		border: 1px solid var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
-		border-radius: 100px;
-		background: var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
-		color: #fff;
-		font: inherit;
-		font-weight: 700;
-		cursor: pointer;
-	}
+.aimp-sticky-buy-button {
+	flex: 0 0 auto;
+	min-height: 44px;
+	padding: 0.55rem 1.1rem;
+	border: 1px solid var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+	border-radius: 100px;
+	background: var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+	color: #fff;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1300,4 +1301,134 @@ html:has(.aimp-product-reviews) {
 	.aimp-configurator.aimp-product {
 		overflow-anchor: none;
 	}
+}
+
+/* ------------------------------------------------------------------
+ * Design studio: share buttons, and the blocks under the pictures as dropdowns or tabs (product.js).
+ * ------------------------------------------------------------------ */
+.aimp-share {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0.75rem 0 0;
+	order: 0;
+}
+
+.aimp-share-label {
+	margin-right: 0.25rem;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.aimp-configurator .aimp-share-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 32px;
+	padding: 0.2rem 0.75rem;
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font: inherit;
+	font-size: 13px;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.aimp-configurator .aimp-share-link:is(:hover, :focus-visible) {
+	background: var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+	color: #fff;
+}
+
+.aimp-product-section.is-accordion {
+	padding-top: 0;
+}
+
+.aimp-pp-acc-title {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+	padding: calc(var(--aimp-gap) * 1.25) 0 0.75rem;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font-family: var(--aimp-heading-font, inherit);
+	font-size: 1.25rem;
+	cursor: pointer;
+	list-style: none;
+}
+
+.aimp-pp-acc-title::-webkit-details-marker {
+	display: none;
+}
+
+.aimp-pp-acc-title::after {
+	content: "";
+	width: 0.55rem;
+	height: 0.55rem;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(45deg);
+	transition: transform 0.2s ease;
+}
+
+.aimp-pp-acc[open] > .aimp-pp-acc-title::after {
+	transform: rotate(-135deg);
+}
+
+.aimp-product-row.is-accordion {
+	display: block;
+}
+
+.aimp-product-row.is-accordion .aimp-pp-acc-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: calc(var(--aimp-gap) * 2);
+}
+
+.aimp-product-row.is-single.is-accordion .aimp-pp-acc-body {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+@container aimp (max-width: 820px) {
+	.aimp-product-row.is-accordion .aimp-pp-acc-body {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.aimp-pp-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem;
+	margin-top: calc(var(--aimp-gap) * 2);
+	border-bottom: 1px var(--aimp-site-line, solid) var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+}
+
+.aimp-configurator .aimp-pp-tab {
+	min-height: 40px;
+	margin-bottom: -1px;
+	padding: 0.4rem 1rem;
+	border: 1px solid transparent;
+	border-radius: var(--aimp-radius, 6px) var(--aimp-radius, 6px) 0 0;
+	background: transparent;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-configurator .aimp-pp-tab[aria-selected="true"] {
+	border-color: var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+	border-bottom-color: var(--aimp-site-bg, #fff);
+	background: var(--aimp-site-bg, #fff);
+}
+
+.aimp-configurator.aimp-product > .is-tab {
+	margin-top: 0;
+	border-top: 0;
+}
+
+.aimp-configurator.aimp-product > .is-tab-hidden {
+	display: none !important;
 }

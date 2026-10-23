@@ -504,3 +504,51 @@
 	font-size: 12px;
 	word-break: break-all;
 }
+
+/* An order of blocks (product page): drag a row, or move it with the arrows. */
+.aimp-ds-order {
+	margin: 0 0 0.35rem;
+	padding: 0;
+	list-style: none;
+	counter-reset: aimp-ds-order;
+}
+
+.aimp-ds-order li {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0 0 0.25rem;
+	padding: 0.3rem 0.4rem;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+	cursor: grab;
+	counter-increment: aimp-ds-order;
+}
+
+.aimp-ds-order li::before {
+	content: counter(aimp-ds-order);
+	min-width: 1.2em;
+	color: #8a6a33;
+	font-weight: 600;
+	text-align: right;
+}
+
+.aimp-ds-order li.is-dragging {
+	opacity: 0.5;
+}
+
+.aimp-ds-order-grip {
+	color: #8c8f94;
+	letter-spacing: -2px;
+}
+
+.aimp-ds-order-name {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.aimp-ds-order .button-link {
+	padding: 0 0.25rem;
+	text-decoration: none;
+}

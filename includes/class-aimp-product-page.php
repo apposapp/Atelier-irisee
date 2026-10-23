@@ -673,7 +673,42 @@ class AIMP_Product_Page {
 			'per10cm'     => __( 'per 10 cm', 'atelier-irisee-master-plugin' ),
 			/* translators: %s: price of one piece */
 			'perPiece'    => __( '%s per piece', 'atelier-irisee-master-plugin' ),
+			'linkCopied'  => __( 'Link copied', 'atelier-irisee-master-plugin' ),
 		);
+	}
+
+	/**
+	 * How many "You may also like" products are shown (Design studio, else 4).
+	 *
+	 * @return int
+	 */
+	private static function related_count() {
+		$count = class_exists( 'AIMP_Design' ) ? (int) AIMP_Design::opt( 'product-page', 'pp_related', 0 ) : 0;
+		return $count > 0 ? $count : self::RELATED;
+	}
+
+	/**
+	 * Share buttons under the buy bar (Design studio): WhatsApp, Facebook, Pinterest, email and copy the link.
+	 *
+	 * @param WC_Product $product Product.
+	 * @param array|null $picture The first picture of the gallery.
+	 * @return string
+	 */
+	public static function share_html( $product, $picture ) {
+		$url   = $product->get_permalink();
+		$name  = wp_strip_all_tags( $product->get_name() );
+		$links = array(
+			'whatsapp'  => array( 'WhatsApp', 'https://wa.me/?text=' . rawurlencode( $name . ' ' . $url ) ),
+			'facebook'  => array( 'Facebook', 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode( $url ) ),
+			'pinterest' => array( 'Pinterest', 'https://pinterest.com/pin/create/button/?url=' . rawurlencode( $url ) . ( $picture ? '&media=' . rawurlencode( $picture['large'] ) : '' ) . '&description=' . rawurlencode( $name ) ),
+			'email'     => array( __( 'Email', 'atelier-irisee-master-plugin' ), 'mailto:?subject=' . rawurlencode( $name ) . '&body=' . rawurlencode( $url ) ),
+		);
+		$html = '';
+		foreach ( $links as $key => $link ) {
+			$html .= '<a class="aimp-share-link aimp-share-link--' . esc_attr( $key ) . '" href="' . esc_url( $link[1], array( 'https', 'mailto' ) ) . '"' . ( 'email' === $key ? '' : ' target="_blank" rel="noopener noreferrer"' ) . '>' . esc_html( $link[0] ) . '</a>';
+		}
+		$html .= '<button type="button" class="aimp-share-link aimp-share-link--copy" data-aimp-copy="' . esc_url( $url ) . '">' . esc_html__( 'Copy link', 'atelier-irisee-master-plugin' ) . '</button>';
+		return '<div class="aimp-share"><span class="aimp-share-label">' . esc_html__( 'Share', 'atelier-irisee-master-plugin' ) . '</span>' . $html . '</div>';
 	}
 
 	private static function enqueue() {
@@ -827,7 +862,7 @@ class AIMP_Product_Page {
 			// A pack with designs: per design its name, project time and configurator link.
 			'designs'          => $pattern ? self::design_list( $product, ( $configurator && 'publish' === get_post_status( $configurator ) ) ? get_permalink( $configurator ) : '' ) : array(),
 			'fitting'          => $fabric ? self::fitting_patterns( $product ) : ( '' !== $notion ? self::fitting_notion_patterns( $product ) : array() ),
-			'related'          => array_filter( array_map( 'wc_get_product', wc_get_related_products( $product->get_id(), self::RELATED ) ) ),
+			'related'          => array_filter( array_map( 'wc_get_product', wc_get_related_products( $product->get_id(), self::related_count() ) ) ),
 		);
 	}
 
@@ -1068,13 +1103,6 @@ class AIMP_Product_Page {
 	}
 
 	/**
-	 * Gold line icon for a fabric subject: specifications (a round chart for the composition, a thread spool
-	 * for the type, a palette, a width arrow, a weight) and washing (a wash tub, a tumble dryer, an iron, a light bulb for tips).
-	 *
-	 * @param string $subject A subject key of AIMP_Catalog::fabric_text_fields().
-	 * @return string SVG.
-	 */
-	/**
 	 * The brand of a product (WooCommerce Brands), e.g. "YKK"; several are joined with a comma. '' without one.
 	 *
 	 * @param WC_Product $product Product.
@@ -1092,6 +1120,31 @@ class AIMP_Product_Page {
 		return implode( ', ', wp_list_pluck( $terms, 'name' ) );
 	}
 
+	/**
+	 * The page of the product's (first) brand, or ''.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	public static function brand_url( $product ) {
+		if ( ! $product instanceof WC_Product || ! taxonomy_exists( 'product_brand' ) ) {
+			return '';
+		}
+		$terms = get_the_terms( $product->get_parent_id() ? $product->get_parent_id() : $product->get_id(), 'product_brand' );
+		if ( ! $terms || is_wp_error( $terms ) ) {
+			return '';
+		}
+		$link = get_term_link( $terms[0] );
+		return is_wp_error( $link ) ? '' : $link;
+	}
+
+	/**
+	 * Gold line icon for a fabric subject: specifications (a round chart for the composition, a thread spool
+	 * for the type, a palette, a width arrow, a weight) and washing (a wash tub, a tumble dryer, an iron, a light bulb for tips).
+	 *
+	 * @param string $subject A subject key of AIMP_Catalog::fabric_text_fields().
+	 * @return string SVG.
+	 */
 	public static function fabric_icon( $subject ) {
 		$paths = array(
 			'composition' => '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12l6 6"/><path d="M12 12H3.5"/>',
