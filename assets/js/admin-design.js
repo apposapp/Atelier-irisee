@@ -274,7 +274,7 @@
 		});
 		var out = all;
 		if (computer) {
-			out += '@media (min-width:' + (cfg.phone + 1) + 'px){' + computer + '}';
+			out += '@media (min-width:' + (parseInt(cfg.phone, 10) + 1) + 'px){' + computer + '}';
 		}
 		if (phone) {
 			out += '@media (max-width:' + cfg.phone + 'px){' + phone + '}';
