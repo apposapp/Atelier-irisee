@@ -33,7 +33,8 @@
 	var label = document.createElement('div');
 	label.setAttribute('aria-hidden', 'true');
 	label.style.cssText = 'position:fixed;z-index:2147483647;display:none;padding:2px 8px;border-radius:4px;background:#8a6a33;color:#fff;font:600 12px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;max-width:60vw;overflow:hidden;text-overflow:ellipsis';
-	document.documentElement.appendChild(label);
+	// In the body: some browsers (extensions) hide full-screen layers placed directly in <html>.
+	(document.body || document.documentElement).appendChild(label);
 
 	/*
 	 * What changed, drawn over the page: where the part was (dashed), where it is now (gold), an arrow and a label;
@@ -42,7 +43,7 @@
 	var overlay = document.createElement('div');
 	overlay.setAttribute('aria-hidden', 'true');
 	overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483646;pointer-events:none;display:none;transition:opacity .4s ease';
-	document.documentElement.appendChild(overlay);
+	(document.body || document.documentElement).appendChild(overlay);
 	var overlayTimer = 0;
 	function box(r, css) {
 		var d = document.createElement('div');
@@ -127,7 +128,7 @@
 	bands.setAttribute('data-aimp-ds-layer', '');
 	bands.setAttribute('aria-hidden', 'true');
 	bands.style.cssText = 'position:fixed;inset:0;z-index:2147483645;pointer-events:none;display:none';
-	document.documentElement.appendChild(bands);
+	(document.body || document.documentElement).appendChild(bands);
 	var spaceDrag = null;
 	var bandsFrame = 0;
 	function spacingOf(el) {
