@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.32.0
+Stable tag: 3.33.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.33.0 =
+* Design studio, organised like Divi:
+  * Click a text in the preview to change only that text: its words in Dutch, French and English, nothing else. Words that come from your own content (a product name, a category, a page) say so, with a button to edit that product or page in WordPress.
+  * A chosen part has a coloured head with its name and three tabs: Content (the clicked text and the part's own settings), Design (colours, picture, size, space, corners) and Advanced (position, show or hide, animations). Each tab shows its blocks folded, the first one open.
+  * The note "computer or phone settings" only shows when the open tab has such settings.
+  * Texts tab: at first only the texts of the page in the preview (search to find any other text).
 
 = 3.32.0 =
 * Design studio, easier to work with:

@@ -2168,4 +2168,7 @@ return array(
 	'Empty = the standard text. The preview shows your text after a moment; visitors see it after Publish.' => 'Leeg = de standaardtekst. De voorbeeldweergave toont je tekst na een ogenblik; bezoekers zien hem na Publiceren.',
 	'Only the texts on the page in the preview' => 'Alleen de teksten op de pagina in de voorbeeldweergave',
 	'These words come from your own content (a product, a category, a page or a setting), not from the shop texts. Change them where they are made.' => 'Deze woorden komen uit je eigen inhoud (een product, een categorie, een pagina of een instelling), niet uit de winkelteksten. Pas ze aan waar ze gemaakt worden.',
+
+	// Design studio: Divi-like panel
+	'Edit this in WordPress' => 'Dit bewerken in WordPress',
 );

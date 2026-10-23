@@ -132,7 +132,10 @@
 				selected = hit ? hit.id : '';
 				drawMarks();
 				// The part, and the clicked shop text (or that the words clicked are not a shop text).
-				send({ type: 'aimp-design-select', id: hit ? hit.id : '', text: text, textMiss: !text && !!norm(e.target.textContent) });
+				// The page's own post (product, page) for "Edit this in WordPress".
+				// Not for cards of other products, the header, footer or shop lists (they are not this post's words).
+				var post = e.target.closest('.aimp-card, .aimp-header, .aimp-footer, .aimp-shop, .aimp-side-menu') ? null : (document.body.className.match(/(?:^|\s)(?:postid|page-id)-(\d+)/) || [])[1];
+				send({ type: 'aimp-design-select', id: hit ? hit.id : '', text: text, textMiss: !text && !!norm(e.target.textContent), post: post ? parseInt(post, 10) : 0 });
 			}
 			return;
 		}

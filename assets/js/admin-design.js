@@ -46,6 +46,8 @@
 	// The shop text clicked in the preview ({ original, shown }), or that the clicked words are not a shop text.
 	var currentText = null;
 	var currentMiss = false;
+	// The preview's own post (product or page), for "Edit this in WordPress".
+	var currentPost = 0;
 	// The shop texts on the page in the preview (originals), or null.
 	var pageTexts = null;
 	// "Only a text": a click on a shop text outside the registered parts.
@@ -576,6 +578,11 @@
 		if (first) {
 			first.classList.add('is-open');
 		}
+		// "Computer or phone" only when this tab has settings for one screen.
+		var note = q('.aimp-ds-device-note');
+		if (note) {
+			note.hidden = !edit.querySelector('.aimp-ds-group:not(.is-off-tab):not([hidden]) [data-device]');
+		}
 	}
 
 	// The clicked shop text: its words in Dutch, French and English, nothing else.
@@ -587,6 +594,15 @@
 			miss.className = 'description';
 			miss.textContent = t.textMiss;
 			body.appendChild(miss);
+			if (currentPost) {
+				var editLink = document.createElement('a');
+				editLink.className = 'button';
+				editLink.href = cfg.editPost.replace('%d', currentPost);
+				editLink.target = '_blank';
+				editLink.rel = 'noopener';
+				editLink.textContent = t.editPost;
+				body.appendChild(editLink);
+			}
 			return;
 		}
 		if (!currentText) {
@@ -1301,6 +1317,7 @@
 		} else if (e.data.type === 'aimp-design-select' && (cfg.elements[e.data.id] || e.data.text || e.data.textMiss)) {
 			root.querySelector('.aimp-ds-tabs [data-tab="parts"]').click();
 			// A click on a text: that text (in its part); on other words: the part, with a note.
+			currentPost = parseInt(e.data.post, 10) || 0;
 			select(cfg.elements[e.data.id] ? e.data.id : '__text', false, e.data.text && e.data.text.original ? e.data.text : null, e.data.textMiss);
 			var item = list.querySelector('.is-current');
 			if (item) {

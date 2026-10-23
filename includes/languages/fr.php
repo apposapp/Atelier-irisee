@@ -2168,4 +2168,7 @@ return array(
 	'Empty = the standard text. The preview shows your text after a moment; visitors see it after Publish.' => 'Vide = le texte standard. L\'aperçu affiche votre texte après un instant ; les visiteurs le voient après Publier.',
 	'Only the texts on the page in the preview' => 'Seulement les textes de la page dans l\'aperçu',
 	'These words come from your own content (a product, a category, a page or a setting), not from the shop texts. Change them where they are made.' => 'Ces mots viennent de votre propre contenu (un produit, une catégorie, une page ou un réglage), pas des textes de la boutique. Modifiez-les là où ils sont créés.',
+
+	// Design studio: Divi-like panel
+	'Edit this in WordPress' => 'Modifier ceci dans WordPress',
 );
