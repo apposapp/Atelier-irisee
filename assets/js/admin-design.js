@@ -449,7 +449,7 @@
 			}
 		});
 		// In order: the clicked text, the part's own settings, then design and advanced in a fixed order.
-		var home = edit.querySelector('.aimp-ds-groups');
+		var home = groupsHome;
 		home.appendChild(textGroup);
 		controls.filter(function (key) {
 			return DESIGN.indexOf(key) === -1 && ADVANCED.indexOf(key) === -1;
@@ -1212,9 +1212,11 @@
 		});
 		textGroup.classList.toggle('is-open', open);
 	});
+	// The tabs right under the head, the blocks under the tabs.
 	var groupsHome = document.createElement('div');
 	groupsHome.className = 'aimp-ds-groups';
 	edit.appendChild(groupsHome);
+	edit.insertBefore(partTabs, q('.aimp-ds-device-note') || groupsHome);
 	edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
 		groupsHome.appendChild(group);
 	});
