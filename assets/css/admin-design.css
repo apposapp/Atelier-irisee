@@ -811,3 +811,62 @@
 	color: #8a6a33;
 	font-weight: 700;
 }
+
+/* "Change instead": the clicked element and those around it. */
+.aimp-ds-path {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	margin: 0 -12px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--ds-line);
+	background: #faf7f1;
+}
+
+.aimp-ds-path[hidden] {
+	display: none;
+}
+
+.aimp-ds-path-title {
+	margin-right: 2px;
+	color: #646970;
+	font-size: 11px;
+}
+
+.aimp-ds-chip {
+	max-width: 100%;
+	overflow: hidden;
+	padding: 2px 8px;
+	border: 1px solid var(--ds-line);
+	border-radius: 100px;
+	background: #fff;
+	color: #50575e;
+	font-size: 11px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.aimp-ds-chip:hover,
+.aimp-ds-chip:focus-visible {
+	border-color: var(--ds-gold);
+	color: #6b4f1e;
+}
+
+.aimp-ds-chip.is-current {
+	border-color: var(--ds-gold);
+	background: var(--ds-gold);
+	color: #fff;
+}
+
+.aimp-ds-own-note {
+	margin: 8px 0 0;
+	color: #646970;
+	font-size: 12px;
+}
+
+.aimp-ds-undo,
+.aimp-ds-redo {
+	min-width: 0;
+}

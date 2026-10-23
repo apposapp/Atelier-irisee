@@ -1,6 +1,8 @@
 /**
- * Design studio preview (class-aimp-design.php): runs inside the studio's preview frame. A click on a part of the page
- * selects it in the studio; the studio sends the draft's styles while you edit. Links keep the preview on.
+ * Design studio preview (class-aimp-design.php): runs inside the studio's preview frame. A click on the page selects
+ * what is under the mouse in the studio: a part of the shop, or any other element (an own part), with the shop text
+ * that was clicked and the elements around it. The studio sends the draft's styles while you edit. Links keep the
+ * preview on.
  */
 (function () {
 	'use strict';
@@ -11,8 +13,10 @@
 	}
 	var studio = new URL(cfg.origin, window.location.href).origin;
 	var ids = Object.keys(cfg.elements);
+	var names = cfg.names || {};
+	var words = cfg.words || {};
 	var pick = true;
-	var selected = '';
+	var selectedSel = '';
 	var hovered = null;
 
 	var style = document.getElementById('aimp-design-css');
@@ -25,16 +29,24 @@
 	var marks = document.createElement('style');
 	document.head.appendChild(marks);
 
+	// The name of what is under the mouse, at its top left corner.
+	var label = document.createElement('div');
+	label.setAttribute('aria-hidden', 'true');
+	label.style.cssText = 'position:fixed;z-index:2147483647;display:none;padding:2px 8px;border-radius:4px;background:#8a6a33;color:#fff;font:600 12px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;max-width:60vw;overflow:hidden;text-overflow:ellipsis';
+	document.documentElement.appendChild(label);
+
+	// "html body" in front (as AIMP_Design::prefixed()); a selector that starts at body gets only "html".
 	function prefixed(selector, extra) {
 		return selector.split(',').map(function (part) {
-			return 'html body ' + part.trim() + (extra || '');
+			part = part.trim();
+			return (part.indexOf('body') === 0 ? 'html ' : 'html body ') + part + (extra || '');
 		}).join(',');
 	}
 
 	function drawMarks() {
 		var css = '[data-aimp-design-hover]{outline:2px dashed #b38f4f!important;outline-offset:2px;cursor:pointer!important}';
-		if (selected && cfg.elements[selected]) {
-			css += prefixed(cfg.elements[selected]) + '{outline:3px solid #b38f4f!important;outline-offset:3px}';
+		if (selectedSel) {
+			css += prefixed(selectedSel) + '{outline:3px solid #b38f4f!important;outline-offset:3px}';
 		}
 		marks.textContent = pick ? css : '';
 	}
@@ -43,19 +55,113 @@
 		window.parent.postMessage(message, studio);
 	}
 
+	// The registered part that is exactly this element, or ''.
+	function partOf(el) {
+		for (var i = 0; i < ids.length; i++) {
+			try {
+				if (el.matches(cfg.elements[ids[i]])) {
+					return ids[i];
+				}
+			} catch (e) {}
+		}
+		return '';
+	}
+
 	// The innermost registered part around an element.
 	function find(el) {
 		while (el && el.nodeType === 1) {
-			for (var i = 0; i < ids.length; i++) {
-				try {
-					if (el.matches(cfg.elements[ids[i]])) {
-						return { id: ids[i], el: el };
-					}
-				} catch (e) {}
+			var id = partOf(el);
+			if (id) {
+				return { id: id, el: el };
 			}
 			el = el.parentElement;
 		}
 		return null;
+	}
+
+	// What a click on an element means: not an icon's lines or a bold word, but the element they are in.
+	var SMALL = /^(svg|path|g|use|circle|rect|line|polyline|polygon|ellipse|i|b|em|strong|small|br|sup|sub)$/i;
+	function pickable(el) {
+		while (el && el.parentElement && el !== document.body && SMALL.test(el.tagName)) {
+			el = el.parentElement;
+		}
+		return el;
+	}
+
+	function norm(text) {
+		return String(text || '').replace(/\s+/g, ' ').trim();
+	}
+
+	// A name anyone understands: the part's own name, else what kind of thing it is, with its first words.
+	function nameOf(el) {
+		var id = partOf(el);
+		if (id && names[id]) {
+			return names[id];
+		}
+		var cls = ' ' + (typeof el.className === 'string' ? el.className : '') + ' ';
+		var tag = el.tagName.toLowerCase();
+		var kind = /\set_pb_section\s/.test(cls) ? words.section : /\set_pb_row\s/.test(cls) ? words.row : /\set_pb_column\s/.test(cls) ? words.column :
+			/^h[1-6]$/.test(tag) ? words.title : tag === 'p' ? words.paragraph : tag === 'a' ? words.link : tag === 'button' ? words.button :
+			tag === 'img' ? words.picture : tag === 'li' ? words.item : (tag === 'ul' || tag === 'ol') ? words.list : words.block;
+		var text = tag === 'img' ? '' : norm(el.textContent);
+		return (kind || tag) + (text && text.length < 400 ? ' "' + (text.length > 28 ? text.slice(0, 28) + '…' : text) + '"' : '');
+	}
+
+	/*
+	 * A selector for any element: its id, else tags and classes (with :nth-of-type() among equal brothers), up to five
+	 * levels. Inside the page's own content it only counts on this page (body.page-id-… / body.postid-…).
+	 */
+	var SKIP_CLASS = /^(is-|has-|aimp-design|et_animated|et-animated|et_had_animation|et-waypoint|et_pb_section_parallax|active|current|hover|focus|lazy|loaded|swiper-slide-)/;
+	function selectorOf(el) {
+		var parts = [];
+		var node = el;
+		while (node && node.nodeType === 1 && node !== document.body && parts.length < 5) {
+			if (node.id && /^[A-Za-z][\w-]*$/.test(node.id)) {
+				parts.unshift('#' + node.id);
+				break;
+			}
+			var classes = Array.prototype.filter.call(node.classList, function (c) {
+				return /^[A-Za-z][\w-]*$/.test(c) && !SKIP_CLASS.test(c);
+			}).slice(0, 3);
+			var part = node.tagName.toLowerCase() + classes.map(function (c) {
+				return '.' + c;
+			}).join('');
+			var parent = node.parentElement;
+			if (parent) {
+				var same = Array.prototype.filter.call(parent.children, function (s) {
+					return s.tagName === node.tagName;
+				});
+				if (same.length > 1) {
+					part += ':nth-of-type(' + (same.indexOf(node) + 1) + ')';
+				}
+			}
+			parts.unshift(part);
+			node = parent;
+		}
+		var selector = parts.join(' > ');
+		var page = (document.body.className.match(/(?:^|\s)((?:page-id|postid)-\d+)(?:\s|$)/) || [])[1];
+		if (page && !el.closest('.aimp-header, .aimp-footer, .aimp-side-menu, .aimp-tabbar, header, footer')) {
+			selector = 'body.' + page + ' ' + selector;
+		}
+		return selector;
+	}
+
+	// The clicked element and those around it (innermost first): what the studio offers to choose from.
+	function pathOf(el) {
+		var path = [];
+		var node = el;
+		while (node && node.nodeType === 1 && node !== document.body && path.length < 7) {
+			var box = node.getBoundingClientRect();
+			// Leave out wrappers of exactly the same size as the element inside them.
+			var last = path.length ? path[path.length - 1] : null;
+			if (!last || last.part || partOf(node) || Math.abs(box.width - last.w) > 2 || Math.abs(box.height - last.h) > 2) {
+				path.push({ sel: selectorOf(node), name: nameOf(node), part: partOf(node), w: box.width, h: box.height });
+			}
+			node = node.parentElement;
+		}
+		return path.map(function (row) {
+			return { sel: row.sel, name: row.name, part: row.part };
+		});
 	}
 
 	/*
@@ -63,9 +169,6 @@
 	 * class-aimp-design.php). Texts with a number or name in them (%s, %d) are found as a pattern.
 	 */
 	var textIndex = null;
-	function norm(text) {
-		return String(text || '').replace(/\s+/g, ' ').trim();
-	}
 	function buildIndex() {
 		textIndex = { exact: {}, patterns: [] };
 		(window.aimpDesignTexts || []).forEach(function (row) {
@@ -107,36 +210,76 @@
 		return null;
 	}
 
+	// The element a click selects: the shop part around it, else the element itself.
+	function target(el) {
+		var hit = find(el);
+		return hit ? hit.el : pickable(el);
+	}
+
 	document.addEventListener('mouseover', function (e) {
 		if (!pick) {
 			return;
 		}
-		var hit = find(e.target);
-		if (hovered && (!hit || hit.el !== hovered)) {
+		var el = target(e.target);
+		if (hovered && hovered !== el) {
 			hovered.removeAttribute('data-aimp-design-hover');
 			hovered = null;
 		}
-		if (hit && hit.el !== hovered) {
-			hovered = hit.el;
+		if (el && el !== document.body && el !== document.documentElement) {
+			hovered = el;
 			hovered.setAttribute('data-aimp-design-hover', '');
+			var box = el.getBoundingClientRect();
+			label.textContent = nameOf(el);
+			label.style.display = 'block';
+			label.style.left = Math.max(0, Math.min(box.left, window.innerWidth - 160)) + 'px';
+			label.style.top = (box.top > 24 ? box.top - 22 : Math.max(0, box.top) + 2) + 'px';
+		} else {
+			label.style.display = 'none';
 		}
 	}, true);
+	document.addEventListener('mouseleave', function () {
+		label.style.display = 'none';
+	});
 
 	document.addEventListener('click', function (e) {
 		if (pick) {
-			var hit = find(e.target);
-			var text = textAt(e.target);
 			e.preventDefault();
 			e.stopPropagation();
-			if (hit || text) {
-				selected = hit ? hit.id : '';
-				drawMarks();
-				// The part, and the clicked shop text (or that the words clicked are not a shop text).
-				// The page's own post (product, page) for "Edit this in WordPress".
-				// Not for cards of other products, the header, footer or shop lists (they are not this post's words).
-				var post = e.target.closest('.aimp-card, .aimp-header, .aimp-footer, .aimp-shop, .aimp-side-menu') ? null : (document.body.className.match(/(?:^|\s)(?:postid|page-id)-(\d+)/) || [])[1];
-				send({ type: 'aimp-design-select', id: hit ? hit.id : '', text: text, textMiss: !text && !!norm(e.target.textContent), post: post ? parseInt(post, 10) : 0 });
+			var hit = find(e.target);
+			var inner = pickable(e.target);
+			if (!inner || inner === document.body) {
+				return;
 			}
+			var text = textAt(e.target);
+			var path = pathOf(inner);
+			// The shop part when there is one; the studio also offers the elements inside and around it.
+			var chosen = 0;
+			if (hit) {
+				path.forEach(function (row, i) {
+					if (row.part === hit.id && !chosen) {
+						chosen = i;
+					}
+				});
+				if (!path[chosen] || path[chosen].part !== hit.id) {
+					path.push({ sel: cfg.elements[hit.id], name: names[hit.id] || hit.id, part: hit.id });
+					chosen = path.length - 1;
+				}
+			}
+			selectedSel = path[chosen].part ? cfg.elements[path[chosen].part] : path[chosen].sel;
+			drawMarks();
+			// The page's own post (product, page) for "Edit this in WordPress"; not for cards of other products, the
+			// header, footer or shop lists (they are not this post's words).
+			var post = e.target.closest('.aimp-card, .aimp-header, .aimp-footer, .aimp-shop, .aimp-side-menu') ? null : (document.body.className.match(/(?:^|\s)(?:postid|page-id)-(\d+)/) || [])[1];
+			send({
+				type: 'aimp-design-select',
+				id: path[chosen].part,
+				path: path,
+				chosen: chosen,
+				text: text,
+				textMiss: !text && !!norm(e.target.textContent),
+				post: post ? parseInt(post, 10) : 0,
+				divi: !!document.querySelector('#et-boc .et_pb_section, .et-l--post .et_pb_section')
+			});
 			return;
 		}
 		// Browsing: links on this site stay in the preview.
@@ -172,15 +315,20 @@
 				hovered.removeAttribute('data-aimp-design-hover');
 				hovered = null;
 			}
+			label.style.display = 'none';
 			drawMarks();
 		} else if (data.type === 'aimp-design-show') {
-			selected = data.id || '';
+			// A part chosen in the studio (registered, or an own part with its selector).
+			selectedSel = data.selector || (data.id && cfg.elements[data.id] ? cfg.elements[data.id] : '');
 			drawMarks();
-			var el = selected && cfg.elements[selected] ? document.querySelector(cfg.elements[selected]) : null;
-			if (el) {
+			var el = null;
+			try {
+				el = selectedSel ? document.querySelector(prefixed(selectedSel)) : null;
+			} catch (err) {}
+			if (el && data.scroll !== false) {
 				el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 			}
-			send({ type: 'aimp-design-found', id: selected, found: !!el });
+			send({ type: 'aimp-design-found', id: data.id || '', found: !!el });
 		}
 	});
 
@@ -205,6 +353,7 @@
 		send({
 			type: 'aimp-design-ready',
 			url: window.location.href,
+			title: document.title,
 			present: present,
 			texts: (window.aimpDesignTexts || []).map(function (row) {
 				return row[0];

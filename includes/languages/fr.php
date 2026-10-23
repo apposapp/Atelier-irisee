@@ -2171,4 +2171,30 @@ return array(
 
 	// Design studio: Divi-like panel
 	'Edit this in WordPress' => 'Modifier ceci dans WordPress',
+
+	// Design studio: click anything
+	'ALL CAPITALS' => 'TOUT EN MAJUSCULES',
+	'Alignment' => 'Alignement',
+	'An element you clicked: these settings count for this element on this page (header and footer: on every page).' => 'Un élément que vous avez cliqué : ces réglages valent pour cet élément sur cette page (en-tête et pied de page : sur chaque page).',
+	'Block' => 'Bloc',
+	'Blog posts' => 'Articles de blog',
+	'Capitals' => 'Majuscules',
+	'Change instead:' => 'Ou modifiez :',
+	'Column' => 'Colonne',
+	'Half bold' => 'Demi-gras',
+	'Link' => 'Lien',
+	'List' => 'Liste',
+	'List item' => 'Élément de liste',
+	'Normal' => 'Normal',
+	'Normal letters' => 'Lettres normales',
+	'Open this page in the Divi builder' => 'Ouvrir cette page dans le Divi Builder',
+	'Pages' => 'Pages',
+	'Paragraph' => 'Paragraphe',
+	'Redo' => 'Rétablir',
+	'Row' => 'Rangée',
+	'Section' => 'Section',
+	'Text style' => 'Style du texte',
+	'This page' => 'Cette page',
+	'Undo' => 'Annuler',
+	'Your own picks' => 'Vos propres choix',
 );

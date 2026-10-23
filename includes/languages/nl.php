@@ -2171,4 +2171,30 @@ return array(
 
 	// Design studio: Divi-like panel
 	'Edit this in WordPress' => 'Dit bewerken in WordPress',
+
+	// Design studio: click anything
+	'ALL CAPITALS' => 'ALLEMAAL HOOFDLETTERS',
+	'Alignment' => 'Uitlijning',
+	'An element you clicked: these settings count for this element on this page (header and footer: on every page).' => 'Een element dat je aanklikte: deze instellingen gelden voor dit element op deze pagina (header en footer: op elke pagina).',
+	'Block' => 'Blok',
+	'Blog posts' => 'Blogberichten',
+	'Capitals' => 'Hoofdletters',
+	'Change instead:' => 'Of pas aan:',
+	'Column' => 'Kolom',
+	'Half bold' => 'Halfvet',
+	'Link' => 'Link',
+	'List' => 'Lijst',
+	'List item' => 'Lijstonderdeel',
+	'Normal' => 'Normaal',
+	'Normal letters' => 'Gewone letters',
+	'Open this page in the Divi builder' => 'Deze pagina openen in de Divi-builder',
+	'Pages' => 'Pagina\'s',
+	'Paragraph' => 'Alinea',
+	'Redo' => 'Opnieuw',
+	'Row' => 'Rij',
+	'Section' => 'Sectie',
+	'Text style' => 'Tekststijl',
+	'This page' => 'Deze pagina',
+	'Undo' => 'Ongedaan maken',
+	'Your own picks' => 'Je eigen keuzes',
 );

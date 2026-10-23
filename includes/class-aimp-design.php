@@ -146,7 +146,7 @@ class AIMP_Design {
 		);
 		// Which settings a part has: every part can be moved, sized, spaced, hidden, coloured and calmed down; boxes
 		// also get rounded corners, and parts with pictures a picture and focal point.
-		$text    = array( 'move', 'size', 'space', 'hide', 'colors', 'anim' );
+		$text    = array( 'move', 'size', 'space', 'hide', 'colors', 'typo', 'anim' );
 		$box     = array_merge( $text, array( 'radius' ) );
 		$picture = array_merge( $box, array( 'image' ) );
 		$texts   = array( 'header-menu-bar', 'hero-title', 'hero-text', 'kit-steps-title', 'overview-hero', 'card-name', 'card-price', 'product-title', 'product-brand', 'product-subtitle', 'product-price', 'config-title', 'account-title', 'account-hello', 'footer-title', 'footer-bottom', 'hero-arrow' );
@@ -265,6 +265,13 @@ class AIMP_Design {
 				'color'  => 'color',
 				'bg'     => 'color',
 				'border' => 'color',
+			),
+			// Text style: size, weight, alignment, capitals (the part and the text in it).
+			'typo'       => array(
+				'fsize'   => array( 0, 120, 0 ),
+				'fweight' => array( 'select', array( '', '300', '400', '600', '700' ) ),
+				'talign'  => array( 'select', array( '', 'left', 'center', 'right' ) ),
+				'tcase'   => array( 'select', array( '', 'upper', 'normal' ) ),
 			),
 			'radius'     => array( 'radius' => array( 0, 200, 0 ) ),
 			'image'      => array(
@@ -923,11 +930,64 @@ class AIMP_Design {
 	 * @param string $id Part.
 	 * @return array
 	 */
+	/**
+	 * An own part: any element of a page, clicked in the preview ("el_" and 8 characters; its selector and name are
+	 * stored with its settings).
+	 *
+	 * @param string $id Part.
+	 * @return bool
+	 */
+	public static function is_own( $id ) {
+		return (bool) preg_match( '/^el_[a-f0-9]{8}$/', (string) $id );
+	}
+
+	/** The settings of an own part. */
+	public static function own_controls() {
+		return array( 'typo', 'colors', 'image', 'size', 'space', 'radius', 'move', 'hide', 'anim' );
+	}
+
+	/**
+	 * A selector made by the studio's preview: classes, ids, tags, :nth-of-type() and > only.
+	 *
+	 * @param mixed $selector Selector.
+	 * @return string '' when it is not one.
+	 */
+	public static function clean_selector( $selector ) {
+		$selector = trim( preg_replace( '/\s+/', ' ', (string) $selector ) );
+		if ( '' === $selector || strlen( $selector ) > 400 || ! preg_match( '/^[A-Za-z0-9_\-.#:()\s>+\x7e*]+$/', $selector ) ) {
+			return '';
+		}
+		return $selector;
+	}
+
+	/**
+	 * A part of the registry, or an own part made from its stored row; null when unknown.
+	 *
+	 * @param string $id       Part.
+	 * @param array  $row      Its settings.
+	 * @param array  $elements The registry.
+	 * @return array|null
+	 */
+	private static function element_of( $id, $row, $elements ) {
+		if ( isset( $elements[ $id ] ) ) {
+			return $elements[ $id ];
+		}
+		if ( self::is_own( $id ) && is_array( $row ) && ! empty( $row['sel'] ) ) {
+			return array(
+				'group'    => '',
+				'label'    => isset( $row['name'] ) ? (string) $row['name'] : '',
+				'selector' => (string) $row['sel'],
+				'controls' => self::own_controls(),
+			);
+		}
+		return null;
+	}
+
 	public static function fields( $id ) {
 		$elements = self::elements();
 		$groups   = self::groups();
 		$fields   = array();
-		foreach ( isset( $elements[ $id ] ) ? $elements[ $id ]['controls'] : array() as $group ) {
+		foreach ( isset( $elements[ $id ] ) ? $elements[ $id ]['controls'] : ( self::is_own( $id ) ? self::own_controls() : array() ) as $group ) {
 			if ( isset( $groups[ $group ] ) ) {
 				$fields = array_merge( $fields, $groups[ $group ] );
 			}
@@ -945,7 +1005,12 @@ class AIMP_Design {
 		$clean    = array();
 		$elements = self::elements();
 		foreach ( is_array( $styles ) ? $styles : array() as $id => $values ) {
-			if ( ! isset( $elements[ $id ] ) || ! is_array( $values ) ) {
+			if ( ( ! isset( $elements[ $id ] ) && ! self::is_own( $id ) ) || ! is_array( $values ) ) {
+				continue;
+			}
+			// An own part keeps where it is (its selector) and its name.
+			$own_selector = self::is_own( $id ) ? self::clean_selector( isset( $values['sel'] ) ? $values['sel'] : '' ) : '';
+			if ( self::is_own( $id ) && '' === $own_selector ) {
 				continue;
 			}
 			$row = array();
@@ -1016,6 +1081,11 @@ class AIMP_Design {
 				}
 			}
 			if ( $row ) {
+				if ( '' !== $own_selector ) {
+					$name        = isset( $values['name'] ) ? sanitize_text_field( (string) $values['name'] ) : '';
+					$row['sel']  = $own_selector;
+					$row['name'] = function_exists( 'mb_substr' ) ? mb_substr( $name, 0, 80 ) : substr( $name, 0, 80 );
+				}
 				$clean[ $id ] = $row;
 			}
 		}
@@ -1257,7 +1327,8 @@ class AIMP_Design {
 			',',
 			array_map(
 				function ( $part ) use ( $extra ) {
-					return 'html body ' . trim( $part ) . $extra;
+					$part = trim( $part );
+					return ( 0 === strpos( $part, 'body' ) ? 'html ' : 'html body ' ) . $part . $extra;
 				},
 				explode( ',', $selector )
 			)
@@ -1276,11 +1347,12 @@ class AIMP_Design {
 		$computer = '';
 		$phone    = '';
 		foreach ( $styles as $id => $row ) {
+			$element = self::element_of( $id, $row, $elements );
 			// "Whole site" parts have no selector: site_css() makes their CSS.
-			if ( ! isset( $elements[ $id ] ) || '' === $elements[ $id ]['selector'] ) {
+			if ( ! $element || '' === $element['selector'] ) {
 				continue;
 			}
-			$base     = $elements[ $id ]['selector'];
+			$base     = $element['selector'];
 			$selector = self::prefixed( $base );
 			$common   = '';
 			foreach ( array( 'color' => 'color', 'bg' => 'background-color', 'border' => 'border-color' ) as $key => $property ) {
@@ -1293,6 +1365,23 @@ class AIMP_Design {
 			}
 			if ( '' !== $common ) {
 				$all .= $selector . '{' . $common . '}';
+			}
+			// Text style: the part and the text in it.
+			$typo = '';
+			if ( ! empty( $row['fsize'] ) ) {
+				$typo .= 'font-size:' . (int) $row['fsize'] . 'px!important;';
+			}
+			if ( ! empty( $row['fweight'] ) ) {
+				$typo .= 'font-weight:' . (int) $row['fweight'] . '!important;';
+			}
+			if ( ! empty( $row['tcase'] ) ) {
+				$typo .= 'text-transform:' . ( 'upper' === $row['tcase'] ? 'uppercase' : 'none' ) . '!important;';
+			}
+			if ( '' !== $typo ) {
+				$all .= $selector . ',' . self::prefixed( $base, ' *' ) . '{' . $typo . '}';
+			}
+			if ( ! empty( $row['talign'] ) && in_array( $row['talign'], array( 'left', 'center', 'right' ), true ) ) {
+				$all .= $selector . '{text-align:' . $row['talign'] . '!important}';
 			}
 			// The picture: the part itself when it is a picture, else the pictures in it.
 			$images = self::prefixed( $base, ':is(img)' ) . ',' . self::prefixed( $base, ' img' );
@@ -2017,8 +2106,9 @@ class AIMP_Design {
 		$elements = self::elements();
 		$speeds   = array();
 		foreach ( $styles as $id => $row ) {
-			if ( isset( $elements[ $id ], $row['speed'] ) && empty( $row['noanim'] ) ) {
-				$speeds[ $elements[ $id ]['selector'] ] = (int) $row['speed'];
+			$element = self::element_of( $id, $row, $elements );
+			if ( $element && '' !== $element['selector'] && isset( $row['speed'] ) && empty( $row['noanim'] ) ) {
+				$speeds[ $element['selector'] ] = (int) $row['speed'];
 			}
 		}
 		return $speeds;
@@ -2118,8 +2208,23 @@ class AIMP_Design {
 				'origin'   => admin_url(),
 				'param'    => self::PREVIEW,
 				'phone'    => self::PHONE,
-				// Parts of the page only ("Whole site" has nothing to click).
+				// Parts of the page only ("Whole site" has nothing to click), with their names for the label under the mouse.
 				'elements' => array_filter( wp_list_pluck( self::elements(), 'selector' ) ),
+				'names'    => wp_list_pluck( self::elements(), 'label' ),
+				// Names for other elements.
+				'words'    => array(
+					'section'   => __( 'Section', 'atelier-irisee-master-plugin' ),
+					'row'       => __( 'Row', 'atelier-irisee-master-plugin' ),
+					'column'    => __( 'Column', 'atelier-irisee-master-plugin' ),
+					'title'     => __( 'Title', 'atelier-irisee-master-plugin' ),
+					'paragraph' => __( 'Paragraph', 'atelier-irisee-master-plugin' ),
+					'link'      => __( 'Link', 'atelier-irisee-master-plugin' ),
+					'button'    => __( 'Button', 'atelier-irisee-master-plugin' ),
+					'picture'   => __( 'Picture', 'atelier-irisee-master-plugin' ),
+					'item'      => __( 'List item', 'atelier-irisee-master-plugin' ),
+					'list'      => __( 'List', 'atelier-irisee-master-plugin' ),
+					'block'     => __( 'Block', 'atelier-irisee-master-plugin' ),
+				),
 			)
 		);
 	}
@@ -2180,6 +2285,36 @@ class AIMP_Design {
 		if ( $favorites && 'publish' === get_post_status( $favorites ) ) {
 			$pages[] = array( __( 'Favourites', 'atelier-irisee-master-plugin' ), get_permalink( $favorites ) );
 		}
+		// Every other published page (e.g. a start page), A to Z, and the latest blog posts.
+		$known = array_map( 'untrailingslashit', wp_list_pluck( $pages, 1 ) );
+		$more  = array(
+			__( 'Pages', 'atelier-irisee-master-plugin' )      => get_posts(
+				array(
+					'post_type'      => 'page',
+					'post_status'    => 'publish',
+					'posts_per_page' => 200,
+					'orderby'        => 'title',
+					'order'          => 'ASC',
+				)
+			),
+			__( 'Blog posts', 'atelier-irisee-master-plugin' ) => get_posts(
+				array(
+					'post_type'      => 'post',
+					'post_status'    => 'publish',
+					'posts_per_page' => 20,
+				)
+			),
+		);
+		foreach ( $more as $group => $posts ) {
+			foreach ( $posts as $post ) {
+				$url = get_permalink( $post );
+				if ( $url && ! in_array( untrailingslashit( $url ), $known, true ) ) {
+					$known[] = untrailingslashit( $url );
+					$title   = wp_strip_all_tags( get_the_title( $post ) );
+					$pages[] = array( '' !== $title ? $title : '#' . $post->ID, $url, $group );
+				}
+			}
+		}
 		return $pages;
 	}
 
@@ -2236,6 +2371,14 @@ class AIMP_Design {
 						'textMiss'    => __( 'These words come from your own content (a product, a category, a page or a setting), not from the shop texts. Change them where they are made.', 'atelier-irisee-master-plugin' ),
 						'textsOnPage' => __( 'Only the texts on the page in the preview', 'atelier-irisee-master-plugin' ),
 						'editPost'    => __( 'Edit this in WordPress', 'atelier-irisee-master-plugin' ),
+						'diviBuilder' => __( 'Open this page in the Divi builder', 'atelier-irisee-master-plugin' ),
+						'ownParts'    => __( 'Your own picks', 'atelier-irisee-master-plugin' ),
+						'ownScope'    => __( 'An element you clicked: these settings count for this element on this page (header and footer: on every page).', 'atelier-irisee-master-plugin' ),
+						'pathTitle'   => __( 'Change instead:', 'atelier-irisee-master-plugin' ),
+						'undo'        => __( 'Undo', 'atelier-irisee-master-plugin' ),
+						'redo'        => __( 'Redo', 'atelier-irisee-master-plugin' ),
+						'shopPages'   => __( 'Shop', 'atelier-irisee-master-plugin' ),
+						'thisPageNow' => __( 'This page', 'atelier-irisee-master-plugin' ),
 						'deviceComputer' => __( 'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.', 'atelier-irisee-master-plugin' ),
 						'devicePhone' => __( 'Showing the settings for phones. Click "Computer" at the top for the computer settings.', 'atelier-irisee-master-plugin' ),
 						'choose'      => __( 'Choose a picture', 'atelier-irisee-master-plugin' ),
@@ -2389,6 +2532,40 @@ class AIMP_Design {
 		self::color( 'color', __( 'Text colour', 'atelier-irisee-master-plugin' ) );
 		self::color( 'bg', __( 'Background', 'atelier-irisee-master-plugin' ) );
 		self::color( 'border', __( 'Border colour', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'typo', __( 'Text style', 'atelier-irisee-master-plugin' ) );
+		self::number( 'fsize', __( 'Text size (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 120, 'px' );
+		self::choice(
+			'fweight',
+			__( 'Thickness', 'atelier-irisee-master-plugin' ),
+			array(
+				''    => $standard,
+				'300' => __( 'Thin', 'atelier-irisee-master-plugin' ),
+				'400' => __( 'Normal', 'atelier-irisee-master-plugin' ),
+				'600' => __( 'Half bold', 'atelier-irisee-master-plugin' ),
+				'700' => __( 'Bold', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'talign',
+			__( 'Alignment', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => $standard,
+				'left'   => __( 'Left', 'atelier-irisee-master-plugin' ),
+				'center' => __( 'Centre', 'atelier-irisee-master-plugin' ),
+				'right'  => __( 'Right', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'tcase',
+			__( 'Capitals', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => $standard,
+				'upper'  => __( 'ALL CAPITALS', 'atelier-irisee-master-plugin' ),
+				'normal' => __( 'Normal letters', 'atelier-irisee-master-plugin' ),
+			)
+		);
 		echo '</fieldset>';
 
 		$group( 'radius', __( 'Rounded corners', 'atelier-irisee-master-plugin' ) );

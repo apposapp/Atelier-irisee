@@ -52,6 +52,36 @@
 	var pageTexts = null;
 	// "Only a text": a click on a shop text outside the registered parts.
 	cfg.elements.__text = { group: '', label: t.textOnly, selector: '', controls: [] };
+	// Own parts: any element clicked in the preview ("el_…"; their selector and name are kept with their settings).
+	var OWN_CONTROLS = ['typo', 'colors', 'image', 'size', 'space', 'radius', 'move', 'hide', 'anim'];
+	function registerOwn(id, selector, name) {
+		cfg.elements[id] = { group: t.ownParts, label: name || id, selector: selector, controls: OWN_CONTROLS, own: true };
+	}
+	[cfg.live || {}, cfg.draft || {}].forEach(function (styles) {
+		Object.keys(styles).forEach(function (id) {
+			if (/^el_[a-f0-9]{8}$/.test(id) && styles[id].sel) {
+				registerOwn(id, styles[id].sel, styles[id].name);
+			}
+		});
+	});
+	// The own part for an element of the preview (the same one when it was picked before).
+	function ownFor(entry) {
+		var found = '';
+		Object.keys(cfg.elements).forEach(function (id) {
+			if (cfg.elements[id].own && cfg.elements[id].selector === entry.sel) {
+				found = id;
+			}
+		});
+		if (!found) {
+			found = 'el_' + ('00000000' + Math.floor(Math.random() * 4294967295).toString(16)).slice(-8);
+			registerOwn(found, entry.sel, entry.name);
+		}
+		return found;
+	}
+	// What was clicked in the preview and what is around it (innermost first), the page's address.
+	var lastPath = [];
+	var frameUrl = '';
+	var currentDivi = false;
 
 	function clone(value) {
 		return JSON.parse(JSON.stringify(value || {}));
@@ -145,7 +175,8 @@
 
 	function prefixed(selector, extra) {
 		return selector.split(',').map(function (part) {
-			return 'html body ' + part.trim() + (extra || '');
+			part = part.trim();
+			return (part.indexOf('body') === 0 ? 'html ' : 'html body ') + part + (extra || '');
 		}).join(',');
 	}
 
@@ -173,6 +204,22 @@
 			}
 			if (common) {
 				all += sel + '{' + common + '}';
+			}
+			var typo = '';
+			if (row.fsize) {
+				typo += 'font-size:' + parseInt(row.fsize, 10) + 'px!important;';
+			}
+			if (row.fweight) {
+				typo += 'font-weight:' + parseInt(row.fweight, 10) + '!important;';
+			}
+			if (row.tcase) {
+				typo += 'text-transform:' + (row.tcase === 'upper' ? 'uppercase' : 'none') + '!important;';
+			}
+			if (typo) {
+				all += sel + ',' + prefixed(base, ' *') + '{' + typo + '}';
+			}
+			if (row.talign === 'left' || row.talign === 'center' || row.talign === 'right') {
+				all += sel + '{text-align:' + row.talign + '!important}';
 			}
 			var image = '';
 			if (row.img && images[row.img]) {
@@ -353,6 +400,15 @@
 		list.appendChild(fold);
 	}
 
+	// Whether a selector is found on the page in the preview (the same site, so the studio can look).
+	function onPage(selector) {
+		try {
+			return !!(frame.contentDocument && frame.contentDocument.querySelector(prefixed(selector)));
+		} catch (e) {
+			return false;
+		}
+	}
+
 	function renderList() {
 		var term = search.value.trim().toLowerCase();
 		var site = [];
@@ -365,7 +421,7 @@
 			}
 			if (!el.selector) {
 				site.push(id);
-			} else if (!present || present.indexOf(id) !== -1) {
+			} else if (!present || present.indexOf(id) !== -1 || (el.own && onPage(el.selector))) {
 				here.push(id);
 			} else {
 				other.push(id);
@@ -408,13 +464,16 @@
 
 	// A chosen part: only its settings, without the list (‹ All parts goes back).
 	function select(id, scroll, text, miss) {
+		if (scroll) {
+			lastPath = [];
+		}
 		current = id;
 		currentText = text || null;
 		currentMiss = !!miss && !text;
 		renderList();
 		showEdit();
-		if (scroll && cfg.elements[id].selector) {
-			toFrame({ type: 'aimp-design-show', id: id });
+		if (cfg.elements[id] && cfg.elements[id].selector) {
+			toFrame({ type: 'aimp-design-show', id: id, selector: cfg.elements[id].selector, scroll: !!scroll });
 		}
 	}
 
@@ -463,6 +522,7 @@
 		});
 		textGroup.hidden = !currentText && !currentMiss;
 		renderTextGroup();
+		renderPath();
 		// The tabs that have something; a clicked text opens on Content.
 		var filled = {};
 		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
@@ -541,11 +601,24 @@
 		if (!current) {
 			return;
 		}
+		remember();
 		var row = draft[current] || {};
 		if (value === '' || value === null || value === false || (Array.isArray(value) && !value.length) || (typeof value === 'number' && value === neutral(key))) {
 			delete row[key];
 		} else {
 			row[key] = value;
+		}
+		if (cfg.elements[current] && cfg.elements[current].own) {
+			var real = Object.keys(row).filter(function (k) {
+				return k !== 'sel' && k !== 'name';
+			});
+			if (real.length) {
+				row.sel = cfg.elements[current].selector;
+				row.name = cfg.elements[current].label;
+			} else {
+				delete row.sel;
+				delete row.name;
+			}
 		}
 		if (Object.keys(row).length) {
 			draft[current] = row;
@@ -556,6 +629,119 @@
 		save(reloads(key));
 		renderList();
 		markGroups();
+	}
+
+	/* ---------------- undo and redo ---------------- */
+
+	var undoStack = [];
+	var redoStack = [];
+	var lastSnap = 0;
+	function snapshot() {
+		return JSON.stringify({ d: draft, x: draftTexts });
+	}
+	// Before a change: what it was (one step per burst of changes, e.g. dragging a slider).
+	function remember() {
+		var now = Date.now();
+		if (now - lastSnap > 800) {
+			undoStack.push(snapshot());
+			if (undoStack.length > 60) {
+				undoStack.shift();
+			}
+			redoStack = [];
+		}
+		lastSnap = now;
+		updateUndo();
+	}
+	function restore(snap) {
+		var s = JSON.parse(snap);
+		var textsDiffer = JSON.stringify(s.x) !== JSON.stringify(draftTexts);
+		draft = s.d;
+		draftTexts = s.x;
+		Object.keys(draft).forEach(function (id) {
+			if (/^el_[a-f0-9]{8}$/.test(id) && draft[id].sel && !cfg.elements[id]) {
+				registerOwn(id, draft[id].sel, draft[id].name);
+			}
+		});
+		lastSnap = 0;
+		showEdit();
+		renderList();
+		sendCss();
+		save(textsDiffer);
+		updateUndo();
+	}
+	function undo() {
+		if (undoStack.length) {
+			redoStack.push(snapshot());
+			restore(undoStack.pop());
+		}
+	}
+	function redo() {
+		if (redoStack.length) {
+			undoStack.push(snapshot());
+			restore(redoStack.pop());
+		}
+	}
+	var undoButton = document.createElement('button');
+	undoButton.type = 'button';
+	undoButton.className = 'button aimp-ds-undo';
+	undoButton.textContent = '↶ ' + t.undo;
+	undoButton.title = t.undo + ' (Ctrl+Z)';
+	var redoButton = document.createElement('button');
+	redoButton.type = 'button';
+	redoButton.className = 'button aimp-ds-redo';
+	redoButton.textContent = '↷ ' + t.redo;
+	redoButton.title = t.redo + ' (Ctrl+Shift+Z)';
+	q('.aimp-ds-status').parentNode.insertBefore(undoButton, q('.aimp-ds-status'));
+	q('.aimp-ds-status').parentNode.insertBefore(redoButton, q('.aimp-ds-status'));
+	undoButton.addEventListener('click', undo);
+	redoButton.addEventListener('click', redo);
+	function updateUndo() {
+		undoButton.disabled = !undoStack.length;
+		redoButton.disabled = !redoStack.length;
+	}
+	updateUndo();
+	document.addEventListener('keydown', function (e) {
+		if (!(e.ctrlKey || e.metaKey) || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
+			return;
+		}
+		var key = e.key.toLowerCase();
+		if (key === 'z' || key === 'y') {
+			e.preventDefault();
+			if (key === 'y' || e.shiftKey) {
+				redo();
+			} else {
+				undo();
+			}
+		}
+	});
+
+	// "Change instead": what was clicked and what is around it, as buttons (outermost first).
+	function renderPath() {
+		pathBox.innerHTML = '';
+		var el = cfg.elements[current];
+		ownNote.hidden = !(el && el.own);
+		if (lastPath.length < 2) {
+			pathBox.hidden = true;
+			return;
+		}
+		pathBox.hidden = false;
+		var title = document.createElement('span');
+		title.className = 'aimp-ds-path-title';
+		title.textContent = t.pathTitle;
+		pathBox.appendChild(title);
+		lastPath.slice().reverse().forEach(function (entry) {
+			var chip = document.createElement('button');
+			chip.type = 'button';
+			chip.className = 'aimp-ds-chip';
+			var on = entry.part ? entry.part === current : !!(el && el.own && el.selector === entry.sel);
+			chip.classList.toggle('is-current', on);
+			chip.textContent = entry.part && cfg.elements[entry.part] ? cfg.elements[entry.part].label : entry.name;
+			chip.addEventListener('click', function () {
+				var id = entry.part && cfg.elements[entry.part] ? entry.part : ownFor(entry);
+				select(id, false, currentText, currentMiss);
+			});
+			pathBox.appendChild(chip);
+		});
 	}
 
 	// A tab of the chosen part: its blocks, the first one open.
@@ -602,6 +788,18 @@
 				editLink.rel = 'noopener';
 				editLink.textContent = t.editPost;
 				body.appendChild(editLink);
+			}
+			if (currentDivi && frameUrl) {
+				var builder = new URL(frameUrl);
+				builder.searchParams.delete(cfg.param);
+				builder.searchParams.set('et_fb', '1');
+				var diviLink = document.createElement('a');
+				diviLink.className = 'button';
+				diviLink.href = builder.toString();
+				diviLink.target = '_blank';
+				diviLink.rel = 'noopener';
+				diviLink.textContent = t.diviBuilder;
+				body.appendChild(diviLink);
 			}
 			return;
 		}
@@ -809,6 +1007,7 @@
 
 	q('.aimp-ds-reset-one').addEventListener('click', function () {
 		if (current) {
+			remember();
 			delete draft[current];
 			showEdit();
 			sendCss();
@@ -899,6 +1098,7 @@
 				input.placeholder = pair[1];
 				input.value = draftTexts[original] && draftTexts[original][lang] ? draftTexts[original][lang] : '';
 				input.addEventListener('input', function () {
+					remember();
 					var value = input.value;
 					var ok = value.trim() === '' || codes(value).join() === need.join();
 					input.classList.toggle('is-wrong', !ok);
@@ -1229,6 +1429,15 @@
 		textGroup.classList.toggle('is-open', open);
 	});
 	// The tabs right under the head, the blocks under the tabs.
+	var pathBox = document.createElement('div');
+	pathBox.className = 'aimp-ds-path';
+	pathBox.hidden = true;
+	q('.aimp-ds-edit-head').insertAdjacentElement('afterend', pathBox);
+	var ownNote = document.createElement('p');
+	ownNote.className = 'aimp-ds-own-note';
+	ownNote.textContent = t.ownScope;
+	ownNote.hidden = true;
+	pathBox.insertAdjacentElement('afterend', ownNote);
 	var groupsHome = document.createElement('div');
 	groupsHome.className = 'aimp-ds-groups';
 	edit.appendChild(groupsHome);
@@ -1250,12 +1459,39 @@
 	/* ---------------- the preview ---------------- */
 
 	var pageSelect = q('.aimp-ds-page');
+	var pageGroups = {};
 	cfg.pages.forEach(function (page) {
+		var group = page[2] || t.shopPages;
+		if (!pageGroups[group]) {
+			pageGroups[group] = document.createElement('optgroup');
+			pageGroups[group].label = group;
+			pageSelect.appendChild(pageGroups[group]);
+		}
 		var o = document.createElement('option');
 		o.value = page[1];
 		o.textContent = page[0];
-		pageSelect.appendChild(o);
+		pageGroups[group].appendChild(o);
 	});
+	var hereOption = null;
+	function showPageInList(url, title) {
+		var clean = new URL(url);
+		clean.searchParams.delete(cfg.param);
+		var key = clean.toString().replace(/\/$/, '');
+		var match = Array.prototype.filter.call(pageSelect.options, function (o) {
+			return o !== hereOption && o.value.replace(/\/$/, '') === key;
+		})[0];
+		if (match) {
+			pageSelect.value = match.value;
+			return;
+		}
+		if (!hereOption) {
+			hereOption = document.createElement('option');
+			pageSelect.insertBefore(hereOption, pageSelect.firstChild);
+		}
+		hereOption.value = clean.toString();
+		hereOption.textContent = t.thisPageNow + ': ' + (title || clean.pathname);
+		pageSelect.value = hereOption.value;
+	}
 
 	function load(url) {
 		var u = new URL(url, window.location.href);
@@ -1305,6 +1541,10 @@
 			// The parts and shop texts on this page: the lists show those first.
 			present = Array.isArray(e.data.present) ? e.data.present : null;
 			pageTexts = Array.isArray(e.data.texts) ? e.data.texts : null;
+			frameUrl = e.data.url || '';
+			if (frameUrl) {
+				showPageInList(frameUrl, String(e.data.title || '').split(/ [|–-] /)[0]);
+			}
 			if (texts) {
 				renderTexts();
 			}
@@ -1314,11 +1554,16 @@
 			if (current) {
 				toFrame({ type: 'aimp-design-show', id: current });
 			}
-		} else if (e.data.type === 'aimp-design-select' && (cfg.elements[e.data.id] || e.data.text || e.data.textMiss)) {
+		} else if (e.data.type === 'aimp-design-select' && (cfg.elements[e.data.id] || e.data.text || e.data.textMiss || (e.data.path && e.data.path.length))) {
 			root.querySelector('.aimp-ds-tabs [data-tab="parts"]').click();
 			// A click on a text: that text (in its part); on other words: the part, with a note.
 			currentPost = parseInt(e.data.post, 10) || 0;
-			select(cfg.elements[e.data.id] ? e.data.id : '__text', false, e.data.text && e.data.text.original ? e.data.text : null, e.data.textMiss);
+			currentDivi = !!e.data.divi;
+			lastPath = Array.isArray(e.data.path) ? e.data.path : [];
+			// A shop part, else the clicked element itself as an own part.
+			var entry = lastPath[parseInt(e.data.chosen, 10) || 0];
+			var pickId = cfg.elements[e.data.id] ? e.data.id : (entry && entry.sel ? ownFor(entry) : '__text');
+			select(pickId, false, e.data.text && e.data.text.original ? e.data.text : null, e.data.textMiss);
 			var item = list.querySelector('.is-current');
 			if (item) {
 				item.scrollIntoView({ block: 'nearest' });

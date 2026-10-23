@@ -173,13 +173,30 @@ class AIMP_I18n {
 		if ( class_exists( 'AIMP_Design', false ) ) {
 			$own = AIMP_Design::text( $text, $lang );
 			if ( null !== $own ) {
-				return AIMP_Design::seen( $text, $own );
+				return self::in_page_language() ? AIMP_Design::seen( $text, $own ) : $own;
 			}
 		}
 		$dictionary = self::dictionary( $lang );
 		$result     = isset( $dictionary[ $text ] ) ? $dictionary[ $text ] : $text;
-		// The studio's preview notes which text it showed, so a click on it opens that text.
-		return class_exists( 'AIMP_Design', false ) ? AIMP_Design::seen( $text, $result ) : $result;
+		// The studio's preview notes which text it showed, so a click on it opens that text (only in the page's
+		// own language: the customizer also makes its texts in the other languages).
+		return self::in_page_language() && class_exists( 'AIMP_Design', false ) ? AIMP_Design::seen( $text, $result ) : $result;
+	}
+
+	/**
+	 * Whether a text is made in the language of the page (not in another one, as the customizer does for its
+	 * language switch).
+	 *
+	 * @return bool
+	 */
+	private static function in_page_language() {
+		if ( null === self::$override ) {
+			return true;
+		}
+		if ( null === self::$lang ) {
+			self::$lang = self::detect();
+		}
+		return self::$override === self::$lang;
 	}
 
 	/**
