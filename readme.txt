@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.36.1
+Stable tag: 3.37.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.37.0 =
+* Design studio: spacing like Divi 4. The block "Spacing" (Design tab) has the margin (outside) and the padding (inside) of a part, each with a field per side, "the same on all sides" and "Standard". Empty = standard; 0 is a value of its own.
+  * Tablets have their own spacing: the Tablet button at the top shows it (empty = as on computers, shown in grey).
+  * In the preview, the chosen part shows its margin (orange) and padding (green) as bands, with a handle on each side: drag a handle to change that side, with the value shown while dragging. One Undo step per drag.
+* Fix: the names under the mouse, the "where it was / how far it moved" overlay and the new spacing bands were hidden in some browsers (e.g. by an extension); they are now shown everywhere.
 
 = 3.36.1 =
 * Design studio: the focal-point picture of the hero (Pictures, video and slides) shows the hero photo instead of the round seal on it.
