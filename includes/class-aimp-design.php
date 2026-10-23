@@ -98,6 +98,7 @@ class AIMP_Design {
 			'kit-steps-list'  => array( $steps, __( 'Kit steps cards', 'atelier-irisee-master-plugin' ), '.aimp-kit-steps-list' ),
 			'kit-step'        => array( $steps, __( 'Kit steps card (each)', 'atelier-irisee-master-plugin' ), '.aimp-kit-step' ),
 			'kit-steps-button' => array( $steps, __( 'Kit steps button', 'atelier-irisee-master-plugin' ), '.aimp-kit-steps-button' ),
+			'shop'            => array( $shop, __( 'Shop (product list)', 'atelier-irisee-master-plugin' ), '.aimp-shop:not(.aimp-overview)' ),
 			'overview'        => array( $shop, __( 'Overview cards (whole)', 'atelier-irisee-master-plugin' ), '.aimp-overview-grid' ),
 			'overview-card'   => array( $shop, __( 'Overview cards (each)', 'atelier-irisee-master-plugin' ), '.aimp-overview-card' ),
 			'overview-hero'   => array( $shop, __( 'Large overview card text', 'atelier-irisee-master-plugin' ), '.aimp-overview-hero-text' ),
@@ -158,6 +159,8 @@ class AIMP_Design {
 			'header-search'   => array( 'search_opts' ),
 			'hero-arrow'      => array( 'arrow_opts' ),
 			'kit-steps'       => array( 'ks_opts' ),
+			'shop'            => array( 'shop_grid', 'shop_cards', 'shop_tools', 'shop_badges', 'shop_cats' ),
+			'overview'        => array( 'overview_opts' ),
 			'mosaic'          => array( 'mosaic_opts' ),
 		) as $id => $more ) {
 			if ( isset( $elements[ $id ] ) ) {
@@ -376,6 +379,48 @@ class AIMP_Design {
 			),
 			// The kit steps bar and the mosaic (phase 4).
 			'ks_opts'     => self::kit_step_fields(),
+			// Shop pages (phase 5).
+			'shop_grid'   => array(
+				'cols'  => array( 0, 6, 0 ),
+				'tcols' => array( 0, 6, 0 ),
+				'pcols' => array( 0, 3, 0 ),
+			),
+			'shop_cards'  => array(
+				'noprice' => 'bool',
+				'nounit'  => 'bool',
+				'nosub'   => 'bool',
+				'brand'   => 'bool',
+				'nofav'   => 'bool',
+				'ratio'   => array( 'select', array( '', 'square', 'portrait', 'landscape' ) ),
+				'zoom_in' => 'bool',
+			),
+			'shop_tools'  => array(
+				'sort_default'   => array( 'select', array( '', 'newest', 'price_asc', 'price_desc', 'name_asc' ) ),
+				'no_sort_name'   => 'bool',
+				'no_sort_price'  => 'bool',
+				'no_sort_newest' => 'bool',
+				'f_nosearch'     => 'bool',
+				'f_nocat'        => 'bool',
+				'f_noprice'      => 'bool',
+				'f_noattrs'      => 'bool',
+				'f_nostock'      => 'bool',
+				'f_closed'       => 'bool',
+				'f_hidden'       => 'bool',
+				'paging'         => array( 'select', array( '', 'more', 'infinite' ) ),
+				'noquick'        => 'bool',
+			),
+			'shop_badges' => array(
+				'b_new'    => array( 0, 90, 0 ),
+				'b_sale'   => 'bool',
+				'b_low'    => 'bool',
+				'badge_bg' => 'color',
+				'badge_fg' => 'color',
+			),
+			'shop_cats'   => array(
+				'cat_banner' => 'bool',
+				'cat_text'   => 'bool',
+			),
+			'overview_opts' => self::overview_fields(),
 			'mosaic_opts' => array(
 				'mos_source'    => array( 'select', array( '', 'newest', 'sale', 'random' ) ),
 				'mos_layout'    => array( 'select', array( '', 'grid', 'row' ) ),
@@ -414,6 +459,26 @@ class AIMP_Design {
 			$fields[ 'ic_hide_' . $icon ]  = 'bool';
 			$fields[ 'ic_phide_' . $icon ] = 'bool';
 			$fields[ 'ic_order_' . $icon ] = array( 0, 6, 0 );
+		}
+		return $fields;
+	}
+
+	/**
+	 * The overview cards (All products page): which section is the large card, columns, and per section its place
+	 * and a line under its name.
+	 *
+	 * @return array
+	 */
+	private static function overview_fields() {
+		$fields = array(
+			'ov_hero'  => array( 'select', array( '', 'none', 'fabrics', 'patterns', 'haberdashery', 'giftcards' ) ),
+			'ov_cols'  => array( 0, 6, 0 ),
+			'ov_tcols' => array( 0, 4, 0 ),
+			'ov_pcols' => array( 0, 3, 0 ),
+		);
+		foreach ( array( 'configurator', 'fabrics', 'patterns', 'haberdashery', 'giftcards' ) as $section ) {
+			$fields[ 'ov_order_' . $section ] = array( 0, 6, 0 );
+			$fields[ 'ov_sub_' . $section ]   = 'text';
 		}
 		return $fields;
 	}
@@ -471,7 +536,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'header_opts', 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_media', 'hero_buttons', 'arrow_opts', 'favicon', 'ks_opts', 'mosaic_opts' );
+		return array( 'header_opts', 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_media', 'hero_buttons', 'arrow_opts', 'favicon', 'ks_opts', 'mosaic_opts', 'shop_cards', 'shop_tools', 'shop_badges', 'shop_cats', 'overview_opts' );
 	}
 
 	/**
@@ -1178,6 +1243,69 @@ class AIMP_Design {
 		};
 		$computer .= $place( $get( 'hero', 'h_x' ), $get( 'hero', 'h_y' ) );
 		$phone    .= $place( $get( 'hero', 'ph_x' ), $get( 'hero', 'ph_y' ) );
+
+		// Shop pages: columns (computer, tablet, phone), the cards, the badges, the overview cards.
+		$grid    = 'html body .aimp-shop:not(.aimp-overview) .aimp-grid';
+		$columns = function ( $n ) use ( $grid ) {
+			return $grid . '{grid-template-columns:repeat(' . (int) $n . ',minmax(0,1fr))!important}';
+		};
+		if ( $get( 'shop', 'cols' ) ) {
+			$css .= '@media (min-width:1025px){' . $columns( $get( 'shop', 'cols' ) ) . '}';
+		}
+		if ( $get( 'shop', 'tcols' ) ) {
+			$css .= '@media (min-width:' . ( self::PHONE + 1 ) . 'px) and (max-width:1024px){' . $columns( $get( 'shop', 'tcols' ) ) . '}';
+		}
+		if ( $get( 'shop', 'pcols' ) ) {
+			$phone .= $columns( $get( 'shop', 'pcols' ) );
+		}
+		$card = 'html body .aimp-shop:not(.aimp-overview) .aimp-card';
+		if ( $get( 'shop', 'noprice' ) ) {
+			$css .= $card . ' .aimp-card-price{display:none!important}';
+		} elseif ( $get( 'shop', 'nounit' ) ) {
+			$css .= $card . ' .aimp-card-price small{display:none!important}';
+		}
+		if ( $get( 'shop', 'nosub' ) ) {
+			$css .= $card . ' .aimp-card-sub{display:none!important}';
+		}
+		if ( $get( 'shop', 'nofav' ) ) {
+			$css .= 'html body .aimp-shop:not(.aimp-overview) .aimp-grid .aimp-fav{display:none!important}';
+		}
+		$ratios = array(
+			'square'    => '1 / 1',
+			'portrait'  => '3 / 4',
+			'landscape' => '4 / 3',
+		);
+		if ( isset( $ratios[ $get( 'shop', 'ratio' ) ] ) ) {
+			$css .= $card . ' .aimp-card-image{aspect-ratio:' . $ratios[ $get( 'shop', 'ratio' ) ] . '!important}' . $card . ' .aimp-card-image img{width:100%;height:100%;object-fit:cover}';
+		}
+		if ( $get( 'shop', 'zoom_in' ) ) {
+			$css .= $card . ' .aimp-card-image{overflow:hidden}' . $card . ' .aimp-card-image img{transition:transform .35s ease}' . $card . ':is(:hover,:focus-visible) .aimp-card-image img{transform:scale(1.06)}';
+		}
+		$badge = '';
+		if ( $get( 'shop', 'badge_bg' ) ) {
+			$badge .= 'background:' . $get( 'shop', 'badge_bg' ) . '!important;border-color:' . $get( 'shop', 'badge_bg' ) . '!important;';
+		}
+		if ( $get( 'shop', 'badge_fg' ) ) {
+			$badge .= 'color:' . $get( 'shop', 'badge_fg' ) . '!important;';
+		}
+		if ( '' !== $badge ) {
+			$css .= $card . ' .aimp-badge:not(.aimp-badge--selected){' . $badge . '}';
+		}
+		$ov = 'html body .aimp-configurator .aimp-overview-grid';
+		if ( $get( 'overview', 'ov_cols' ) ) {
+			$css .= '@media (min-width:1025px){' . $ov . '{grid-template-columns:repeat(' . (int) $get( 'overview', 'ov_cols' ) . ',minmax(0,1fr))!important}}';
+		}
+		if ( $get( 'overview', 'ov_tcols' ) ) {
+			$css .= '@media (min-width:' . ( self::PHONE + 1 ) . 'px) and (max-width:1024px){' . $ov . '{grid-template-columns:repeat(' . (int) $get( 'overview', 'ov_tcols' ) . ',minmax(0,1fr))!important}}';
+		}
+		if ( $get( 'overview', 'ov_pcols' ) ) {
+			$phone .= $ov . '{grid-template-columns:repeat(' . (int) $get( 'overview', 'ov_pcols' ) . ',minmax(0,1fr))!important}';
+		}
+		foreach ( array( 'configurator', 'fabrics', 'patterns', 'haberdashery', 'giftcards' ) as $section ) {
+			if ( $get( 'overview', 'ov_order_' . $section ) ) {
+				$css .= $ov . ' > .aimp-overview-card--' . $section . '{order:' . (int) $get( 'overview', 'ov_order_' . $section ) . '}';
+			}
+		}
 
 		// Kit steps bar: the thread.
 		if ( $get( 'kit-steps', 'ks_thread' ) ) {
@@ -2018,6 +2146,116 @@ class AIMP_Design {
 				'lift' => __( 'Lifts up a little', 'atelier-irisee-master-plugin' ),
 			)
 		);
+		echo '</fieldset>';
+
+		// Shop pages (phase 5).
+		$group( 'shop_grid', __( 'Products per row (0 = standard)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'cols', $computer, 0, 6, '' );
+		self::number( 'tcols', __( 'Tablet', 'atelier-irisee-master-plugin' ), 0, 6, '' );
+		self::number( 'pcols', $phone, 0, 3, '' );
+		echo '</fieldset>';
+
+		$group( 'shop_cards', __( 'What a product card shows', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'noprice', __( 'No price', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'nounit', __( 'No unit after the price ("per 10 cm")', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'nosub', __( 'No line under the name (e.g. the diameter)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'brand', __( 'The brand under the name', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'nofav', __( 'No favourite heart', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'ratio',
+			__( 'Picture shape', 'atelier-irisee-master-plugin' ),
+			array(
+				''          => $standard,
+				'square'    => __( 'Square', 'atelier-irisee-master-plugin' ),
+				'portrait'  => __( 'Upright (3:4)', 'atelier-irisee-master-plugin' ),
+				'landscape' => __( 'Wide (4:3)', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'zoom_in', __( 'The picture zooms in under the mouse', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'shop_tools', __( 'Sorting, filters and pages', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'sort_default',
+			__( 'Sorted at first by', 'atelier-irisee-master-plugin' ),
+			array(
+				''           => __( 'Recommended (standard)', 'atelier-irisee-master-plugin' ),
+				'newest'     => __( 'Newest', 'atelier-irisee-master-plugin' ),
+				'price_asc'  => __( 'Price, low to high', 'atelier-irisee-master-plugin' ),
+				'price_desc' => __( 'Price, high to low', 'atelier-irisee-master-plugin' ),
+				'name_asc'   => __( 'Name, A to Z', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'no_sort_name', __( 'No sorting by name', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'no_sort_price', __( 'No sorting by price', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'no_sort_newest', __( 'No sorting by newest', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="aimp-ds-sub">' . esc_html__( 'Filters', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::check_box( 'f_nosearch', __( 'No search field', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'f_nocat', __( 'No category filter', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'f_noprice', __( 'No price filter', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'f_noattrs', __( 'No colour/material filters', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'f_nostock', __( 'No "in stock only" filter', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'f_closed', __( 'Every filter starts folded', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'f_hidden', __( 'The filter column starts closed on computers', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="aimp-ds-sub">' . esc_html__( 'More products', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::choice(
+			'paging',
+			__( 'Show more products with', 'atelier-irisee-master-plugin' ),
+			array(
+				''         => __( 'Page numbers (standard)', 'atelier-irisee-master-plugin' ),
+				'more'     => __( 'A "Show more" button', 'atelier-irisee-master-plugin' ),
+				'infinite' => __( 'Loading by itself while scrolling', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'noquick', __( 'A click on a product opens its page (no quick view)', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'shop_badges', __( 'Badges on product cards', 'atelier-irisee-master-plugin' ) );
+		self::number( 'b_new', __( '"New" for products younger than (0 = no badge)', 'atelier-irisee-master-plugin' ), 0, 90, __( 'days', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'b_sale', __( '"Sale" on products with a sale price', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'b_low', __( '"Almost sold out" when the stock is low', 'atelier-irisee-master-plugin' ) );
+		self::color( 'badge_bg', __( 'Badge colour', 'atelier-irisee-master-plugin' ) );
+		self::color( 'badge_fg', __( 'Badge text colour', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The badge texts can be changed in the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'shop_cats', __( 'Category pages', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cat_banner', __( 'A banner with the category\'s picture, name and description above the products', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'cat_text', __( 'Only the description above the products (no picture)', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Shown when one category is chosen. The picture and the description are those of the category itself (Products → Categories).', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$sections = array(
+			'configurator' => __( 'Sewing project kits', 'atelier-irisee-master-plugin' ),
+			'fabrics'      => __( 'Fabrics', 'atelier-irisee-master-plugin' ),
+			'patterns'     => __( 'Patterns', 'atelier-irisee-master-plugin' ),
+			'haberdashery' => __( 'Haberdashery', 'atelier-irisee-master-plugin' ),
+			'giftcards'    => __( 'Gift cards', 'atelier-irisee-master-plugin' ),
+		);
+		$group( 'overview_opts', __( 'Overview cards (All products page)', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'ov_hero',
+			__( 'Large card', 'atelier-irisee-master-plugin' ),
+			array(
+				''             => __( 'Sewing project kits (standard)', 'atelier-irisee-master-plugin' ),
+				'none'         => __( 'No large card', 'atelier-irisee-master-plugin' ),
+				'fabrics'      => $sections['fabrics'],
+				'patterns'     => $sections['patterns'],
+				'haberdashery' => $sections['haberdashery'],
+				'giftcards'    => $sections['giftcards'],
+			)
+		);
+		$sub( __( 'Cards per row (0 = standard)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'ov_cols', $computer, 0, 6, '' );
+		self::number( 'ov_tcols', __( 'Tablet', 'atelier-irisee-master-plugin' ), 0, 4, '' );
+		self::number( 'ov_pcols', $phone, 0, 3, '' );
+		echo '<p class="description">' . esc_html__( 'Per card: its place (1 = first, 0 = standard) and a line under its name (NL | FR | EN). The names themselves are in the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';
+		foreach ( $sections as $section => $label ) {
+			echo '<div class="aimp-ds-icon-row"><strong>' . esc_html( $label ) . '</strong>';
+			self::number( 'ov_order_' . $section, __( 'Place', 'atelier-irisee-master-plugin' ), 0, 6, '' );
+			$field( 'ov_sub_' . $section, __( 'Line under the name', 'atelier-irisee-master-plugin' ) );
+			echo '</div>';
+		}
 		echo '</fieldset>';
 	}
 

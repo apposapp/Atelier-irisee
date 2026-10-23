@@ -147,12 +147,18 @@ class AIMP_Shop {
 	 * Cache
 	 * ------------------------------------------------------------------ */
 
+	/**
+	 * Part of every cache key of the shop: it changes with every shop change and with every plugin update (an update
+	 * can add fields to the cached data).
+	 *
+	 * @return string
+	 */
 	public static function cache_version() {
-		return (int) get_option( self::CACHE_OPTION, 1 );
+		return (int) get_option( self::CACHE_OPTION, 1 ) . '-' . AIMP_VERSION;
 	}
 
 	public static function flush_cache() {
-		update_option( self::CACHE_OPTION, self::cache_version() + 1, false );
+		update_option( self::CACHE_OPTION, (int) get_option( self::CACHE_OPTION, 1 ) + 1, false );
 	}
 
 	public static function flush_term_cache( $term_id, $tt_id, $taxonomy ) {
@@ -221,6 +227,11 @@ class AIMP_Shop {
 			'selected'        => __( 'Selected', 'atelier-irisee-master-plugin' ),
 			'noProducts'      => __( 'No products found.', 'atelier-irisee-master-plugin' ),
 			'noMatch'         => __( 'No products match your filters.', 'atelier-irisee-master-plugin' ),
+			// Design studio (Shop): badges and the "Show more" button.
+			'badgeNew'        => __( 'New', 'atelier-irisee-master-plugin' ),
+			'badgeSale'       => __( 'Sale', 'atelier-irisee-master-plugin' ),
+			'badgeLow'        => __( 'Almost sold out', 'atelier-irisee-master-plugin' ),
+			'showMore'        => __( 'Show more', 'atelier-irisee-master-plugin' ),
 			'selectHint'      => __( 'Select a product to see its pictures and details.', 'atelier-irisee-master-plugin' ),
 			'viewProduct'     => __( 'View product', 'atelier-irisee-master-plugin' ),
 			'addToCart'       => __( 'Add to cart', 'atelier-irisee-master-plugin' ),
@@ -268,8 +279,26 @@ class AIMP_Shop {
 				'defaultLanguage' => AIMP_I18n::default_language(),
 				'languages'       => AIMP_Shortcode::languages_data(),
 				'i18n'            => $i18n,
+				'design'          => self::design(),
 			)
 		);
+	}
+
+	/**
+	 * The Design studio's shop settings for shop.js (Design studio → Shop).
+	 *
+	 * @return array
+	 */
+	public static function design() {
+		$keys = array( 'brand', 'sort_default', 'no_sort_name', 'no_sort_price', 'no_sort_newest', 'f_nosearch', 'f_nocat', 'f_noprice', 'f_noattrs', 'f_nostock', 'f_closed', 'f_hidden', 'paging', 'noquick', 'b_new', 'b_sale', 'b_low', 'cat_banner', 'cat_text' );
+		$out  = array();
+		foreach ( $keys as $key ) {
+			$value = class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'shop', $key ) : null;
+			if ( null !== $value ) {
+				$out[ $key ] = $value;
+			}
+		}
+		return (object) $out;
 	}
 
 	/**
@@ -324,7 +353,7 @@ class AIMP_Shop {
 			'min'      => null,
 			'max'      => null,
 			'in_stock' => false,
-			'sort'     => 'recommended',
+			'sort'     => ( class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'shop', 'sort_default' ) ) ? AIMP_Design::opt( 'shop', 'sort_default' ) : 'recommended',
 			'page'     => 1,
 			'attrs'    => array(),
 			'skills'   => array(),
@@ -414,28 +443,35 @@ class AIMP_Shop {
 	public static function overview_html() {
 		$cards = '';
 		$hero  = '';
+		// Design studio (Overview cards): which section is the large card, and a line under each name.
+		$hero_key = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'overview', 'ov_hero', '' ) : '';
+		$hero_key = '' === $hero_key ? 'configurator' : $hero_key;
 		foreach ( self::overview_sections() as $key => $section ) {
 			list( $label, $link_id, $setting, $cat_keys ) = $section;
 			if ( ! $link_id ) {
 				continue;
 			}
-			if ( 'configurator' === $key ) {
+			$line = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'overview', 'ov_sub_' . $key, '' ) : '';
+			$line = '' !== $line ? AIMP_Settings::localized( $line ) : '';
+			if ( $hero_key === $key ) {
 				// Sewing project kits: the hero, a large tile on the left (bento).
 				$hero = sprintf(
-					'<li class="aimp-overview-card aimp-overview-hero"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-overview-hero-text"><span class="aimp-card-name">%3$s</span><span class="aimp-overview-hero-line">%4$s</span><span class="aimp-button aimp-overview-hero-button">%5$s</span></span></a></li>',
+					'<li class="aimp-overview-card aimp-overview-hero aimp-overview-card--' . esc_attr( $key ) . '"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-overview-hero-text"><span class="aimp-card-name">%3$s</span><span class="aimp-overview-hero-line">%4$s</span><span class="aimp-button aimp-overview-hero-button">%5$s</span></span></a></li>',
 					esc_url( get_permalink( $link_id ) ),
 					esc_url( self::overview_image( $setting, $cat_keys, $link_id ) ),
 					esc_html( $label ),
-					esc_html__( 'Pattern, fabric and haberdashery together', 'atelier-irisee-master-plugin' ),
-					esc_html__( 'Compose your kit', 'atelier-irisee-master-plugin' )
+					esc_html( '' !== $line ? $line : ( 'configurator' === $key ? __( 'Pattern, fabric and haberdashery together', 'atelier-irisee-master-plugin' ) : '' ) ),
+					'configurator' === $key ? esc_html__( 'Compose your kit', 'atelier-irisee-master-plugin' ) : esc_html__( 'Discover', 'atelier-irisee-master-plugin' )
 				);
 				continue;
 			}
 			$cards .= sprintf(
-				'<li class="aimp-overview-card"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
+				'<li class="aimp-overview-card aimp-overview-card--%4$s"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span>%5$s</a></li>',
 				esc_url( get_permalink( $link_id ) ),
 				esc_url( self::overview_image( $setting, $cat_keys, $link_id ) ),
-				esc_html( $label )
+				esc_html( $label ),
+				esc_attr( $key ),
+				'' !== $line ? '<span class="aimp-overview-line">' . esc_html( $line ) . '</span>' : ''
 			);
 		}
 		return self::overview_wrap( $hero, $cards );
@@ -685,11 +721,7 @@ class AIMP_Shop {
 				// The four material categories themselves are the first level.
 				$term = get_term( $root, 'product_cat' );
 				if ( $term && ! is_wp_error( $term ) ) {
-					$list[] = array(
-						'id'    => (int) $term->term_id,
-						'name'  => $term->name,
-						'depth' => 0,
-					);
+					$list[] = self::term_row( $term, 0 );
 					self::walk_terms( $by_parent, $root, 1, $list );
 				}
 			} else {
@@ -697,6 +729,25 @@ class AIMP_Shop {
 			}
 		}
 		return $list;
+	}
+
+	/**
+	 * A category for the filters: id, name, depth, and its picture and description (Design studio → Shop: a banner
+	 * above the products of one category).
+	 *
+	 * @param WP_Term $term  Category.
+	 * @param int     $depth Depth.
+	 * @return array
+	 */
+	private static function term_row( $term, $depth ) {
+		$image = (int) get_term_meta( $term->term_id, 'thumbnail_id', true );
+		return array(
+			'id'    => (int) $term->term_id,
+			'name'  => $term->name,
+			'depth' => $depth,
+			'image' => $image ? (string) wp_get_attachment_image_url( $image, 'large' ) : '',
+			'desc'  => trim( wp_strip_all_tags( term_description( $term ) ) ),
+		);
 	}
 
 	private static function group_by_parent( $terms ) {
@@ -714,11 +765,7 @@ class AIMP_Shop {
 			return;
 		}
 		foreach ( $by_parent[ $parent ] as $term ) {
-			$list[] = array(
-				'id'    => (int) $term->term_id,
-				'name'  => $term->name,
-				'depth' => $depth,
-			);
+			$list[] = self::term_row( $term, $depth );
 			self::walk_terms( $by_parent, (int) $term->term_id, $depth + 1, $list );
 		}
 	}
@@ -980,6 +1027,11 @@ class AIMP_Shop {
 		$item['short_description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
 		$item['gallery']           = AIMP_Catalog::images( $product );
 		$item['in_stock']          = $product->is_in_stock();
+		$item['brand']             = AIMP_Product_Page::brand( $product );
+		$item['created']           = $product->get_date_created() ? $product->get_date_created()->getTimestamp() : 0;
+		$item['on_sale']           = $product->is_on_sale();
+		$stock                     = $product->managing_stock() ? (float) $product->get_stock_quantity() : null;
+		$item['low']               = null !== $stock && $stock > 0 && $stock <= max( 1, (int) AIMP_Settings::get( 'low_stock' ) );
 		// The buy bar in the details panel: products that can be bought straight away (not gift cards).
 		$is_giftcard = class_exists( 'AIMP_Giftcards_Product' ) && AIMP_Giftcards_Product::is_giftcard( $product );
 		$buy         = $is_giftcard ? null : AIMP_Product_Page::buy_data( $product, $per_10cm );

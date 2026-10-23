@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.25.0
+Stable tag: 3.26.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,16 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.26.0 =
+* Design studio, phase 5 (shop pages), new part "Shop (product list)":
+  * Products per row on computers, tablets and phones; what a card shows (price, unit, the line under the name, the brand, the favourite heart), the picture shape and a zoom under the mouse.
+  * Sorting: the first sort order, and sort orders left out. Filters: search, category, price, colour/material and "in stock" each on/off, every filter folded at first, the filter column closed at first on computers.
+  * Page numbers, a "Show more" button or loading by itself while scrolling; a click on a product can open its page instead of the quick view.
+  * Badges: "New" (younger than a number of days), "Sale", "Almost sold out", with their colours (texts in the Texts tab).
+  * Category pages: a banner with the picture, name and description of the chosen category, or only its description (both from Products → Categories).
+* Overview cards (All products page): which section is the large card (or none), cards per row per screen, the order of the cards and a line under each name.
+* Shop caches start fresh after every plugin update.
 
 = 3.25.0 =
 * Design studio, phase 4 (kit steps bar and mosaic):

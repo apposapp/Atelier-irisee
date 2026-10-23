@@ -27,8 +27,12 @@
 	// Links from 3.6: aimp_btype, aimp_bcol, aimp_bdia (15 = 15 mm), aimp_bmat.
 	var LEGACY_KEYS = { htype: 'btype', hcol: 'bcol', hdia: 'bdia', hmat: 'bmat' };
 
+	// Design studio (Shop): the settings of the shop pages (class-aimp-shop.php, design()).
+	var design = cfg.design || {};
+	var DEFAULT_SORT = design.sort_default || 'recommended';
+
 	function defaultFilters() {
-		return { category: [], search: '', min: '', max: '', inStock: false, sort: 'recommended', attrs: {}, skills: [], buttons: {} };
+		return { category: [], search: '', min: '', max: '', inStock: false, sort: DEFAULT_SORT, attrs: {}, skills: [], buttons: {} };
 	}
 
 	function isDrawer() {
@@ -41,6 +45,12 @@
 		} catch (e) {
 			return null;
 		}
+	}
+
+	// The filter column on computers: as the visitor left it, else open (or closed: Design studio).
+	function sidebarStart() {
+		var stored = storedSidebar();
+		return stored ? stored !== 'closed' : !design.f_hidden;
 	}
 
 	function storeSidebar(value) {
@@ -100,7 +110,7 @@
 		f.min = params.get('aimp_min') || '';
 		f.max = params.get('aimp_max') || '';
 		f.inStock = params.get('aimp_stock') === '1';
-		f.sort = params.get('aimp_sort') || 'recommended';
+		f.sort = params.get('aimp_sort') || DEFAULT_SORT;
 		f.skills = (params.get('aimp_skill') || '').split(',').filter(Boolean);
 		this.state.page = parseInt(params.get('aimp_page') || '1', 10) || 1;
 		params.forEach(function (value, key) {
@@ -157,7 +167,7 @@
 				params.set('aimp_' + key, f.buttons[key].join(','));
 			}
 		});
-		if (f.sort !== 'recommended') {
+		if (f.sort !== DEFAULT_SORT) {
 			params.set('aimp_sort', f.sort);
 		}
 		Object.keys(f.attrs).forEach(function (taxonomy) {
@@ -203,7 +213,7 @@
 			'</aside>' +
 			'<div class="aimp-shop-backdrop" data-action="close-filters" hidden></div>' +
 			'<div class="aimp-split aimp-shop-content">' +
-			'<div class="aimp-split-main"><div class="aimp-shop-summary" data-role="summary" aria-live="polite"></div><div data-role="grid"></div></div>' +
+			'<div class="aimp-split-main"><div class="aimp-shop-banner" data-role="banner" hidden></div><div class="aimp-shop-summary" data-role="summary" aria-live="polite"></div><div data-role="grid"></div></div>' +
 			'<aside class="aimp-split-side" data-role="panel"></aside>' +
 			'</div>' +
 			'</div>';
@@ -217,6 +227,7 @@
 		this.summaryEl = this.root.querySelector('[data-role="summary"]');
 		this.sortEl = this.root.querySelector('[data-role="sortbar"]');
 		this.panelEl = this.root.querySelector('[data-role="panel"]');
+		this.bannerEl = this.root.querySelector('[data-role="banner"]');
 
 		this.root.addEventListener('click', function (e) {
 			var target = e.target.closest('[data-action]');
@@ -243,7 +254,7 @@
 		if (window.matchMedia) {
 			var mq = window.matchMedia(DRAWER_QUERY);
 			var onChange = function () {
-				self.setSidebar(isDrawer() ? false : storedSidebar() !== 'closed', true);
+				self.setSidebar(isDrawer() ? false : sidebarStart(), true);
 			};
 			if (mq.addEventListener) {
 				mq.addEventListener('change', onChange);
@@ -252,7 +263,7 @@
 			}
 		}
 
-		this.setSidebar(isDrawer() ? false : storedSidebar() !== 'closed', true);
+		this.setSidebar(isDrawer() ? false : sidebarStart(), true);
 		this.renderTexts();
 		this.renderFilters();
 		this.renderGrid();
@@ -339,17 +350,20 @@
 		}
 
 		var html = '';
+		var open = design.f_closed ? '' : ' open';
 
 		// Search
-		html +=
-			'<div class="aimp-filter-group aimp-filter-group--search">' +
-			'<label class="screen-reader-text" for="' + id + '-search">' + esc(t.search) + '</label>' +
-			'<input type="search" id="' + id + '-search" class="aimp-search" data-role="search" value="' + esc(f.search) + '" placeholder="' + esc(t.searchProducts) + '">' +
-			'</div>';
+		if (!design.f_nosearch) {
+			html +=
+				'<div class="aimp-filter-group aimp-filter-group--search">' +
+				'<label class="screen-reader-text" for="' + id + '-search">' + esc(t.search) + '</label>' +
+				'<input type="search" id="' + id + '-search" class="aimp-search" data-role="search" value="' + esc(f.search) + '" placeholder="' + esc(t.searchProducts) + '">' +
+				'</div>';
+		}
 
 		// Categories
-		if (facets.categories && facets.categories.length) {
-			html += '<details class="aimp-filter-group" open><summary>' + esc(t.category) + '</summary><ul class="aimp-filter-options">';
+		if (!design.f_nocat && facets.categories && facets.categories.length) {
+			html += '<details class="aimp-filter-group"' + open + '><summary>' + esc(t.category) + '</summary><ul class="aimp-filter-options">';
 			// Several can be ticked; none ticked = all.
 			facets.categories.forEach(function (cat) {
 				html +=
@@ -362,7 +376,7 @@
 
 		// Skill level (patterns)
 		if (facets.skills && facets.skills.length) {
-			html += '<details class="aimp-filter-group" open><summary>' + esc(t.skillLevel) + '</summary><ul class="aimp-filter-options">';
+			html += '<details class="aimp-filter-group"' + open + '><summary>' + esc(t.skillLevel) + '</summary><ul class="aimp-filter-options">';
 			facets.skills.forEach(function (level) {
 				html +=
 					'<li><label class="aimp-filter-option">' +
@@ -376,7 +390,7 @@
 		(facets.buttons || []).forEach(function (group) {
 			var chosen = f.buttons[group.key] || [];
 			html +=
-				'<details class="aimp-filter-group" open><summary>' + esc(group.label) +
+				'<details class="aimp-filter-group"' + open + '><summary>' + esc(group.label) +
 				(chosen.length ? ' <span class="aimp-shop-count">' + chosen.length + '</span>' : '') + '</summary><ul class="aimp-filter-options">';
 			group.options.forEach(function (option) {
 				html +=
@@ -389,9 +403,9 @@
 
 		// Price
 		var range = facets.price || { min: 0, max: 0 };
-		if (range.max > 0) {
+		if (!design.f_noprice && range.max > 0) {
 			html +=
-				'<details class="aimp-filter-group" open><summary>' + esc(t.price) + ' (' + esc(cfg.currencySymbol) + ')</summary>' +
+				'<details class="aimp-filter-group"' + open + '><summary>' + esc(t.price) + ' (' + esc(cfg.currencySymbol) + ')</summary>' +
 				'<div class="aimp-price-inputs">' +
 				'<input type="number" min="0" step="1" inputmode="decimal" data-role="min" value="' + esc(f.min) + '" placeholder="' + esc(range.min) + '" aria-label="' + esc(t.minPrice) + '">' +
 				'<span aria-hidden="true">–</span>' +
@@ -400,10 +414,10 @@
 		}
 
 		// Attributes (colour, material, …): open the first few and any that is in use.
-		(facets.attributes || []).forEach(function (attr, index) {
+		(design.f_noattrs ? [] : (facets.attributes || [])).forEach(function (attr, index) {
 			var chosen = f.attrs[attr.taxonomy] || [];
 			html +=
-				'<details class="aimp-filter-group"' + (index < 3 || chosen.length ? ' open' : '') + '><summary>' + esc(attr.label) +
+				'<details class="aimp-filter-group"' + ((index < 3 && !design.f_closed) || chosen.length ? ' open' : '') + '><summary>' + esc(attr.label) +
 				(chosen.length ? ' <span class="aimp-shop-count">' + chosen.length + '</span>' : '') + '</summary><ul class="aimp-filter-options">';
 			attr.terms.forEach(function (term) {
 				html +=
@@ -415,10 +429,12 @@
 		});
 
 		// Availability
-		html +=
-			'<details class="aimp-filter-group" open><summary>' + esc(t.availability) + '</summary>' +
-			'<label class="aimp-filter-option"><input type="checkbox" data-role="in-stock"' + (f.inStock ? ' checked' : '') + '> <span>' + esc(t.inStockOnly) + '</span></label>' +
-			'</details>';
+		if (!design.f_nostock) {
+			html +=
+				'<details class="aimp-filter-group"' + open + '><summary>' + esc(t.availability) + '</summary>' +
+				'<label class="aimp-filter-option"><input type="checkbox" data-role="in-stock"' + (f.inStock ? ' checked' : '') + '> <span>' + esc(t.inStockOnly) + '</span></label>' +
+				'</details>';
+		}
 
 		html += '<button type="button" class="aimp-shop-clear" data-action="clear-filters"' + (this.activeCount() ? '' : ' hidden') + '>' + esc(t.clearFilters) + '</button>';
 
@@ -441,17 +457,20 @@
 		};
 
 		var timer = null;
+		// The search field and the in-stock box can be left out in the Design studio.
 		var search = el.querySelector('[data-role="search"]');
-		search.addEventListener('input', function () {
-			clearTimeout(timer);
-			timer = setTimeout(function () {
-				var value = search.value.trim();
-				if (value !== f.search) {
-					f.search = value;
-					changed();
-				}
-			}, 350);
-		});
+		if (search) {
+			search.addEventListener('input', function () {
+				clearTimeout(timer);
+				timer = setTimeout(function () {
+					var value = search.value.trim();
+					if (value !== f.search) {
+						f.search = value;
+						changed();
+					}
+				}, 350);
+			});
+		}
 
 		el.querySelectorAll('[data-role="category"]').forEach(function (input) {
 			input.addEventListener('change', function () {
@@ -546,10 +565,13 @@
 			});
 		});
 
-		el.querySelector('[data-role="in-stock"]').addEventListener('change', function (e) {
-			f.inStock = e.target.checked;
-			changed();
-		});
+		var stock = el.querySelector('[data-role="in-stock"]');
+		if (stock) {
+			stock.addEventListener('change', function (e) {
+				f.inStock = e.target.checked;
+				changed();
+			});
+		}
 	};
 
 	// Sort: next to the Filters button, so it is always at hand.
@@ -563,7 +585,13 @@
 			['price_asc', t.sortPriceAsc],
 			['price_desc', t.sortPriceDesc],
 			['newest', t.sortNewest]
-		];
+		].filter(function (o) {
+			// Design studio: some sort orders can be left out (never the one in use).
+			if (o[0] === f.sort) {
+				return true;
+			}
+			return !((design.no_sort_name && /^name_/.test(o[0])) || (design.no_sort_price && /^price_/.test(o[0])) || (design.no_sort_newest && o[0] === 'newest'));
+		});
 		this.sortEl.innerHTML =
 			'<label class="screen-reader-text" for="' + this.id + '-sort">' + esc(t.sortBy) + '</label>' +
 			'<select id="' + this.id + '-sort" class="aimp-shop-select" data-role="sort">' +
@@ -716,17 +744,25 @@
 		}
 		var key = lang + JSON.stringify(params);
 		this.requestKey = key;
-		s.data = null;
-		this.renderGrid();
+		// "Show more" (Design studio): the next page is added under the products already shown.
+		var append = this.appendNext && s.data ? s.data.items : null;
+		this.appendNext = false;
+		if (!append) {
+			s.data = null;
+			this.renderGrid();
+		}
 
 		// A first visit without filters: the products that came with the page.
 		var initial = this.initial;
 		this.initial = null;
-		var fromPage = initial && withFacets && initial.lang === lang && !this.activeCount() && s.page === 1 && f.sort === 'recommended';
+		var fromPage = initial && withFacets && initial.lang === lang && !this.activeCount() && s.page === 1 && f.sort === DEFAULT_SORT;
 		(fromPage ? Promise.resolve(initial) : UI.request(cfg.endpoint, 'shop', params, lang, t.error))
 			.then(function (data) {
 				if (self.requestKey !== key) {
 					return;
+				}
+				if (append) {
+					data = Object.assign({}, data, { items: append.concat(data.items) });
 				}
 				s.data = data;
 				s.page = data.page;
@@ -752,18 +788,84 @@
 			});
 	};
 
+	// Design studio (Shop): "New", "Sale", "Almost sold out" badges and the brand under the name.
+	function decorate(data) {
+		if (!data || !data.items) {
+			return data;
+		}
+		var now = Date.now() / 1000;
+		return Object.assign({}, data, {
+			items: data.items.map(function (item) {
+				var copy = Object.assign({}, item);
+				if (!copy.badge) {
+					var badges = [];
+					if (design.b_new && copy.created && now - copy.created < design.b_new * 86400) {
+						badges.push(t.badgeNew);
+					}
+					if (design.b_sale && copy.on_sale) {
+						badges.push(t.badgeSale);
+					}
+					if (design.b_low && copy.low) {
+						badges.push(t.badgeLow);
+					}
+					copy.badge = badges.join(' · ');
+				}
+				if (design.brand && copy.brand) {
+					copy.subtitle = copy.brand + (copy.subtitle ? ' · ' + copy.subtitle : '');
+				}
+				return copy;
+			})
+		});
+	}
+
+	// Design studio (Shop): a banner with the picture, name and description of the one chosen category.
+	Shop.prototype.renderBanner = function () {
+		var el = this.bannerEl;
+		var f = this.state.filters;
+		var cats = this.state.facets && this.state.facets.categories ? this.state.facets.categories : [];
+		var cat = null;
+		if ((design.cat_banner || design.cat_text) && f.category.length === 1) {
+			cats.forEach(function (c) {
+				if (c.id === f.category[0]) {
+					cat = c;
+				}
+			});
+		}
+		if (!el || !cat || (!cat.desc && !(design.cat_banner && cat.image))) {
+			if (el) {
+				el.hidden = true;
+				el.innerHTML = '';
+			}
+			return;
+		}
+		var html = '';
+		if (design.cat_banner && cat.image) {
+			html += '<img class="aimp-shop-banner-image" src="' + esc(cat.image) + '" alt="">';
+		}
+		html += '<div class="aimp-shop-banner-text">' + (design.cat_banner ? '<h2 class="aimp-shop-banner-title">' + esc(cat.name) + '</h2>' : '') + (cat.desc ? '<p>' + esc(cat.desc) + '</p>' : '') + '</div>';
+		el.innerHTML = html;
+		el.classList.toggle('has-image', !!(design.cat_banner && cat.image));
+		el.hidden = false;
+	};
+
 	Shop.prototype.renderGrid = function () {
 		var self = this;
 		var s = this.state;
 		this.renderSummary();
+		this.renderBanner();
 		UI.renderGrid(
 			this.gridEl,
-			s.data,
+			decorate(s.data),
 			{
 				selectedId: s.selected ? s.selected.id : null,
 				emptyText: this.activeCount() ? t.noMatch : t.noProducts,
 				compact: false,
 				onSelect: function (item) {
+					// Design studio: no quick view, straight to the product page.
+					if (design.noquick && item.permalink) {
+						window.location.href = item.permalink;
+						return;
+					}
 					if (!s.selected || s.selected.id !== item.id) {
 						s.selected = item;
 						s.image = 0;
@@ -783,6 +885,43 @@
 			},
 			t
 		);
+		this.renderMore();
+	};
+
+	// Design studio (Shop): a "Show more" button instead of page numbers, or loading by itself while scrolling.
+	Shop.prototype.renderMore = function () {
+		var self = this;
+		var s = this.state;
+		if (!design.paging || !s.data) {
+			return;
+		}
+		var nav = this.gridEl.querySelector('.aimp-pagination');
+		if (nav) {
+			nav.remove();
+		}
+		if (s.data.page >= s.data.pages) {
+			return;
+		}
+		var more = document.createElement('button');
+		more.type = 'button';
+		more.className = 'aimp-button aimp-shop-more';
+		more.textContent = t.showMore;
+		more.addEventListener('click', function () {
+			more.disabled = true;
+			self.appendNext = true;
+			s.page = s.data.page + 1;
+			self.load(false);
+		});
+		this.gridEl.appendChild(more);
+		if (design.paging === 'infinite' && window.IntersectionObserver) {
+			var seen = new window.IntersectionObserver(function (entries) {
+				if (entries[0].isIntersecting && !more.disabled) {
+					seen.disconnect();
+					more.click();
+				}
+			}, { rootMargin: '400px 0px' });
+			seen.observe(more);
+		}
 	};
 
 	Shop.prototype.renderPanel = function () {
