@@ -148,7 +148,7 @@
 
 .aimp-ds-num {
 	display: grid;
-	grid-template-columns: 92px minmax(0, 1fr) 58px 18px;
+	grid-template-columns: 128px minmax(0, 1fr) 58px 18px;
 	gap: 6px;
 	align-items: center;
 	margin-bottom: 6px;
@@ -182,7 +182,7 @@
 
 .aimp-ds-color {
 	display: grid;
-	grid-template-columns: 92px 44px auto;
+	grid-template-columns: 128px 44px auto;
 	gap: 6px;
 	align-items: center;
 	margin-bottom: 6px;
@@ -448,7 +448,7 @@
 .aimp-ds-select,
 .aimp-ds-text-field {
 	display: grid;
-	grid-template-columns: 92px minmax(0, 1fr);
+	grid-template-columns: 128px minmax(0, 1fr);
 	gap: 6px;
 	align-items: center;
 	margin-bottom: 6px;
@@ -696,4 +696,13 @@
 .aimp-ds[data-device-view="phone"] [data-device="computer"],
 .aimp-ds[data-device-view="phone"] [data-device-sub="computer"] {
 	display: none !important;
+}
+
+/* The note above says which screen: the "Computer" / "Phone" headings are not needed. */
+.aimp-ds [data-device-sub] {
+	display: none !important;
+}
+
+.aimp-ds-order-field > .aimp-ds-sub {
+	display: none;
 }

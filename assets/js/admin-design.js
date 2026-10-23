@@ -1073,8 +1073,10 @@
 				other.classList.remove('is-open');
 			});
 			group.classList.toggle('is-open', open);
+			// The opened block at the top of the panel (only the panel scrolls, not the page).
 			if (open) {
-				group.scrollIntoView({ block: 'nearest' });
+				var panel = q('.aimp-ds-panel');
+				panel.scrollTop += group.getBoundingClientRect().top - panel.getBoundingClientRect().top - 8;
 			}
 		});
 		// Settings under a "Computer" or "Phone" heading belong to that screen.

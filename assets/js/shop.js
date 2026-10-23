@@ -140,7 +140,8 @@
 		var f = this.state.filters;
 		var params = new URLSearchParams(window.location.search);
 		Array.from(params.keys()).forEach(function (key) {
-			if (key.indexOf('aimp_') === 0 && key !== 'aimp_lang') {
+			// The language and the Design studio's preview stay.
+			if (key.indexOf('aimp_') === 0 && key !== 'aimp_lang' && key !== 'aimp_design_preview') {
 				params.delete(key);
 			}
 		});
@@ -175,13 +176,14 @@
 				params.set('aimp_' + taxonomy, f.attrs[taxonomy].join(','));
 			}
 		});
-		if (this.state.page > 1) {
+		// Page numbers only (with "Show more" a reload starts at the first page again).
+		if (this.state.page > 1 && !design.paging) {
 			params.set('aimp_page', this.state.page);
 		}
 		// All products and Haberdashery show an overview without filters in the address: aimp_all keeps the
 		// list when the visitor clears every filter and reloads.
 		if ((this.type === 'all' || this.type === 'haberdashery') && !Array.from(params.keys()).some(function (key) {
-			return key.indexOf('aimp_') === 0 && key !== 'aimp_lang';
+			return key.indexOf('aimp_') === 0 && key !== 'aimp_lang' && key !== 'aimp_design_preview';
 		})) {
 			params.set('aimp_all', '1');
 		}

@@ -305,8 +305,18 @@
 		if (layout !== 'accordion' && layout !== 'tabs') {
 			return;
 		}
+		// A block's name (single.php: data-pp-title), else its title.
+		var title = function (el) {
+			var head = el.querySelector('h2, h3');
+			return (el.getAttribute('data-pp-title') || (head ? head.textContent : '')).replace(/\s+/g, ' ').trim();
+		};
+		// The block's own title, when it says the same as the tab or dropdown (it is not shown twice).
+		var ownHead = function (el) {
+			var head = el.querySelector('h2, h3');
+			return head && head.textContent.replace(/\s+/g, ' ').trim() === title(el) ? head : null;
+		};
 		var blocks = Array.prototype.filter.call(root.children, function (el) {
-			return /(^|\s)aimp-pp-(?!recommend)/.test(el.className) && el.querySelector('h2, h3') && window.getComputedStyle(el).display !== 'none';
+			return /(^|\s)aimp-pp-(?!recommend)/.test(el.className) && title(el) && window.getComputedStyle(el).display !== 'none';
 		});
 		var order = function (el) {
 			return parseInt(window.getComputedStyle(el).order, 10) || 0;
@@ -320,14 +330,16 @@
 		var opens = [];
 		if (layout === 'accordion') {
 			blocks.forEach(function (el, i) {
-				var head = el.querySelector('h2, h3');
+				var head = ownHead(el);
 				var details = document.createElement('details');
 				details.className = 'aimp-pp-acc';
 				details.open = i === 0;
 				var summary = document.createElement('summary');
 				summary.className = 'aimp-pp-acc-title';
-				summary.textContent = head.textContent;
-				head.parentNode.removeChild(head);
+				summary.textContent = title(el);
+				if (head) {
+					head.parentNode.removeChild(head);
+				}
 				var body = document.createElement('div');
 				body.className = 'aimp-pp-acc-body';
 				while (el.firstChild) {
@@ -354,13 +366,15 @@
 				});
 			};
 			blocks.forEach(function (el, i) {
-				var head = el.querySelector('h2, h3');
+				var head = ownHead(el);
 				var tab = document.createElement('button');
 				tab.type = 'button';
 				tab.className = 'aimp-pp-tab';
 				tab.setAttribute('role', 'tab');
-				tab.textContent = head.textContent;
-				head.classList.add('screen-reader-text');
+				tab.textContent = title(el);
+				if (head) {
+					head.classList.add('screen-reader-text');
+				}
 				el.classList.add('is-tab');
 				el.setAttribute('role', 'tabpanel');
 				tab.addEventListener('click', function () {

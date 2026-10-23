@@ -2137,7 +2137,12 @@ class AIMP_Design {
 			}
 		}
 		$pages[] = array( __( 'Cart', 'atelier-irisee-master-plugin' ), wc_get_cart_url() );
-		$pages[] = array( __( 'My account', 'atelier-irisee-master-plugin' ), wc_get_page_permalink( 'myaccount' ) );
+		$pages[] = array( __( 'Checkout', 'atelier-irisee-master-plugin' ), wc_get_checkout_url() );
+		$pages[] = array( __( 'My account', 'atelier-irisee-master-plugin' ), AIMP_Header::account_url() );
+		$favorites = AIMP_Settings::get( 'favorites_page' );
+		if ( $favorites && 'publish' === get_post_status( $favorites ) ) {
+			$pages[] = array( __( 'Favourites', 'atelier-irisee-master-plugin' ), get_permalink( $favorites ) );
+		}
 		return $pages;
 	}
 
@@ -2270,7 +2275,9 @@ class AIMP_Design {
 	 * @param string $label Label.
 	 */
 	private static function check_box( $key, $label ) {
-		echo '<label class="aimp-ds-check"><input type="checkbox" data-key="' . esc_attr( $key ) . '"> ' . esc_html( $label ) . '</label>';
+		// "Hide on computers / phones": only shown with the settings of that screen.
+		$device = preg_match( '/^(ic_|pp_)?phide(_|$)/', $key ) ? 'phone' : ( preg_match( '/^(ic_|pp_)?hide(_|$)/', $key ) ? 'computer' : '' );
+		echo '<label class="aimp-ds-check"' . ( '' !== $device ? ' data-device="' . esc_attr( $device ) . '"' : '' ) . '><input type="checkbox" data-key="' . esc_attr( $key ) . '"> ' . esc_html( $label ) . '</label>';
 	}
 
 	/**
@@ -2895,8 +2902,8 @@ class AIMP_Design {
 
 		// Product page (phase 6).
 		$blocks     = self::product_blocks();
-		$order_list = function ( $key, $label ) use ( $blocks, $standard ) {
-			echo '<div class="aimp-ds-order-field"><p class="aimp-ds-sub">' . esc_html( $label ) . '</p><ol class="aimp-ds-order" data-order="' . esc_attr( $key ) . '">';
+		$order_list = function ( $key, $label ) use ( $blocks, $standard, $phone ) {
+			echo '<div class="aimp-ds-order-field" data-device="' . ( $label === $phone ? 'phone' : 'computer' ) . '"><p class="aimp-ds-sub">' . esc_html( $label ) . '</p><ol class="aimp-ds-order" data-order="' . esc_attr( $key ) . '">';
 			$n = 0;
 			foreach ( $blocks as $block => $name ) {
 				echo '<li draggable="true" data-block="' . esc_attr( $block ) . '" data-std="' . esc_attr( $n++ ) . '"><span class="aimp-ds-order-grip" aria-hidden="true">⋮⋮</span><span class="aimp-ds-order-name">' . esc_html( $name ) . '</span>';

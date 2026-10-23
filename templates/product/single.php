@@ -384,7 +384,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 	<?php if ( $aimp_insp_cards ) : ?>
 		<?php // Fabrics: up to three inspiration cards across the full width. ?>
-		<section class="aimp-inspiration aimp-pp-inspiration">
+		<section class="aimp-inspiration aimp-pp-inspiration" data-pp-title="<?php esc_attr_e( 'Inspiration', 'atelier-irisee-master-plugin' ); ?>">
 		<h3><?php esc_html_e( 'Inspiration', 'atelier-irisee-master-plugin' ); ?></h3>
 		<ul class="aimp-inspiration-grid">
 			<?php foreach ( $aimp_insp_cards as $aimp_card ) : ?>
@@ -403,7 +403,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 	<?php if ( $aimp_notion && $aimp_notion['ideal_for'] ) : ?>
 		<?php // Buttons: up to four kinds of clothes, each with its icon, in the place of the fabric inspiration cards. ?>
-		<section class="aimp-inspiration aimp-ideal-for aimp-pp-ideal">
+		<section class="aimp-inspiration aimp-ideal-for aimp-pp-ideal" data-pp-title="<?php esc_attr_e( 'Ideal for', 'atelier-irisee-master-plugin' ); ?>">
 		<h3><?php esc_html_e( 'Ideal for', 'atelier-irisee-master-plugin' ); ?></h3>
 		<ul class="aimp-inspiration-grid aimp-ideal-grid">
 			<?php foreach ( $aimp_notion['ideal_for'] as $aimp_ideal ) : ?>
@@ -418,7 +418,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 	<?php if ( $aimp_own_specs && ( $aimp_has_desc || $aimp_washing_html || $aimp_specs_html ) ) : ?>
 		<?php // Fabrics and buttons: description on the left; washing instructions and specifications (dropdowns) on the right. ?>
-		<section class="aimp-product-section aimp-product-row aimp-pp-description<?php echo $aimp_has_desc && ( $aimp_washing_html || $aimp_specs_html ) ? '' : ' is-single'; ?>">
+		<section class="aimp-product-section aimp-product-row aimp-pp-description<?php echo $aimp_has_desc && ( $aimp_washing_html || $aimp_specs_html ) ? '' : ' is-single'; ?>" data-pp-title="<?php echo esc_attr( $aimp_has_desc ? __( 'Description', 'atelier-irisee-master-plugin' ) : __( 'Specifications', 'atelier-irisee-master-plugin' ) ); ?>">
 			<?php if ( $aimp_has_desc ) : ?>
 				<div>
 					<h3><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h3>
@@ -439,14 +439,14 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 			<?php endif; ?>
 		</section>
 	<?php elseif ( ! $aimp_own_specs && ! $aimp_pattern && $aimp_has_desc ) : ?>
-		<section class="aimp-product-section aimp-product-desc aimp-pp-description">
+		<section class="aimp-product-section aimp-product-desc aimp-pp-description" data-pp-title="<?php esc_attr_e( 'Description', 'atelier-irisee-master-plugin' ); ?>">
 			<h3><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h3>
 			<div class="aimp-description aimp-product-description"><?php echo wc_format_content( $aimp_description ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- product content, filtered like the WooCommerce description tab. ?></div>
 		</section>
 	<?php endif; ?>
 
 	<?php if ( $aimp_show_detail ) : ?>
-		<section class="aimp-product-section aimp-pp-details">
+		<section class="aimp-product-section aimp-pp-details" data-pp-title="<?php esc_attr_e( 'Details', 'atelier-irisee-master-plugin' ); ?>">
 			<h3><?php esc_html_e( 'Details', 'atelier-irisee-master-plugin' ); ?></h3>
 			<?php wc_display_product_attributes( $the_product ); ?>
 		</section>
@@ -467,7 +467,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 
 	<?php if ( ! empty( $data['size_table'] ) ) : ?>
 		<?php // Patterns: the accessories (left) and the sizes with measurements and fabric (right), per design. ?>
-		<section class="aimp-product-section aimp-pattern-needs aimp-pp-sizes">
+		<section class="aimp-product-section aimp-pattern-needs aimp-pp-sizes" data-pp-title="<?php esc_attr_e( 'Size chart', 'atelier-irisee-master-plugin' ); ?>">
 			<?php foreach ( $data['size_table'] as $aimp_group ) : ?>
 				<?php if ( '' !== $aimp_group['name'] ) : ?>
 					<h3 class="aimp-pattern-needs-design"><?php echo esc_html( $aimp_group['name'] ); ?></h3>
@@ -522,7 +522,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 	<?php endif; ?>
 
 	<?php if ( $data['fabrics'] ) : ?>
-		<section class="aimp-product-section aimp-pp-fabrics">
+		<section class="aimp-product-section aimp-pp-fabrics" data-pp-title="<?php esc_attr_e( 'Recommended fabrics', 'atelier-irisee-master-plugin' ); ?>">
 			<h3><?php esc_html_e( 'Recommended fabrics', 'atelier-irisee-master-plugin' ); ?></h3>
 			<ul class="aimp-grid aimp-product-cards">
 				<?php
@@ -535,13 +535,13 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 	<?php endif; ?>
 
 	<?php if ( $aimp_show_review ) : ?>
-		<section class="aimp-product-section aimp-product-reviews aimp-pp-reviews" id="aimp-reviews">
+		<section class="aimp-product-section aimp-product-reviews aimp-pp-reviews" id="aimp-reviews" data-pp-title="<?php esc_attr_e( 'Reviews', 'atelier-irisee-master-plugin' ); ?>">
 			<?php comments_template(); ?>
 		</section>
 	<?php endif; ?>
 
 	<?php if ( $data['related'] ) : ?>
-		<section class="aimp-product-section aimp-pp-related">
+		<section class="aimp-product-section aimp-pp-related" data-pp-title="<?php esc_attr_e( 'You may also like', 'atelier-irisee-master-plugin' ); ?>">
 			<h3><?php esc_html_e( 'You may also like', 'atelier-irisee-master-plugin' ); ?></h3>
 			<ul class="aimp-grid aimp-product-cards">
 				<?php

@@ -1144,3 +1144,9 @@ html.aimp-sheet-open body {
 	font-size: 0.85em;
 	text-align: center;
 }
+
+/* Without a chosen category the banner stays away (its display: grid would otherwise beat [hidden]). */
+.aimp-shop-banner[hidden],
+.aimp-shop-more[hidden] {
+	display: none !important;
+}

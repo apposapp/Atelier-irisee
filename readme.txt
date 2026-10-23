@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.31.0
+Stable tag: 3.32.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,15 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.32.0 =
+* Design studio, easier to work with:
+  * The list shows the parts of the page in the preview first; "Whole site" and "Parts of other pages" are folded away.
+  * A chosen part shows only its own settings, as blocks that fold open one at a time (its own settings first, the general ones under "Fine-tuning"), with a dot on blocks you changed.
+  * Only the settings of the screen chosen at the top (Computer/Tablet or Phone); a line says which.
+  * A wider panel, no WordPress notices above the studio, opening a block keeps the top bar in view.
+  * The page menu has Checkout and Favourites, and "My account" opens the account page (was the home page).
+* Fixes: an empty box above the products on shop pages (the category banner without a category); the shop dropped the preview in the studio after a filter or "Show more"; with "Show more" a reload no longer starts at the last page; product page tabs and dropdowns got clean names and the size chart is a tab too.
 
 = 3.31.0 =
 * Own haberdashery types (Atelier Irisee → Settings → Haberdashery options): up to 8 new types within buttons, zips, ribbons & cords or interfacing, named in Dutch | French | English and sold like their kind, per piece or per length. They can be chosen in the product editor, patterns ask for them in their Haberdashery block with an amount per size, and the customizer gets a step for each.
