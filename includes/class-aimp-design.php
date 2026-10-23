@@ -183,7 +183,7 @@ class AIMP_Design {
 		}
 		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
 		if ( isset( $elements['product-page'] ) ) {
-			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info', 'cz_steps', 'cz_flow', 'cz_bar', 'cz_summary', 'co_opts', 'acc_opts', 'footer_opts', 'nl_opts', 'notice_opts', 'email_opts' );
+			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info', 'cz_steps', 'cz_flow', 'cz_bar', 'cz_summary', 'co_opts', 'acc_opts', 'footer_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts' );
 		}
 		// The customizer as a whole (phase 7): steps, cards, the haberdashery, the bar on phones, the summary.
 		if ( isset( $elements['customizer'] ) ) {
@@ -215,6 +215,7 @@ class AIMP_Design {
 			'site-effects' => array( __( 'Effects, icons and browser icon', 'atelier-irisee-master-plugin' ), array( 'effects', 'icons', 'loading', 'focus', 'favicon' ) ),
 			'site-notices' => array( __( 'Messages (added to cart, errors)', 'atelier-irisee-master-plugin' ), array( 'notice_opts' ) ),
 			'site-emails'  => array( __( 'Emails', 'atelier-irisee-master-plugin' ), array( 'email_opts' ) ),
+			'site-tech'    => array( __( 'SEO, speed and dashboard', 'atelier-irisee-master-plugin' ), array( 'seo_opts', 'speed_opts', 'admin_opts' ) ),
 		) as $id => $row ) {
 			$elements[ $id ] = array(
 				'group'    => $site,
@@ -507,6 +508,20 @@ class AIMP_Design {
 				'em_logo'    => 'image',
 				'em_noframe' => 'bool',
 				'em_footer'  => 'text',
+			),
+			// SEO, speed and dashboard (phase 10, AIMP_Design_Tech).
+			'seo_opts'    => array(
+				'seo_noindex' => 'bool',
+				'seo_og'      => 'bool',
+				'seo_brand'   => 'bool',
+			),
+			'speed_opts'  => array(
+				'sp_prefetch' => 'bool',
+				'sp_noemoji'  => 'bool',
+				'sp_noembed'  => 'bool',
+			),
+			'admin_opts'  => array(
+				'ad_nobar' => 'bool',
 			),
 			// Cart, checkout, account, login, favourites (phase 8).
 			'cart_opts'   => array(
@@ -2161,6 +2176,7 @@ class AIMP_Design {
 						'noHistory'   => __( 'Nothing published yet.', 'atelier-irisee-master-plugin' ),
 						'restore'     => __( 'Put in draft', 'atelier-irisee-master-plugin' ),
 						'pick'        => __( 'Click a part of the page, or choose it from the list.', 'atelier-irisee-master-plugin' ),
+						'thisPage'    => __( 'The page you came from', 'atelier-irisee-master-plugin' ),
 						'choose'      => __( 'Choose a picture', 'atelier-irisee-master-plugin' ),
 						'use'         => __( 'Use this picture', 'atelier-irisee-master-plugin' ),
 						'loading'     => __( 'Loading…', 'atelier-irisee-master-plugin' ),
@@ -3068,6 +3084,25 @@ class AIMP_Design {
 		self::check_box( 'em_noframe', __( 'No gold frame around the email', 'atelier-irisee-master-plugin' ) );
 		$field( 'em_footer', __( 'An extra line at the bottom', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
 		echo '<p class="description">' . esc_html__( 'For the WooCommerce emails (orders, accounts), when "Atelier Irisee style for WooCommerce emails" is on in the settings. Emails cannot be shown in the preview; they use what is published.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		// SEO, speed and dashboard (phase 10).
+		$group( 'seo_opts', __( 'Search engines', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'seo_noindex', __( 'Filtered shop pages and search results stay out of search engines', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'seo_og', __( 'A picture and text when a page is shared (Open Graph; not with an SEO plugin)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'seo_brand', __( 'The brand in the product data for Google', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'speed_opts', __( 'Speed', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'sp_prefetch', __( 'Load the next page while the mouse is on a link', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'sp_noemoji', __( 'No emoji script (the browser shows emoji itself)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'sp_noembed', __( 'No embed script (for showing other sites\' posts in a page)', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'These take effect for visitors after publishing (LiteSpeed is emptied then).', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'admin_opts', __( 'Dashboard', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ad_nobar', __( 'No "Design studio" in the admin bar on the site', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( '"Design studio" in the admin bar opens the studio with the page you are on.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		// Cart, checkout, account, login, favourites (phase 8).

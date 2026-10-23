@@ -227,7 +227,12 @@ class AIMP_Shortcode {
 		);
 		$strings = array( 'notInKit' => __( 'not in the kit', 'atelier-irisee-master-plugin' ) );
 		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
-			$strings[ 'nt_' . $type ] = isset( $titles[ $type ] ) ? $titles[ $type ] : $fields[ $info['material'] ]['label'];
+			$label = $fields[ $info['material'] ]['label'];
+			if ( ! isset( $titles[ $type ] ) && 0 === strpos( $type, 'own_' ) ) {
+				/* translators: %s: an own haberdashery type, e.g. "velcro" */
+				$titles[ $type ] = sprintf( __( 'Choose your %s (optional)', 'atelier-irisee-master-plugin' ), function_exists( 'mb_strtolower' ) ? mb_strtolower( $label ) : strtolower( $label ) );
+			}
+			$strings[ 'nt_' . $type ] = isset( $titles[ $type ] ) ? $titles[ $type ] : $label;
 			$strings[ 'nl_' . $type ] = $fields[ $info['material'] ]['label'];
 		}
 		return $strings;
@@ -262,7 +267,7 @@ class AIMP_Shortcode {
 			'extra'  => AIMP_Product_Page::fabric_icon( 'tips' ),
 		);
 		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
-			$icon           = 'shoulder_pads' === $type ? 'shoulder_pad' : ( 'zip' === $info['kind'] ? 'zips' : ( 'count' === $info['kind'] ? 'buttons' : ( in_array( $type, array( 'bias', 'elastic', 'interfacing' ), true ) ? $type : 'ribbons' ) ) );
+			$icon           = 'shoulder_pads' === $type ? 'shoulder_pad' : ( 'zip' === $info['kind'] ? 'zips' : ( 'count' === $info['kind'] ? 'buttons' : ( in_array( $type, array( 'bias', 'elastic', 'interfacing' ), true ) ? $type : ( 'interfacing' === $info['notion_kind'] ? 'interfacing' : 'ribbons' ) ) ) );
 			$icons[ $type ] = AIMP_Product_Page::fabric_icon( $icon );
 		}
 		return $icons;

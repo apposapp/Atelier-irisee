@@ -77,8 +77,10 @@ class AIMP_Catalog {
 		foreach ( AIMP_Notions::rules() as $rule => $info ) {
 			$kind    = AIMP_Notions::kind( $info[0] );
 			$measure = AIMP_Notions::measure( $info[0], $info[1] ); // Shoulder pads: per pair, not per length.
-			$types[ $steps[ $rule ][0] ] = array(
-				'role'        => $steps[ $rule ][1],
+			// Own types: their key is the step and the cart role.
+			$step    = isset( $steps[ $rule ] ) ? $steps[ $rule ] : array( $rule, $rule );
+			$types[ $step[0] ] = array(
+				'role'        => $step[1],
 				'setting'     => $kind['setting'],
 				'fallback'    => '',
 				'unit'        => 'length' === $measure ? '10cm' : 'piece',
@@ -121,6 +123,12 @@ class AIMP_Catalog {
 			'shoulder_pads'        => array( '_aimp_shoulder_pad_count', __( 'Shoulder pads (pairs)', 'atelier-irisee-master-plugin' ), 'piece', __( 'Shoulder pads', 'atelier-irisee-master-plugin' ) ),
 			'cord_lock'            => array( '_aimp_cord_lock_count', __( 'Cord lock', 'atelier-irisee-master-plugin' ), 'piece', __( 'Cord lock', 'atelier-irisee-master-plugin' ) ),
 		);
+		// Own haberdashery types: a number or a length per size (zips: the length of the zip), under their kind.
+		$kinds = AIMP_Notions::own_types() ? AIMP_Notions::kinds() : array();
+		foreach ( AIMP_Notions::own_types() as $key => $own ) {
+			$unit         = 'zip' === $own['kind'] || 'length' === AIMP_Notions::measure( $own['kind'], $key ) ? 'cm' : 'piece';
+			$list[ $key ] = array( '_aimp_' . $key, AIMP_Settings::localized( $own['name'] ), $unit, $kinds[ $own['kind'] ]['name'] );
+		}
 		$fields = array();
 		foreach ( $list as $key => $row ) {
 			$fields[ $key ] = array(

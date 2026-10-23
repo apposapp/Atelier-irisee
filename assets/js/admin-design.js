@@ -1038,7 +1038,24 @@
 	renderLooks();
 	showStatus();
 	fit();
-	load(cfg.pages.length ? cfg.pages[0][1] : '/');
+	// Opened from the admin bar on the site (?aimp_page=…): that page first, when it is a page of this site.
+	var start = cfg.pages.length ? cfg.pages[0][1] : '/';
+	var asked = new URLSearchParams(window.location.search).get('aimp_page');
+	if (asked) {
+		try {
+			var page = new URL(asked, window.location.href);
+			if (page.origin === new URL(start, window.location.href).origin) {
+				page.searchParams.delete(cfg.param);
+				var option = document.createElement('option');
+				option.value = page.toString();
+				option.textContent = t.thisPage || page.pathname;
+				pageSelect.insertBefore(option, pageSelect.firstChild);
+				pageSelect.value = option.value;
+				start = option.value;
+			}
+		} catch (e) {}
+	}
+	load(start);
 	var hint = document.createElement('p');
 	hint.className = 'aimp-ds-hint';
 	hint.textContent = t.pick;

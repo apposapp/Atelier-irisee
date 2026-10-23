@@ -35,6 +35,10 @@ class AIMP_Notions {
 	/** Number of "Ideal for" choices. */
 	const IDEAL_FOR_MAX = 4;
 
+	/** Own haberdashery types: at most this many, in these kinds (the kinds that have types). */
+	const OWN_MAX   = 8;
+	const OWN_KINDS = array( 'button', 'zip', 'ribbon', 'interfacing' );
+
 	/** Version of the stored data (see migrate()). */
 	const DB_VERSION = 2;
 
@@ -166,7 +170,37 @@ class AIMP_Notions {
 				'range_unit'   => 'mm',
 			),
 		);
+		// Own types (Settings → Haberdashery options): a type of their kind, sold like it unless chosen otherwise.
+		foreach ( self::own_types() as $key => $own ) {
+			$kinds[ $lang ][ $own['kind'] ]['types'][ $key ] = AIMP_Settings::localized( $own['name'] );
+			if ( '' !== $own['measure'] && $own['measure'] !== $kinds[ $lang ][ $own['kind'] ]['measure'] ) {
+				$kinds[ $lang ][ $own['kind'] ]['type_measure'][ $key ] = $own['measure'];
+			}
+		}
 		return $kinds[ $lang ];
+	}
+
+	/**
+	 * Own haberdashery types: key => [ kind, name (NL | FR | EN), measure (piece|length|'' = as the kind) ]. The keys
+	 * ("own_…") never change, so patterns, saved kits and cart lines keep them when a name changes.
+	 *
+	 * @return array
+	 */
+	public static function own_types() {
+		$options = (array) get_option( AIMP_Settings::OPTION, array() );
+		$rows    = isset( $options['own_notion_types'] ) && is_array( $options['own_notion_types'] ) ? $options['own_notion_types'] : array();
+		$own     = array();
+		foreach ( $rows as $key => $row ) {
+			if ( preg_match( '/^own_[a-z0-9_]+$/', (string) $key ) && is_array( $row ) && isset( $row['kind'], $row['name'] ) && in_array( $row['kind'], self::OWN_KINDS, true ) && '' !== trim( (string) $row['name'] ) ) {
+				$own[ $key ] = array(
+					'kind'    => $row['kind'],
+					'name'    => (string) $row['name'],
+					// Zips are always one zip of the length the size needs.
+					'measure' => 'zip' !== $row['kind'] && isset( $row['measure'] ) && in_array( $row['measure'], array( 'piece', 'length' ), true ) ? $row['measure'] : '',
+				);
+			}
+		}
+		return $own;
 	}
 
 	/**
@@ -224,7 +258,7 @@ class AIMP_Notions {
 	 * @return array
 	 */
 	public static function rules() {
-		return array(
+		$rules = array(
 			'button'               => array( 'button', 'button', 'buttons' ),
 			'jeans_button'         => array( 'button', 'jeans_button', 'jeans_buttons' ),
 			'press_stud'           => array( 'button', 'press_stud', 'snaps' ),
@@ -242,6 +276,11 @@ class AIMP_Notions {
 			'interfacing'          => array( 'interfacing', 'interfacing', 'interfacing' ),
 			'shoulder_pad'         => array( 'interfacing', 'shoulder_pad', 'shoulder_pads' ),
 		);
+		// Own types: their key is the rule, the type and the material.
+		foreach ( self::own_types() as $key => $own ) {
+			$rules[ $key ] = array( $own['kind'], $key, $key );
+		}
+		return $rules;
 	}
 
 	/**
@@ -571,6 +610,38 @@ class AIMP_Notions {
 			);
 		}
 		echo '</tbody></table>';
+
+		// Own haberdashery types.
+		$kinds = self::kinds();
+		$rows  = self::own_types();
+		$rows  = array_merge( $rows, array_fill( 0, max( 0, min( 2, self::OWN_MAX - count( $rows ) ) ), null ) );
+		echo '<h3>' . esc_html__( 'Own haberdashery types', 'atelier-irisee-master-plugin' ) . '</h3>';
+		echo '<p>' . esc_html__( 'A new type within buttons, zips, ribbons & cords or interfacing, e.g. "Klittenband | Velcro | Hook-and-loop tape" in Ribbons & cords. It can then be chosen in the product editor, patterns can ask for it in their Haberdashery block (with an amount per size), and the customizer gets a step for it. Leave the name empty to remove a type.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '<input type="hidden" name="' . esc_attr( AIMP_Settings::OPTION ) . '[own_notion_types_present]" value="1">';
+		echo '<table class="widefat striped aimp-own-types" style="max-width:960px"><thead><tr><th>' . esc_html__( 'Name (Dutch | French | English)', 'atelier-irisee-master-plugin' ) . '</th><th>' . esc_html__( 'Kind', 'atelier-irisee-master-plugin' ) . '</th><th>' . esc_html__( 'Sold', 'atelier-irisee-master-plugin' ) . '</th></tr></thead><tbody>';
+		$i = 0;
+		foreach ( $rows as $key => $row ) {
+			$name = AIMP_Settings::OPTION . '[own_notion_types][' . $i . ']';
+			echo '<tr><td><input type="hidden" name="' . esc_attr( $name . '[key]' ) . '" value="' . esc_attr( $row ? $key : '' ) . '">';
+			echo '<input type="text" class="regular-text" name="' . esc_attr( $name . '[name]' ) . '" value="' . esc_attr( $row ? $row['name'] : '' ) . '" aria-label="' . esc_attr__( 'Name', 'atelier-irisee-master-plugin' ) . '"></td><td><select name="' . esc_attr( $name . '[kind]' ) . '" aria-label="' . esc_attr__( 'Kind', 'atelier-irisee-master-plugin' ) . '">';
+			foreach ( self::OWN_KINDS as $kind ) {
+				echo '<option value="' . esc_attr( $kind ) . '"' . selected( $row ? $row['kind'] : 'ribbon', $kind, false ) . '>' . esc_html( $kinds[ $kind ]['name'] ) . '</option>';
+			}
+			echo '</select></td><td><select name="' . esc_attr( $name . '[measure]' ) . '" aria-label="' . esc_attr__( 'Sold', 'atelier-irisee-master-plugin' ) . '">';
+			foreach ( array(
+				''       => __( 'Like the kind', 'atelier-irisee-master-plugin' ),
+				'piece'  => __( 'Per piece', 'atelier-irisee-master-plugin' ),
+				'length' => __( 'Per length', 'atelier-irisee-master-plugin' ),
+			) as $value => $label ) {
+				echo '<option value="' . esc_attr( $value ) . '"' . selected( $row ? $row['measure'] : '', $value, false ) . '>' . esc_html( $label ) . '</option>';
+			}
+			echo '</select></td></tr>';
+			++$i;
+		}
+		echo '</tbody></table>';
+		if ( count( self::own_types() ) < self::OWN_MAX ) {
+			echo '<p class="description">' . esc_html__( 'Save to get more empty rows.', 'atelier-irisee-master-plugin' ) . '</p>';
+		}
 	}
 
 	/**
@@ -588,6 +659,40 @@ class AIMP_Notions {
 			$lines = array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', sanitize_textarea_field( wp_unslash( $input[ $key ] ) ) ) ), 'strlen' );
 			$clean[ $key ] = implode( "\n", array_slice( array_values( $lines ), 0, 60 ) );
 		}
+		// Own haberdashery types: kept as they are when the form did not send them.
+		if ( empty( $input['own_notion_types_present'] ) ) {
+			$clean['own_notion_types'] = self::own_types();
+			return $clean;
+		}
+		$own = array();
+		foreach ( isset( $input['own_notion_types'] ) && is_array( $input['own_notion_types'] ) ? $input['own_notion_types'] : array() as $row ) {
+			if ( ! is_array( $row ) || count( $own ) >= self::OWN_MAX ) {
+				continue;
+			}
+			$name = isset( $row['name'] ) ? trim( sanitize_text_field( wp_unslash( $row['name'] ) ) ) : '';
+			$kind = isset( $row['kind'] ) ? sanitize_key( $row['kind'] ) : '';
+			if ( '' === $name || ! in_array( $kind, self::OWN_KINDS, true ) ) {
+				continue;
+			}
+			$key = isset( $row['key'] ) ? sanitize_key( $row['key'] ) : '';
+			if ( ! preg_match( '/^own_[a-z0-9_]+$/', $key ) || isset( $own[ $key ] ) ) {
+				// A new type: its key from the Dutch name, once.
+				$parts = explode( '|', $name );
+				$slug  = substr( str_replace( '-', '_', sanitize_title( $parts[0] ) ), 0, 30 );
+				$base  = 'own_' . ( '' !== trim( $slug, '_' ) && preg_match( '/^[a-z0-9_]+$/', $slug ) ? $slug : 'type' );
+				$key   = $base;
+				for ( $n = 2; isset( $own[ $key ] ); $n++ ) {
+					$key = $base . '_' . $n;
+				}
+			}
+			$measure     = isset( $row['measure'] ) ? sanitize_key( $row['measure'] ) : '';
+			$own[ $key ] = array(
+				'kind'    => $kind,
+				'name'    => function_exists( 'mb_substr' ) ? mb_substr( $name, 0, 120 ) : substr( $name, 0, 120 ),
+				'measure' => in_array( $measure, array( 'piece', 'length' ), true ) ? $measure : '',
+			);
+		}
+		$clean['own_notion_types'] = $own;
 		return $clean;
 	}
 
