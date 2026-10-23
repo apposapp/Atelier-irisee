@@ -870,3 +870,136 @@
 .aimp-ds-redo {
 	min-width: 0;
 }
+
+/* ------------------------------------------------------------------
+ * More room: no WordPress menu (button "WordPress menu" brings it back), a wider panel, nothing too wide in it.
+ * ------------------------------------------------------------------ */
+body.aimp-ds-screen:not(.aimp-ds-wpmenu) #adminmenumain {
+	display: none;
+}
+
+body.aimp-ds-screen:not(.aimp-ds-wpmenu) #wpcontent,
+body.aimp-ds-screen:not(.aimp-ds-wpmenu) #wpfooter {
+	margin-left: 0;
+}
+
+body.aimp-ds-screen #wpcontent {
+	padding-left: 0;
+}
+
+body.aimp-ds-screen #wpfooter {
+	display: none;
+}
+
+body.aimp-ds-screen #wpbody-content {
+	padding-bottom: 0;
+}
+
+body.aimp-ds-screen .aimp-ds {
+	height: calc(100vh - 32px - 10px);
+	margin: 6px 10px 0;
+}
+
+.aimp-ds-wpmenu-toggle[aria-pressed="true"] {
+	border-color: var(--ds-gold);
+	background: var(--ds-gold-tint);
+}
+
+.aimp-ds-main {
+	grid-template-columns: 460px minmax(0, 1fr);
+	gap: 10px;
+}
+
+.aimp-ds-stage {
+	padding: 8px;
+}
+
+/* A fieldset grows to its widest content by default: these never get wider than the panel. */
+.aimp-ds-group,
+.aimp-ds-groups,
+.aimp-ds-edit {
+	min-width: 0;
+	max-width: 100%;
+}
+
+.aimp-ds-panel input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.aimp-ds-panel select,
+.aimp-ds-panel textarea {
+	min-width: 0;
+	max-width: 100%;
+}
+
+/* Buttons with long words wrap instead of running out of the panel. */
+.aimp-ds-panel .button {
+	max-width: 100%;
+	height: auto;
+	min-height: 30px;
+	line-height: 1.35;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	white-space: normal;
+}
+
+.aimp-ds-image > *,
+.aimp-ds-image-list {
+	max-width: 100%;
+}
+
+/* Texts from the settings. */
+.aimp-ds-setting {
+	margin-bottom: 12px;
+	padding-bottom: 10px;
+	border-bottom: 1px dashed var(--ds-line);
+}
+
+.aimp-ds-setting-title {
+	margin: 0 0 6px;
+	font-weight: 600;
+}
+
+.aimp-ds-setting label,
+.aimp-ds-trio label {
+	display: grid;
+	grid-template-columns: 30px minmax(0, 1fr);
+	gap: 6px;
+	align-items: center;
+	margin-bottom: 4px;
+}
+
+.aimp-ds-setting label > span,
+.aimp-ds-trio label > span {
+	color: #8a6a33;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.aimp-ds-setting input[type="text"],
+.aimp-ds-setting textarea {
+	width: 100%;
+}
+
+.aimp-ds-setting-single {
+	grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.aimp-ds-line {
+	margin-bottom: 8px;
+	padding: 6px 8px;
+	border: 1px solid var(--ds-line);
+	border-radius: 6px;
+	background: #fcfbf8;
+}
+
+.aimp-ds-line-head {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 4px;
+	color: #646970;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.aimp-ds-line-remove {
+	color: #b32d2e !important;
+	font-size: 11px;
+}

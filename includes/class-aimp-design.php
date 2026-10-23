@@ -48,6 +48,8 @@ class AIMP_Design {
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 61 );
 		// The studio uses the whole screen: no notices of WordPress or other plugins above it.
 		add_action( 'in_admin_header', array( __CLASS__, 'quiet_screen' ), 1000 );
+		// The studio's screen: room for the panel and the preview (admin-design.css hides the WordPress menu).
+		add_filter( 'admin_body_class', array( __CLASS__, 'body_class' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_assets' ) );
 		foreach ( array( 'save', 'publish', 'discard', 'restore', 'import', 'texts', 'look_save', 'look_load', 'look_delete', 'look_plan' ) as $action ) {
 			add_action( 'wp_ajax_aimp_design_' . $action, array( __CLASS__, 'ajax_' . $action ) );
@@ -1167,8 +1169,192 @@ class AIMP_Design {
 				'draft_texts' => null,
 				'live_time'   => 0,
 				'draft_time'  => 0,
+				// Texts of the Atelier Irisee settings changed in the studio, not yet published: "option:key" => text.
+				'draft_settings' => array(),
 			)
 		);
+	}
+
+	/* ------------------------------------------------------------------ texts of the settings */
+
+	/**
+	 * Texts of the Atelier Irisee settings that the studio shows with their part: id => [ label, type, parts, key ].
+	 * Types: lang (a setting per language, key_{code}), trio (one "NL | FR | EN" setting), lines (several such lines),
+	 * plain (one text), long (a longer text). A key is "option:key" (aimp_settings or aimp_footer).
+	 *
+	 * @return array
+	 */
+	public static function setting_texts() {
+		$steps  = array( 'kit-steps', 'kit-step', 'kit-steps-list' );
+		$footer = array( 'footer', 'footer-columns', 'footer-title' );
+		$list   = array(
+			'info_bar'        => array( __( 'Texts in the gold bar', 'atelier-irisee-master-plugin' ), 'lines', array( 'info-bar' ), 'aimp_settings:info_bar' ),
+			'delivery_time'   => array( __( 'Delivery time (shown under "Add to cart" and in the cart)', 'atelier-irisee-master-plugin' ), 'trio', array( 'product-buy', 'product-page', 'cart-side', 'cart-page' ), 'aimp_settings:delivery_time' ),
+			'hero_title'      => array( __( 'Tagline', 'atelier-irisee-master-plugin' ), 'lang', array( 'hero', 'hero-title' ), 'aimp_settings:hero_title' ),
+			'hero_text'       => array( __( 'Text under the tagline', 'atelier-irisee-master-plugin' ), 'lang', array( 'hero', 'hero-text' ), 'aimp_settings:hero_text' ),
+			'ks_title'        => array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'kit-steps', 'kit-steps-title' ), 'aimp_settings:ks_title' ),
+		);
+		for ( $n = 1; $n <= 5; $n++ ) {
+			/* translators: %d: step number */
+			$list[ 'ks_s' . $n . '_title' ] = array( sprintf( __( 'Step %d: title', 'atelier-irisee-master-plugin' ), $n ), 'lang', $steps, 'aimp_settings:ks_s' . $n . '_title' );
+			/* translators: %d: step number */
+			$list[ 'ks_s' . $n . '_text' ] = array( sprintf( __( 'Step %d: text', 'atelier-irisee-master-plugin' ), $n ), 'lang', $steps, 'aimp_settings:ks_s' . $n . '_text' );
+		}
+		$list['ks_button']       = array( __( 'Button', 'atelier-irisee-master-plugin' ), 'lang', array( 'kit-steps', 'kit-steps-button' ), 'aimp_settings:ks_button' );
+		$list['company']         = array( __( 'Company name', 'atelier-irisee-master-plugin' ), 'plain', $footer, 'aimp_footer:company' );
+		$list['address']         = array( __( 'Address', 'atelier-irisee-master-plugin' ), 'long', $footer, 'aimp_footer:address' );
+		$list['phone']           = array( __( 'Phone', 'atelier-irisee-master-plugin' ), 'plain', $footer, 'aimp_footer:phone' );
+		$list['email']           = array( __( 'Email', 'atelier-irisee-master-plugin' ), 'plain', $footer, 'aimp_footer:email' );
+		$list['newsletter_text'] = array( __( 'Newsletter text', 'atelier-irisee-master-plugin' ), 'long', array( 'newsletter', 'footer', 'footer-columns' ), 'aimp_footer:newsletter_text' );
+		$list['copyright']       = array( __( 'Copyright line', 'atelier-irisee-master-plugin' ), 'plain', array( 'footer', 'footer-bottom' ), 'aimp_footer:copyright' );
+		return $list;
+	}
+
+	/**
+	 * Every setting key of setting_texts() ("option:key"; per language for "lang").
+	 *
+	 * @return array key => type
+	 */
+	private static function setting_keys() {
+		$keys = array();
+		foreach ( self::setting_texts() as $field ) {
+			if ( 'lang' === $field[1] ) {
+				foreach ( array_keys( AIMP_I18n::languages() ) as $code ) {
+					$keys[ $field[3] . '_' . $code ] = $field[1];
+				}
+			} else {
+				$keys[ $field[3] ] = $field[1];
+			}
+		}
+		return $keys;
+	}
+
+	/**
+	 * The texts of setting_texts() for the studio: the fields, with the standard texts as placeholders.
+	 *
+	 * @return array
+	 */
+	private static function setting_fields() {
+		$languages = array_keys( AIMP_I18n::languages() );
+		$standard  = array();
+		foreach ( $languages as $code ) {
+			$standard[ $code ] = AIMP_I18n::with_language(
+				$code,
+				function () {
+					return array_merge(
+						class_exists( 'AIMP_Kit_Steps' ) ? AIMP_Kit_Steps::default_texts() : array(),
+						array(
+							'hero_title' => __( 'Sew something truly yours', 'atelier-irisee-master-plugin' ),
+							'hero_text'  => __( 'Pattern, fabric and haberdashery that match, in one kit.', 'atelier-irisee-master-plugin' ),
+						)
+					);
+				}
+			);
+		}
+		$fields = array();
+		foreach ( self::setting_texts() as $id => $field ) {
+			$base  = substr( $field[3], strpos( $field[3], ':' ) + 1 );
+			$hints = array();
+			foreach ( $languages as $code ) {
+				$hints[ $code ] = isset( $standard[ $code ][ $base ] ) ? $standard[ $code ][ $base ] : '';
+			}
+			$fields[] = array(
+				'id'    => $id,
+				'label' => $field[0],
+				'type'  => $field[1],
+				'parts' => $field[2],
+				'key'   => $field[3],
+				'hints' => $hints,
+			);
+		}
+		return $fields;
+	}
+
+	/**
+	 * The current (published) value of a setting key ("option:key").
+	 *
+	 * @param string $key Key.
+	 * @return string
+	 */
+	private static function setting_value( $key ) {
+		list( $option, $name ) = explode( ':', $key, 2 );
+		$values = (array) get_option( $option, array() );
+		if ( 'aimp_settings' === $option && 'info_bar' === $name && ! isset( $values['info_bar'] ) && class_exists( 'AIMP_Header' ) ) {
+			return AIMP_Header::default_info_bar();
+		}
+		if ( 'aimp_settings' === $option && 'delivery_time' === $name && ! isset( $values['delivery_time'] ) ) {
+			return AIMP_Settings::default_delivery_time();
+		}
+		return isset( $values[ $name ] ) && is_scalar( $values[ $name ] ) ? (string) $values[ $name ] : '';
+	}
+
+	/**
+	 * Only known setting keys, sanitised like the settings pages do.
+	 *
+	 * @param mixed $posted Posted texts.
+	 * @return array
+	 */
+	private static function clean_settings( $posted ) {
+		$keys  = self::setting_keys();
+		$clean = array();
+		foreach ( is_array( $posted ) ? $posted : array() as $key => $value ) {
+			if ( ! isset( $keys[ $key ] ) || ! is_scalar( $value ) ) {
+				continue;
+			}
+			$value = in_array( $keys[ $key ], array( 'lines', 'long' ), true ) ? sanitize_textarea_field( (string) $value ) : sanitize_text_field( (string) $value );
+			$value = function_exists( 'mb_substr' ) ? mb_substr( $value, 0, 2000 ) : substr( $value, 0, 2000 );
+			if ( $value !== self::setting_value( $key ) ) {
+				$clean[ $key ] = $value;
+			}
+		}
+		return $clean;
+	}
+
+	/**
+	 * In the studio's preview: the draft wording of a setting, or null (AIMP_Settings::get_text(), AIMP_Footer::get()).
+	 *
+	 * @param string $option aimp_settings or aimp_footer.
+	 * @param string $key    Setting.
+	 * @return string|null
+	 */
+	public static function setting_draft( $option, $key ) {
+		if ( ! did_action( 'set_current_user' ) || ! self::is_preview() ) {
+			return null;
+		}
+		static $draft = null;
+		if ( null === $draft ) {
+			$data  = self::data();
+			$draft = is_array( $data['draft_settings'] ) ? $data['draft_settings'] : array();
+		}
+		return isset( $draft[ $option . ':' . $key ] ) ? (string) $draft[ $option . ':' . $key ] : null;
+	}
+
+	/**
+	 * Publishing: the draft wording goes into the settings themselves (as if saved on the settings page; the values
+	 * are clean already, so the settings pages' form handling is left out).
+	 *
+	 * @param array $draft "option:key" => text.
+	 */
+	private static function publish_settings( $draft ) {
+		$by_option = array();
+		foreach ( $draft as $key => $value ) {
+			list( $option, $name )           = explode( ':', $key, 2 );
+			$by_option[ $option ][ $name ] = $value;
+		}
+		$callbacks = array(
+			'aimp_settings' => array( 'AIMP_Settings', 'sanitize' ),
+			'aimp_footer'   => array( 'AIMP_Footer', 'sanitize' ),
+		);
+		foreach ( $by_option as $option => $values ) {
+			if ( ! isset( $callbacks[ $option ] ) ) {
+				continue;
+			}
+			$removed = remove_filter( 'sanitize_option_' . $option, $callbacks[ $option ] );
+			update_option( $option, array_merge( (array) get_option( $option, array() ), $values ) );
+			if ( $removed ) {
+				add_filter( 'sanitize_option_' . $option, $callbacks[ $option ] );
+			}
+		}
 	}
 
 	/**
@@ -2336,6 +2522,7 @@ class AIMP_Design {
 					'param'    => self::PREVIEW,
 					'phone'    => self::PHONE,
 					'pages'    => self::pages(),
+					'settingTexts' => self::setting_fields(),
 					'editPost' => admin_url( 'post.php?post=%d&action=edit' ),
 					'elements' => self::elements(),
 					'groups'   => self::groups(),
@@ -2379,6 +2566,11 @@ class AIMP_Design {
 						'redo'        => __( 'Redo', 'atelier-irisee-master-plugin' ),
 						'shopPages'   => __( 'Shop', 'atelier-irisee-master-plugin' ),
 						'thisPageNow' => __( 'This page', 'atelier-irisee-master-plugin' ),
+						'settingsTitle' => __( 'Texts from the settings', 'atelier-irisee-master-plugin' ),
+						'settingsHelp'  => __( 'These texts are the same as under Atelier Irisee → Settings. The preview shows your change after a moment; Publish saves them there.', 'atelier-irisee-master-plugin' ),
+						'addItem'       => __( 'Add a text', 'atelier-irisee-master-plugin' ),
+						'removeItem'    => __( 'Remove', 'atelier-irisee-master-plugin' ),
+						'wpMenu'        => __( 'WordPress menu', 'atelier-irisee-master-plugin' ),
 						'deviceComputer' => __( 'Showing the settings for computers and tablets. Click "Phone" at the top for the phone settings.', 'atelier-irisee-master-plugin' ),
 						'devicePhone' => __( 'Showing the settings for phones. Click "Computer" at the top for the computer settings.', 'atelier-irisee-master-plugin' ),
 						'choose'      => __( 'Choose a picture', 'atelier-irisee-master-plugin' ),
@@ -3444,6 +3636,15 @@ class AIMP_Design {
 		echo '</fieldset>';
 	}
 
+	/**
+	 * @param string $classes Classes of the dashboard's body.
+	 * @return string
+	 */
+	public static function body_class( $classes ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only the screen's look.
+		return isset( $_GET['page'] ) && self::PAGE === $_GET['page'] ? $classes . ' aimp-ds-screen' : $classes;
+	}
+
 	public static function quiet_screen() {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		if ( $screen && false !== strpos( (string) $screen->id, 'aimp-design' ) ) {
@@ -3603,6 +3804,12 @@ class AIMP_Design {
 			'siteCss'    => self::site_css( $draft ) . self::opts_css( $draft ),
 			'draftTexts' => (object) self::draft_texts(),
 			'liveTexts'  => (object) self::live_texts(),
+			// Texts of the Atelier Irisee settings: the draft wording and what is published now.
+			'draftSettings' => (object) self::data()['draft_settings'],
+			'liveSettings'  => (object) array_combine(
+				array_keys( self::setting_keys() ),
+				array_map( array( __CLASS__, 'setting_value' ), array_keys( self::setting_keys() ) )
+			),
 			'images'     => (object) $images,
 			'files'      => (object) $files,
 			'history'    => self::history_list(),
@@ -3641,6 +3848,10 @@ class AIMP_Design {
 		if ( null !== $texts ) {
 			$changes['draft_texts'] = self::clean_texts( $texts );
 		}
+		$settings = self::posted_json( 'settings' );
+		if ( null !== $settings ) {
+			$changes['draft_settings'] = self::clean_settings( $settings );
+		}
 		self::store( $changes );
 		wp_send_json_success( self::state() );
 	}
@@ -3661,6 +3872,10 @@ class AIMP_Design {
 			)
 		);
 		update_option( self::HISTORY, array_slice( $history, 0, self::HISTORY_MAX ), false );
+		// Texts of the settings: into the settings themselves.
+		$settings = self::posted_json( 'settings' );
+		$data     = self::data();
+		self::publish_settings( null !== $settings ? self::clean_settings( $settings ) : (array) $data['draft_settings'] );
 		self::store(
 			array(
 				'live'        => null !== $styles ? self::clean( $styles ) : self::draft(),
@@ -3669,6 +3884,7 @@ class AIMP_Design {
 				'draft_texts' => null,
 				'live_time'   => time(),
 				'draft_time'  => 0,
+				'draft_settings' => array(),
 			)
 		);
 		// The browser icon of the whole site (WordPress's own site icon).
@@ -3686,9 +3902,10 @@ class AIMP_Design {
 		self::check();
 		self::store(
 			array(
-				'draft'       => null,
-				'draft_texts' => null,
-				'draft_time'  => 0,
+				'draft'          => null,
+				'draft_texts'    => null,
+				'draft_time'     => 0,
+				'draft_settings' => array(),
 			)
 		);
 		wp_send_json_success( self::state() );

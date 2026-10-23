@@ -370,6 +370,11 @@ class AIMP_Settings {
 	 * @return string
 	 */
 	public static function get_text( $key, $default = '' ) {
+		// The studio's preview: a text changed there and not yet published.
+		$draft = class_exists( 'AIMP_Design', false ) ? AIMP_Design::setting_draft( self::OPTION, $key ) : null;
+		if ( null !== $draft ) {
+			return $draft;
+		}
 		$options = (array) get_option( self::OPTION, array() );
 		return isset( $options[ $key ] ) && is_string( $options[ $key ] ) ? $options[ $key ] : $default;
 	}

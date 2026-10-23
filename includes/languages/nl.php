@@ -2197,4 +2197,13 @@ return array(
 	'This page' => 'Deze pagina',
 	'Undo' => 'Ongedaan maken',
 	'Your own picks' => 'Je eigen keuzes',
+
+	// Design studio: settings texts
+	'Add a text' => 'Tekst toevoegen',
+	'Step %d: text' => 'Stap %d: tekst',
+	'Step %d: title' => 'Stap %d: titel',
+	'Texts from the settings' => 'Teksten uit de instellingen',
+	'Texts in the gold bar' => 'Teksten in de gouden balk',
+	'These texts are the same as under Atelier Irisee → Settings. The preview shows your change after a moment; Publish saves them there.' => 'Dit zijn dezelfde teksten als onder Atelier Irisee → Instellingen. De voorbeeldweergave toont je wijziging na een ogenblik; Publiceren bewaart ze daar.',
+	'WordPress menu' => 'WordPress-menu',
 );

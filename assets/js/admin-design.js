@@ -18,6 +18,9 @@
 	var live = clone(cfg.live);
 	var draftTexts = clone(cfg.draftTexts);
 	var liveTexts = clone(cfg.liveTexts);
+	// Texts of the Atelier Irisee settings ("option:key"): changed in the studio, and as published now.
+	var draftSettings = clone(cfg.draftSettings);
+	var liveSettings = clone(cfg.liveSettings);
 	var images = clone(cfg.images);
 	var siteCss = cfg.siteCss || '';
 	var files = clone(cfg.files);
@@ -108,7 +111,7 @@
 	}
 
 	function unpublished() {
-		return !same(draft, live) || !same(draftTexts, liveTexts);
+		return !same(draft, live) || !same(draftTexts, liveTexts) || Object.keys(draftSettings).length > 0;
 	}
 
 	function fmt(text) {
@@ -146,7 +149,9 @@
 		if (!keepDraft) {
 			draft = clone(data.draft);
 			draftTexts = clone(data.draftTexts);
+			draftSettings = clone(data.draftSettings);
 		}
+		liveSettings = clone(data.liveSettings);
 		live = clone(data.live);
 		liveTexts = clone(data.liveTexts);
 		siteCss = data.siteCss || '';
@@ -316,7 +321,7 @@
 		saving = true;
 		var reload = textsChanged;
 		textsChanged = false;
-		post('save', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts) }).then(function (data) {
+		post('save', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts), settings: JSON.stringify(draftSettings) }).then(function (data) {
 			setState(data, true);
 			showStatus(unpublished() ? t.saved + ' · ' + t.unpublished : t.published);
 			// Texts are made on the server: the preview loads again once you stop typing.
@@ -521,6 +526,7 @@
 		// In order: the clicked text, the part's own settings, then design and advanced in a fixed order.
 		var home = groupsHome;
 		home.appendChild(textGroup);
+		home.appendChild(settingsGroup);
 		controls.filter(function (key) {
 			return DESIGN.indexOf(key) === -1 && ADVANCED.indexOf(key) === -1;
 		}).concat(DESIGN, ADVANCED).forEach(function (key) {
@@ -531,6 +537,7 @@
 		});
 		textGroup.hidden = !currentText && !currentMiss;
 		renderTextGroup();
+		settingsGroup.hidden = !renderSettingsGroup();
 		renderPath();
 		// The tabs that have something; a clicked text opens on Content.
 		var filled = {};
@@ -547,7 +554,7 @@
 			activeTab = filled.content ? 'content' : (filled.design ? 'design' : 'advanced');
 		}
 		setTab(activeTab);
-		var keep = openKey === 'text' ? textGroup : (openKey ? edit.querySelector('.aimp-ds-group[data-group="' + openKey + '"]') : null);
+		var keep = openKey === 'text' ? (openGroup === settingsGroup ? settingsGroup : textGroup) : (openKey ? edit.querySelector('.aimp-ds-group[data-group="' + openKey + '"]') : null);
 		if (keep && !keep.hidden && !keep.classList.contains('is-off-tab')) {
 			edit.querySelectorAll('.aimp-ds-group.is-open').forEach(function (other) {
 				other.classList.remove('is-open');
@@ -653,7 +660,7 @@
 	var redoStack = [];
 	var lastSnap = 0;
 	function snapshot() {
-		return JSON.stringify({ d: draft, x: draftTexts });
+		return JSON.stringify({ d: draft, x: draftTexts, s: draftSettings });
 	}
 	// Before a change: what it was (one step per burst of changes, e.g. dragging a slider).
 	function remember() {
@@ -670,9 +677,10 @@
 	}
 	function restore(snap) {
 		var s = JSON.parse(snap);
-		var textsDiffer = JSON.stringify(s.x) !== JSON.stringify(draftTexts);
+		var textsDiffer = JSON.stringify(s.x) !== JSON.stringify(draftTexts) || JSON.stringify(s.s || {}) !== JSON.stringify(draftSettings);
 		draft = s.d;
 		draftTexts = s.x;
+		draftSettings = s.s || {};
 		Object.keys(draft).forEach(function (id) {
 			if (/^el_[a-f0-9]{8}$/.test(id) && draft[id].sel && !cfg.elements[id]) {
 				registerOwn(id, draft[id].sel, draft[id].name);
@@ -787,6 +795,170 @@
 		}
 	}
 
+	/* ---------------- texts of the Atelier Irisee settings ---------------- */
+
+	var LANGS = ['nl', 'fr', 'en'];
+	// The settings texts of the chosen part (cfg.settingTexts: id, label, type, parts, key, hints).
+	function partSettings() {
+		return (cfg.settingTexts || []).filter(function (field) {
+			return field.parts.indexOf(current) !== -1;
+		});
+	}
+	function settingKeys(field) {
+		return field.type === 'lang' ? LANGS.map(function (code) {
+			return field.key + '_' + code;
+		}) : [field.key];
+	}
+	function settingValue(key) {
+		return draftSettings[key] !== undefined ? draftSettings[key] : (liveSettings[key] || '');
+	}
+	function setSetting(key, value) {
+		remember();
+		if (value === (liveSettings[key] || '')) {
+			delete draftSettings[key];
+		} else {
+			draftSettings[key] = value;
+		}
+		// Made on the server: the preview loads again once you stop typing.
+		save(true);
+		markGroups();
+	}
+	// "NL | FR | EN" in three fields (a missing language: empty).
+	function trioFields(value, onChange) {
+		var parts = String(value || '').split('|').map(function (part) {
+			return part.trim();
+		});
+		var box = document.createElement('div');
+		box.className = 'aimp-ds-trio';
+		var inputs = LANGS.map(function (code, i) {
+			var label = document.createElement('label');
+			var tag = document.createElement('span');
+			tag.textContent = code.toUpperCase();
+			var input = document.createElement('input');
+			input.type = 'text';
+			input.value = parts.length > 1 ? (parts[i] || '') : (i === 0 ? parts[0] : '');
+			label.appendChild(tag);
+			label.appendChild(input);
+			box.appendChild(label);
+			return input;
+		});
+		inputs.forEach(function (input) {
+			input.addEventListener('input', function () {
+				var values = inputs.map(function (other) {
+					return other.value.trim();
+				});
+				onChange(values[1] || values[2] ? values.join(' | ') : values[0]);
+			});
+		});
+		return box;
+	}
+	function renderSettingsGroup() {
+		var body = settingsGroup.querySelector('.aimp-ds-textgroup-body');
+		body.innerHTML = '';
+		var fields = partSettings();
+		fields.forEach(function (field) {
+			var wrap = document.createElement('div');
+			wrap.className = 'aimp-ds-setting';
+			var title = document.createElement('p');
+			title.className = 'aimp-ds-setting-title';
+			title.textContent = field.label;
+			wrap.appendChild(title);
+			if (field.type === 'lang') {
+				LANGS.forEach(function (code) {
+					var key = field.key + '_' + code;
+					var label = document.createElement('label');
+					var tag = document.createElement('span');
+					tag.textContent = code.toUpperCase();
+					var input = document.createElement('input');
+					input.type = 'text';
+					input.value = settingValue(key);
+					input.placeholder = field.hints && field.hints[code] ? field.hints[code] : '';
+					input.addEventListener('input', function () {
+						setSetting(key, input.value);
+					});
+					label.appendChild(tag);
+					label.appendChild(input);
+					wrap.appendChild(label);
+				});
+			} else if (field.type === 'trio') {
+				wrap.appendChild(trioFields(settingValue(field.key), function (value) {
+					setSetting(field.key, value);
+				}));
+			} else if (field.type === 'lines') {
+				// One item per line, each in three languages; items can be added and removed.
+				var lines = settingValue(field.key).split(/\r\n|\r|\n/).filter(function (line) {
+					return line.trim() !== '';
+				});
+				var list = document.createElement('div');
+				var store = function () {
+					setSetting(field.key, lines.filter(function (line) {
+						return line.trim() !== '';
+					}).join('\n'));
+				};
+				var draw = function () {
+					list.innerHTML = '';
+					lines.forEach(function (line, i) {
+						var item = document.createElement('div');
+						item.className = 'aimp-ds-line';
+						var head = document.createElement('div');
+						head.className = 'aimp-ds-line-head';
+						head.textContent = '#' + (i + 1);
+						var remove = document.createElement('button');
+						remove.type = 'button';
+						remove.className = 'button-link aimp-ds-line-remove';
+						remove.textContent = t.removeItem;
+						remove.addEventListener('click', function () {
+							lines.splice(i, 1);
+							store();
+							draw();
+						});
+						head.appendChild(remove);
+						item.appendChild(head);
+						item.appendChild(trioFields(line, function (value) {
+							lines[i] = value;
+							store();
+						}));
+						list.appendChild(item);
+					});
+				};
+				draw();
+				wrap.appendChild(list);
+				var add = document.createElement('button');
+				add.type = 'button';
+				add.className = 'button';
+				add.textContent = '+ ' + t.addItem;
+				add.addEventListener('click', function () {
+					lines.push('');
+					draw();
+				});
+				wrap.appendChild(add);
+			} else {
+				var label = document.createElement('label');
+				label.className = 'aimp-ds-setting-single';
+				var input = document.createElement(field.type === 'long' ? 'textarea' : 'input');
+				if (field.type === 'long') {
+					input.rows = 3;
+				} else {
+					input.type = 'text';
+				}
+				input.value = settingValue(field.key);
+				input.addEventListener('input', function () {
+					setSetting(field.key, input.value);
+				});
+				label.appendChild(input);
+				wrap.appendChild(label);
+			}
+			body.appendChild(wrap);
+		});
+		if (fields.length) {
+			var help = document.createElement('p');
+			help.className = 'description';
+			help.textContent = t.settingsHelp;
+			body.appendChild(help);
+		}
+		return fields.length > 0;
+	}
+
 	// The clicked shop text: its words in Dutch, French and English, nothing else.
 	function renderTextGroup() {
 		var body = textGroup.querySelector('.aimp-ds-textgroup-body');
@@ -846,6 +1018,11 @@
 		var row = draft[current] || {};
 		var textToggle = textGroup.querySelector('.aimp-ds-group-toggle');
 		textToggle.classList.toggle('is-changed', !!(currentText && draftTexts[currentText.original]));
+		settingsGroup.querySelector('.aimp-ds-group-toggle').classList.toggle('is-changed', partSettings().some(function (field) {
+			return settingKeys(field).some(function (key) {
+				return draftSettings[key] !== undefined;
+			});
+		}));
 		edit.querySelectorAll('.aimp-ds-group[data-group]').forEach(function (group) {
 			var fields = cfg.groups[group.getAttribute('data-group')] || {};
 			var changed = Object.keys(fields).some(function (key) {
@@ -1454,6 +1631,16 @@
 	ownNote.textContent = t.ownScope;
 	ownNote.hidden = true;
 	pathBox.insertAdjacentElement('afterend', ownNote);
+	var settingsGroup = textGroup.cloneNode(true);
+	settingsGroup.className = 'aimp-ds-group aimp-ds-textgroup aimp-ds-settingsgroup';
+	settingsGroup.querySelector('.aimp-ds-group-toggle').textContent = t.settingsTitle;
+	settingsGroup.querySelector('.aimp-ds-group-toggle').addEventListener('click', function () {
+		var open = !settingsGroup.classList.contains('is-open');
+		edit.querySelectorAll('.aimp-ds-group.is-open').forEach(function (other) {
+			other.classList.remove('is-open');
+		});
+		settingsGroup.classList.toggle('is-open', open);
+	});
 	var groupsHome = document.createElement('div');
 	groupsHome.className = 'aimp-ds-groups';
 	edit.appendChild(groupsHome);
@@ -1522,14 +1709,39 @@
 
 	function fit() {
 		var available = stage.clientWidth - 24;
-		var scale = Math.min(1, available / width);
+		// Computer: as wide as there is room for (at least 1280, scaled down on smaller screens).
+		var shown = width >= 1280 ? Math.max(1280, available) : width;
+		var scale = Math.min(1, available / shown);
 		var height = stage.clientHeight - 24;
-		frame.style.width = width + 'px';
+		frame.style.width = shown + 'px';
 		frame.style.height = Math.round(height / scale) + 'px';
 		frame.style.transform = 'scale(' + scale + ')';
-		wrap.style.width = Math.round(width * scale) + 'px';
+		wrap.style.width = Math.round(shown * scale) + 'px';
 		wrap.style.height = height + 'px';
 	}
+
+	// The WordPress menu on the left: hidden in the studio for room, shown with this button (remembered).
+	var menuButton = document.createElement('button');
+	menuButton.type = 'button';
+	menuButton.className = 'button aimp-ds-wpmenu-toggle';
+	menuButton.textContent = '☰ ' + t.wpMenu;
+	q('.aimp-ds-bar h1').insertAdjacentElement('beforebegin', menuButton);
+	function showMenu(on) {
+		document.body.classList.toggle('aimp-ds-wpmenu', on);
+		menuButton.setAttribute('aria-pressed', on ? 'true' : 'false');
+		try {
+			window.localStorage.setItem('aimp-ds-wpmenu', on ? '1' : '');
+		} catch (e) {}
+		window.setTimeout(fit, 50);
+	}
+	var menuWanted = false;
+	try {
+		menuWanted = window.localStorage.getItem('aimp-ds-wpmenu') === '1';
+	} catch (e) {}
+	showMenu(menuWanted);
+	menuButton.addEventListener('click', function () {
+		showMenu(!document.body.classList.contains('aimp-ds-wpmenu'));
+	});
 
 	root.querySelectorAll('.aimp-ds-devices button').forEach(function (b) {
 		b.addEventListener('click', function () {

@@ -103,6 +103,11 @@ class AIMP_Footer {
 	 * @return mixed
 	 */
 	public static function get( $key ) {
+		// The studio's preview: a text changed there and not yet published.
+		$draft = class_exists( 'AIMP_Design', false ) ? AIMP_Design::setting_draft( self::OPTION, $key ) : null;
+		if ( null !== $draft ) {
+			return $draft;
+		}
 		$options = wp_parse_args( (array) get_option( self::OPTION, array() ), self::defaults() );
 		return isset( $options[ $key ] ) ? $options[ $key ] : '';
 	}
