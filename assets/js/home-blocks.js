@@ -33,7 +33,15 @@
 		update();
 	}
 
+	// The blocks are as wide as the screen without its scrollbar (no sideways scrolling on computers).
+	function scrollbar() {
+		var width = window.innerWidth - document.documentElement.clientWidth;
+		document.documentElement.style.setProperty('--aimp-hero-sb', Math.max(0, width) + 'px');
+	}
+
 	function start() {
+		scrollbar();
+		window.addEventListener('resize', scrollbar);
 		document.querySelectorAll('[data-aimp-slider]').forEach(init);
 	}
 

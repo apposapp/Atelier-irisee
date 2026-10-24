@@ -18,6 +18,18 @@
 	line-height: 1.6;
 }
 
+/* The home page blocks use the full width of the screen, also inside a Divi row (like the hero; --aimp-hero-sb is
+   the width of a desktop scrollbar, set by hero.js and home-blocks.js). The content stays within 1800px. */
+.aimp-home-block,
+.aimp-home-block.aimp-configurator {
+	--hb-pad-x: max(clamp(1rem, 4vw, 4rem), (100vw - 1800px) / 2);
+	width: calc(100vw - var(--aimp-hero-sb, 0px));
+	max-width: none;
+	margin: 0 0 0 calc(50% - 50vw + var(--aimp-hero-sb, 0px) / 2);
+	padding-right: var(--hb-pad-x);
+	padding-left: var(--hb-pad-x);
+}
+
 .aimp-home-block *,
 .aimp-home-block *::before,
 .aimp-home-block *::after,
@@ -496,10 +508,6 @@
 	color: var(--hb-brown);
 }
 
-.aimp-home-new.aimp-configurator {
-	margin: 0 auto;
-}
-
 .aimp-home-new .aimp-new-list > li {
 	width: clamp(10.5rem, 21%, 15rem);
 }
@@ -511,11 +519,21 @@
 
 .aimp-home-nl-image {
 	position: absolute;
-	inset: clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem);
-	width: calc(100% - 2 * clamp(1rem, 3vw, 2rem));
-	height: calc(100% - 2 * clamp(2rem, 5vw, 4rem));
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
 	object-fit: cover;
-	border-radius: var(--hb-radius);
+}
+
+/* Over the background picture: the texts on a light veil. */
+.aimp-home-newsletter.has-picture .aimp-home-nl-main {
+	position: relative;
+	background: color-mix(in srgb, var(--hb-tint) 86%, transparent);
+}
+
+.aimp-home-nl-offer {
+	position: relative;
 }
 
 .aimp-home-nl-box {
@@ -526,10 +544,6 @@
 	border: 5px double var(--hb-gold);
 	border-radius: var(--hb-radius);
 	background: var(--hb-tint);
-}
-
-.aimp-home-newsletter.has-picture .aimp-home-nl-box {
-	background: color-mix(in srgb, var(--hb-tint) 88%, transparent);
 }
 
 .aimp-home-nl-box:not(:has(.aimp-home-nl-offer)) {

@@ -46,18 +46,15 @@ class AIMP_Home_Blocks {
 	}
 
 	/**
-	 * The block's styles (and script, for the sliders).
-	 *
-	 * @param bool $script With the script.
+	 * The block's styles and script.
 	 */
-	private static function assets( $script = false ) {
+	private static function assets() {
 		if ( ! wp_style_is( 'aimp-home-blocks', 'registered' ) ) {
 			self::register_assets();
 		}
 		wp_enqueue_style( 'aimp-home-blocks' );
-		if ( $script ) {
-			wp_enqueue_script( 'aimp-home-blocks' );
-		}
+		// Every block: the script measures the scrollbar for the full width (and runs the sliders).
+		wp_enqueue_script( 'aimp-home-blocks' );
 	}
 
 	/**
@@ -217,7 +214,7 @@ class AIMP_Home_Blocks {
 		if ( ! $items ) {
 			return '';
 		}
-		self::assets( true );
+		self::assets();
 		list( $average, $total ) = self::review_average();
 
 		$html = '<section class="aimp-home-block aimp-home-reviews" data-aimp-slider>' . self::title( AIMP_Blocks::text( 'rv_title' ) );
@@ -330,7 +327,7 @@ class AIMP_Home_Blocks {
 			AIMP_Shortcode::register_assets();
 		}
 		wp_enqueue_style( 'aimp-configurator' );
-		self::assets( true );
+		self::assets();
 		$url = self::url_or_page( (string) AIMP_Blocks::design( $part, 'nw_url', '' ), AIMP_Shop::page_for_type( $type ) );
 		if ( '' !== $url && '' === (string) AIMP_Blocks::design( $part, 'nw_url', '' ) ) {
 			$url = add_query_arg( 'aimp_sort', 'newest', $url );
@@ -363,11 +360,12 @@ class AIMP_Home_Blocks {
 		$privacy = $privacy && 'publish' === get_post_status( $privacy ) ? get_permalink( $privacy ) : '';
 		$id      = wp_unique_id( 'aimp-home-nl-' );
 
-		$html = '<section class="aimp-home-block aimp-home-newsletter' . ( $picture ? ' has-picture' : '' ) . '">';
+		$html = '<section class="aimp-home-block aimp-home-newsletter' . ( $picture ? ' has-picture' : '' ) . '"><div class="aimp-home-nl-box">';
 		if ( $picture ) {
+			// Behind the texts, filling the gold frame.
 			$html .= wp_get_attachment_image( $picture, 'large', false, array( 'class' => 'aimp-home-nl-image', 'loading' => 'lazy', 'alt' => '' ) );
 		}
-		$html .= '<div class="aimp-home-nl-box"><div class="aimp-home-nl-main">' . self::title( AIMP_Blocks::text( 'hn_title' ) ) .
+		$html .= '<div class="aimp-home-nl-main">' . self::title( AIMP_Blocks::text( 'hn_title' ) ) .
 			'<p class="aimp-newsletter-intro">' . nl2br( esc_html( AIMP_Blocks::text( 'hn_text' ) ) ) . '</p>' .
 			'<form class="aimp-newsletter aimp-home-nl-form" data-aimp-newsletter novalidate>' .
 			'<label class="screen-reader-text" for="' . esc_attr( $id ) . '">' . esc_html__( 'Email address', 'atelier-irisee-master-plugin' ) . '</label>' .
