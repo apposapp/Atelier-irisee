@@ -100,7 +100,7 @@ class AIMP_About {
 			$flip   = ( 1 === $shown % 2 ) !== $right;
 			$html  .= '<article class="aimp-about-chapter aimp-about-chapter--' . $n . ' is-' . esc_attr( $shape ) . ( $flip ? ' is-flipped' : '' ) . ( $picture ? '' : ' has-no-picture' ) . '">';
 			if ( $picture ) {
-				$html .= '<div class="aimp-about-media">' . self::picture( $picture, 'aimp-about-image', (int) self::design( 'about-chapter', 'ab_fx_' . $n, -1 ), (int) self::design( 'about-chapter', 'ab_fy_' . $n, -1 ) ) . '</div>';
+				$html .= '<div class="aimp-about-media"><span class="aimp-about-frame">' . self::picture( $picture, 'aimp-about-image', (int) self::design( 'about-chapter', 'ab_fx_' . $n, -1 ), (int) self::design( 'about-chapter', 'ab_fy_' . $n, -1 ) ) . '</span></div>';
 			}
 			$html .= '<div class="aimp-about-text">';
 			if ( '' !== $title ) {
@@ -161,7 +161,7 @@ class AIMP_About {
 			$html .= '<blockquote class="aimp-about-quote"><p>' . esc_html( $quote ) . '</p></blockquote>';
 		}
 		if ( '' !== $sign || $picture ) {
-			$html .= '<div class="aimp-about-sign">' . ( $picture ? self::picture( $picture, 'aimp-about-sign-image' ) : '' ) .
+			$html .= '<div class="aimp-about-sign">' . ( $picture ? '<span class="aimp-about-sign-frame">' . self::picture( $picture, 'aimp-about-sign-image' ) . '</span>' : '' ) .
 				( '' !== $sign ? '<p class="aimp-about-signature">' . nl2br( esc_html( $sign ) ) . '</p>' : '' ) . '</div>';
 		}
 		if ( '' !== $buttons ) {
@@ -183,7 +183,8 @@ class AIMP_About {
 		wp_enqueue_script( 'aimp-home-blocks' );
 
 		$intro = AIMP_Blocks::text( 'ab_intro' );
-		return '<section class="aimp-home-block aimp-about">' .
+		// Design studio (Pictures of the chapters): a dotted gold line behind the pictures.
+		return '<section class="aimp-home-block aimp-about' . ( self::design( 'about-chapter', 'ab_line' ) ? ' has-line' : '' ) . '">' .
 			'<header class="aimp-about-head"><p class="aimp-maker-kicker aimp-about-kicker">' . esc_html( AIMP_Blocks::text( 'ab_kicker' ) ) . '</p>' .
 			'<h1 class="aimp-block-title aimp-about-title"><span>' . esc_html( AIMP_Blocks::text( 'ab_title' ) ) . '</span></h1>' .
 			( '' !== $intro ? '<p class="aimp-about-intro">' . nl2br( esc_html( $intro ) ) . '</p>' : '' ) . '</header>' .

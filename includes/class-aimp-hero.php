@@ -122,10 +122,12 @@ class AIMP_Hero {
 		// Where the arrow goes (Design studio → Hero arrow).
 		$arrow  = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'hero-arrow', 'ha_target', '' ) : '';
 		$anchor = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'hero-arrow', 'ha_anchor', '' ) : '';
+		// Design studio (Hero arrow): how long the slide down takes (ms).
+		$glide  = class_exists( 'AIMP_Design' ) ? (int) AIMP_Design::opt( 'hero-arrow', 'ha_speed', 0 ) : 0;
 
 		ob_start();
 		?>
-		<section class="aimp-hero<?php echo ( $video || count( $slides ) > 1 ) ? ' has-media' : ''; ?>" data-aimp-hero style="<?php echo esc_attr( $style ); ?>"<?php echo $arrow ? ' data-arrow="' . esc_attr( $arrow ) . '"' : ''; ?><?php echo '' !== $anchor ? ' data-anchor="' . esc_attr( $anchor ) . '"' : ''; ?><?php echo $interval ? ' data-interval="' . esc_attr( (string) $interval ) . '"' : ''; ?>>
+		<section class="aimp-hero<?php echo ( $video || count( $slides ) > 1 ) ? ' has-media' : ''; ?>" data-aimp-hero style="<?php echo esc_attr( $style ); ?>"<?php echo $arrow ? ' data-arrow="' . esc_attr( $arrow ) . '"' : ''; ?><?php echo '' !== $anchor ? ' data-anchor="' . esc_attr( $anchor ) . '"' : ''; ?><?php echo $glide ? ' data-slide="' . esc_attr( (string) $glide ) . '"' : ''; ?><?php echo $interval ? ' data-interval="' . esc_attr( (string) $interval ) . '"' : ''; ?>>
 			<?php if ( $video || count( $slides ) > 1 ) : ?>
 				<div class="aimp-hero-media" aria-hidden="true">
 					<?php if ( $video ) : ?>

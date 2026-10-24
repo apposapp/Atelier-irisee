@@ -1516,4 +1516,103 @@ class AIMP_AI_Looks {
 			)
 		);
 	}
+
+	/* ------------------------------------------------------------------ translating (Design studio) */
+
+	/**
+	 * Whether a key for translating is saved (Google Gemini, else OpenAI).
+	 *
+	 * @return bool
+	 */
+	public static function can_translate() {
+		return '' !== self::api_key( 'gemini' ) || '' !== self::api_key( 'openai' );
+	}
+
+	/**
+	 * A shop text translated into other languages, with the key saved for AI pictures (Gemini first, else OpenAI).
+	 *
+	 * @param string   $text Text.
+	 * @param string   $from Its language (nl, fr, en).
+	 * @param string[] $to   The languages wanted.
+	 * @return array|WP_Error language => text.
+	 */
+	public static function translate( $text, $from, $to ) {
+		$names  = array(
+			'nl' => 'Dutch (Belgium, Flemish)',
+			'fr' => 'French (Belgium)',
+			'en' => 'English',
+		);
+		$to     = array_values( array_intersect( (array) $to, array_keys( $names ) ) );
+		$prompt = 'You translate texts of Atelier Irisée, a Belgian web shop for sewing patterns, fabrics, haberdashery and sewing project kits. ' .
+			'Translate the text below from ' . ( isset( $names[ $from ] ) ? $names[ $from ] : 'Dutch' ) . ' into ' . implode( ', ', array_map( function ( $code ) use ( $names ) {
+				return $names[ $code ] . ' ("' . $code . '")';
+			}, $to ) ) . '. ' .
+			'Keep the tone (warm, personal), emoji, line breaks, punctuation style and anything in curly braces like {percent} exactly as it is. Do not add anything. ' .
+			'Answer with only a JSON object with the language codes as keys and the translations as values.' . "\n\nText:\n" . $text;
+
+		$gemini = self::api_key( 'gemini' );
+		$openai = self::api_key( 'openai' );
+		if ( '' !== $gemini ) {
+			$response = wp_remote_post(
+				'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+				array(
+					'timeout' => 45,
+					'headers' => array(
+						'x-goog-api-key' => $gemini,
+						'Content-Type'   => 'application/json',
+					),
+					'body'    => wp_json_encode(
+						array(
+							'contents'         => array( array( 'parts' => array( array( 'text' => $prompt ) ) ) ),
+							'generationConfig' => array(
+								'responseMimeType' => 'application/json',
+								'temperature'      => 0.2,
+							),
+						)
+					),
+				)
+			);
+			$json = is_wp_error( $response ) ? null : json_decode( wp_remote_retrieve_body( $response ), true );
+			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+				return self::http_error( $response, $json );
+			}
+			$answer = isset( $json['candidates'][0]['content']['parts'][0]['text'] ) ? (string) $json['candidates'][0]['content']['parts'][0]['text'] : '';
+		} elseif ( '' !== $openai ) {
+			$response = wp_remote_post(
+				'https://api.openai.com/v1/chat/completions',
+				array(
+					'timeout' => 45,
+					'headers' => array(
+						'Authorization' => 'Bearer ' . $openai,
+						'Content-Type'  => 'application/json',
+					),
+					'body'    => wp_json_encode(
+						array(
+							'model'           => 'gpt-4.1-mini',
+							'temperature'     => 0.2,
+							'response_format' => array( 'type' => 'json_object' ),
+							'messages'        => array( array( 'role' => 'user', 'content' => $prompt ) ),
+						)
+					),
+				)
+			);
+			$json = is_wp_error( $response ) ? null : json_decode( wp_remote_retrieve_body( $response ), true );
+			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+				return self::http_error( $response, $json );
+			}
+			$answer = isset( $json['choices'][0]['message']['content'] ) ? (string) $json['choices'][0]['message']['content'] : '';
+		} else {
+			return new WP_Error( 'aimp_ai', __( 'No key for translating: save a Google Gemini or OpenAI key under Settings → AI pictures.', 'atelier-irisee-master-plugin' ) );
+		}
+		// The JSON, also when it comes wrapped in ```json … ```.
+		$answer = trim( preg_replace( '/^```(?:json)?|```$/m', '', trim( $answer ) ) );
+		$data   = json_decode( $answer, true );
+		$out    = array();
+		foreach ( $to as $code ) {
+			if ( is_array( $data ) && isset( $data[ $code ] ) && is_string( $data[ $code ] ) && '' !== trim( $data[ $code ] ) ) {
+				$out[ $code ] = trim( $data[ $code ] );
+			}
+		}
+		return $out ? $out : new WP_Error( 'aimp_ai', __( 'The translation could not be read. Please try again.', 'atelier-irisee-master-plugin' ) );
+	}
 }

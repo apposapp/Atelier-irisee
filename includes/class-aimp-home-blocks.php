@@ -261,9 +261,14 @@ class AIMP_Home_Blocks {
 			if ( '' !== $style ) {
 				$image = preg_replace( '/^<img /', '<img' . $style . ' ', $image );
 			}
-			$html .= '<div class="aimp-maker-media">' . $image;
-			if ( $inset ) {
-				$html .= wp_get_attachment_image( $inset, 'medium', false, array( 'class' => 'aimp-maker-inset', 'loading' => 'lazy', 'alt' => '' ) );
+			// The picture in a frame with the gold border, so moving or zooming it (Design studio) stays inside.
+			$html .= '<div class="aimp-maker-media"><span class="aimp-maker-frame">' . $image . '</span>';
+			$url2  = $inset ? wp_get_attachment_image_url( $inset, 'medium' ) : '';
+			if ( $url2 ) {
+				// The round picture as a background: it keeps its own focal point and does not move with the large one.
+				$ix    = (int) AIMP_Blocks::design( $part, 'mk_fx2', -1 );
+				$iy    = (int) AIMP_Blocks::design( $part, 'mk_fy2', -1 );
+				$html .= '<span class="aimp-maker-inset" style="background-image:url(\'' . esc_url( $url2 ) . '\');background-position:' . ( $ix >= 0 ? $ix : 50 ) . '% ' . ( $iy >= 0 ? $iy : 50 ) . '%" aria-hidden="true"></span>';
 			}
 			$html .= '</div>';
 		}
@@ -450,7 +455,9 @@ class AIMP_Home_Blocks {
 		foreach ( $terms as $term ) {
 			$link = AIMP_Shop::brand_url( $term );
 			$link = '' !== $link ? $link : get_term_link( $term );
-			$logo = $names ? 0 : (int) get_term_meta( $term->term_id, 'thumbnail_id', true );
+			// A picture chosen in the studio, else the brand's own picture (Products → Brands).
+			$logo = $names ? 0 : (int) AIMP_Blocks::design( $part, 'br_img_' . $term->term_id, 0 );
+			$logo = $names || $logo ? $logo : (int) get_term_meta( $term->term_id, 'thumbnail_id', true );
 			$html .= '<li class="aimp-brand"><a href="' . esc_url( is_wp_error( $link ) ? '' : $link ) . '">' .
 				( $logo ? wp_get_attachment_image( $logo, 'medium', false, array( 'class' => 'aimp-brand-logo', 'loading' => 'lazy', 'alt' => $term->name ) ) : '<span class="aimp-brand-name">' . esc_html( $term->name ) . '</span>' ) .
 				'</a></li>';

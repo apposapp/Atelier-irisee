@@ -44,6 +44,24 @@
 	max-width: 100%;
 }
 
+/* No bullets: Divi's text module gives every list in it round bullets and an indent. */
+.aimp-home-block ul,
+.aimp-home-block li,
+.aimp-contact ul,
+.aimp-contact li {
+	list-style: none !important;
+}
+
+.aimp-home-block ul,
+.aimp-contact ul {
+	padding-left: 0 !important;
+}
+
+.aimp-home-block li::marker,
+.aimp-contact li::marker {
+	content: none;
+}
+
 /* ------------------------------------------------------------------ titles and buttons */
 .aimp-home-block .aimp-block-title,
 .aimp-contact .aimp-block-title {
@@ -410,15 +428,21 @@
 	padding: 0 0 1.5rem;
 }
 
-/* An arch, like the product pictures, in a gold double frame. */
+/* An arch, like the product pictures, in a gold double frame (the frame clips the picture when it is moved). */
+.aimp-maker-frame {
+	display: block;
+	aspect-ratio: 4 / 5;
+	max-height: 38rem;
+	overflow: hidden;
+	border: 5px double var(--hb-gold);
+	border-radius: 999px 999px var(--hb-radius) var(--hb-radius);
+}
+
 .aimp-maker-image {
 	display: block;
 	width: 100%;
-	aspect-ratio: 4 / 5;
-	max-height: 38rem;
+	height: 100%;
 	object-fit: cover;
-	border: 5px double var(--hb-gold);
-	border-radius: 999px 999px var(--hb-radius) var(--hb-radius);
 }
 
 .aimp-maker-inset {
@@ -427,10 +451,11 @@
 	bottom: 0;
 	width: 34%;
 	aspect-ratio: 1;
-	object-fit: cover;
+	background-color: #fff;
+	background-repeat: no-repeat;
+	background-size: cover;
 	border: 5px double var(--hb-gold);
 	border-radius: 50%;
-	background: #fff;
 	box-shadow: 0 10px 26px color-mix(in srgb, var(--hb-brown) 18%, transparent);
 }
 

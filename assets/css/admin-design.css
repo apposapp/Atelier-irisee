@@ -1164,3 +1164,173 @@ body.aimp-ds-screen .aimp-ds {
 	margin-top: 6px;
 	font-size: 12px;
 }
+
+/* ------------------------------------------------------------------ finding your way (3.41) */
+
+/* Above the settings and staying in view: back, breadcrumb, name, tabs, find a setting. */
+.aimp-ds-sticky {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	margin: 0 0 8px;
+	padding: 6px 0 8px;
+	border-bottom: 1px solid var(--ds-line);
+	background: #fff;
+}
+
+.aimp-ds-nav {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 4px;
+	color: #646970;
+	font-size: 12px;
+}
+
+.aimp-ds-nav .aimp-ds-back-part {
+	min-width: 30px;
+	min-height: 26px;
+	padding: 0 6px;
+	line-height: 24px;
+}
+
+.aimp-ds-crumbs {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.aimp-ds-crumbs .button-link {
+	font-size: 12px;
+}
+
+.aimp-ds-finder {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 12px;
+	margin-top: 8px;
+}
+
+.aimp-ds-finder .aimp-ds-find {
+	flex: 1 1 180px;
+	min-width: 0;
+}
+
+.aimp-ds-finder .aimp-ds-only-changed {
+	margin: 0;
+	font-size: 12px;
+}
+
+/* While finding: the matching settings of every tab, their blocks open; the rest away. */
+.aimp-ds-edit.is-searching .aimp-ds-group.is-off-tab.is-search-hit,
+.aimp-ds-edit.is-searching .aimp-ds-group.is-search-hit {
+	display: block !important;
+}
+
+.aimp-ds-edit.is-searching .aimp-ds-group.is-search-miss,
+.aimp-ds-edit.is-searching .is-search-off,
+.aimp-ds-edit.is-searching .aimp-ds-group .aimp-ds-sub,
+.aimp-ds-edit.is-searching .aimp-ds-group > p.description {
+	display: none !important;
+}
+
+.aimp-ds-edit.is-searching .aimp-ds-ptabs {
+	opacity: 0.4;
+	pointer-events: none;
+}
+
+/* Layers: the parts of the page inside each other. */
+.aimp-ds-layer {
+	display: flex;
+	align-items: stretch;
+	gap: 2px;
+}
+
+.aimp-ds-layer-fold {
+	flex: none;
+	width: 18px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: #8a6a33;
+	cursor: pointer;
+}
+
+.aimp-ds-layer-fold:disabled {
+	cursor: default;
+}
+
+.aimp-ds-layer .aimp-ds-item {
+	flex: 1;
+	min-width: 0;
+}
+
+/* Back to standard, per setting: a ↺ at the right of the row, only when it is changed. */
+.aimp-ds-num,
+.aimp-ds-select,
+.aimp-ds-check,
+.aimp-ds-text-field,
+.aimp-ds-color,
+.aimp-ds-image,
+.aimp-ds-order-field {
+	position: relative;
+	padding-right: 24px;
+}
+
+.aimp-ds-reset {
+	position: absolute;
+	top: 50%;
+	right: 0;
+	padding: 2px 4px;
+	border: 0;
+	border-radius: 4px;
+	background: none;
+	color: #8a6a33;
+	font-size: 15px;
+	line-height: 1;
+	cursor: pointer;
+	transform: translateY(-50%);
+}
+
+.aimp-ds-order-field > .aimp-ds-reset {
+	top: 0;
+	transform: none;
+}
+
+.aimp-ds-setting-title .aimp-ds-reset {
+	position: static;
+	margin-left: 4px;
+	transform: none;
+}
+
+.aimp-ds-reset:hover,
+.aimp-ds-reset:focus-visible {
+	background: #f6efe2;
+}
+
+/* The ↺ replaces the "Standard" links of colours and pictures. */
+.aimp-ds-color > .button-link[data-clear],
+.aimp-ds-image > .button-link[data-clear] {
+	display: none;
+}
+
+/* Translate to the empty languages. */
+.aimp-ds-translate {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin: 2px 0 6px;
+}
+
+.aimp-ds-translate .button-link {
+	font-size: 12px;
+}
+
+.aimp-ds-translate-note {
+	color: #646970;
+	font-size: 12px;
+}

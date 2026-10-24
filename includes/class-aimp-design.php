@@ -54,7 +54,7 @@ class AIMP_Design {
 		// The studio's screen: room for the panel and the preview (admin-design.css hides the WordPress menu).
 		add_filter( 'admin_body_class', array( __CLASS__, 'body_class' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_assets' ) );
-		foreach ( array( 'css', 'save', 'publish', 'discard', 'restore', 'import', 'texts', 'look_save', 'look_load', 'look_delete', 'look_plan' ) as $action ) {
+		foreach ( array( 'css', 'save', 'publish', 'discard', 'restore', 'import', 'texts', 'translate', 'look_save', 'look_load', 'look_delete', 'look_plan' ) as $action ) {
 			add_action( 'wp_ajax_aimp_design_' . $action, array( __CLASS__, 'ajax_' . $action ) );
 		}
 		add_action( 'wp_head', array( __CLASS__, 'print_style' ), 100 );
@@ -248,6 +248,12 @@ class AIMP_Design {
 				$elements[ $id ]['controls'] = array( $group, 'space', 'colors', 'radius' );
 			}
 		}
+		// Picture position (move and zoom): every part with pictures, also those with pictures of their own.
+		foreach ( $elements as $id => $row ) {
+			if ( in_array( 'image', $row['controls'], true ) || in_array( $id, array( 'hero', 'home-maker', 'about-chapter', 'about-closing', 'home-newsletter', 'home-brands' ), true ) ) {
+				$elements[ $id ]['controls'][] = 'imgpos';
+			}
+		}
 		// The overall look of the site: no part of the page to click, chosen from the list.
 		$site = __( 'Whole site', 'atelier-irisee-master-plugin' );
 		foreach ( array(
@@ -312,6 +318,15 @@ class AIMP_Design {
 				'img' => 'image',
 				'fx'  => array( 0, 100, 50 ),
 				'fy'  => array( 0, 100, 50 ),
+			),
+			// Picture position: moved (% of the picture) and zoomed, on computers and on phones ("p").
+			'imgpos'     => array(
+				'ix'     => array( -100, 100, 0 ),
+				'iy'     => array( -100, 100, 0 ),
+				'izoom'  => array( 50, 300, 100 ),
+				'pix'    => array( -100, 100, 0 ),
+				'piy'    => array( -100, 100, 0 ),
+				'pizoom' => array( 50, 300, 100 ),
 			),
 			'anim'       => array(
 				'noanim' => 'bool',
@@ -458,6 +473,7 @@ class AIMP_Design {
 			'arrow_opts'  => array(
 				'ha_target' => array( 'select', array( '', 'next', 'anchor' ) ),
 				'ha_anchor' => 'text',
+				'ha_speed'  => array( 300, 3000, 1200 ),
 			),
 			// The kit steps bar and the mosaic (phase 4).
 			'ks_opts'     => self::kit_step_fields(),
@@ -663,6 +679,8 @@ class AIMP_Design {
 				'mk_img2'  => 'image',
 				'mk_fx'    => array( 0, 100, -1 ),
 				'mk_fy'    => array( 0, 100, -1 ),
+				'mk_fx2'   => array( 0, 100, -1 ),
+				'mk_fy2'   => array( 0, 100, -1 ),
 				'mk_right' => 'bool',
 				'mk_url'   => 'url',
 			),
@@ -680,9 +698,12 @@ class AIMP_Design {
 				'fq_count' => array( 0, 12, 0 ),
 				'fq_url'   => 'url',
 			),
-			'br_opts'     => array(
-				'br_names' => 'bool',
-				'br_gray'  => 'bool',
+			'br_opts'     => array_merge(
+				array(
+					'br_names' => 'bool',
+					'br_gray'  => 'bool',
+				),
+				self::brand_fields()
 			),
 			'ab_opts'     => array(
 				'ab_right'    => 'bool',
@@ -981,13 +1002,52 @@ class AIMP_Design {
 	}
 
 	/**
+	 * The brands with products: term id => name (a picture per brand in the Brands block).
+	 *
+	 * @return array
+	 */
+	public static function brands() {
+		static $brands = null;
+		if ( null !== $brands ) {
+			return $brands;
+		}
+		$brands = array();
+		if ( taxonomy_exists( 'product_brand' ) ) {
+			$terms = get_terms(
+				array(
+					'taxonomy'   => 'product_brand',
+					'hide_empty' => true,
+					'orderby'    => 'name',
+				)
+			);
+			foreach ( is_wp_error( $terms ) ? array() : $terms as $term ) {
+				$brands[ (int) $term->term_id ] = $term->name;
+			}
+		}
+		return $brands;
+	}
+
+	/**
+	 * A picture per brand (br_img_{term id}).
+	 *
+	 * @return array
+	 */
+	private static function brand_fields() {
+		$fields = array();
+		foreach ( array_keys( self::brands() ) as $id ) {
+			$fields[ 'br_img_' . $id ] = 'image';
+		}
+		return $fields;
+	}
+
+	/**
 	 * The story chapters of the About page, per chapter: a picture with its focal point and shape, the address of its
 	 * button, and hidden.
 	 *
 	 * @return array
 	 */
 	private static function about_chapter_fields() {
-		$fields = array();
+		$fields = array( 'ab_line' => 'bool' );
 		for ( $n = 1; $n <= 4; $n++ ) {
 			$fields[ 'ab_img_' . $n ]   = 'image';
 			$fields[ 'ab_fx_' . $n ]    = array( 0, 100, -1 );
@@ -1094,7 +1154,7 @@ class AIMP_Design {
 
 	/** The settings of an own part. */
 	public static function own_controls() {
-		return array( 'typo', 'colors', 'image', 'size', 'space', 'radius', 'move', 'hide', 'anim' );
+		return array( 'typo', 'colors', 'image', 'imgpos', 'size', 'space', 'radius', 'move', 'hide', 'anim' );
 	}
 
 	/**
@@ -1840,6 +1900,31 @@ class AIMP_Design {
 				}
 				return $css;
 			};
+			// Picture position: the pictures move inside their frame (which clips them) and zoom around the focal point.
+			$picture = function ( $prefix ) use ( $row ) {
+				$x    = isset( $row[ $prefix . 'ix' ] ) ? (int) $row[ $prefix . 'ix' ] : 0;
+				$y    = isset( $row[ $prefix . 'iy' ] ) ? (int) $row[ $prefix . 'iy' ] : 0;
+				$zoom = isset( $row[ $prefix . 'izoom' ] ) ? (int) $row[ $prefix . 'izoom' ] : 100;
+				if ( ! $x && ! $y && 100 === $zoom ) {
+					return '';
+				}
+				$origin = ( isset( $row['fx'] ) ? (int) $row['fx'] : 50 ) . '% ' . ( isset( $row['fy'] ) ? (int) $row['fy'] : 50 ) . '%';
+				return 'transform:translate(' . $x . '%,' . $y . '%) scale(' . ( $zoom / 100 ) . ')!important;transform-origin:' . $origin . '!important;';
+			};
+			// The frame: the part itself or the element in it that holds the picture.
+			$frames = self::prefixed( $base, ':has(> img)' ) . ',' . self::prefixed( $base, ' :has(> img)' );
+			foreach ( array( '' => 'computer', 'p' => 'phone' ) as $prefix => $screen ) {
+				$moved = $picture( $prefix );
+				if ( '' === $moved ) {
+					continue;
+				}
+				$rule = $images . '{' . $moved . '}' . $frames . '{overflow:hidden!important}';
+				if ( 'phone' === $screen ) {
+					$phone .= $rule;
+				} else {
+					$computer .= $rule;
+				}
+			}
 			$desktop = $device( '' );
 			$mid     = $device( 't' );
 			$mobile  = $device( 'p' );
@@ -2804,6 +2889,17 @@ class AIMP_Design {
 						'ownParts'    => __( 'Your own picks', 'atelier-irisee-master-plugin' ),
 						'ownScope'    => __( 'An element you clicked: these settings count for this element on this page (header and footer: on every page).', 'atelier-irisee-master-plugin' ),
 						'pathTitle'   => __( 'Change instead:', 'atelier-irisee-master-plugin' ),
+						// Translating, back to standard, finding settings, layers.
+						'translate'        => __( 'Translate to the empty languages', 'atelier-irisee-master-plugin' ),
+						'translating'      => __( 'Translating…', 'atelier-irisee-master-plugin' ),
+						'translateFull'    => __( 'Every language is filled in already. Empty one to translate it again.', 'atelier-irisee-master-plugin' ),
+						'translateNothing' => __( 'Type a text in one language first.', 'atelier-irisee-master-plugin' ),
+						'resetOne'         => __( 'Back to standard', 'atelier-irisee-master-plugin' ),
+						'findSetting'      => __( 'Find a setting…', 'atelier-irisee-master-plugin' ),
+						'noSetting'        => __( 'No setting of this part matches.', 'atelier-irisee-master-plugin' ),
+						'onlyChanged'      => __( 'Only what I changed', 'atelier-irisee-master-plugin' ),
+						'backPart'         => __( 'Back to the previous part', 'atelier-irisee-master-plugin' ),
+						'layers'           => __( 'Layers of this page', 'atelier-irisee-master-plugin' ),
 						'undo'        => __( 'Undo', 'atelier-irisee-master-plugin' ),
 						'redo'        => __( 'Redo', 'atelier-irisee-master-plugin' ),
 						'shopPages'   => __( 'Shop', 'atelier-irisee-master-plugin' ),
@@ -3063,6 +3159,18 @@ class AIMP_Design {
 		echo '<p class="description">' . esc_html__( 'Replaces the pictures in this part. The focal point is the spot that stays in view when a picture is cut off.', 'atelier-irisee-master-plugin' ) . '</p>';
 		self::number( 'fx', __( 'Focal point left → right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
 		self::number( 'fy', __( 'Focal point top → bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+		echo '</fieldset>';
+
+		$group( 'imgpos', __( 'Picture position', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Moves the pictures of this part inside their frame and zooms in or out. Zoom in first to move without empty edges.', 'atelier-irisee-master-plugin' ) . '</p>';
+		$sub( $computer );
+		self::number( 'ix', __( 'Left / right', 'atelier-irisee-master-plugin' ), -100, 100, '%' );
+		self::number( 'iy', __( 'Up / down', 'atelier-irisee-master-plugin' ), -100, 100, '%' );
+		self::number( 'izoom', __( 'Zoom', 'atelier-irisee-master-plugin' ), 50, 300, '%' );
+		$sub( $phone );
+		self::number( 'pix', __( 'Left / right', 'atelier-irisee-master-plugin' ), -100, 100, '%' );
+		self::number( 'piy', __( 'Up / down', 'atelier-irisee-master-plugin' ), -100, 100, '%' );
+		self::number( 'pizoom', __( 'Zoom', 'atelier-irisee-master-plugin' ), 50, 300, '%' );
 		echo '</fieldset>';
 
 		$group( 'anim', __( 'Animations', 'atelier-irisee-master-plugin' ) );
@@ -3430,6 +3538,7 @@ class AIMP_Design {
 			)
 		);
 		$field( 'ha_anchor', __( '#name of that part', 'atelier-irisee-master-plugin' ), 'text', '#shop' );
+		self::number( 'ha_speed', __( 'Time to slide down', 'atelier-irisee-master-plugin' ), 300, 3000, 'ms' );
 		echo '</fieldset>';
 
 		// The kit steps bar and the mosaic (phase 4).
@@ -3970,6 +4079,8 @@ class AIMP_Design {
 		self::number( 'mk_fx', __( 'Focal point: left / right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
 		self::number( 'mk_fy', __( 'Focal point: top / bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
 		echo '<button type="button" class="button-link" data-clear="mk_fx,mk_fy">' . esc_html( $standard ) . '</button>';
+		self::number( 'mk_fx2', __( 'Round picture: focal point left / right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+		self::number( 'mk_fy2', __( 'Round picture: focal point top / bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
 		self::check_box( 'mk_right', __( 'The picture on the right', 'atelier-irisee-master-plugin' ) );
 		$field( 'mk_url', __( 'The button goes to (no address = no button)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
 		echo $texts_note; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
@@ -4005,7 +4116,10 @@ class AIMP_Design {
 		$group( 'br_opts', __( 'Brands', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'br_names', __( 'Names instead of logos', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'br_gray', __( 'Logos in grey, in colour when pointed at', 'atelier-irisee-master-plugin' ) );
-		echo '<p class="description">' . esc_html__( 'Only brands with products are shown. A logo is the picture of the brand under Products → Brands.', 'atelier-irisee-master-plugin' ) . '</p>';
+		foreach ( self::brands() as $brand_id => $brand_name ) {
+			self::picture_field( 'br_img_' . $brand_id, $brand_name );
+		}
+		echo '<p class="description">' . esc_html__( 'Only brands with products are shown. A picture chosen here goes before the brand\'s own picture (Products → Brands); without either, the name is shown.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		$group( 'ab_opts', __( 'About page', 'atelier-irisee-master-plugin' ) );
@@ -4018,6 +4132,7 @@ class AIMP_Design {
 
 		$group( 'ab_chapters', __( 'Pictures of the chapters', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'A chapter without a title and text is not shown; one without a picture shows its text in the middle.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::check_box( 'ab_line', __( 'A dotted gold line behind the pictures', 'atelier-irisee-master-plugin' ) );
 		for ( $n = 1; $n <= 4; $n++ ) {
 			/* translators: %d: chapter number */
 			echo '<p class="aimp-ds-sub">' . esc_html( sprintf( __( 'Chapter %d', 'atelier-irisee-master-plugin' ), $n ) ) . '</p>';
@@ -4374,6 +4489,26 @@ class AIMP_Design {
 			$list[] = array( $original, $dutch, isset( $fr[ $original ] ) ? $fr[ $original ] : '' );
 		}
 		wp_send_json_success( $list );
+	}
+
+	/**
+	 * A text translated into the empty languages (with the AI pictures key: Gemini or OpenAI).
+	 */
+	public static function ajax_translate() {
+		self::check();
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked in check().
+		$text = isset( $_POST['text'] ) ? sanitize_textarea_field( wp_unslash( $_POST['text'] ) ) : '';
+		$from = isset( $_POST['from'] ) ? sanitize_key( $_POST['from'] ) : 'nl';
+		$to   = isset( $_POST['to'] ) ? array_map( 'sanitize_key', explode( ',', sanitize_text_field( wp_unslash( $_POST['to'] ) ) ) ) : array();
+		// phpcs:enable
+		if ( '' === trim( $text ) || ! $to || ! class_exists( 'AIMP_AI_Looks' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Nothing to translate.', 'atelier-irisee-master-plugin' ) ) );
+		}
+		$result = AIMP_AI_Looks::translate( function_exists( 'mb_substr' ) ? mb_substr( $text, 0, 4000 ) : substr( $text, 0, 4000 ), $from, $to );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+		wp_send_json_success( $result );
 	}
 
 	/** The draft is saved as a named look. */

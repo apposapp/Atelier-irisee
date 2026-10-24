@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.40.0
+Stable tag: 3.41.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,18 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.41.0 =
+* Design studio:
+  * Layers: the parts of the page in the list as a tree, in page order and inside each other (fold open and shut); pointing at a layer, a "Change instead" button or the breadcrumb outlines that part in the preview.
+  * Above the settings, staying in view: back to the previous part, the breadcrumb, the name, the tabs, "Find a setting…" (the matching settings of every tab) and "Only what I changed". The tab and block that were open are remembered per part.
+  * A ↺ "Back to standard" on every setting and every text.
+  * "Translate to the empty languages" (🌐) next to every text in NL/FR/EN: fills the empty languages from the one typed, with the Google Gemini or OpenAI key of the AI pictures.
+  * Picture position: move the pictures of a part left/right and up/down inside their frame, and zoom in or out (computer and phone); also for one clicked picture.
+* About page: the dotted line around the pictures is gone (it can be switched on: Pictures of the chapters).
+* Brands block: a picture per brand in the studio (before the brand's own picture); no list bullets in the home page blocks any more.
+* Meet the maker: a focal point for the small round picture (the mascot).
+* Hero arrow: a calm slide down, its time to set in the studio (standard 1.2 s).
 
 = 3.40.0 =
 * About page: the shortcode [atelier_irisee_about], full width. A head, the story in up to four chapters (picture and text in turns left and right; an arch, round or rounded picture with its focal point; an optional button per chapter, e.g. to the dog bandanas), four tiles of what the shop stands for, and a closing with the quote, the signature (with a small round picture of Klaus) and buttons to the shop and the customizer. The standard texts are the story of the current About page (NL as written, translated to FR and EN).

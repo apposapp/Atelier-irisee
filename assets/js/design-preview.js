@@ -45,6 +45,36 @@
 	overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483646;pointer-events:none;display:none;transition:opacity .4s ease';
 	(document.body || document.documentElement).appendChild(overlay);
 	var overlayTimer = 0;
+	var peekLayer = document.createElement('div');
+	peekLayer.setAttribute('aria-hidden', 'true');
+	peekLayer.style.cssText = 'position:fixed;inset:0;z-index:2147483646;pointer-events:none;display:none';
+	(document.body || document.documentElement).appendChild(peekLayer);
+	var peekNodes = [];
+	var peekEl = null;
+	var peekName = '';
+	function drawPeek() {
+		if (!peekEl || !peekEl.isConnected) {
+			peekLayer.style.display = 'none';
+			return;
+		}
+		var r = peekEl.getBoundingClientRect();
+		peekLayer.innerHTML = '';
+		peekLayer.style.display = 'block';
+		var frameBox = document.createElement('div');
+		frameBox.style.cssText = 'position:fixed;left:' + (r.left - 3) + 'px;top:' + (r.top - 3) + 'px;width:' + (r.width + 6) + 'px;height:' + (r.height + 6) + 'px;box-sizing:border-box;border:3px solid #b38f4f;background:rgba(179,143,79,.14);border-radius:4px';
+		peekLayer.appendChild(frameBox);
+		if (peekName) {
+			var name = document.createElement('div');
+			name.textContent = peekName;
+			name.style.cssText = 'position:fixed;left:' + Math.max(4, Math.min(r.left, window.innerWidth - 240)) + 'px;top:' + (r.top - 30 > 0 ? r.top - 30 : r.top + 6) + 'px;padding:3px 10px;border-radius:100px;background:#8a6a33;color:#fff;font:600 13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;white-space:nowrap';
+			peekLayer.appendChild(name);
+		}
+	}
+	window.addEventListener('scroll', function () {
+		if (peekEl) {
+			drawPeek();
+		}
+	}, { passive: true });
 	function box(r, css) {
 		var d = document.createElement('div');
 		d.style.cssText = 'position:fixed;left:' + r.left + 'px;top:' + r.top + 'px;width:' + Math.max(0, r.width) + 'px;height:' + Math.max(0, r.height) + 'px;box-sizing:border-box;' + css;
@@ -378,7 +408,7 @@
 	}
 
 	// The clicked element and those around it (innermost first): what the studio offers to choose from.
-	function pathOf(el) {
+	function pathOf(el, nodes) {
 		var path = [];
 		var node = el;
 		while (node && node.nodeType === 1 && node !== document.body && path.length < 7) {
@@ -387,6 +417,9 @@
 			var last = path.length ? path[path.length - 1] : null;
 			if (!last || last.part || partOf(node) || Math.abs(box.width - last.w) > 2 || Math.abs(box.height - last.h) > 2) {
 				path.push({ sel: selectorOf(node), name: nameOf(node), part: partOf(node), w: box.width, h: box.height });
+				if (nodes) {
+					nodes.push(node);
+				}
 			}
 			node = node.parentElement;
 		}
@@ -534,7 +567,8 @@
 				return;
 			}
 			var text = textAt(e.target);
-			var path = pathOf(inner);
+			var nodes = [];
+			var path = pathOf(inner, nodes);
 			// The shop part when there is one; the studio also offers the elements inside and around it.
 			var chosen = 0;
 			if (hit) {
@@ -545,9 +579,11 @@
 				});
 				if (!path[chosen] || path[chosen].part !== hit.id) {
 					path.push({ sel: cfg.elements[hit.id], name: names[hit.id] || hit.id, part: hit.id });
+					nodes.push(hit.el);
 					chosen = path.length - 1;
 				}
 			}
+			peekNodes = nodes;
 			selectedSel = path[chosen].part ? cfg.elements[path[chosen].part] : path[chosen].sel;
 			drawMarks();
 			// The page's own post (product, page) for "Edit this in WordPress"; not for cards of other products, the
@@ -607,6 +643,24 @@
 			redrawBands();
 		} else if (data.type === 'aimp-design-focus') {
 			showFocus(data);
+		} else if (data.type === 'aimp-design-peek') {
+			// A chip of the clicked path (by its place) or a layer (by its selector); none: off.
+			peekEl = null;
+			if (typeof data.index === 'number' && peekNodes[data.index]) {
+				peekEl = peekNodes[data.index];
+			} else if (data.selector) {
+				try {
+					peekEl = document.querySelector(prefixed(String(data.selector)));
+				} catch (err) {}
+			}
+			peekName = String(data.label || '');
+			if (peekEl) {
+				var pr = peekEl.getBoundingClientRect();
+				if (pr.bottom < 0 || pr.top > window.innerHeight) {
+					peekEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+				}
+			}
+			drawPeek();
 		} else if (data.type === 'aimp-design-show') {
 			// A part chosen in the studio (registered, or an own part with its selector).
 			selectedSel = data.selector || (data.id && cfg.elements[data.id] ? cfg.elements[data.id] : '');
@@ -638,6 +692,33 @@
 			return false;
 		}
 	});
+	function layers() {
+		var found = [];
+		present.forEach(function (id) {
+			var el = null;
+			try {
+				el = document.querySelector(prefixed(cfg.elements[id]));
+			} catch (e) {}
+			if (el) {
+				found.push({ id: id, el: el });
+			}
+		});
+		found.sort(function (a, b) {
+			if (a.el === b.el) {
+				return 0;
+			}
+			return a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+		});
+		return found.map(function (row) {
+			var depth = 0;
+			found.forEach(function (other) {
+				if (other.el !== row.el && other.el.contains(row.el)) {
+					depth++;
+				}
+			});
+			return { id: row.id, depth: depth };
+		});
+	}
 	// The texts are listed at the very end of the page: tell the studio once the page is read.
 	function ready() {
 		send({
@@ -645,6 +726,7 @@
 			url: window.location.href,
 			title: document.title,
 			present: present,
+			layers: layers(),
 			texts: (window.aimpDesignTexts || []).map(function (row) {
 				return row[0];
 			})

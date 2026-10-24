@@ -25,6 +25,45 @@
 		return node ? node.nextElementSibling : null;
 	}
 
+	// A calm slide down (the browser's smooth scroll is quick and cannot be timed): eased in and out over `ms`.
+	// Scrolling or a key press by the visitor stops it.
+	function glide(top, ms) {
+		var from = window.pageYOffset;
+		var distance = top - from;
+		if (!ms || Math.abs(distance) < 2) {
+			window.scrollTo(0, top);
+			return;
+		}
+		var start = null;
+		var stopped = false;
+		// A theme's "scroll-behavior: smooth" would make every step lag behind: off while sliding.
+		var html = document.documentElement;
+		var behavior = html.style.scrollBehavior;
+		html.style.scrollBehavior = 'auto';
+		var stop = function () {
+			stopped = true;
+			html.style.scrollBehavior = behavior;
+		};
+		['wheel', 'touchstart', 'keydown'].forEach(function (type) {
+			window.addEventListener(type, stop, { once: true, passive: true });
+		});
+		var step = function (now) {
+			if (stopped) {
+				return;
+			}
+			start = start === null ? now : start;
+			var t = Math.min(1, (now - start) / ms);
+			var eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+			window.scrollTo(0, from + distance * eased);
+			if (t < 1) {
+				window.requestAnimationFrame(step);
+			} else {
+				html.style.scrollBehavior = behavior;
+			}
+		};
+		window.requestAnimationFrame(step);
+	}
+
 	function scrollbar() {
 		var width = window.innerWidth - document.documentElement.clientWidth;
 		document.documentElement.style.setProperty('--aimp-hero-sb', Math.max(0, width) + 'px');
@@ -69,7 +108,7 @@
 			var header = slim ? slim + (bar && 'fixed' === getComputedStyle(bar).position ? bar.offsetHeight : 0) : parseFloat(root.getPropertyValue('--aimp-header-offset')) || 0;
 			var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 			var top = (title || next).getBoundingClientRect().top + window.pageYOffset - header - (title ? 12 : 0);
-			window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });
+			glide(Math.max(0, top), reduce ? 0 : parseInt(hero.getAttribute('data-slide'), 10) || 1200);
 		});
 	}
 

@@ -43,7 +43,7 @@
 	var device = 'computer';
 	// Like Divi: a part's settings on three tabs. Content = the clicked text and the part's own settings,
 	// Design = how it looks, Advanced = where it sits, when it shows, how it moves.
-	var DESIGN = ['typo', 'colors', 'image', 'size', 'space', 'radius'];
+	var DESIGN = ['typo', 'colors', 'image', 'imgpos', 'size', 'space', 'radius'];
 	var ADVANCED = ['move', 'hide', 'anim'];
 	var activeTab = 'content';
 	// The shop text clicked in the preview ({ original, shown }), or that the clicked words are not a shop text.
@@ -86,6 +86,12 @@
 	}
 	// What was clicked in the preview and what is around it (innermost first), the page's address.
 	var lastPath = [];
+	// Navigation: the parts chosen before (back), the layers of the page in the preview and its title.
+	var partHistory = [];
+	var goingBack = false;
+	var layerRows = null;
+	var frameTitle = '';
+	var foldedLayers = {};
 	var frameUrl = '';
 	var currentDivi = false;
 
@@ -267,6 +273,24 @@
 				}
 				return out;
 			};
+			// Picture position: moved inside the frame (which clips it) and zoomed around the focal point.
+			var frames = prefixed(base, ':has(> img)') + ',' + prefixed(base, ' :has(> img)');
+			[['', 'computer'], ['p', 'phone']].forEach(function (screen) {
+				var p = screen[0];
+				var ix = parseInt(row[p + 'ix'] || 0, 10);
+				var iy = parseInt(row[p + 'iy'] || 0, 10);
+				var zoom = row[p + 'izoom'] !== undefined ? parseInt(row[p + 'izoom'], 10) : 100;
+				if (!ix && !iy && zoom === 100) {
+					return;
+				}
+				var origin = (row.fx !== undefined ? parseInt(row.fx, 10) : 50) + '% ' + (row.fy !== undefined ? parseInt(row.fy, 10) : 50) + '%';
+				var rule = prefixed(base, ':is(img)') + ',' + prefixed(base, ' img') + '{transform:translate(' + ix + '%,' + iy + '%) scale(' + (zoom / 100) + ')!important;transform-origin:' + origin + '!important}' + frames + '{overflow:hidden!important}';
+				if (p) {
+					phone += rule;
+				} else {
+					computer += rule;
+				}
+			});
 			var d = device('');
 			var tb = device('t');
 			var m = device('p');
@@ -450,9 +474,18 @@
 		list.innerHTML = '';
 		var h = document.createElement('p');
 		h.className = 'aimp-ds-list-title';
-		h.textContent = present ? t.onPage : t.allParts;
+		h.textContent = present ? (layerRows ? t.layers : t.onPage) : t.allParts;
 		list.appendChild(h);
-		if (here.length) {
+		if (here.length && layerRows) {
+			// Layers: the parts of this page in page order, inside each other; own picks after them.
+			var inTree = addLayers(list, here);
+			var rest = here.filter(function (id) {
+				return inTree.indexOf(id) === -1;
+			});
+			if (rest.length) {
+				addItems(list, rest);
+			}
+		} else if (here.length) {
 			addItems(list, here);
 		} else {
 			var none = document.createElement('p');
@@ -487,6 +520,15 @@
 		if (scroll) {
 			lastPath = [];
 		}
+		// "Back to the previous part": the parts chosen before this one.
+		if (!goingBack && current && current !== id) {
+			partHistory.push(current);
+			if (partHistory.length > 30) {
+				partHistory.shift();
+			}
+		}
+		goingBack = false;
+		toFrame({ type: 'aimp-design-peek' });
 		current = id;
 		currentText = text || null;
 		currentMiss = !!miss && !text;
@@ -574,7 +616,12 @@
 				other.classList.remove('is-open');
 			});
 			keep.classList.add('is-open');
+		} else if (!samePart && !currentText && !currentMiss) {
+			// The tab and block that were open the last time this part was chosen.
+			restoreOpen();
 		}
+		renderCrumbs();
+		searchSettings();
 		markGroups();
 		q('.aimp-ds-edit-name').textContent = cfg.elements[current].label;
 		var row = draft[current] || {};
@@ -678,7 +725,7 @@
 	}
 
 	// A setting whose CSS the server makes (the "Whole site" and the parts' own options), not the studio itself.
-	var PART_GROUPS = ['move', 'size', 'space', 'hide', 'colors', 'anim', 'radius', 'image', 'typo'];
+	var PART_GROUPS = ['move', 'size', 'space', 'hide', 'colors', 'anim', 'radius', 'image', 'imgpos', 'typo'];
 	function isOptionKey(key) {
 		var option = false;
 		Object.keys(cfg.groups).forEach(function (group) {
@@ -1019,13 +1066,21 @@
 		title.className = 'aimp-ds-path-title';
 		title.textContent = t.pathTitle;
 		pathBox.appendChild(title);
-		lastPath.slice().reverse().forEach(function (entry) {
+		lastPath.slice().reverse().forEach(function (entry, i) {
 			var chip = document.createElement('button');
 			chip.type = 'button';
 			chip.className = 'aimp-ds-chip';
 			var on = entry.part ? entry.part === current : !!(el && el.own && el.selector === entry.sel);
 			chip.classList.toggle('is-current', on);
 			chip.textContent = entry.part && cfg.elements[entry.part] ? cfg.elements[entry.part].label : entry.name;
+			// Pointing at a chip outlines that element in the preview.
+			var index = lastPath.length - 1 - i;
+			chip.addEventListener('mouseenter', function () {
+				toFrame({ type: 'aimp-design-peek', index: index, label: chip.textContent });
+			});
+			chip.addEventListener('mouseleave', function () {
+				toFrame({ type: 'aimp-design-peek' });
+			});
 			chip.addEventListener('click', function () {
 				var id = entry.part && cfg.elements[entry.part] ? entry.part : ownFor(entry);
 				select(id, false, currentText, currentMiss);
@@ -1089,6 +1144,52 @@
 		save(true);
 		markGroups();
 	}
+	// "Translate to the empty languages": the first filled field (Dutch first) translated into the empty ones, with the
+	// AI pictures key (server: aimp_design_translate). The fields get an input event, so they are saved as draft.
+	function translateButton(fields) {
+		var wrap = document.createElement('div');
+		wrap.className = 'aimp-ds-translate';
+		var button = document.createElement('button');
+		button.type = 'button';
+		button.className = 'button-link';
+		button.textContent = '🌐 ' + t.translate;
+		var note = document.createElement('span');
+		note.className = 'aimp-ds-translate-note';
+		note.setAttribute('aria-live', 'polite');
+		button.addEventListener('click', function () {
+			var source = fields.filter(function (f) {
+				return f.el.value.trim() !== '';
+			})[0];
+			var empty = fields.filter(function (f) {
+				return f.el.value.trim() === '';
+			});
+			if (!source || !empty.length) {
+				note.textContent = source ? t.translateFull : t.translateNothing;
+				return;
+			}
+			button.disabled = true;
+			note.textContent = t.translating;
+			post('translate', { text: source.el.value, from: source.code, to: empty.map(function (f) {
+				return f.code;
+			}).join(',') }).then(function (data) {
+				empty.forEach(function (f) {
+					if (data && data[f.code] && f.el.value.trim() === '') {
+						f.el.value = data[f.code];
+						f.el.dispatchEvent(new Event('input', { bubbles: true }));
+					}
+				});
+				note.textContent = '';
+			}).catch(function (e) {
+				note.textContent = e.message;
+			}).then(function () {
+				button.disabled = false;
+			});
+		});
+		wrap.appendChild(button);
+		wrap.appendChild(note);
+		return wrap;
+	}
+
 	// "NL | FR | EN" in three fields (a missing language: empty). Long: text boxes, kept on one line (each item of a
 	// list is one line).
 	function trioFields(value, onChange, long) {
@@ -1121,6 +1222,9 @@
 				onChange(values[1] || values[2] ? values.join(' | ') : values[0]);
 			});
 		});
+		box.appendChild(translateButton(LANGS.map(function (code, i) {
+			return { code: code, el: inputs[i] };
+		})));
 		return box;
 	}
 	function renderSettingsGroup() {
@@ -1133,8 +1237,27 @@
 			var title = document.createElement('p');
 			title.className = 'aimp-ds-setting-title';
 			title.textContent = field.label;
+			// Back to standard: the draft of this text goes (the published or standard wording again).
+			wrap.setAttribute('data-setting-keys', settingKeys(field).join(','));
+			var undoText = document.createElement('button');
+			undoText.type = 'button';
+			undoText.className = 'aimp-ds-reset';
+			undoText.textContent = '↺';
+			undoText.title = t.resetOne;
+			undoText.setAttribute('aria-label', t.resetOne + ': ' + field.label);
+			undoText.addEventListener('click', function () {
+				remember();
+				settingKeys(field).forEach(function (key) {
+					delete draftSettings[key];
+				});
+				save(true);
+				renderSettingsGroup();
+				markGroups();
+			});
+			title.appendChild(undoText);
 			wrap.appendChild(title);
 			if (field.type === 'lang' || field.type === 'langlong') {
+				var langFields = [];
 				LANGS.forEach(function (code) {
 					var key = field.key + '_' + code;
 					var label = document.createElement('label');
@@ -1151,10 +1274,12 @@
 					input.addEventListener('input', function () {
 						setSetting(key, input.value);
 					});
+					langFields.push({ code: code, el: input });
 					label.appendChild(tag);
 					label.appendChild(input);
 					wrap.appendChild(label);
 				});
+				wrap.appendChild(translateButton(langFields));
 			} else if (field.type === 'trio') {
 				wrap.appendChild(trioFields(settingValue(field.key), function (value) {
 					setSetting(field.key, value);
@@ -1310,6 +1435,7 @@
 
 	// A dot on the title of a folded block when one of its settings is changed.
 	function markGroups() {
+		markResets();
 		var row = draft[current] || {};
 		var textToggle = textGroup.querySelector('.aimp-ds-group-toggle');
 		textToggle.classList.toggle('is-changed', !!(currentText && draftTexts[currentText.original]));
@@ -1605,6 +1731,7 @@
 				hint.textContent = t.keepCodes + ' ' + need.join(' ');
 				item.appendChild(hint);
 			}
+			var textFields = [];
 			[['nl', row[1]], ['fr', row[2]], ['en', original]].forEach(function (pair) {
 				var lang = pair[0];
 				var label = document.createElement('label');
@@ -1633,10 +1760,12 @@
 					item.classList.toggle('is-own', !!draftTexts[original]);
 					save(true);
 				});
+				textFields.push({ code: lang, el: input });
 				label.appendChild(tag);
 				label.appendChild(input);
 				item.appendChild(label);
 			});
+			item.appendChild(translateButton(textFields));
 		return item;
 	}
 
@@ -1974,6 +2103,327 @@
 	});
 	var deviceNote = q('.aimp-ds-device-note');
 
+	/* ---------------- finding your way: layers, breadcrumb, back, search, changed only ---------------- */
+
+	// The parts of the page as a tree (from the preview: page order, inside each other). Returns the ids shown.
+	function addLayers(container, ids) {
+		var rows = layerRows.filter(function (row) {
+			return ids.indexOf(row.id) !== -1;
+		});
+		var tree = document.createElement('div');
+		tree.className = 'aimp-ds-layers';
+		var hiddenBelow = -1;
+		rows.forEach(function (row, i) {
+			if (hiddenBelow !== -1 && row.depth > hiddenBelow) {
+				return;
+			}
+			hiddenBelow = -1;
+			var hasChildren = rows[i + 1] && rows[i + 1].depth > row.depth;
+			var line = document.createElement('div');
+			line.className = 'aimp-ds-layer';
+			line.style.paddingLeft = (row.depth * 14) + 'px';
+			var fold = document.createElement('button');
+			fold.type = 'button';
+			fold.className = 'aimp-ds-layer-fold';
+			fold.textContent = hasChildren ? (foldedLayers[row.id] ? '▸' : '▾') : '';
+			fold.disabled = !hasChildren;
+			fold.setAttribute('aria-label', cfg.elements[row.id].label);
+			fold.addEventListener('click', function () {
+				foldedLayers[row.id] = !foldedLayers[row.id];
+				renderList();
+			});
+			var b = document.createElement('button');
+			b.type = 'button';
+			b.className = 'aimp-ds-item' + (row.id === current ? ' is-current' : '') + (draft[row.id] ? ' is-changed' : '');
+			b.textContent = cfg.elements[row.id].label;
+			if (draft[row.id]) {
+				var dot = document.createElement('span');
+				dot.className = 'aimp-ds-dot';
+				dot.title = t.changed;
+				b.appendChild(dot);
+			}
+			b.addEventListener('click', function () {
+				select(row.id, true);
+			});
+			// Pointing at a layer outlines that part in the preview.
+			b.addEventListener('mouseenter', function () {
+				toFrame({ type: 'aimp-design-peek', selector: cfg.elements[row.id].selector, label: cfg.elements[row.id].label });
+			});
+			b.addEventListener('mouseleave', function () {
+				toFrame({ type: 'aimp-design-peek' });
+			});
+			line.appendChild(fold);
+			line.appendChild(b);
+			tree.appendChild(line);
+			if (hasChildren && foldedLayers[row.id]) {
+				hiddenBelow = row.depth;
+			}
+		});
+		container.appendChild(tree);
+		return rows.map(function (row) {
+			return row.id;
+		});
+	}
+
+	// Above the settings, staying in view: back, the breadcrumb, a search field and "only what I changed".
+	var sticky = document.createElement('div');
+	sticky.className = 'aimp-ds-sticky';
+	var navBar = document.createElement('div');
+	navBar.className = 'aimp-ds-nav';
+	var backPart = document.createElement('button');
+	backPart.type = 'button';
+	backPart.className = 'button aimp-ds-back-part';
+	backPart.textContent = '←';
+	backPart.title = t.backPart;
+	backPart.setAttribute('aria-label', t.backPart);
+	backPart.addEventListener('click', function () {
+		var id = partHistory.pop();
+		if (id && cfg.elements[id]) {
+			goingBack = true;
+			select(id, true);
+		}
+	});
+	var crumbs = document.createElement('nav');
+	crumbs.className = 'aimp-ds-crumbs';
+	navBar.appendChild(backPart);
+	navBar.appendChild(crumbs);
+	var finder = document.createElement('div');
+	finder.className = 'aimp-ds-finder';
+	var findInput = document.createElement('input');
+	findInput.type = 'search';
+	findInput.className = 'aimp-ds-find';
+	findInput.placeholder = t.findSetting;
+	var changedLabel = document.createElement('label');
+	changedLabel.className = 'aimp-ds-check aimp-ds-only-changed';
+	var changedBox = document.createElement('input');
+	changedBox.type = 'checkbox';
+	changedLabel.appendChild(changedBox);
+	changedLabel.appendChild(document.createTextNode(' ' + t.onlyChanged));
+	finder.appendChild(findInput);
+	finder.appendChild(changedLabel);
+	var findNone = document.createElement('p');
+	findNone.className = 'description aimp-ds-find-none';
+	findNone.textContent = t.noSetting;
+	findNone.hidden = true;
+	var head = q('.aimp-ds-edit-head');
+	head.parentNode.insertBefore(sticky, head);
+	sticky.appendChild(navBar);
+	sticky.appendChild(head);
+	sticky.appendChild(partTabs);
+	sticky.appendChild(finder);
+	groupsHome.parentNode.insertBefore(findNone, groupsHome);
+
+	// Page › the parts around this one › this part (from the layers), else the part's group.
+	function renderCrumbs() {
+		if (!crumbs) {
+			return;
+		}
+		backPart.disabled = !partHistory.length;
+		crumbs.innerHTML = '';
+		if (!current || !cfg.elements[current]) {
+			return;
+		}
+		var chain = [];
+		var rows = layerRows || [];
+		var at = -1;
+		rows.forEach(function (row, i) {
+			if (row.id === current) {
+				at = i;
+			}
+		});
+		if (at !== -1) {
+			var depth = rows[at].depth;
+			for (var i = at - 1; i >= 0 && depth > 0; i--) {
+				if (rows[i].depth < depth) {
+					chain.unshift(rows[i].id);
+					depth = rows[i].depth;
+				}
+			}
+		}
+		var first = document.createElement('span');
+		first.textContent = at !== -1 && frameTitle ? frameTitle : cfg.elements[current].group;
+		crumbs.appendChild(first);
+		chain.forEach(function (id) {
+			crumbs.appendChild(document.createTextNode(' › '));
+			var link = document.createElement('button');
+			link.type = 'button';
+			link.className = 'button-link';
+			link.textContent = cfg.elements[id].label;
+			link.addEventListener('click', function () {
+				select(id, true);
+			});
+			link.addEventListener('mouseenter', function () {
+				toFrame({ type: 'aimp-design-peek', selector: cfg.elements[id].selector, label: cfg.elements[id].label });
+			});
+			link.addEventListener('mouseleave', function () {
+				toFrame({ type: 'aimp-design-peek' });
+			});
+			crumbs.appendChild(link);
+		});
+		crumbs.appendChild(document.createTextNode(' › '));
+		var here = document.createElement('strong');
+		here.textContent = cfg.elements[current].label;
+		crumbs.appendChild(here);
+	}
+
+	// One row of the settings: a slider, choice, tick box, text, colour, picture or order list (and the texts).
+	var ROWS = '.aimp-ds-num, .aimp-ds-select, .aimp-ds-check, .aimp-ds-text-field, .aimp-ds-color, .aimp-ds-image, .aimp-ds-order-field, .aimp-ds-boxmodel, .aimp-ds-icon-row, .aimp-ds-setting';
+	function rowKeys(rowEl) {
+		if (rowEl.hasAttribute('data-setting-keys')) {
+			return [];
+		}
+		var keys = [];
+		rowEl.querySelectorAll('[data-key]').forEach(function (input) {
+			keys.push(input.getAttribute('data-key'));
+		});
+		if (rowEl.hasAttribute('data-image')) {
+			keys.push(rowEl.getAttribute('data-image'));
+		}
+		rowEl.querySelectorAll('[data-order]').forEach(function (orderList) {
+			keys.push(orderList.getAttribute('data-order'));
+		});
+		return keys;
+	}
+	function rowChanged(rowEl, row) {
+		if (rowEl.hasAttribute('data-setting-keys')) {
+			return rowEl.getAttribute('data-setting-keys').split(',').some(function (key) {
+				return draftSettings[key] !== undefined;
+			});
+		}
+		return rowKeys(rowEl).some(function (key) {
+			return row[key] !== undefined;
+		});
+	}
+
+	// A ↺ on every setting (once: the settings are the same blocks for every part); shown when it is changed.
+	edit.querySelectorAll('.aimp-ds-num, .aimp-ds-select, .aimp-ds-check, .aimp-ds-text-field, .aimp-ds-color, .aimp-ds-image, .aimp-ds-order-field').forEach(function (rowEl) {
+		var keys = rowKeys(rowEl);
+		if (!keys.length || rowEl.closest('.aimp-ds-boxmodel')) {
+			return;
+		}
+		var reset = document.createElement('button');
+		reset.type = 'button';
+		reset.className = 'aimp-ds-reset';
+		reset.textContent = '↺';
+		reset.title = t.resetOne;
+		reset.setAttribute('aria-label', t.resetOne);
+		reset.setAttribute('data-clear', keys.filter(function (key, i) {
+			return keys.indexOf(key) === i;
+		}).join(','));
+		reset.hidden = true;
+		rowEl.appendChild(reset);
+	});
+	function markResets() {
+		if (!changedBox) {
+			return;
+		}
+		var row = draft[current] || {};
+		edit.querySelectorAll('.aimp-ds-reset[data-clear]').forEach(function (reset) {
+			reset.hidden = !reset.getAttribute('data-clear').split(',').some(function (key) {
+				return row[key] !== undefined;
+			});
+		});
+		settingsGroup.querySelectorAll('[data-setting-keys]').forEach(function (rowEl) {
+			var changed = rowChanged(rowEl, row);
+			rowEl.classList.toggle('is-changed', changed);
+			var reset = rowEl.querySelector('.aimp-ds-reset');
+			if (reset) {
+				reset.hidden = !changed;
+			}
+		});
+		if (changedBox.checked || findInput.value.trim()) {
+			searchSettings();
+		}
+	}
+
+	// Find a setting / only what I changed: the matching settings of this part, in every tab, their blocks open.
+	function searchSettings() {
+		if (!findInput) {
+			return;
+		}
+		var term = findInput.value.trim().toLowerCase();
+		var onlyChanged = changedBox.checked;
+		var on = !!term || onlyChanged;
+		var row = draft[current] || {};
+		var was = edit.classList.contains('is-searching');
+		edit.classList.toggle('is-searching', on);
+		var any = false;
+		edit.querySelectorAll('.aimp-ds-group').forEach(function (group) {
+			group.classList.remove('is-search-hit', 'is-search-miss');
+			group.querySelectorAll('.is-search-off').forEach(function (rowEl) {
+				rowEl.classList.remove('is-search-off');
+			});
+			if (!on || group.hidden) {
+				return;
+			}
+			var legend = group.querySelector('legend');
+			var groupMatch = !!term && !!legend && legend.textContent.toLowerCase().indexOf(term) !== -1;
+			var hit = false;
+			group.querySelectorAll(ROWS).forEach(function (rowEl) {
+				if (rowEl.parentNode.closest(ROWS)) {
+					return;
+				}
+				var ok = (!term || groupMatch || rowEl.textContent.toLowerCase().indexOf(term) !== -1 || (rowEl.querySelector('input[placeholder]') && rowEl.querySelector('input[placeholder]').placeholder.toLowerCase().indexOf(term) !== -1)) &&
+					(!onlyChanged || rowChanged(rowEl, row));
+				rowEl.classList.toggle('is-search-off', !ok);
+				hit = hit || ok;
+			});
+			group.classList.add(hit ? 'is-search-hit' : 'is-search-miss');
+			group.classList.toggle('is-open', hit);
+			any = any || hit;
+		});
+		findNone.hidden = !on || any;
+		// Search cleared: the tab as it was.
+		if (!on && was) {
+			setTab(activeTab);
+		}
+	}
+	findInput.addEventListener('input', searchSettings);
+	changedBox.addEventListener('change', searchSettings);
+
+	// The tab and open block per part, kept in this browser for the next time.
+	var OPEN_KEY = 'aimp-ds-open';
+	function openMemory() {
+		try {
+			return JSON.parse(window.localStorage.getItem(OPEN_KEY) || '{}') || {};
+		} catch (e) {
+			return {};
+		}
+	}
+	function rememberOpen() {
+		if (!current) {
+			return;
+		}
+		var open = edit.querySelector('.aimp-ds-group.is-open');
+		var memory = openMemory();
+		memory[current] = { tab: activeTab, group: open ? (open === settingsGroup ? '__settings' : (open.getAttribute('data-group') || '')) : '' };
+		try {
+			window.localStorage.setItem(OPEN_KEY, JSON.stringify(memory));
+		} catch (e) {}
+	}
+	function restoreOpen() {
+		var saved = openMemory()[current];
+		if (!saved) {
+			return;
+		}
+		var tabButton = partTabs.querySelector('[data-ptab="' + saved.tab + '"]');
+		if (tabButton && !tabButton.hidden) {
+			setTab(saved.tab);
+		}
+		var group = saved.group === '__settings' ? settingsGroup : (saved.group ? edit.querySelector('.aimp-ds-group[data-group="' + saved.group + '"]') : null);
+		if (group && !group.hidden && !group.classList.contains('is-off-tab')) {
+			edit.querySelectorAll('.aimp-ds-group.is-open').forEach(function (other) {
+				other.classList.remove('is-open');
+			});
+			group.classList.add('is-open');
+		}
+	}
+	edit.addEventListener('click', function (e) {
+		if (e.target.closest('.aimp-ds-group-toggle, .aimp-ds-ptabs button')) {
+			window.setTimeout(rememberOpen, 0);
+		}
+	});
+
 	function setDevice(name) {
 		device = name;
 		root.setAttribute('data-device-view', name);
@@ -2152,6 +2602,8 @@
 		if (e.data.type === 'aimp-design-ready') {
 			// The parts and shop texts on this page: the lists show those first.
 			present = Array.isArray(e.data.present) ? e.data.present : null;
+			layerRows = Array.isArray(e.data.layers) && e.data.layers.length ? e.data.layers : null;
+			frameTitle = String(e.data.title || '').split(/ [|–-] /)[0];
 			pageTexts = Array.isArray(e.data.texts) ? e.data.texts : null;
 			frameUrl = e.data.url || '';
 			if (frameUrl) {
