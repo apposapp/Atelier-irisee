@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.43.0
+Stable tag: 3.44.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.44.0 =
+* Design studio: every part of a page gets a height (Design → Size), on computers, tablets and phones; empty = its own height. E.g. a lower page header.
+* Page header: never a margin under it any more.
 
 = 3.43.0 =
 * Page header on every page: automatically at the top of all pages (Divi), product pages (title: the product's name), the cart, checkout and my account, shop categories, blog and search results; never on the home page and pages with the hero. No shortcode needed (it still works, without a second header).

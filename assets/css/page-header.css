@@ -17,7 +17,8 @@
 	width: calc(100vw - var(--aimp-hero-sb, 0px));
 	max-width: none;
 	min-height: var(--ph-height);
-	margin: 0 0 clamp(1.5rem, 4vw, 3rem) calc(50% - 50vw + var(--aimp-hero-sb, 0px) / 2);
+	/* Never space under it: the page continues right below (a margin can be set in the Design studio). */
+	margin: 0 0 0 calc(50% - 50vw + var(--aimp-hero-sb, 0px) / 2);
 	padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 6vw, 7rem);
 	overflow: hidden;
 	color: var(--ph-color);

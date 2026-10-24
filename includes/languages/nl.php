@@ -2492,4 +2492,7 @@ return array(
 	'This page has no page header of its own (the home page, or a page with the hero).' => 'Deze pagina heeft geen eigen paginakop (de startpagina, of een pagina met de hero).',
 	'Where' => 'Waar',
 	'Where and look of all page headers' => 'Plaats en uitzicht van alle paginakoppen',
+
+	// Height of every part (3.44)
+	'Empty height = the part\'s own height. A height smaller than the content can cut it off; pictures and headers fill the height you choose.' => 'Lege hoogte = de eigen hoogte van het onderdeel. Een hoogte kleiner dan de inhoud kan die afsnijden; foto\'s en koppen vullen de hoogte die je kiest.',
 );

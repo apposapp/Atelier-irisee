@@ -264,6 +264,9 @@
 				if (row[p + 'zoom'] !== undefined) {
 					out += 'zoom:' + (parseInt(row[p + 'zoom'], 10) / 100) + '!important;';
 				}
+				if (row[p + 'hgt'] !== undefined) {
+					out += 'height:' + parseInt(row[p + 'hgt'], 10) + 'px!important;min-height:0!important;';
+				}
 				SIDES.forEach(function (pair) {
 					if (row[p + pair[0]] !== undefined) {
 						out += pair[1] + ':' + parseInt(row[p + pair[0]], 10) + 'px!important;';

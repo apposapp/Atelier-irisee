@@ -2492,4 +2492,7 @@ return array(
 	'This page has no page header of its own (the home page, or a page with the hero).' => 'Cette page n\'a pas d\'en-tête propre (la page d\'accueil, ou une page avec le hero).',
 	'Where' => 'Où',
 	'Where and look of all page headers' => 'Emplacement et apparence de tous les en-têtes de page',
+
+	// Height of every part (3.44)
+	'Empty height = the part\'s own height. A height smaller than the content can cut it off; pictures and headers fill the height you choose.' => 'Hauteur vide = la hauteur propre de l\'élément. Une hauteur plus petite que le contenu peut le couper ; les photos et en-têtes remplissent la hauteur choisie.',
 );

@@ -255,6 +255,12 @@ class AIMP_Design {
 				$elements[ $id ]['controls'] = array( $group, 'space', 'colors', 'radius' );
 			}
 		}
+		// Size (zoom and height): every part of a page.
+		foreach ( $elements as $id => $row ) {
+			if ( ! in_array( 'size', $row['controls'], true ) ) {
+				$elements[ $id ]['controls'][] = 'size';
+			}
+		}
 		// Picture position (move and zoom): every part with pictures, also those with pictures of their own.
 		foreach ( $elements as $id => $row ) {
 			if ( in_array( 'image', $row['controls'], true ) || in_array( $id, array( 'hero', 'home-maker', 'about-chapter', 'about-closing', 'home-newsletter', 'home-brands', 'page-header' ), true ) ) {
@@ -302,6 +308,10 @@ class AIMP_Design {
 			'size'       => array(
 				'zoom'  => array( 40, 250, 100 ),
 				'pzoom' => array( 40, 250, 100 ),
+				// Height in px on computers, tablets ("t") and phones ("p").
+				'hgt'   => array( 20, 1500, -1 ),
+				'thgt'  => array( 20, 1500, -1 ),
+				'phgt'  => array( 20, 1500, -1 ),
 			),
 			'space'      => self::space_fields(),
 			'hide'       => array(
@@ -1934,6 +1944,9 @@ class AIMP_Design {
 				if ( isset( $row[ $prefix . 'zoom' ] ) ) {
 					$css .= 'zoom:' . ( (int) $row[ $prefix . 'zoom' ] / 100 ) . '!important;';
 				}
+				if ( isset( $row[ $prefix . 'hgt' ] ) ) {
+					$css .= 'height:' . (int) $row[ $prefix . 'hgt' ] . 'px!important;min-height:0!important;';
+				}
 				$sides = array(
 					'mt'   => 'margin-top',
 					'mr'   => 'margin-right',
@@ -3144,8 +3157,15 @@ class AIMP_Design {
 		echo '</fieldset>';
 
 		$group( 'size', __( 'Size', 'atelier-irisee-master-plugin' ) );
-		self::number( 'zoom', $computer, 40, 250, '%' );
-		self::number( 'pzoom', $phone, 40, 250, '%' );
+		$sub( $computer );
+		self::number( 'zoom', __( 'Zoom', 'atelier-irisee-master-plugin' ), 40, 250, '%' );
+		self::number( 'hgt', __( 'Height', 'atelier-irisee-master-plugin' ), 20, 1500, 'px' );
+		echo '<p class="aimp-ds-sub" data-device-sub="tablet">' . esc_html__( 'Tablet', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::number( 'thgt', __( 'Height', 'atelier-irisee-master-plugin' ), 20, 1500, 'px' );
+		$sub( $phone );
+		self::number( 'pzoom', __( 'Zoom', 'atelier-irisee-master-plugin' ), 40, 250, '%' );
+		self::number( 'phgt', __( 'Height', 'atelier-irisee-master-plugin' ), 20, 1500, 'px' );
+		echo '<p class="description">' . esc_html__( 'Empty height = the part\'s own height. A height smaller than the content can cut it off; pictures and headers fill the height you choose.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		$group( 'space', __( 'Spacing', 'atelier-irisee-master-plugin' ) );
