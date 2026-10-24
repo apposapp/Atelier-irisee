@@ -1,0 +1,261 @@
+/* [atelier_irisee_page_header]: a full-width band at the top of a page, with a picture or video. "Picture + title":
+   the picture fills the band under a gold tint, the title over it. "Title in the picture": the picture whole. */
+.aimp-page-header {
+	--ph-gold: var(--aimp-site-gold, #b38f4f);
+	--ph-brown: var(--aimp-site-brown, #613907);
+	--ph-tint: #6b4b1a;
+	--ph-strength: 0.35;
+	--ph-color: #fff;
+	--ph-size: clamp(1.9rem, 4.6vw, 3.6rem);
+	--ph-height: 45vh;
+	box-sizing: border-box;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* Full width, also inside a Divi row (--aimp-hero-sb: the width of a desktop scrollbar). */
+	width: calc(100vw - var(--aimp-hero-sb, 0px));
+	max-width: none;
+	min-height: var(--ph-height);
+	margin: 0 0 clamp(1.5rem, 4vw, 3rem) calc(50% - 50vw + var(--aimp-hero-sb, 0px) / 2);
+	padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 6vw, 7rem);
+	overflow: hidden;
+	color: var(--ph-color);
+	text-align: center;
+}
+
+.aimp-page-header *,
+.aimp-page-header *::before,
+.aimp-page-header *::after {
+	box-sizing: border-box;
+}
+
+/* No white band between the menu and the header: the Divi section and row around it get no top padding. */
+.et_pb_section:has(.aimp-page-header) {
+	padding-top: 0 !important;
+}
+
+.et_pb_row:has(.aimp-page-header) {
+	padding-top: 0 !important;
+}
+
+/* Heights (Design studio → Page header). */
+.aimp-page-header.is-small {
+	--ph-height: 30vh;
+}
+
+.aimp-page-header.is-large {
+	--ph-height: 65vh;
+}
+
+.aimp-page-header.is-full {
+	--ph-height: calc(100svh - var(--aimp-header-offset, 0px));
+}
+
+/* Without a picture: a calm gold band. */
+.aimp-page-header.has-no-media {
+	--ph-height: 26vh;
+	background:
+		radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, var(--ph-gold) 30%, #fff) 0%, transparent 70%),
+		color-mix(in srgb, var(--ph-gold) 12%, #fff);
+	color: var(--ph-brown);
+	border-bottom: 4px double var(--ph-gold);
+}
+
+/* ------------------------------------------------------------------ the picture or video */
+.aimp-page-header-media,
+.aimp-page-header-media picture {
+	position: absolute;
+	inset: 0;
+	display: block;
+}
+
+.aimp-page-header-image,
+.aimp-page-header-video {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	object-fit: cover;
+}
+
+/* The video lies over the picture once it plays (home-blocks.js). */
+.aimp-page-header-video {
+	opacity: 0;
+	transition: opacity 0.6s ease;
+}
+
+.aimp-page-header-video.is-playing {
+	opacity: 1;
+}
+
+/* Picture + title: a tint over the picture, so the title can be read. */
+.aimp-page-header.is-text.has-media::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, transparent 0%, var(--ph-tint) 100%);
+	opacity: var(--ph-strength);
+	pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ the title */
+.aimp-page-header-text {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.6rem;
+	max-width: 62rem;
+}
+
+.aimp-page-header .aimp-page-header-title {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin: 0;
+	padding: 0;
+	color: inherit;
+	font-size: var(--ph-size);
+	line-height: 1.15;
+	letter-spacing: 0.04em;
+	text-wrap: balance;
+	text-shadow: 0 2px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* The gold double lines on both sides of the title. */
+.aimp-page-header .aimp-page-header-title::before,
+.aimp-page-header .aimp-page-header-title::after {
+	content: "";
+	flex: 0 0 clamp(1.5rem, 6vw, 5rem);
+	border-top: 4px double var(--ph-gold);
+}
+
+.aimp-page-header.has-no-media .aimp-page-header-title {
+	text-shadow: none;
+}
+
+.aimp-page-header-sub {
+	max-width: 46rem;
+	margin: 0;
+	color: inherit;
+	font-size: clamp(1rem, 1.6vw, 1.2rem);
+	font-weight: 600;
+	text-shadow: 0 1px 10px rgba(0, 0, 0, 0.25);
+}
+
+.aimp-page-header.has-no-media .aimp-page-header-sub {
+	text-shadow: none;
+}
+
+.aimp-page-header-crumbs {
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.aimp-page-header-crumbs a {
+	color: inherit;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* Place of the title (Design studio): centred (standard), on the left, or at the bottom left. */
+.aimp-page-header.is-left,
+.aimp-page-header.is-bottomleft {
+	justify-content: flex-start;
+	text-align: left;
+}
+
+.aimp-page-header.is-left .aimp-page-header-text,
+.aimp-page-header.is-bottomleft .aimp-page-header-text {
+	align-items: flex-start;
+}
+
+.aimp-page-header.is-left .aimp-page-header-title::before,
+.aimp-page-header.is-bottomleft .aimp-page-header-title::before {
+	display: none;
+}
+
+.aimp-page-header.is-bottomleft {
+	align-items: flex-end;
+}
+
+/* ------------------------------------------------------------------ title in the picture: the picture whole */
+.aimp-page-header.is-baked {
+	display: block;
+	min-height: 0;
+	padding: 0;
+	line-height: 0;
+}
+
+.aimp-page-header.is-baked .aimp-page-header-media,
+.aimp-page-header.is-baked .aimp-page-header-media picture {
+	position: relative;
+	inset: auto;
+}
+
+.aimp-page-header.is-baked .aimp-page-header-image {
+	position: relative;
+	height: auto;
+	object-fit: contain;
+}
+
+.aimp-page-header.is-baked .aimp-page-header-video {
+	top: 0;
+	left: 0;
+	height: 100%;
+	object-fit: cover;
+}
+
+.aimp-page-header .screen-reader-text {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	border: 0;
+	white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ phone */
+@media (max-width: 700px) {
+	.aimp-page-header.is-phone-small {
+		--ph-height: 26vh;
+	}
+
+	.aimp-page-header.is-phone-medium {
+		--ph-height: 40vh;
+	}
+
+	.aimp-page-header.is-phone-large {
+		--ph-height: 60vh;
+	}
+
+	.aimp-page-header.is-phone-full {
+		--ph-height: calc(100svh - var(--aimp-header-offset, 0px) - var(--aimp-tabbar-h, 0px));
+	}
+
+	.aimp-page-header.is-full.is-phone-same,
+	.aimp-page-header.is-large.is-phone-same {
+		--ph-height: 50vh;
+	}
+
+	.aimp-page-header .aimp-page-header-title::before,
+	.aimp-page-header .aimp-page-header-title::after {
+		flex-basis: 1.25rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-page-header-video {
+		display: none;
+	}
+}

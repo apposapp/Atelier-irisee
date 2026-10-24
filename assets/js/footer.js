@@ -53,6 +53,11 @@
 			}
 			var subscribed = state === 'confirmed' || state === 'pending';
 			form.hidden = subscribed;
+			// The newsletter block of the home page can hide itself for subscribers (Design studio).
+			var block = form.closest('.aimp-home-newsletter');
+			if (block) {
+				block.classList.toggle('is-subscribed', subscribed);
+			}
 			// The invitation and the privacy line only make sense next to the form.
 			form.parentNode.querySelectorAll('.aimp-newsletter-intro, .aimp-newsletter-consent').forEach(function (el) {
 				el.hidden = subscribed;

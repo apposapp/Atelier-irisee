@@ -92,6 +92,7 @@
 	var layerRows = null;
 	var frameTitle = '';
 	var foldedLayers = {};
+	var framePostId = 0;
 	var frameUrl = '';
 	var currentDivi = false;
 
@@ -620,6 +621,7 @@
 			// The tab and block that were open the last time this part was chosen.
 			restoreOpen();
 		}
+		showPageBlocks();
 		renderCrumbs();
 		searchSettings();
 		markGroups();
@@ -2381,6 +2383,20 @@
 	findInput.addEventListener('input', searchSettings);
 	changedBox.addEventListener('change', searchSettings);
 
+	// Page header: only the settings of the page in the preview (they are per page); a note when it has none.
+	function showPageBlocks() {
+		var any = false;
+		edit.querySelectorAll('[data-ph-page]').forEach(function (block) {
+			var mine = String(block.getAttribute('data-ph-page')) === String(framePostId);
+			block.classList.toggle('is-other-page', !mine);
+			any = any || mine;
+		});
+		var none = edit.querySelector('.aimp-ds-ph-none');
+		if (none) {
+			none.classList.toggle('is-other-page', any);
+		}
+	}
+
 	// The tab and open block per part, kept in this browser for the next time.
 	var OPEN_KEY = 'aimp-ds-open';
 	function openMemory() {
@@ -2604,6 +2620,10 @@
 			present = Array.isArray(e.data.present) ? e.data.present : null;
 			layerRows = Array.isArray(e.data.layers) && e.data.layers.length ? e.data.layers : null;
 			frameTitle = String(e.data.title || '').split(/ [|–-] /)[0];
+			framePostId = parseInt(e.data.postId, 10) || 0;
+			if (current) {
+				showPageBlocks();
+			}
 			pageTexts = Array.isArray(e.data.texts) ? e.data.texts : null;
 			frameUrl = e.data.url || '';
 			if (frameUrl) {

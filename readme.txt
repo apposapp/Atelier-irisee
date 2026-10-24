@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.41.0
+Stable tag: 3.42.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.42.0 =
+* Page header: the shortcode [atelier_irisee_page_header], a full-width band at the top of a page. Per page in the Design studio (Page header): a picture with the title over it, or a picture with the title already in it (shown whole; the title stays on the page for search engines), a phone picture, a video instead of the picture (MP4 without sound, the picture shows until it plays; not with "reduced motion" or the data saver), a phone video, the focal point, another title and a line under it. The look of all headers: height (also on phones), tint, place, colour and size of the title, a breadcrumb. Without a picture: a gold band with the title.
+* Newsletter block (home page): repaired. The form stays in one row (the footer's newsletter style no longer reaches it), the label for screen readers is hidden, the form no longer shows next to "you are subscribed", and the block hides itself for subscribers (can be switched off).
 
 = 3.41.0 =
 * Design studio:

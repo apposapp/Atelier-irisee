@@ -89,6 +89,7 @@ class AIMP_Design {
 		$contact = __( 'Contact page', 'atelier-irisee-master-plugin' );
 		$home    = __( 'Home page blocks', 'atelier-irisee-master-plugin' );
 		$about   = __( 'About page', 'atelier-irisee-master-plugin' );
+		$pagehead = __( 'Page header', 'atelier-irisee-master-plugin' );
 		$list    = array(
 			'header'          => array( $header, __( 'Header (whole)', 'atelier-irisee-master-plugin' ), '.aimp-header-inner' ),
 			'header-logo'     => array( $header, __( 'Logo', 'atelier-irisee-master-plugin' ), '.aimp-header-brand' ),
@@ -106,6 +107,8 @@ class AIMP_Design {
 			'hero-buttons'    => array( $hero, __( 'Hero buttons', 'atelier-irisee-master-plugin' ), '.aimp-hero-buttons' ),
 			'hero-arrow'      => array( $hero, __( 'Hero arrow', 'atelier-irisee-master-plugin' ), '.aimp-hero-arrow' ),
 			'hero-seal'       => array( $hero, __( 'Hero seal (round logo)', 'atelier-irisee-master-plugin' ), '.aimp-hero-seal' ),
+			'page-header'     => array( $pagehead, __( 'Page header (whole)', 'atelier-irisee-master-plugin' ), '.aimp-page-header' ),
+			'page-header-title' => array( $pagehead, __( 'Page header title', 'atelier-irisee-master-plugin' ), '.aimp-page-header-text' ),
 			'kit-steps'       => array( $steps, __( 'Kit steps bar (whole)', 'atelier-irisee-master-plugin' ), '.aimp-kit-steps' ),
 			'kit-steps-title' => array( $steps, __( 'Kit steps title', 'atelier-irisee-master-plugin' ), '.aimp-kit-steps-title' ),
 			'kit-steps-list'  => array( $steps, __( 'Kit steps cards', 'atelier-irisee-master-plugin' ), '.aimp-kit-steps-list' ),
@@ -176,7 +179,7 @@ class AIMP_Design {
 		$text    = array( 'move', 'size', 'space', 'hide', 'colors', 'typo', 'anim' );
 		$box     = array_merge( $text, array( 'radius' ) );
 		$picture = array_merge( $box, array( 'image' ) );
-		$texts   = array( 'header-menu-bar', 'hero-title', 'hero-text', 'kit-steps-title', 'overview-hero', 'card-name', 'card-price', 'product-title', 'product-brand', 'product-subtitle', 'product-price', 'config-title', 'account-title', 'account-hello', 'footer-title', 'footer-bottom', 'hero-arrow', 'block-title', 'contact-head', 'about-head' );
+		$texts   = array( 'header-menu-bar', 'hero-title', 'hero-text', 'kit-steps-title', 'overview-hero', 'card-name', 'card-price', 'product-title', 'product-brand', 'product-subtitle', 'product-price', 'config-title', 'account-title', 'account-hello', 'footer-title', 'footer-bottom', 'hero-arrow', 'block-title', 'contact-head', 'about-head', 'page-header-title' );
 		$images  = array( 'header-logo', 'hero-seal', 'overview', 'overview-card', 'mosaic', 'product-gallery', 'product-recommend', 'kit-steps-list', 'footer-payments', 'footer-socials', 'cart-items' );
 		$elements = array();
 		foreach ( $list as $id => $row ) {
@@ -225,6 +228,10 @@ class AIMP_Design {
 		if ( isset( $elements['hero'] ) ) {
 			$elements['hero']['controls'] = array( 'hero_media', 'hero_tint', 'hero_layout', 'hero_buttons', 'space', 'hide', 'anim' );
 		}
+		// The page header: the picture or video per page, the shared look, spacing.
+		if ( isset( $elements['page-header'] ) ) {
+			$elements['page-header']['controls'] = array( 'ph_page', 'ph_look', 'space', 'hide', 'anim' );
+		}
 		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
 		if ( isset( $elements['product-page'] ) ) {
 			$elements['product-page']['controls'] = array( 'pp_blocks', 'pp_gallery', 'pp_buy', 'pp_info' );
@@ -250,7 +257,7 @@ class AIMP_Design {
 		}
 		// Picture position (move and zoom): every part with pictures, also those with pictures of their own.
 		foreach ( $elements as $id => $row ) {
-			if ( in_array( 'image', $row['controls'], true ) || in_array( $id, array( 'hero', 'home-maker', 'about-chapter', 'about-closing', 'home-newsletter', 'home-brands' ), true ) ) {
+			if ( in_array( 'image', $row['controls'], true ) || in_array( $id, array( 'hero', 'home-maker', 'about-chapter', 'about-closing', 'home-newsletter', 'home-brands', 'page-header' ), true ) ) {
 				$elements[ $id ]['controls'][] = 'imgpos';
 			}
 		}
@@ -693,6 +700,7 @@ class AIMP_Design {
 			'hn_opts'     => array(
 				'hn_img'     => 'image',
 				'hn_nooffer' => 'bool',
+				'hn_showsubs' => 'bool',
 			),
 			'fq_opts'     => array(
 				'fq_count' => array( 0, 12, 0 ),
@@ -712,6 +720,18 @@ class AIMP_Design {
 				'ab_nokit'    => 'bool',
 			),
 			'ab_chapters' => self::about_chapter_fields(),
+			// The page header: per page (ph_{page}_…) and the look of all of them.
+			'ph_page'     => self::page_header_fields(),
+			'ph_look'     => array(
+				'ph_height'   => array( 'select', array( '', 'small', 'large', 'full' ) ),
+				'ph_pheight'  => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
+				'ph_align'    => array( 'select', array( '', 'left', 'bottomleft' ) ),
+				'ph_tint'     => 'color',
+				'ph_strength' => array( 0, 90, -1 ),
+				'ph_color'    => 'color',
+				'ph_size'     => array( 0, 120, 0 ),
+				'ph_crumbs'   => 'bool',
+			),
 			'ab_closing'  => array( 'ab_sign_img' => 'image' ),
 			'cz_summary'  => array(
 				'cz_nosave'   => 'bool',
@@ -1002,6 +1022,29 @@ class AIMP_Design {
 	}
 
 	/**
+	 * The page header per page that has one: the kind (picture + title, or the title in the picture), pictures and
+	 * videos for computers and phones, the focal point, another title and a line under it.
+	 *
+	 * @return array
+	 */
+	private static function page_header_fields() {
+		$fields = array();
+		foreach ( array_keys( class_exists( 'AIMP_Page_Header' ) ? AIMP_Page_Header::pages() : array() ) as $id ) {
+			$p                     = 'ph_' . $id . '_';
+			$fields[ $p . 'mode' ]   = array( 'select', array( '', 'baked' ) );
+			$fields[ $p . 'img' ]    = 'image';
+			$fields[ $p . 'pimg' ]   = 'image';
+			$fields[ $p . 'video' ]  = 'video';
+			$fields[ $p . 'pvideo' ] = 'video';
+			$fields[ $p . 'fx' ]     = array( 0, 100, -1 );
+			$fields[ $p . 'fy' ]     = array( 0, 100, -1 );
+			$fields[ $p . 'title' ]  = 'text';
+			$fields[ $p . 'sub' ]    = 'text';
+		}
+		return $fields;
+	}
+
+	/**
 	 * The brands with products: term id => name (a picture per brand in the Brands block).
 	 *
 	 * @return array
@@ -1112,7 +1155,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing' );
+		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look' );
 	}
 
 	/**
@@ -4105,6 +4148,7 @@ class AIMP_Design {
 		$group( 'hn_opts', __( 'Newsletter block', 'atelier-irisee-master-plugin' ) );
 		self::picture_field( 'hn_img', __( 'Background picture', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'hn_nooffer', __( 'Do not show the welcome discount', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'hn_showsubs', __( 'Also show the block to visitors who are subscribed already', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'The welcome discount is the one of Settings → Discounts: new customers get a personal code after creating an account. It is not shown to logged-in visitors or when the discount is 0.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
@@ -4153,6 +4197,79 @@ class AIMP_Design {
 			$field( 'ab_url_' . $n, __( 'The button goes to (no address = no button)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
 			self::check_box( 'ab_hide_' . $n, __( 'Hide this chapter', 'atelier-irisee-master-plugin' ) );
 		}
+		echo '</fieldset>';
+
+		$group( 'ph_page', __( 'Picture or video of this page', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description aimp-ds-ph-none">' . esc_html__( 'This page has no page header yet: add the shortcode [atelier_irisee_page_header] at the top of the page (in Divi: a Text or Code module), save the page and open it here again.', 'atelier-irisee-master-plugin' ) . '</p>';
+		$video_field = function ( $key, $label ) use ( $standard ) {
+			printf(
+				'<div class="aimp-ds-image" data-image="%1$s"><span class="aimp-ds-file-name"></span><button type="button" class="button aimp-ds-image-choose" data-image-key="%1$s" data-media="video">%2$s</button><button type="button" class="button-link" data-clear="%1$s">%3$s</button></div>',
+				esc_attr( $key ),
+				esc_html( $label ),
+				esc_html( $standard )
+			);
+		};
+		foreach ( class_exists( 'AIMP_Page_Header' ) ? AIMP_Page_Header::pages() : array() as $page_id => $page_title ) {
+			$p = 'ph_' . $page_id . '_';
+			echo '<div class="aimp-ds-ph-page" data-ph-page="' . (int) $page_id . '">';
+			echo '<p class="aimp-ds-sub">' . esc_html( $page_title ) . '</p>';
+			self::choice(
+				$p . 'mode',
+				__( 'Kind', 'atelier-irisee-master-plugin' ),
+				array(
+					''      => __( 'Picture + title over it (standard)', 'atelier-irisee-master-plugin' ),
+					'baked' => __( 'Picture with the title already in it', 'atelier-irisee-master-plugin' ),
+				)
+			);
+			self::picture_field( $p . 'img', __( 'Picture (wide, at least 1920 px)', 'atelier-irisee-master-plugin' ) );
+			self::picture_field( $p . 'pimg', __( 'Other picture for phones (optional)', 'atelier-irisee-master-plugin' ) );
+			$video_field( $p . 'video', __( 'Video instead of the picture (MP4, without sound; the picture shows until it plays)', 'atelier-irisee-master-plugin' ) );
+			$video_field( $p . 'pvideo', __( 'Other video for phones (optional)', 'atelier-irisee-master-plugin' ) );
+			self::number( $p . 'fx', __( 'Focal point: left / right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+			self::number( $p . 'fy', __( 'Focal point: top / bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+			$field( $p . 'title', __( 'Title (empty = the page title)', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+			$field( $p . 'sub', __( 'Line under the title', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+			echo '</div>';
+		}
+		echo '</fieldset>';
+
+		$group( 'ph_look', __( 'Look of all page headers', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'ph_height',
+			__( 'Height', 'atelier-irisee-master-plugin' ),
+			array(
+				''      => __( 'Medium (standard)', 'atelier-irisee-master-plugin' ),
+				'small' => __( 'Small', 'atelier-irisee-master-plugin' ),
+				'large' => __( 'Large', 'atelier-irisee-master-plugin' ),
+				'full'  => __( 'Whole screen', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'ph_pheight',
+			__( 'Height on phones', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'As on computers (standard)', 'atelier-irisee-master-plugin' ),
+				'small'  => __( 'Small', 'atelier-irisee-master-plugin' ),
+				'medium' => __( 'Medium', 'atelier-irisee-master-plugin' ),
+				'large'  => __( 'Large', 'atelier-irisee-master-plugin' ),
+				'full'   => __( 'Whole screen', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'ph_align',
+			__( 'Place of the title', 'atelier-irisee-master-plugin' ),
+			array(
+				''           => __( 'In the middle (standard)', 'atelier-irisee-master-plugin' ),
+				'left'       => __( 'On the left', 'atelier-irisee-master-plugin' ),
+				'bottomleft' => __( 'At the bottom left', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::color( 'ph_tint', __( 'Tint over the picture', 'atelier-irisee-master-plugin' ) );
+		self::number( 'ph_strength', __( 'Strength of the tint', 'atelier-irisee-master-plugin' ), 0, 90, '%' );
+		self::color( 'ph_color', __( 'Colour of the title', 'atelier-irisee-master-plugin' ) );
+		self::number( 'ph_size', __( 'Size of the title (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 120, 'px' );
+		self::check_box( 'ph_crumbs', __( 'A breadcrumb above the title (Home › page)', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The title in the picture is still on the page for search engines and screen readers. Without a picture the header is a calm gold band with the title.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		$group( 'ab_closing', __( 'Closing', 'atelier-irisee-master-plugin' ) );

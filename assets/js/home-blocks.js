@@ -39,10 +39,35 @@
 		document.documentElement.style.setProperty('--aimp-hero-sb', Math.max(0, width) + 'px');
 	}
 
+	// The video of a page header: the phone video on phones (when there is one), never with "reduced motion" or the
+	// data saver; it fades in over the picture once it plays.
+	function video(el) {
+		var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		var saver = navigator.connection && navigator.connection.saveData;
+		if (calm || saver) {
+			return;
+		}
+		var phone = window.matchMedia && window.matchMedia('(max-width: 700px)').matches;
+		var src = (phone && el.getAttribute('data-psrc')) || el.getAttribute('data-src');
+		if (!src) {
+			return;
+		}
+		el.addEventListener('playing', function () {
+			el.classList.add('is-playing');
+		});
+		el.src = src;
+		el.muted = true;
+		var play = el.play();
+		if (play && play.catch) {
+			play.catch(function () {});
+		}
+	}
+
 	function start() {
 		scrollbar();
 		window.addEventListener('resize', scrollbar);
 		document.querySelectorAll('[data-aimp-slider]').forEach(init);
+		document.querySelectorAll('[data-aimp-ph-video]').forEach(video);
 	}
 
 	if (document.readyState === 'loading') {

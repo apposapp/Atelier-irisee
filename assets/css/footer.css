@@ -118,7 +118,9 @@
 }
 
 /* Newsletter */
-.aimp-newsletter {
+/* The footer's form and its copy in the pop-up (not the newsletter block of the home page). */
+.aimp-footer .aimp-newsletter,
+.aimp-nl-popup .aimp-newsletter {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;

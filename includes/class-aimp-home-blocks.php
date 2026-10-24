@@ -365,7 +365,9 @@ class AIMP_Home_Blocks {
 		$privacy = $privacy && 'publish' === get_post_status( $privacy ) ? get_permalink( $privacy ) : '';
 		$id      = wp_unique_id( 'aimp-home-nl-' );
 
-		$html = '<section class="aimp-home-block aimp-home-newsletter' . ( $picture ? ' has-picture' : '' ) . '"><div class="aimp-home-nl-box">';
+		// Hidden for subscribers unless chosen otherwise (never in the studio's preview: it has to stay editable).
+		$hide = ! AIMP_Blocks::design( $part, 'hn_showsubs' ) && ! ( class_exists( 'AIMP_Design' ) && AIMP_Design::is_preview() );
+		$html = '<section class="aimp-home-block aimp-home-newsletter' . ( $picture ? ' has-picture' : '' ) . ( $hide ? ' hides-subscribed' : '' ) . '"><div class="aimp-home-nl-box">';
 		if ( $picture ) {
 			// Behind the texts, filling the gold frame.
 			$html .= wp_get_attachment_image( $picture, 'large', false, array( 'class' => 'aimp-home-nl-image', 'loading' => 'lazy', 'alt' => '' ) );

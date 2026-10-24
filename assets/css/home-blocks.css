@@ -44,6 +44,27 @@
 	max-width: 100%;
 }
 
+/* Hidden stays hidden (a part's own display must not win over the hidden attribute). */
+.aimp-home-block [hidden],
+.aimp-contact [hidden] {
+	display: none !important;
+}
+
+/* Labels for screen readers only (the theme does not hide this WordPress class). */
+.aimp-home-block .screen-reader-text,
+.aimp-contact .screen-reader-text {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	border: 0;
+	white-space: nowrap;
+}
+
 /* No bullets: Divi's text module gives every list in it round bullets and an indent. */
 .aimp-home-block ul,
 .aimp-home-block li,
@@ -590,16 +611,21 @@
 	text-align: center;
 }
 
-.aimp-home-nl-form {
+.aimp-home-block .aimp-home-nl-form {
 	display: flex;
+	flex-direction: row;
 	flex-wrap: wrap;
+	align-items: stretch;
 	gap: 0.6rem;
 	max-width: 34rem;
 	margin: 0 auto;
 }
 
-.aimp-home-nl-form input[type="email"] {
+.aimp-home-block .aimp-home-nl-form input[type="email"] {
 	flex: 1 1 14rem;
+	width: auto;
+	max-width: none;
+	height: auto;
 	min-width: 0;
 	margin: 0;
 	padding: 0.8rem 1.2rem;
@@ -634,7 +660,26 @@
 }
 
 .aimp-home-newsletter .aimp-newsletter-state {
+	max-width: 34rem;
+	margin: 0 auto;
 	text-align: center;
+}
+
+.aimp-home-newsletter .aimp-newsletter-state-text {
+	margin: 0 0 0.9rem;
+	color: var(--hb-brown);
+	font-weight: 700;
+}
+
+.aimp-home-newsletter .aimp-newsletter-state-actions .aimp-block-button {
+	padding: 0.4rem 1rem;
+	border-width: 3px;
+	font-size: 12px;
+}
+
+/* Design studio (Newsletter block): hidden for visitors who are subscribed (footer.js knows the state). */
+.aimp-home-newsletter.hides-subscribed.is-subscribed {
+	display: none;
 }
 
 .aimp-home-newsletter .aimp-newsletter-state-actions {

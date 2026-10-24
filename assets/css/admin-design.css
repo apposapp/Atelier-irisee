@@ -1334,3 +1334,13 @@ body.aimp-ds-screen .aimp-ds {
 	color: #646970;
 	font-size: 12px;
 }
+
+/* Page header: only the settings of the page in the preview. */
+.aimp-ds-ph-page.is-other-page,
+.aimp-ds-ph-none.is-other-page {
+	display: none !important;
+}
+
+.aimp-ds-ph-page {
+	margin-bottom: 8px;
+}
