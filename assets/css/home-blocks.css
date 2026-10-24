@@ -398,9 +398,10 @@
 	order: 2;
 }
 
+/* Without a picture: the text alone, centred in a readable column (the block itself stays full width). */
 .aimp-home-maker.has-no-picture {
-	grid-template-columns: minmax(0, 1fr);
-	max-width: 860px;
+	grid-template-columns: minmax(0, 860px);
+	justify-content: center;
 	text-align: center;
 }
 
