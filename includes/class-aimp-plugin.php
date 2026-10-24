@@ -60,6 +60,7 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-blocks.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-contact.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-home-blocks.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-about.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/login/class-aimp-login.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/giftcards/class-aimp-giftcards.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-account.php';
@@ -104,6 +105,7 @@ class AIMP_Plugin {
 		AIMP_Kit_Steps::init();
 		AIMP_Contact::init();
 		AIMP_Home_Blocks::init();
+		AIMP_About::init();
 		AIMP_Login::init();
 		AIMP_Giftcards::init();
 		AIMP_Account::init();

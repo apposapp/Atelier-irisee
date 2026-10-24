@@ -88,6 +88,7 @@ class AIMP_Design {
 		$footer  = __( 'Footer', 'atelier-irisee-master-plugin' );
 		$contact = __( 'Contact page', 'atelier-irisee-master-plugin' );
 		$home    = __( 'Home page blocks', 'atelier-irisee-master-plugin' );
+		$about   = __( 'About page', 'atelier-irisee-master-plugin' );
 		$list    = array(
 			'header'          => array( $header, __( 'Header (whole)', 'atelier-irisee-master-plugin' ), '.aimp-header-inner' ),
 			'header-logo'     => array( $header, __( 'Logo', 'atelier-irisee-master-plugin' ), '.aimp-header-brand' ),
@@ -164,13 +165,18 @@ class AIMP_Design {
 			'home-newsletter' => array( $home, __( 'Newsletter block', 'atelier-irisee-master-plugin' ), '.aimp-home-newsletter' ),
 			'home-faq'        => array( $home, __( 'Questions block', 'atelier-irisee-master-plugin' ), '.aimp-home-faq' ),
 			'home-brands'     => array( $home, __( 'Brands', 'atelier-irisee-master-plugin' ), '.aimp-home-brands' ),
+			'about'           => array( $about, __( 'About page (whole)', 'atelier-irisee-master-plugin' ), '.aimp-about' ),
+			'about-head'      => array( $about, __( 'About title and intro', 'atelier-irisee-master-plugin' ), '.aimp-about-head' ),
+			'about-chapter'   => array( $about, __( 'Story chapters', 'atelier-irisee-master-plugin' ), '.aimp-about-chapter' ),
+			'about-values'    => array( $about, __( 'What we stand for', 'atelier-irisee-master-plugin' ), '.aimp-about-values' ),
+			'about-closing'   => array( $about, __( 'Closing and signature', 'atelier-irisee-master-plugin' ), '.aimp-about-closing' ),
 		);
 		// Which settings a part has: every part can be moved, sized, spaced, hidden, coloured and calmed down; boxes
 		// also get rounded corners, and parts with pictures a picture and focal point.
 		$text    = array( 'move', 'size', 'space', 'hide', 'colors', 'typo', 'anim' );
 		$box     = array_merge( $text, array( 'radius' ) );
 		$picture = array_merge( $box, array( 'image' ) );
-		$texts   = array( 'header-menu-bar', 'hero-title', 'hero-text', 'kit-steps-title', 'overview-hero', 'card-name', 'card-price', 'product-title', 'product-brand', 'product-subtitle', 'product-price', 'config-title', 'account-title', 'account-hello', 'footer-title', 'footer-bottom', 'hero-arrow', 'block-title', 'contact-head' );
+		$texts   = array( 'header-menu-bar', 'hero-title', 'hero-text', 'kit-steps-title', 'overview-hero', 'card-name', 'card-price', 'product-title', 'product-brand', 'product-subtitle', 'product-price', 'config-title', 'account-title', 'account-hello', 'footer-title', 'footer-bottom', 'hero-arrow', 'block-title', 'contact-head', 'about-head' );
 		$images  = array( 'header-logo', 'hero-seal', 'overview', 'overview-card', 'mosaic', 'product-gallery', 'product-recommend', 'kit-steps-list', 'footer-payments', 'footer-socials', 'cart-items' );
 		$elements = array();
 		foreach ( $list as $id => $row ) {
@@ -207,6 +213,9 @@ class AIMP_Design {
 			'home-newsletter' => array( 'hn_opts' ),
 			'home-faq'        => array( 'fq_opts' ),
 			'home-brands'     => array( 'br_opts' ),
+			'about'           => array( 'ab_opts' ),
+			'about-chapter'   => array( 'ab_chapters' ),
+			'about-closing'   => array( 'ab_closing' ),
 		) as $id => $more ) {
 			if ( isset( $elements[ $id ] ) ) {
 				$elements[ $id ]['controls'] = array_merge( $elements[ $id ]['controls'], $more );
@@ -675,6 +684,14 @@ class AIMP_Design {
 				'br_names' => 'bool',
 				'br_gray'  => 'bool',
 			),
+			'ab_opts'     => array(
+				'ab_right'    => 'bool',
+				'ab_novalues' => 'bool',
+				'ab_noshop'   => 'bool',
+				'ab_nokit'    => 'bool',
+			),
+			'ab_chapters' => self::about_chapter_fields(),
+			'ab_closing'  => array( 'ab_sign_img' => 'image' ),
 			'cz_summary'  => array(
 				'cz_nosave'   => 'bool',
 				'cz_discount' => array( 'select', array( '', 'total', 'badge' ) ),
@@ -964,6 +981,25 @@ class AIMP_Design {
 	}
 
 	/**
+	 * The story chapters of the About page, per chapter: a picture with its focal point and shape, the address of its
+	 * button, and hidden.
+	 *
+	 * @return array
+	 */
+	private static function about_chapter_fields() {
+		$fields = array();
+		for ( $n = 1; $n <= 4; $n++ ) {
+			$fields[ 'ab_img_' . $n ]   = 'image';
+			$fields[ 'ab_fx_' . $n ]    = array( 0, 100, -1 );
+			$fields[ 'ab_fy_' . $n ]    = array( 0, 100, -1 );
+			$fields[ 'ab_shape_' . $n ] = array( 'select', array( '', 'arch', 'round', 'square' ) );
+			$fields[ 'ab_url_' . $n ]   = 'url';
+			$fields[ 'ab_hide_' . $n ]  = 'bool';
+		}
+		return $fields;
+	}
+
+	/**
 	 * The kit steps bar's own settings: steps 2 and 3 can be left out and a fifth one added; per step a drawing or a
 	 * picture; the thread, the needle's speed, loops, the button and the customizer's first-visit pop-up.
 	 *
@@ -1016,7 +1052,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'br_opts' );
+		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing' );
 	}
 
 	/**
@@ -1360,6 +1396,26 @@ class AIMP_Design {
 		$list['fq_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-faq' ), $b . 'fq_title' );
 		$list['fq_button']       = array( __( 'Button to the contact page', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-faq' ), $b . 'fq_button' );
 		$list['br_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-brands' ), $b . 'br_title' );
+		// The About page.
+		$head     = array( 'about', 'about-head' );
+		$chapters = array( 'about', 'about-chapter' );
+		$closing  = array( 'about', 'about-closing' );
+		$list['ab_kicker'] = array( __( 'Small line above the title', 'atelier-irisee-master-plugin' ), 'lang', $head, $b . 'ab_kicker' );
+		$list['ab_title']  = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', $head, $b . 'ab_title' );
+		$list['ab_intro']  = array( __( 'Introduction', 'atelier-irisee-master-plugin' ), 'langlong', $head, $b . 'ab_intro' );
+		for ( $n = 1; $n <= 4; $n++ ) {
+			/* translators: %d: chapter number */
+			$list[ 'ab_c' . $n . '_title' ] = array( sprintf( __( 'Chapter %d: title', 'atelier-irisee-master-plugin' ), $n ), 'lang', $chapters, $b . 'ab_c' . $n . '_title' );
+			/* translators: %d: chapter number */
+			$list[ 'ab_c' . $n . '_text' ] = array( sprintf( __( 'Chapter %d: text (an empty line starts a new paragraph)', 'atelier-irisee-master-plugin' ), $n ), 'langlong', $chapters, $b . 'ab_c' . $n . '_text' );
+			/* translators: %d: chapter number */
+			$list[ 'ab_c' . $n . '_button' ] = array( sprintf( __( 'Chapter %d: button (shown with an address in its settings)', 'atelier-irisee-master-plugin' ), $n ), 'lang', $chapters, $b . 'ab_c' . $n . '_button' );
+		}
+		$list['ab_values']      = array( __( 'What we stand for', 'atelier-irisee-master-plugin' ), 'pairs', array( 'about', 'about-values' ), $b . 'ab_values', array( array( __( 'Title', 'atelier-irisee-master-plugin' ), false ), array( __( 'Text', 'atelier-irisee-master-plugin' ), true ) ) );
+		$list['ab_quote']       = array( __( 'Quote', 'atelier-irisee-master-plugin' ), 'langlong', $closing, $b . 'ab_quote' );
+		$list['ab_sign']        = array( __( 'Signature', 'atelier-irisee-master-plugin' ), 'langlong', $closing, $b . 'ab_sign' );
+		$list['ab_shop_button'] = array( __( 'Button to the shop', 'atelier-irisee-master-plugin' ), 'lang', $closing, $b . 'ab_shop_button' );
+		$list['ab_kit_button']  = array( __( 'Button to the customizer', 'atelier-irisee-master-plugin' ), 'lang', $closing, $b . 'ab_kit_button' );
 		return $list;
 	}
 
@@ -3950,6 +4006,43 @@ class AIMP_Design {
 		self::check_box( 'br_names', __( 'Names instead of logos', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'br_gray', __( 'Logos in grey, in colour when pointed at', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'Only brands with products are shown. A logo is the picture of the brand under Products → Brands.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'ab_opts', __( 'About page', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ab_right', __( 'The first chapter with its picture on the right', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ab_novalues', __( 'No "What we stand for" tiles', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ab_noshop', __( 'No button to the shop', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ab_nokit', __( 'No button to the customizer', 'atelier-irisee-master-plugin' ) );
+		echo $texts_note; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+		echo '</fieldset>';
+
+		$group( 'ab_chapters', __( 'Pictures of the chapters', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'A chapter without a title and text is not shown; one without a picture shows its text in the middle.', 'atelier-irisee-master-plugin' ) . '</p>';
+		for ( $n = 1; $n <= 4; $n++ ) {
+			/* translators: %d: chapter number */
+			echo '<p class="aimp-ds-sub">' . esc_html( sprintf( __( 'Chapter %d', 'atelier-irisee-master-plugin' ), $n ) ) . '</p>';
+			self::picture_field( 'ab_img_' . $n, __( 'Picture', 'atelier-irisee-master-plugin' ) );
+			self::number( 'ab_fx_' . $n, __( 'Focal point: left / right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+			self::number( 'ab_fy_' . $n, __( 'Focal point: top / bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+			echo '<button type="button" class="button-link" data-clear="' . esc_attr( 'ab_fx_' . $n . ',ab_fy_' . $n ) . '">' . esc_html( $standard ) . '</button>';
+			self::choice(
+				'ab_shape_' . $n,
+				__( 'Shape', 'atelier-irisee-master-plugin' ),
+				array(
+					''       => 3 === $n ? __( 'Round (standard)', 'atelier-irisee-master-plugin' ) : __( 'Arch (standard)', 'atelier-irisee-master-plugin' ),
+					'arch'   => __( 'Arch', 'atelier-irisee-master-plugin' ),
+					'round'  => __( 'Round', 'atelier-irisee-master-plugin' ),
+					'square' => __( 'Rounded corners', 'atelier-irisee-master-plugin' ),
+				)
+			);
+			$field( 'ab_url_' . $n, __( 'The button goes to (no address = no button)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
+			self::check_box( 'ab_hide_' . $n, __( 'Hide this chapter', 'atelier-irisee-master-plugin' ) );
+		}
+		echo '</fieldset>';
+
+		$group( 'ab_closing', __( 'Closing', 'atelier-irisee-master-plugin' ) );
+		self::picture_field( 'ab_sign_img', __( 'Small round picture next to the signature (e.g. Klaus)', 'atelier-irisee-master-plugin' ) );
+		echo $texts_note; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
 		echo '</fieldset>';
 	}
 

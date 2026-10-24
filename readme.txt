@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.39.1
+Stable tag: 3.40.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.40.0 =
+* About page: the shortcode [atelier_irisee_about], full width. A head, the story in up to four chapters (picture and text in turns left and right; an arch, round or rounded picture with its focal point; an optional button per chapter, e.g. to the dog bandanas), four tiles of what the shop stands for, and a closing with the quote, the signature (with a small round picture of Klaus) and buttons to the shop and the customizer. The standard texts are the story of the current About page (NL as written, translated to FR and EN).
+* Design studio: the About page and its parts (head, chapters, tiles, closing), with every text in NL/FR/EN and the pictures per chapter.
 
 = 3.39.1 =
 * Home page blocks: they use the full width of the screen, also inside a Divi row (like the hero). "Meet the maker" without a picture keeps its text in a readable column. A background picture of the newsletter block fills its gold frame.

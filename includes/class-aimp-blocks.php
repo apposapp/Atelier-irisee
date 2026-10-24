@@ -120,6 +120,59 @@ class AIMP_Blocks {
 			'fq_title'        => __( 'Frequently asked questions', 'atelier-irisee-master-plugin' ),
 			'fq_button'       => __( 'More questions? Contact us', 'atelier-irisee-master-plugin' ),
 			'br_title'        => __( 'Our brands', 'atelier-irisee-master-plugin' ),
+			// About page (the owner's own story; an empty line between paragraphs).
+			'ab_kicker'       => __( 'About us', 'atelier-irisee-master-plugin' ),
+			'ab_title'        => __( 'The story behind Atelier Irisée', 'atelier-irisee-master-plugin' ),
+			'ab_intro'        => __( 'Fabrics, patterns and everything you need to sew clothes with a story.', 'atelier-irisee-master-plugin' ),
+			'ab_c1_title'     => __( 'It all starts with the right light…', 'atelier-irisee-master-plugin' ),
+			'ab_c1_text'      => implode(
+				"\n\n",
+				array(
+					__( 'Do you know that magical moment when sunlight falls on a fabric and a whole new palette of colours suddenly appears? That is irisée: iridescent, pearlescent and surprising from every angle. Exactly that magic led me to found Atelier Irisée. A place where we turn every piece of fabric into a unique work of art and make your dream wardrobe come true.', 'atelier-irisee-master-plugin' ),
+					__( 'My love for textiles and fashion started early, during my fashion studies. The real spark, though, only came a few years later, when I started making clothes myself. The thrill of a perfectly fitting garment, made from a quality fabric with a print you will not see anywhere else? Priceless! That intense sewing itch and my love for colour are what I want to share with you through this web shop.', 'atelier-irisee-master-plugin' ),
+				)
+			),
+			'ab_c1_button'    => '',
+			'ab_c2_title'     => __( 'Fashion as a reflection of your character', 'atelier-irisee-master-plugin' ),
+			'ab_c2_text'      => implode(
+				"\n\n",
+				array(
+					__( 'To me, fashion is a pure reflection of your personality. Boring? Uninspired? Words we do not know here. I do not believe in one specific style. One day it is romantic, the next day tough, and very often an eclectic mix of different styles. That is exactly what makes an outfit exuberant, striking and unique.', 'atelier-irisee-master-plugin' ),
+					__( 'I love colour and prints, and yes, I even like to combine different prints in one single outfit! As soon as I see a pattern or a piece of fabric, a bomb of creativity explodes in my head and I immediately have a whole lot of ideas about what to make with it. I use that creative eye to select the most inspiring materials for you.', 'atelier-irisee-master-plugin' ),
+				)
+			),
+			'ab_c2_button'    => '',
+			'ab_c3_title'     => __( 'Meet Klaus, our furry mascot!', 'atelier-irisee-master-plugin' ),
+			'ab_c3_text'      => implode(
+				"\n\n",
+				array(
+					__( 'Say Atelier Irisée and you say Klaus in the same breath. This enthusiastic Australian Shepherd is not only my loyal four-legged friend, but also the official mascot of the web shop.', 'atelier-irisee-master-plugin' ),
+					__( 'Ever since Klaus came into my life, he always wears a handmade bandana that perfectly matches my own outfits. Because that matching look gets so many lovely reactions, you will find a special collection of trendy dog bandanas in the web shop. So the two of you will soon shine together in style!', 'atelier-irisee-master-plugin' ),
+					__( 'Whether you are just learning to sew a straight line or have years of experience: I am happy to help you, with lots of love, to add colour to your wardrobe (and your dog\'s!).', 'atelier-irisee-master-plugin' ),
+				)
+			),
+			'ab_c3_button'    => __( 'Discover the dog bandanas', 'atelier-irisee-master-plugin' ),
+			'ab_c4_title'     => '',
+			'ab_c4_text'      => '',
+			'ab_c4_button'    => '',
+			'ab_quote'        => __( 'Get inspired and make clothes with a story. Your story.', 'atelier-irisee-master-plugin' ),
+			'ab_sign'         => __( 'Happy sewing,', 'atelier-irisee-master-plugin' ) . "\n" . __( 'Dorien & a well-deserved paw from Klaus 🐾', 'atelier-irisee-master-plugin' ),
+			'ab_shop_button'  => __( 'Shop', 'atelier-irisee-master-plugin' ),
+			'ab_kit_button'   => __( 'Compose your sewing kit', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * What the shop stands for (About page), standard tiles (current language).
+	 *
+	 * @return array[]
+	 */
+	public static function default_values() {
+		return array(
+			array( __( 'Prints you will not find anywhere else', 'atelier-irisee-master-plugin' ), __( 'Quality fabrics with prints, chosen with a creative eye.', 'atelier-irisee-master-plugin' ) ),
+			array( __( 'Everything in one sewing kit', 'atelier-irisee-master-plugin' ), __( 'Pattern, fabric and haberdashery that match, in one package.', 'atelier-irisee-master-plugin' ) ),
+			array( __( 'Colour and character', 'atelier-irisee-master-plugin' ), __( 'Romantic, tough or an eclectic mix: your clothes, your style.', 'atelier-irisee-master-plugin' ) ),
+			array( __( 'Help with lots of love', 'atelier-irisee-master-plugin' ), __( 'Whether you are just starting or have been sewing for years, we are happy to help.', 'atelier-irisee-master-plugin' ) ),
 		);
 	}
 
@@ -179,6 +232,7 @@ class AIMP_Blocks {
 		$source = array(
 			'ct_subjects' => array( __CLASS__, 'default_subjects' ),
 			'faq'         => array( __CLASS__, 'default_faq' ),
+			'ab_values'   => array( __CLASS__, 'default_values' ),
 		);
 		if ( ! isset( $source[ $key ] ) ) {
 			return '';
@@ -272,6 +326,11 @@ class AIMP_Blocks {
 			'arrow-left'  => '<path d="M14.5 6 8.5 12l6 6"/>',
 			'arrow-right' => '<path d="M9.5 6l6 6-6 6"/>',
 			'check'       => '<circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.3l2.5 2.5 5-5.3"/>',
+			'sparkle'     => '<path d="M11 3.5l1.7 4.6 4.6 1.7-4.6 1.7L11 16.1l-1.7-4.6-4.6-1.7 4.6-1.7z"/><path d="M18 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',
+			'kit'         => '<path d="M4 10h16v10H4z"/><path d="M3 7h18v3H3zM12 7v13"/><path d="M12 7c-2-3.5-6-3.5-5-1s5 1 5 1zm0 0c2-3.5 6-3.5 5-1s-5 1-5 1z"/>',
+			'palette'     => '<path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.4 0 1.9-1 1.4-2.1-.6-1.2.1-2.4 1.5-2.4H17a3.5 3.5 0 0 0 3.5-3.5c0-5-3.8-9-8.5-9z"/><circle cx="7.8" cy="11" r="1"/><circle cx="10.5" cy="7.3" r="1"/><circle cx="15" cy="7.8" r="1"/>',
+			'heart'       => '<path d="M12 20s-7.5-4.5-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.5-7.5 10-7.5 10z"/>',
+			'paw'         => '<ellipse cx="12" cy="16" rx="4" ry="3.3"/><circle cx="6.3" cy="11" r="1.7"/><circle cx="9.5" cy="7" r="1.7"/><circle cx="14.5" cy="7" r="1.7"/><circle cx="17.7" cy="11" r="1.7"/>',
 		);
 		return '<svg class="aimp-icon aimp-icon--' . esc_attr( $name ) . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . ( isset( $paths[ $name ] ) ? $paths[ $name ] : '' ) . '</svg>';
 	}
