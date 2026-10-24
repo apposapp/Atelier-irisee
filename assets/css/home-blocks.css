@@ -1,0 +1,803 @@
+/* Home page blocks ([atelier_irisee_categories], _reviews, _maker, _new, _newsletter, _faq, _brands) and the parts
+   the contact page shares with them: block titles between gold lines, round buttons, the questions and answers. */
+.aimp-home-block,
+.aimp-contact {
+	--hb-gold: var(--aimp-site-gold, #b38f4f);
+	--hb-gold-text: var(--aimp-site-gold-text, #8a6a33);
+	--hb-brown: var(--aimp-site-brown, #613907);
+	--hb-tint: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 9%, #fff);
+	--hb-line: var(--aimp-site-line, solid);
+	--hb-radius: 24px;
+	box-sizing: border-box;
+	max-width: 1320px;
+	margin: 0 auto;
+	padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem);
+	color: var(--hb-brown);
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.6;
+}
+
+.aimp-home-block *,
+.aimp-home-block *::before,
+.aimp-home-block *::after,
+.aimp-contact *,
+.aimp-contact *::before,
+.aimp-contact *::after {
+	box-sizing: border-box;
+}
+
+.aimp-home-block img,
+.aimp-contact img {
+	max-width: 100%;
+}
+
+/* ------------------------------------------------------------------ titles and buttons */
+.aimp-home-block .aimp-block-title,
+.aimp-contact .aimp-block-title {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin: 0 0 clamp(1.25rem, 3vw, 2rem);
+	padding: 0;
+	color: var(--hb-gold-text);
+	font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+	line-height: 1.25;
+	letter-spacing: 0.04em;
+	text-align: center;
+	text-wrap: balance;
+}
+
+/* The gold double lines on both sides of the title. */
+.aimp-home-block .aimp-block-title::before,
+.aimp-home-block .aimp-block-title::after,
+.aimp-contact .aimp-block-title::before,
+.aimp-contact .aimp-block-title::after {
+	content: "";
+	flex: 1 1 2rem;
+	min-width: 1.5rem;
+	border-top: 4px double var(--hb-gold);
+}
+
+.aimp-home-block .aimp-block-title > span {
+	flex: 0 1 auto;
+}
+
+.aimp-home-block .aimp-block-button,
+.aimp-contact .aimp-contact-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	padding: 0.65rem 1.5rem;
+	border: 5px double var(--hb-gold);
+	border-radius: 100px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--hb-brown);
+	font: inherit;
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 1.3;
+	letter-spacing: 0.06em;
+	text-align: center;
+	text-decoration: none;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.aimp-home-block .aimp-block-button:hover,
+.aimp-home-block .aimp-block-button:focus-visible,
+.aimp-contact .aimp-contact-button:hover,
+.aimp-contact .aimp-contact-button:focus-visible {
+	background: var(--hb-tint);
+	color: var(--hb-brown);
+}
+
+.aimp-home-block .aimp-block-button:focus-visible,
+.aimp-contact .aimp-contact-button:focus-visible,
+.aimp-home-block .aimp-slider-arrow:focus-visible,
+.aimp-home-block .aimp-slider-track:focus-visible {
+	outline: 2px solid var(--hb-brown);
+	outline-offset: 3px;
+}
+
+.aimp-home-block .aimp-block-button--light {
+	border-color: #fff;
+	background: #fff;
+	color: var(--hb-brown);
+}
+
+.aimp-home-block .aimp-block-button--light:hover,
+.aimp-home-block .aimp-block-button--light:focus-visible {
+	background: transparent;
+	color: #fff;
+}
+
+.aimp-icon {
+	flex: none;
+	width: 1.25em;
+	height: 1.25em;
+}
+
+/* ------------------------------------------------------------------ questions and answers */
+.aimp-faq {
+	max-width: 860px;
+	margin: 0 auto;
+	border-top: 1px var(--hb-line, solid) var(--hb-gold);
+}
+
+.aimp-faq-item {
+	border-bottom: 1px var(--hb-line, solid) var(--hb-gold);
+}
+
+.aimp-faq-question {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1rem 0.25rem;
+	color: var(--hb-brown);
+	font-weight: 700;
+	line-height: 1.4;
+	list-style: none;
+	cursor: pointer;
+}
+
+.aimp-faq-question::-webkit-details-marker {
+	display: none;
+}
+
+.aimp-faq-question:hover,
+.aimp-faq-question:focus-visible {
+	color: var(--hb-gold-text);
+}
+
+.aimp-faq-question:focus-visible {
+	outline: 2px solid var(--hb-brown);
+	outline-offset: 2px;
+}
+
+/* A plus that turns into a minus. */
+.aimp-faq-icon {
+	position: relative;
+	flex: none;
+	width: 1.9rem;
+	height: 1.9rem;
+	border: 3px double var(--hb-gold);
+	border-radius: 50%;
+}
+
+.aimp-faq-icon::before,
+.aimp-faq-icon::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 0.7rem;
+	height: 2px;
+	background: var(--hb-gold-text);
+	transform: translate(-50%, -50%);
+	transition: transform 0.25s ease;
+}
+
+.aimp-faq-icon::after {
+	transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.aimp-faq-item[open] .aimp-faq-icon::after {
+	transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.aimp-faq-answer {
+	padding: 0 2.75rem 1.1rem 0.25rem;
+	font-weight: 500;
+}
+
+.aimp-faq-answer p {
+	margin: 0 0 0.6rem;
+}
+
+.aimp-faq-answer p:last-child {
+	margin-bottom: 0;
+}
+
+/* ------------------------------------------------------------------ sliders (reviews, new in) */
+.aimp-home-block .aimp-slider-track {
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x mandatory;
+	scrollbar-width: none;
+	border-radius: var(--hb-radius);
+}
+
+.aimp-home-block .aimp-slider-track::-webkit-scrollbar {
+	display: none;
+}
+
+.aimp-home-block .aimp-slider-track > ul {
+	display: flex;
+	gap: 1.25rem;
+	margin: 0;
+	padding: 0.5rem 0.1rem;
+	list-style: none;
+}
+
+.aimp-home-block .aimp-slider-track > ul > li {
+	flex: none;
+	scroll-snap-align: start;
+}
+
+.aimp-home-block .aimp-slider-arrows {
+	display: flex;
+	justify-content: center;
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+.aimp-home-block.is-static .aimp-slider-arrows {
+	display: none;
+}
+
+.aimp-home-block .aimp-slider-arrow {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	border: 4px double var(--hb-gold);
+	border-radius: 50%;
+	background: #fff;
+	color: var(--hb-gold-text);
+	cursor: pointer;
+	transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+.aimp-home-block .aimp-slider-arrow:hover:not(:disabled) {
+	background: var(--hb-tint);
+}
+
+.aimp-home-block .aimp-slider-arrow:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+/* ------------------------------------------------------------------ shop by category */
+.aimp-home-cats .aimp-configurator.aimp-overview {
+	margin: 0;
+}
+
+/* ------------------------------------------------------------------ reviews */
+.aimp-reviews-average {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	margin: -0.75rem 0 1.5rem;
+}
+
+.aimp-stars {
+	position: relative;
+	display: inline-flex;
+	color: var(--hb-gold);
+	line-height: 0;
+	vertical-align: middle;
+}
+
+.aimp-stars-row {
+	display: inline-flex;
+	gap: 0.1rem;
+}
+
+.aimp-stars-fill {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	overflow: hidden;
+}
+
+.aimp-stars-fill svg {
+	fill: currentColor;
+}
+
+.aimp-stars .aimp-icon {
+	width: 1.1rem;
+	height: 1.1rem;
+}
+
+.aimp-home-reviews .aimp-reviews-list > li {
+	width: calc((100% - 2 * 1.25rem) / 3);
+}
+
+.aimp-review figure {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	height: 100%;
+	margin: 0;
+	padding: 1.5rem 1.5rem 1.25rem;
+	border: 1px var(--hb-line, solid) var(--hb-gold);
+	border-radius: var(--hb-radius);
+	background: #fff;
+}
+
+.aimp-review-text {
+	position: relative;
+	flex: 1 1 auto;
+	margin: 0;
+	padding: 0 0 0 1.6rem;
+	border: 0;
+	color: var(--hb-brown);
+	font-style: italic;
+	font-weight: 500;
+}
+
+/* A large gold opening quote mark. */
+.aimp-review-text::before {
+	content: "\201C";
+	position: absolute;
+	top: -0.6rem;
+	left: -0.2rem;
+	color: var(--hb-gold);
+	font-family: Georgia, serif;
+	font-size: 2.8rem;
+	font-style: normal;
+	line-height: 1;
+}
+
+.aimp-review-text p {
+	margin: 0;
+}
+
+.aimp-review-by {
+	display: flex;
+	flex-direction: column;
+	padding-top: 0.75rem;
+	border-top: 1px dashed color-mix(in srgb, var(--hb-gold) 60%, transparent);
+}
+
+.aimp-review-by strong {
+	color: var(--hb-gold-text);
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.aimp-review-product {
+	color: var(--hb-brown);
+	font-size: 0.9em;
+	text-decoration: underline;
+	text-decoration-color: var(--hb-gold);
+	text-underline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ meet the maker */
+.aimp-home-maker {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+	align-items: center;
+	gap: clamp(1.5rem, 5vw, 4.5rem);
+}
+
+.aimp-home-maker.is-picture-right .aimp-maker-media {
+	order: 2;
+}
+
+.aimp-home-maker.has-no-picture {
+	grid-template-columns: minmax(0, 1fr);
+	max-width: 860px;
+	text-align: center;
+}
+
+.aimp-maker-media {
+	position: relative;
+	padding: 0 0 1.5rem;
+}
+
+/* An arch, like the product pictures, in a gold double frame. */
+.aimp-maker-image {
+	display: block;
+	width: 100%;
+	aspect-ratio: 4 / 5;
+	max-height: 38rem;
+	object-fit: cover;
+	border: 5px double var(--hb-gold);
+	border-radius: 999px 999px var(--hb-radius) var(--hb-radius);
+}
+
+.aimp-maker-inset {
+	position: absolute;
+	right: -0.5rem;
+	bottom: 0;
+	width: 34%;
+	aspect-ratio: 1;
+	object-fit: cover;
+	border: 5px double var(--hb-gold);
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 10px 26px color-mix(in srgb, var(--hb-brown) 18%, transparent);
+}
+
+.aimp-home-maker.is-picture-right .aimp-maker-inset {
+	right: auto;
+	left: -0.5rem;
+}
+
+.aimp-maker-kicker {
+	margin: 0 0 0.4rem;
+	color: var(--hb-gold-text);
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+/* Next to the picture the title stands on the left, with one line after it. */
+.aimp-home-block .aimp-maker-title {
+	justify-content: flex-start;
+	text-align: left;
+}
+
+.aimp-home-block .aimp-maker-title::before {
+	display: none;
+}
+
+.aimp-home-maker.has-no-picture .aimp-maker-title {
+	justify-content: center;
+	text-align: center;
+}
+
+.aimp-home-maker.has-no-picture .aimp-maker-title::before {
+	display: block;
+}
+
+.aimp-maker-story {
+	max-width: 62ch;
+	margin-bottom: 1.5rem;
+	font-weight: 500;
+}
+
+.aimp-home-maker.has-no-picture .aimp-maker-story {
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.aimp-maker-story p {
+	margin: 0 0 0.9rem;
+}
+
+/* ------------------------------------------------------------------ new in */
+.aimp-home-block .aimp-home-head {
+	position: relative;
+}
+
+.aimp-home-more {
+	position: absolute;
+	top: 50%;
+	right: 0;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	padding-left: 0.75rem;
+	background: var(--aimp-site-page-bg, #fff);
+	color: var(--hb-gold-text);
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-decoration: none;
+	text-transform: uppercase;
+	transform: translateY(-50%);
+}
+
+.aimp-home-more:hover,
+.aimp-home-more:focus-visible {
+	color: var(--hb-brown);
+}
+
+.aimp-home-new.aimp-configurator {
+	margin: 0 auto;
+}
+
+.aimp-home-new .aimp-new-list > li {
+	width: clamp(10.5rem, 21%, 15rem);
+}
+
+/* ------------------------------------------------------------------ newsletter */
+.aimp-home-newsletter {
+	position: relative;
+}
+
+.aimp-home-nl-image {
+	position: absolute;
+	inset: clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem);
+	width: calc(100% - 2 * clamp(1rem, 3vw, 2rem));
+	height: calc(100% - 2 * clamp(2rem, 5vw, 4rem));
+	object-fit: cover;
+	border-radius: var(--hb-radius);
+}
+
+.aimp-home-nl-box {
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+	overflow: hidden;
+	border: 5px double var(--hb-gold);
+	border-radius: var(--hb-radius);
+	background: var(--hb-tint);
+}
+
+.aimp-home-newsletter.has-picture .aimp-home-nl-box {
+	background: color-mix(in srgb, var(--hb-tint) 88%, transparent);
+}
+
+.aimp-home-nl-box:not(:has(.aimp-home-nl-offer)) {
+	grid-template-columns: minmax(0, 1fr);
+	text-align: center;
+}
+
+.aimp-home-nl-main {
+	padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.aimp-home-nl-main .aimp-block-title {
+	margin-bottom: 0.75rem;
+}
+
+.aimp-home-nl-main .aimp-newsletter-intro {
+	margin: 0 0 1.25rem;
+	text-align: center;
+}
+
+.aimp-home-nl-form {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+	max-width: 34rem;
+	margin: 0 auto;
+}
+
+.aimp-home-nl-form input[type="email"] {
+	flex: 1 1 14rem;
+	min-width: 0;
+	margin: 0;
+	padding: 0.8rem 1.2rem;
+	border: 1px var(--hb-line, solid) var(--hb-gold);
+	border-radius: 100px;
+	background: #fff;
+	color: var(--hb-brown);
+	font: inherit;
+}
+
+.aimp-home-nl-form input[type="email"]:focus {
+	border-color: var(--hb-brown);
+	outline: 2px solid color-mix(in srgb, var(--hb-gold) 40%, transparent);
+}
+
+.aimp-home-block .aimp-newsletter-hp {
+	position: absolute !important;
+	left: -9999px !important;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+}
+
+.aimp-home-nl-form .aimp-newsletter-message {
+	flex: 1 1 100%;
+	margin: 0.25rem 0 0;
+	text-align: center;
+}
+
+.aimp-home-nl-form .aimp-newsletter-message.is-error {
+	color: var(--aimp-site-error, #a3352b);
+}
+
+.aimp-home-newsletter .aimp-newsletter-state {
+	text-align: center;
+}
+
+.aimp-home-newsletter .aimp-newsletter-state-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.6rem;
+}
+
+.aimp-home-newsletter .aimp-newsletter-consent {
+	margin: 1rem 0 0;
+	font-size: 13px;
+	font-weight: 500;
+	text-align: center;
+}
+
+.aimp-home-newsletter .aimp-newsletter-consent a {
+	color: var(--hb-gold-text);
+}
+
+/* The welcome discount: a gold panel. */
+.aimp-home-nl-offer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.6rem;
+	padding: clamp(1.5rem, 4vw, 3rem);
+	background: var(--hb-gold);
+	color: #fff;
+	text-align: center;
+}
+
+.aimp-home-nl-percent {
+	margin: 0;
+	color: #fff;
+	font-size: clamp(1.4rem, 3vw, 2.1rem);
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	text-wrap: balance;
+}
+
+.aimp-home-nl-offer-text {
+	max-width: 26ch;
+	margin: 0 0 0.4rem;
+	color: #fff;
+}
+
+/* ------------------------------------------------------------------ questions block */
+.aimp-home-faq-more {
+	margin: 1.75rem 0 0;
+	text-align: center;
+}
+
+/* ------------------------------------------------------------------ brands */
+.aimp-brands-list {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.9rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-brand a {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 10rem;
+	height: 5.5rem;
+	padding: 0.9rem 1.2rem;
+	border: 1px var(--hb-line, solid) var(--hb-gold);
+	border-radius: 100px;
+	background: #fff;
+	text-decoration: none;
+	transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.aimp-brand a:hover,
+.aimp-brand a:focus-visible {
+	background: var(--hb-tint);
+	transform: translateY(-2px);
+}
+
+.aimp-brand a:focus-visible {
+	outline: 2px solid var(--hb-brown);
+	outline-offset: 3px;
+}
+
+.aimp-brand-logo {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.aimp-home-brands.is-gray .aimp-brand-logo {
+	opacity: 0.7;
+	filter: grayscale(1);
+}
+
+.aimp-home-brands.is-gray .aimp-brand a:hover .aimp-brand-logo,
+.aimp-home-brands.is-gray .aimp-brand a:focus-visible .aimp-brand-logo {
+	opacity: 1;
+	filter: none;
+}
+
+.aimp-brand-name {
+	color: var(--hb-gold-text);
+	font-weight: 700;
+	line-height: 1.2;
+	letter-spacing: 0.06em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ tablet */
+@media (max-width: 1024px) {
+	.aimp-home-reviews .aimp-reviews-list > li {
+		width: calc((100% - 1.25rem) / 2);
+	}
+
+	.aimp-home-new .aimp-new-list > li {
+		width: clamp(10rem, 30%, 14rem);
+	}
+}
+
+/* ------------------------------------------------------------------ phone */
+@media (max-width: 700px) {
+	.aimp-home-block .aimp-slider-track > ul {
+		gap: 0.9rem;
+	}
+
+	.aimp-home-reviews .aimp-reviews-list > li {
+		width: 86%;
+	}
+
+	.aimp-home-new .aimp-new-list > li {
+		width: 44%;
+	}
+
+	.aimp-home-block .aimp-home-head {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.aimp-home-more {
+		position: static;
+		margin: -0.75rem 0 1rem;
+		padding: 0;
+		transform: none;
+	}
+
+	.aimp-home-maker {
+		grid-template-columns: minmax(0, 1fr);
+		text-align: center;
+	}
+
+	.aimp-home-maker.is-picture-right .aimp-maker-media {
+		order: 0;
+	}
+
+	.aimp-maker-media {
+		max-width: 22rem;
+		margin: 0 auto;
+	}
+
+	.aimp-home-block .aimp-maker-title {
+		justify-content: center;
+		text-align: center;
+	}
+
+	.aimp-home-block .aimp-maker-title::before {
+		display: block;
+	}
+
+	.aimp-maker-story {
+		margin-right: auto;
+		margin-left: auto;
+	}
+
+	.aimp-home-nl-box {
+		grid-template-columns: minmax(0, 1fr);
+		text-align: center;
+	}
+
+	.aimp-brand a {
+		width: 8.5rem;
+		height: 4.75rem;
+	}
+
+	.aimp-faq-answer {
+		padding-right: 0.25rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-home-block *,
+	.aimp-contact * {
+		transition: none !important;
+	}
+}

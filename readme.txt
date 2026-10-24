@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.38.0
+Stable tag: 3.39.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,19 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.39.0 =
+* Contact page: the shortcode [atelier_irisee_contact]. Contact cards (email with a copy button, phone with a WhatsApp link, the address with "Plan your route", the answer time, social media; from the footer settings), a contact form sent in the background (name, email, subject, order number — a list of their orders for logged-in customers —, message, privacy consent; spam stopped by a hidden field, a time check and a limit per visitor, no cookies), an email to the shop with Reply-To the customer and a copy to the customer, and the questions and answers below.
+* Home page blocks, each a shortcode:
+  * [atelier_irisee_categories]: shop by category, the sewing project kits as the large tile (the overview cards of the All products page).
+  * [atelier_irisee_reviews]: product reviews (from 4 stars) and your own testimonials in a slider, with the average score; hidden while there is nothing to show.
+  * [atelier_irisee_maker]: meet the maker, with a picture, a small round picture (the mascot), the story and a button.
+  * [atelier_irisee_new]: the newest products in a row, with "View all".
+  * [atelier_irisee_newsletter]: the newsletter sign-up, with the welcome discount for new accounts next to it.
+  * [atelier_irisee_faq]: the first questions and answers, with a button to the contact page.
+  * [atelier_irisee_brands]: the brands with products (logo or name), each linking to its products.
+* Design studio: the contact page and every block are parts with their own settings, and their texts (NL/FR/EN) in their Texts block: lists of questions and answers and of testimonials can be added to and removed there.
+* Shop: a brand filter (aimp_brand); brand links (the brand tiles, the brand on a product page) lead to the All products page with that brand's products.
 
 = 3.38.0 =
 * Lining: a fabric can also be used as lining (Fabric data → Specifications: "This fabric can also be used as lining"). It is the same product: the same price and the same stock.

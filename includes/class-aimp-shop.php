@@ -102,6 +102,10 @@ class AIMP_Shop {
 	 * @return string
 	 */
 	public static function term_link( $url, $term, $taxonomy ) {
+		if ( 'product_brand' === $taxonomy && self::routing_enabled() && $term instanceof WP_Term ) {
+			$page_url = self::brand_url( $term );
+			return '' !== $page_url ? $page_url : $url;
+		}
 		if ( 'product_cat' !== $taxonomy || ! self::routing_enabled() ) {
 			return $url;
 		}
@@ -133,6 +137,8 @@ class AIMP_Shop {
 		$url = '';
 		if ( is_product_category() ) {
 			$url = self::category_url( get_queried_object() );
+		} elseif ( taxonomy_exists( 'product_brand' ) && is_tax( 'product_brand' ) && get_queried_object() instanceof WP_Term ) {
+			$url = self::brand_url( get_queried_object() );
 		} elseif ( is_shop() ) {
 			$page = self::page_for_type( 'all' );
 			$url  = ( $page && $page !== (int) wc_get_page_id( 'shop' ) ) ? get_permalink( $page ) : '';
@@ -355,6 +361,7 @@ class AIMP_Shop {
 			'max'      => null,
 			'in_stock' => false,
 			'lining'   => false,
+			'brand'    => '',
 			'sort'     => ( class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'shop', 'sort_default' ) ) ? AIMP_Design::opt( 'shop', 'sort_default' ) : 'recommended',
 			'page'     => 1,
 			'attrs'    => array(),
@@ -440,9 +447,10 @@ class AIMP_Shop {
 	/**
 	 * The overview: one row of cards that link to the shop sections.
 	 *
+	 * @param bool $topbar With the language choice above it (not on the home page block).
 	 * @return string Empty when no section has a page yet.
 	 */
-	public static function overview_html() {
+	public static function overview_html( $topbar = true ) {
 		$cards = '';
 		$hero  = '';
 		// Design studio (Overview cards): which section is the large card, and a line under each name.
@@ -476,17 +484,18 @@ class AIMP_Shop {
 				'' !== $line ? '<span class="aimp-overview-line">' . esc_html( $line ) . '</span>' : ''
 			);
 		}
-		return self::overview_wrap( $hero, $cards );
+		return self::overview_wrap( $hero, $cards, $topbar );
 	}
 
 	/**
 	 * The overview grid around the cards, with the shop styles.
 	 *
-	 * @param string $hero  The large card ('' for none).
-	 * @param string $cards The other cards.
+	 * @param string $hero   The large card ('' for none).
+	 * @param string $cards  The other cards.
+	 * @param bool   $topbar With the language choice.
 	 * @return string Empty without cards.
 	 */
-	private static function overview_wrap( $hero, $cards ) {
+	private static function overview_wrap( $hero, $cards, $topbar = true ) {
 		$cards = $hero . $cards;
 		if ( '' === $cards ) {
 			return '';
@@ -496,7 +505,7 @@ class AIMP_Shop {
 			self::register_assets();
 		}
 		wp_enqueue_style( 'aimp-shop' );
-		return '<div class="aimp-configurator aimp-shop aimp-overview"><div class="aimp-topbar">' . AIMP_Product_Page::languages_html() . '</div>' .
+		return '<div class="aimp-configurator aimp-shop aimp-overview">' . ( $topbar ? '<div class="aimp-topbar">' . AIMP_Product_Page::languages_html() . '</div>' : '' ) .
 			'<ul class="aimp-grid aimp-overview-grid' . ( $hero ? ' has-hero' : '' ) . '">' . $cards . '</ul></div>';
 	}
 
@@ -1084,6 +1093,8 @@ class AIMP_Shop {
 			'in_stock' => '1' === $text( 'in_stock', 1 ),
 			// Fabrics that can also be used as lining ("Voering").
 			'lining'   => '1' === $text( 'lining', 1 ),
+			// One brand (WooCommerce Brands), by its slug: the brand tiles of the home page link here.
+			'brand'    => sanitize_title( $text( 'brand', 100 ) ),
 			'sort'     => in_array( $sort, self::SORTS, true ) ? $sort : 'recommended',
 			'page'     => max( 1, absint( $text( 'page', 10 ) ) ),
 			'attrs'    => array(),
@@ -1195,6 +1206,14 @@ class AIMP_Shop {
 		}
 
 		$tax_query = self::scope_tax_query( $cats );
+		$brand     = ! empty( $args['brand'] ) && taxonomy_exists( 'product_brand' ) ? get_term_by( 'slug', $args['brand'], 'product_brand' ) : null;
+		if ( ! empty( $args['brand'] ) ) {
+			$tax_query[] = array(
+				'taxonomy' => 'product_brand',
+				'field'    => 'term_id',
+				'terms'    => $brand ? array( (int) $brand->term_id ) : array( 0 ),
+			);
+		}
 		foreach ( $args['attrs'] as $taxonomy => $slugs ) {
 			$tax_query[] = array(
 				'taxonomy' => $taxonomy,
@@ -1314,6 +1333,19 @@ class AIMP_Shop {
 			'pages'    => $pages,
 			'total'    => (int) $query->found_posts,
 			'per_page' => $per_page,
+			// The name of the chosen brand, for its filter chip.
+			'brand'    => $brand ? $brand->name : '',
 		);
+	}
+
+	/**
+	 * The All products page with only this brand's products (the brand tiles and the product page's brand link).
+	 *
+	 * @param WP_Term $term Brand.
+	 * @return string '' without an All products page.
+	 */
+	public static function brand_url( $term ) {
+		$page = self::page_for_type( 'all' );
+		return $page ? add_query_arg( 'aimp_brand', $term->slug, get_permalink( $page ) ) : '';
 	}
 }

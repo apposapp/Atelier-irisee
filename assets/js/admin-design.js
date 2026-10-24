@@ -1071,7 +1071,7 @@
 		});
 	}
 	function settingKeys(field) {
-		return field.type === 'lang' ? LANGS.map(function (code) {
+		return field.type === 'lang' || field.type === 'langlong' ? LANGS.map(function (code) {
 			return field.key + '_' + code;
 		}) : [field.key];
 	}
@@ -1089,19 +1089,24 @@
 		save(true);
 		markGroups();
 	}
-	// "NL | FR | EN" in three fields (a missing language: empty).
-	function trioFields(value, onChange) {
+	// "NL | FR | EN" in three fields (a missing language: empty). Long: text boxes, kept on one line (each item of a
+	// list is one line).
+	function trioFields(value, onChange, long) {
 		var parts = String(value || '').split('|').map(function (part) {
 			return part.trim();
 		});
 		var box = document.createElement('div');
-		box.className = 'aimp-ds-trio';
+		box.className = 'aimp-ds-trio' + (long ? ' is-long' : '');
 		var inputs = LANGS.map(function (code, i) {
 			var label = document.createElement('label');
 			var tag = document.createElement('span');
 			tag.textContent = code.toUpperCase();
-			var input = document.createElement('input');
-			input.type = 'text';
+			var input = document.createElement(long ? 'textarea' : 'input');
+			if (long) {
+				input.rows = 2;
+			} else {
+				input.type = 'text';
+			}
 			input.value = parts.length > 1 ? (parts[i] || '') : (i === 0 ? parts[0] : '');
 			label.appendChild(tag);
 			label.appendChild(input);
@@ -1111,7 +1116,7 @@
 		inputs.forEach(function (input) {
 			input.addEventListener('input', function () {
 				var values = inputs.map(function (other) {
-					return other.value.trim();
+					return other.value.replace(/[\r\n|]+/g, ' ').trim();
 				});
 				onChange(values[1] || values[2] ? values.join(' | ') : values[0]);
 			});
@@ -1129,14 +1134,18 @@
 			title.className = 'aimp-ds-setting-title';
 			title.textContent = field.label;
 			wrap.appendChild(title);
-			if (field.type === 'lang') {
+			if (field.type === 'lang' || field.type === 'langlong') {
 				LANGS.forEach(function (code) {
 					var key = field.key + '_' + code;
 					var label = document.createElement('label');
 					var tag = document.createElement('span');
 					tag.textContent = code.toUpperCase();
-					var input = document.createElement('input');
-					input.type = 'text';
+					var input = document.createElement(field.type === 'langlong' ? 'textarea' : 'input');
+					if (field.type === 'langlong') {
+						input.rows = 3;
+					} else {
+						input.type = 'text';
+					}
 					input.value = settingValue(key);
 					input.placeholder = field.hints && field.hints[code] ? field.hints[code] : '';
 					input.addEventListener('input', function () {
@@ -1150,15 +1159,18 @@
 				wrap.appendChild(trioFields(settingValue(field.key), function (value) {
 					setSetting(field.key, value);
 				}));
-			} else if (field.type === 'lines') {
-				// One item per line, each in three languages; items can be added and removed.
+			} else if (field.type === 'lines' || field.type === 'pairs') {
+				// One item per line, each in three languages; items can be added and removed. Pairs: two texts per
+				// item ("… || …"), e.g. a question and its answer.
+				var pairs = field.type === 'pairs';
+				var sub = field.sub || [['', false], ['', false]];
 				var lines = settingValue(field.key).split(/\r\n|\r|\n/).filter(function (line) {
 					return line.trim() !== '';
 				});
 				var list = document.createElement('div');
 				var store = function () {
 					setSetting(field.key, lines.filter(function (line) {
-						return line.trim() !== '';
+						return line.replace(/\|/g, '').trim() !== '';
 					}).join('\n'));
 				};
 				var draw = function () {
@@ -1180,10 +1192,27 @@
 						});
 						head.appendChild(remove);
 						item.appendChild(head);
-						item.appendChild(trioFields(line, function (value) {
-							lines[i] = value;
-							store();
-						}));
+						if (!pairs) {
+							item.appendChild(trioFields(line, function (value) {
+								lines[i] = value;
+								store();
+							}));
+							list.appendChild(item);
+							return;
+						}
+						var halves = line.split('||');
+						halves[1] = halves[1] || '';
+						[0, 1].forEach(function (n) {
+							var name = document.createElement('p');
+							name.className = 'aimp-ds-line-sub';
+							name.textContent = sub[n][0];
+							item.appendChild(name);
+							item.appendChild(trioFields(halves[n].trim(), function (value) {
+								halves[n] = value;
+								lines[i] = halves[0].trim() + ' || ' + halves[1].trim();
+								store();
+							}, sub[n][1]));
+						});
 						list.appendChild(item);
 					});
 				};

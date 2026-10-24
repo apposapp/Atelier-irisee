@@ -1,0 +1,365 @@
+/* [atelier_irisee_contact]: contact details on the left, the form in a gold frame on the right (or the other way
+   round), the questions and answers below. The titles, buttons and questions come from home-blocks.css. */
+.aimp-contact {
+	max-width: 1200px;
+}
+
+.aimp-contact-head {
+	max-width: 760px;
+	margin: 0 auto clamp(1.75rem, 4vw, 3rem);
+	text-align: center;
+}
+
+.aimp-contact .aimp-contact-title {
+	margin-bottom: 0.75rem;
+	font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+}
+
+.aimp-contact-intro {
+	margin: 0;
+	font-weight: 500;
+}
+
+.aimp-contact-body {
+	display: grid;
+	grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+	align-items: start;
+	gap: clamp(1.25rem, 3.5vw, 3rem);
+}
+
+.aimp-contact.is-form-left .aimp-contact-cards {
+	order: 2;
+}
+
+/* ------------------------------------------------------------------ contact cards */
+.aimp-contact-cards {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-contact-card {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	gap: 1rem;
+	margin: 0;
+	padding: 1.1rem 1.25rem;
+	border: 1px var(--hb-line, solid) var(--hb-gold);
+	border-radius: var(--hb-radius);
+	background: #fff;
+}
+
+/* The icon in a round gold double frame. */
+.aimp-contact-card > .aimp-icon {
+	width: 2.9rem;
+	height: 2.9rem;
+	padding: 0.6rem;
+	border: 4px double var(--hb-gold);
+	border-radius: 50%;
+	color: var(--hb-gold-text);
+}
+
+.aimp-contact-card-text {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	min-width: 0;
+	padding-top: 0.15rem;
+}
+
+.aimp-contact-label {
+	color: var(--hb-gold-text);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.aimp-contact-value {
+	color: var(--hb-brown);
+	font-size: 16px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+	text-decoration: none;
+}
+
+a.aimp-contact-value:hover,
+a.aimp-contact-value:focus-visible {
+	color: var(--hb-gold-text);
+}
+
+.aimp-contact-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	margin-top: 0.2rem;
+	color: var(--hb-gold-text);
+	font-size: 14px;
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, var(--hb-gold) 60%, transparent);
+	text-underline-offset: 3px;
+}
+
+.aimp-contact-link:hover,
+.aimp-contact-link:focus-visible {
+	color: var(--hb-brown);
+}
+
+.aimp-contact-copy {
+	position: absolute;
+	top: 0.75rem;
+	right: 0.75rem;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	padding: 0.35rem;
+	border: 0;
+	border-radius: 100px;
+	background: transparent;
+	color: var(--hb-gold-text);
+	font: inherit;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.aimp-contact-copy:hover,
+.aimp-contact-copy:focus-visible {
+	background: var(--hb-tint);
+}
+
+.aimp-contact-copied:empty {
+	display: none;
+}
+
+.aimp-contact-card--socials {
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.aimp-contact-socials {
+	display: flex;
+	gap: 0.6rem;
+}
+
+.aimp-contact-socials a {
+	display: inline-flex;
+	width: 2.6rem;
+	height: 2.6rem;
+	padding: 0.5rem;
+	border: 4px double var(--hb-gold);
+	border-radius: 50%;
+	color: var(--hb-gold-text);
+	transition: background-color 0.3s ease;
+}
+
+.aimp-contact-socials a:hover,
+.aimp-contact-socials a:focus-visible {
+	background: var(--hb-tint);
+}
+
+.aimp-contact-socials svg {
+	width: 100%;
+	height: 100%;
+}
+
+/* ------------------------------------------------------------------ the form */
+.aimp-contact-form,
+.aimp-contact-done {
+	padding: clamp(1.25rem, 3.5vw, 2.25rem);
+	border: 5px double var(--hb-gold);
+	border-radius: var(--hb-radius);
+	background: #fff;
+	box-shadow: 0 14px 36px color-mix(in srgb, var(--hb-brown) 8%, transparent);
+}
+
+.aimp-contact .aimp-contact-form-title {
+	margin: 0 0 1.25rem;
+	padding: 0;
+	color: var(--hb-gold-text);
+	font-size: clamp(1.15rem, 2vw, 1.4rem);
+	letter-spacing: 0.04em;
+}
+
+.aimp-contact-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+	gap: 0 1rem;
+}
+
+.aimp-contact-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	margin: 0 0 1rem;
+	padding: 0;
+}
+
+.aimp-contact-field > label {
+	color: var(--hb-brown);
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.aimp-contact-field abbr {
+	color: var(--hb-gold-text);
+	text-decoration: none;
+	border: 0;
+}
+
+.aimp-contact-field small {
+	font-weight: 500;
+}
+
+.aimp-contact .aimp-contact-field :is(input[type="text"], input[type="email"], select, textarea) {
+	width: 100%;
+	margin: 0;
+	padding: 0.75rem 1rem;
+	border: 1px var(--hb-line, solid) var(--hb-gold);
+	border-radius: 14px;
+	background: #fff;
+	box-shadow: none;
+	color: var(--hb-brown);
+	font: inherit;
+	font-weight: 500;
+	line-height: 1.4;
+}
+
+.aimp-contact .aimp-contact-field textarea {
+	min-height: 9rem;
+	resize: vertical;
+}
+
+.aimp-contact .aimp-contact-field :is(input, select, textarea):focus {
+	border-color: var(--hb-brown);
+	outline: 2px solid color-mix(in srgb, var(--hb-gold) 40%, transparent);
+	outline-offset: 0;
+}
+
+.aimp-contact .aimp-contact-field.is-invalid :is(input, select, textarea) {
+	border-color: var(--aimp-site-error, #a3352b);
+}
+
+.aimp-contact-error {
+	margin: 0;
+	color: var(--aimp-site-error, #a3352b);
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.aimp-contact-consent label {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.6rem;
+	color: var(--hb-brown);
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.aimp-contact-consent input[type="checkbox"] {
+	flex: none;
+	width: 1.15rem;
+	height: 1.15rem;
+	margin: 0.15rem 0 0;
+	accent-color: var(--hb-gold);
+}
+
+.aimp-contact-consent a {
+	color: var(--hb-gold-text);
+}
+
+.aimp-contact-hp {
+	position: absolute !important;
+	left: -9999px !important;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+}
+
+.aimp-contact-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem 1rem;
+}
+
+.aimp-contact .aimp-contact-form .aimp-contact-button {
+	border-color: var(--hb-gold);
+	background: var(--hb-gold);
+	color: #fff;
+}
+
+.aimp-contact .aimp-contact-form .aimp-contact-button:hover,
+.aimp-contact .aimp-contact-form .aimp-contact-button:focus-visible {
+	background: #fff;
+	color: var(--hb-brown);
+}
+
+.aimp-contact .aimp-contact-button:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+.aimp-contact-message {
+	margin: 0;
+	font-size: 14px;
+}
+
+.aimp-contact-message.is-error {
+	color: var(--aimp-site-error, #a3352b);
+}
+
+/* After sending: a thank-you in the same frame. */
+.aimp-contact-done {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.75rem;
+	text-align: center;
+}
+
+.aimp-contact-done[hidden] {
+	display: none;
+}
+
+.aimp-contact-done:focus {
+	outline: none;
+}
+
+.aimp-contact-done > .aimp-icon {
+	width: 3.5rem;
+	height: 3.5rem;
+	color: var(--aimp-site-success, #4f7a3a);
+}
+
+.aimp-contact-done p {
+	max-width: 36ch;
+	margin: 0;
+	font-size: 16px;
+}
+
+/* ------------------------------------------------------------------ questions and answers */
+.aimp-contact-faq {
+	margin-top: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+/* ------------------------------------------------------------------ phone and tablet */
+@media (max-width: 860px) {
+	.aimp-contact-body {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+@media (max-width: 700px) {
+	.aimp-contact-card {
+		padding: 0.9rem 1rem;
+	}
+
+	.aimp-contact-actions .aimp-contact-button {
+		width: 100%;
+	}
+}

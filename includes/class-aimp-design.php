@@ -86,6 +86,8 @@ class AIMP_Design {
 		$cart    = __( 'Cart', 'atelier-irisee-master-plugin' );
 		$account = __( 'My account', 'atelier-irisee-master-plugin' );
 		$footer  = __( 'Footer', 'atelier-irisee-master-plugin' );
+		$contact = __( 'Contact page', 'atelier-irisee-master-plugin' );
+		$home    = __( 'Home page blocks', 'atelier-irisee-master-plugin' );
 		$list    = array(
 			'header'          => array( $header, __( 'Header (whole)', 'atelier-irisee-master-plugin' ), '.aimp-header-inner' ),
 			'header-logo'     => array( $header, __( 'Logo', 'atelier-irisee-master-plugin' ), '.aimp-header-brand' ),
@@ -148,13 +150,27 @@ class AIMP_Design {
 			'footer-socials'  => array( $footer, __( 'Social media icons', 'atelier-irisee-master-plugin' ), '.aimp-footer-socials' ),
 			'footer-payments' => array( $footer, __( 'Payment logos', 'atelier-irisee-master-plugin' ), '.aimp-footer-payments' ),
 			'footer-bottom'   => array( $footer, __( 'Bottom line', 'atelier-irisee-master-plugin' ), '.aimp-footer-bottom' ),
+			// The contact page and the home page blocks (AIMP_Contact, AIMP_Home_Blocks).
+			'contact'         => array( $contact, __( 'Contact page (whole)', 'atelier-irisee-master-plugin' ), '.aimp-contact' ),
+			'contact-head'    => array( $contact, __( 'Contact title and intro', 'atelier-irisee-master-plugin' ), '.aimp-contact-head' ),
+			'contact-cards'   => array( $contact, __( 'Contact details', 'atelier-irisee-master-plugin' ), '.aimp-contact-cards' ),
+			'contact-form'    => array( $contact, __( 'Contact form', 'atelier-irisee-master-plugin' ), '.aimp-contact-form-wrap' ),
+			'faq'             => array( $contact, __( 'Questions and answers', 'atelier-irisee-master-plugin' ), '.aimp-faq' ),
+			'block-title'     => array( $home, __( 'Block titles', 'atelier-irisee-master-plugin' ), '.aimp-block-title' ),
+			'home-cats'       => array( $home, __( 'Shop by category', 'atelier-irisee-master-plugin' ), '.aimp-home-cats' ),
+			'home-reviews'    => array( $home, __( 'Reviews', 'atelier-irisee-master-plugin' ), '.aimp-home-reviews' ),
+			'home-maker'      => array( $home, __( 'Meet the maker', 'atelier-irisee-master-plugin' ), '.aimp-home-maker' ),
+			'home-new'        => array( $home, __( 'New in', 'atelier-irisee-master-plugin' ), '.aimp-home-new' ),
+			'home-newsletter' => array( $home, __( 'Newsletter block', 'atelier-irisee-master-plugin' ), '.aimp-home-newsletter' ),
+			'home-faq'        => array( $home, __( 'Questions block', 'atelier-irisee-master-plugin' ), '.aimp-home-faq' ),
+			'home-brands'     => array( $home, __( 'Brands', 'atelier-irisee-master-plugin' ), '.aimp-home-brands' ),
 		);
 		// Which settings a part has: every part can be moved, sized, spaced, hidden, coloured and calmed down; boxes
 		// also get rounded corners, and parts with pictures a picture and focal point.
 		$text    = array( 'move', 'size', 'space', 'hide', 'colors', 'typo', 'anim' );
 		$box     = array_merge( $text, array( 'radius' ) );
 		$picture = array_merge( $box, array( 'image' ) );
-		$texts   = array( 'header-menu-bar', 'hero-title', 'hero-text', 'kit-steps-title', 'overview-hero', 'card-name', 'card-price', 'product-title', 'product-brand', 'product-subtitle', 'product-price', 'config-title', 'account-title', 'account-hello', 'footer-title', 'footer-bottom', 'hero-arrow' );
+		$texts   = array( 'header-menu-bar', 'hero-title', 'hero-text', 'kit-steps-title', 'overview-hero', 'card-name', 'card-price', 'product-title', 'product-brand', 'product-subtitle', 'product-price', 'config-title', 'account-title', 'account-hello', 'footer-title', 'footer-bottom', 'hero-arrow', 'block-title', 'contact-head' );
 		$images  = array( 'header-logo', 'hero-seal', 'overview', 'overview-card', 'mosaic', 'product-gallery', 'product-recommend', 'kit-steps-list', 'footer-payments', 'footer-socials', 'cart-items' );
 		$elements = array();
 		foreach ( $list as $id => $row ) {
@@ -182,6 +198,15 @@ class AIMP_Design {
 			'mosaic'          => array( 'mosaic_opts' ),
 			'footer'          => array( 'footer_opts' ),
 			'newsletter'      => array( 'nl_opts' ),
+			'contact'         => array( 'ct_opts' ),
+			'faq'             => array( 'faq_opts' ),
+			'home-cats'       => array( 'hc_opts' ),
+			'home-reviews'    => array( 'rv_opts' ),
+			'home-maker'      => array( 'mk_opts' ),
+			'home-new'        => array( 'nw_opts' ),
+			'home-newsletter' => array( 'hn_opts' ),
+			'home-faq'        => array( 'fq_opts' ),
+			'home-brands'     => array( 'br_opts' ),
 		) as $id => $more ) {
 			if ( isset( $elements[ $id ] ) ) {
 				$elements[ $id ]['controls'] = array_merge( $elements[ $id ]['controls'], $more );
@@ -601,6 +626,55 @@ class AIMP_Design {
 				'cz_bar_fg'     => 'color',
 				'cz_nosparkle'  => 'bool',
 			),
+			// The contact page and the home page blocks.
+			'ct_opts'     => array(
+				'ct_formleft'   => 'bool',
+				'ct_nowhatsapp' => 'bool',
+				'ct_noroute'    => 'bool',
+				'ct_nosocials'  => 'bool',
+				'ct_noorder'    => 'bool',
+				'ct_noconsent'  => 'bool',
+				'ct_nocopy'     => 'bool',
+				'ct_nofaq'      => 'bool',
+			),
+			'faq_opts'    => array(
+				'faq_open'   => 'bool',
+				'faq_single' => 'bool',
+			),
+			'hc_opts'     => array( 'hc_notitle' => 'bool' ),
+			'rv_opts'     => array(
+				'rv_min'        => array( 1, 5, 4 ),
+				'rv_count'      => array( 0, 24, 0 ),
+				'rv_noproducts' => 'bool',
+				'rv_noproduct'  => 'bool',
+				'rv_noaverage'  => 'bool',
+			),
+			'mk_opts'     => array(
+				'mk_img'   => 'image',
+				'mk_img2'  => 'image',
+				'mk_fx'    => array( 0, 100, -1 ),
+				'mk_fy'    => array( 0, 100, -1 ),
+				'mk_right' => 'bool',
+				'mk_url'   => 'url',
+			),
+			'nw_opts'     => array(
+				'nw_count'   => array( 0, 16, 0 ),
+				'nw_type'    => array( 'select', array( '', 'fabrics', 'patterns', 'haberdashery' ) ),
+				'nw_instock' => 'bool',
+				'nw_url'     => 'url',
+			),
+			'hn_opts'     => array(
+				'hn_img'     => 'image',
+				'hn_nooffer' => 'bool',
+			),
+			'fq_opts'     => array(
+				'fq_count' => array( 0, 12, 0 ),
+				'fq_url'   => 'url',
+			),
+			'br_opts'     => array(
+				'br_names' => 'bool',
+				'br_gray'  => 'bool',
+			),
 			'cz_summary'  => array(
 				'cz_nosave'   => 'bool',
 				'cz_discount' => array( 'select', array( '', 'total', 'badge' ) ),
@@ -942,7 +1016,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts' );
+		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'br_opts' );
 	}
 
 	/**
@@ -1222,8 +1296,10 @@ class AIMP_Design {
 
 	/**
 	 * Texts of the Atelier Irisee settings that the studio shows with their part: id => [ label, type, parts, key ].
-	 * Types: lang (a setting per language, key_{code}), trio (one "NL | FR | EN" setting), lines (several such lines),
-	 * plain (one text), long (a longer text). A key is "option:key" (aimp_settings or aimp_footer).
+	 * Types: lang (a setting per language, key_{code}), langlong (the same, longer texts), trio (one "NL | FR | EN"
+	 * setting), lines (several such lines), pairs (lines of two such texts, "… || …": questions and answers), plain
+	 * (one text), long (a longer text). A key is "option:key" (aimp_settings, aimp_footer or aimp_blocks). Pairs have
+	 * the names of their two texts as a fifth item: [ [ label, long ], [ label, long ] ].
 	 *
 	 * @return array
 	 */
@@ -1250,6 +1326,40 @@ class AIMP_Design {
 		$list['email']           = array( __( 'Email', 'atelier-irisee-master-plugin' ), 'plain', $footer, 'aimp_footer:email' );
 		$list['newsletter_text'] = array( __( 'Newsletter text', 'atelier-irisee-master-plugin' ), 'long', array( 'newsletter', 'footer', 'footer-columns' ), 'aimp_footer:newsletter_text' );
 		$list['copyright']       = array( __( 'Copyright line', 'atelier-irisee-master-plugin' ), 'plain', array( 'footer', 'footer-bottom' ), 'aimp_footer:copyright' );
+
+		// The contact page (its details are the footer's: company, address, phone, email).
+		$contact = array( 'contact', 'contact-head', 'contact-cards', 'contact-form' );
+		$faq     = array( 'faq', 'contact', 'home-faq' );
+		$b       = 'aimp_blocks:';
+		foreach ( array( 'address', 'phone', 'email' ) as $key ) {
+			$list[ $key ][2] = array_merge( $list[ $key ][2], array( 'contact-cards' ) );
+		}
+		$list['ct_title']      = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', $contact, $b . 'ct_title' );
+		$list['ct_intro']      = array( __( 'Introduction', 'atelier-irisee-master-plugin' ), 'langlong', $contact, $b . 'ct_intro' );
+		$list['ct_hours']      = array( __( 'Answer time or opening hours', 'atelier-irisee-master-plugin' ), 'langlong', $contact, $b . 'ct_hours' );
+		$list['ct_form_title'] = array( __( 'Title above the form', 'atelier-irisee-master-plugin' ), 'lang', $contact, $b . 'ct_form_title' );
+		$list['ct_subjects']   = array( __( 'Subjects to choose from', 'atelier-irisee-master-plugin' ), 'lines', $contact, $b . 'ct_subjects' );
+		$list['ct_success']    = array( __( 'Message after sending', 'atelier-irisee-master-plugin' ), 'langlong', $contact, $b . 'ct_success' );
+		$list['ct_faq_title']  = array( __( 'Title above the questions', 'atelier-irisee-master-plugin' ), 'lang', array( 'contact', 'faq' ), $b . 'ct_faq_title' );
+		$list['faq']           = array( __( 'Questions and answers', 'atelier-irisee-master-plugin' ), 'pairs', $faq, $b . 'faq', array( array( __( 'Question', 'atelier-irisee-master-plugin' ), false ), array( __( 'Answer', 'atelier-irisee-master-plugin' ), true ) ) );
+		// The home page blocks.
+		$list['hc_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-cats' ), $b . 'hc_title' );
+		$list['rv_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-reviews' ), $b . 'rv_title' );
+		$list['rv_quotes']       = array( __( 'Your own testimonials (shown before the reviews)', 'atelier-irisee-master-plugin' ), 'pairs', array( 'home-reviews' ), $b . 'rv_quotes', array( array( __( 'Quote', 'atelier-irisee-master-plugin' ), true ), array( __( 'Name', 'atelier-irisee-master-plugin' ), false ) ) );
+		$list['mk_kicker']       = array( __( 'Small line above the title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-maker' ), $b . 'mk_kicker' );
+		$list['mk_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-maker' ), $b . 'mk_title' );
+		$list['mk_text']         = array( __( 'Story', 'atelier-irisee-master-plugin' ), 'langlong', array( 'home-maker' ), $b . 'mk_text' );
+		$list['mk_button']       = array( __( 'Button', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-maker' ), $b . 'mk_button' );
+		$list['nw_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-new' ), $b . 'nw_title' );
+		$list['nw_button']       = array( __( 'Link to all', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-new' ), $b . 'nw_button' );
+		$list['hn_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-newsletter' ), $b . 'hn_title' );
+		$list['hn_text']         = array( __( 'Text', 'atelier-irisee-master-plugin' ), 'langlong', array( 'home-newsletter' ), $b . 'hn_text' );
+		$list['hn_offer']        = array( __( 'Welcome discount ({percent} = the percentage)', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-newsletter' ), $b . 'hn_offer' );
+		$list['hn_offer_text']   = array( __( 'Text under the welcome discount', 'atelier-irisee-master-plugin' ), 'langlong', array( 'home-newsletter' ), $b . 'hn_offer_text' );
+		$list['hn_offer_button'] = array( __( 'Button to create an account', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-newsletter' ), $b . 'hn_offer_button' );
+		$list['fq_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-faq' ), $b . 'fq_title' );
+		$list['fq_button']       = array( __( 'Button to the contact page', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-faq' ), $b . 'fq_button' );
+		$list['br_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-brands' ), $b . 'br_title' );
 		return $list;
 	}
 
@@ -1261,7 +1371,7 @@ class AIMP_Design {
 	private static function setting_keys() {
 		$keys = array();
 		foreach ( self::setting_texts() as $field ) {
-			if ( 'lang' === $field[1] ) {
+			if ( in_array( $field[1], array( 'lang', 'langlong' ), true ) ) {
 				foreach ( array_keys( AIMP_I18n::languages() ) as $code ) {
 					$keys[ $field[3] . '_' . $code ] = $field[1];
 				}
@@ -1286,6 +1396,7 @@ class AIMP_Design {
 				function () {
 					return array_merge(
 						class_exists( 'AIMP_Kit_Steps' ) ? AIMP_Kit_Steps::default_texts() : array(),
+						class_exists( 'AIMP_Blocks' ) ? AIMP_Blocks::default_texts() : array(),
 						array(
 							'hero_title' => __( 'Sew something truly yours', 'atelier-irisee-master-plugin' ),
 							'hero_text'  => __( 'Pattern, fabric and haberdashery that match, in one kit.', 'atelier-irisee-master-plugin' ),
@@ -1308,6 +1419,7 @@ class AIMP_Design {
 				'parts' => $field[2],
 				'key'   => $field[3],
 				'hints' => $hints,
+				'sub'   => isset( $field[4] ) ? $field[4] : null,
 			);
 		}
 		return $fields;
@@ -1328,6 +1440,10 @@ class AIMP_Design {
 		if ( 'aimp_settings' === $option && 'delivery_time' === $name && ! isset( $values['delivery_time'] ) ) {
 			return AIMP_Settings::default_delivery_time();
 		}
+		// The standard subjects and questions, until they are changed.
+		if ( 'aimp_blocks' === $option && ! isset( $values[ $name ] ) && class_exists( 'AIMP_Blocks' ) && '' !== AIMP_Blocks::stored_default( $name ) ) {
+			return AIMP_Blocks::stored_default( $name );
+		}
 		return isset( $values[ $name ] ) && is_scalar( $values[ $name ] ) ? (string) $values[ $name ] : '';
 	}
 
@@ -1344,8 +1460,10 @@ class AIMP_Design {
 			if ( ! isset( $keys[ $key ] ) || ! is_scalar( $value ) ) {
 				continue;
 			}
-			$value = in_array( $keys[ $key ], array( 'lines', 'long' ), true ) ? sanitize_textarea_field( (string) $value ) : sanitize_text_field( (string) $value );
-			$value = function_exists( 'mb_substr' ) ? mb_substr( $value, 0, 2000 ) : substr( $value, 0, 2000 );
+			$value = in_array( $keys[ $key ], array( 'lines', 'long', 'langlong', 'pairs' ), true ) ? sanitize_textarea_field( (string) $value ) : sanitize_text_field( (string) $value );
+			// Questions and answers can be long.
+			$max   = 'pairs' === $keys[ $key ] ? 20000 : 2000;
+			$value = function_exists( 'mb_substr' ) ? mb_substr( $value, 0, $max ) : substr( $value, 0, $max );
 			if ( $value !== self::setting_value( $key ) ) {
 				$clean[ $key ] = $value;
 			}
@@ -1389,6 +1507,11 @@ class AIMP_Design {
 			'aimp_footer'   => array( 'AIMP_Footer', 'sanitize' ),
 		);
 		foreach ( $by_option as $option => $values ) {
+			// aimp_blocks (contact page and home page blocks) has no settings page: only the studio writes it.
+			if ( 'aimp_blocks' === $option ) {
+				update_option( $option, array_merge( (array) get_option( $option, array() ), $values ), false );
+				continue;
+			}
 			if ( ! isset( $callbacks[ $option ] ) ) {
 				continue;
 			}
@@ -3749,6 +3872,84 @@ class AIMP_Design {
 		$sub( __( 'Size chart and reviews', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'pp_nomeasure', __( 'No "How to measure" button', 'atelier-irisee-master-plugin' ) );
 		self::color( 'pp_stars', __( 'Colour of the review stars', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		// The contact page and the home page blocks: their texts are in the Texts block of the part.
+		$texts_note = '<p class="description">' . esc_html__( 'The texts of this block are in its Texts block above.', 'atelier-irisee-master-plugin' ) . '</p>';
+		$group( 'ct_opts', __( 'Contact page', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The email address, phone number, address and social media come from the footer settings.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::check_box( 'ct_formleft', __( 'The form on the left, the contact details on the right', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ct_nowhatsapp', __( 'No WhatsApp link', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ct_noroute', __( 'No "Plan your route" link', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ct_nosocials', __( 'No social media', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ct_noorder', __( 'No order number field', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ct_noconsent', __( 'No privacy tick box', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ct_nocopy', __( 'Do not send the customer a copy', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ct_nofaq', __( 'No questions and answers under the form', 'atelier-irisee-master-plugin' ) );
+		echo '</fieldset>';
+
+		$group( 'faq_opts', __( 'Questions and answers', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'faq_open', __( 'The first question open', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'faq_single', __( 'Only one answer open at a time', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The same questions are on the contact page and in the questions block of the home page.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'hc_opts', __( 'Shop by category', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'hc_notitle', __( 'No title above the tiles', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The tiles are the overview cards of the All products page: click them for the large tile, the order and the columns.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'rv_opts', __( 'Reviews', 'atelier-irisee-master-plugin' ) );
+		self::number( 'rv_min', __( 'Product reviews from (stars)', 'atelier-irisee-master-plugin' ), 1, 5, '★' );
+		self::number( 'rv_count', __( 'At most (0 = standard, 12)', 'atelier-irisee-master-plugin' ), 0, 24, '' );
+		self::check_box( 'rv_noproducts', __( 'Only your own testimonials, no product reviews', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'rv_noproduct', __( 'Without the product name', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'rv_noaverage', __( 'Without the average score', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The block stays hidden while there is nothing to show. The average is only shown when it reaches the stars chosen above.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'mk_opts', __( 'Meet the maker', 'atelier-irisee-master-plugin' ) );
+		self::picture_field( 'mk_img', __( 'Picture', 'atelier-irisee-master-plugin' ) );
+		self::picture_field( 'mk_img2', __( 'Small round picture (e.g. the mascot)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'mk_fx', __( 'Focal point: left / right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+		self::number( 'mk_fy', __( 'Focal point: top / bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+		echo '<button type="button" class="button-link" data-clear="mk_fx,mk_fy">' . esc_html( $standard ) . '</button>';
+		self::check_box( 'mk_right', __( 'The picture on the right', 'atelier-irisee-master-plugin' ) );
+		$field( 'mk_url', __( 'The button goes to (no address = no button)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
+		echo $texts_note; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+		echo '</fieldset>';
+
+		$group( 'nw_opts', __( 'New in', 'atelier-irisee-master-plugin' ) );
+		self::number( 'nw_count', __( 'Products (0 = standard, 8)', 'atelier-irisee-master-plugin' ), 0, 16, '' );
+		self::choice(
+			'nw_type',
+			__( 'Which products', 'atelier-irisee-master-plugin' ),
+			array(
+				''             => __( 'All (standard)', 'atelier-irisee-master-plugin' ),
+				'fabrics'      => __( 'Fabrics', 'atelier-irisee-master-plugin' ),
+				'patterns'     => __( 'Patterns', 'atelier-irisee-master-plugin' ),
+				'haberdashery' => __( 'Haberdashery', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'nw_instock', __( 'Only products in stock', 'atelier-irisee-master-plugin' ) );
+		$field( 'nw_url', __( '"View all" goes to (standard: the shop page, newest first)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
+		echo '</fieldset>';
+
+		$group( 'hn_opts', __( 'Newsletter block', 'atelier-irisee-master-plugin' ) );
+		self::picture_field( 'hn_img', __( 'Background picture', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'hn_nooffer', __( 'Do not show the welcome discount', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The welcome discount is the one of Settings → Discounts: new customers get a personal code after creating an account. It is not shown to logged-in visitors or when the discount is 0.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'fq_opts', __( 'Questions block', 'atelier-irisee-master-plugin' ) );
+		self::number( 'fq_count', __( 'Questions shown (0 = standard, 4)', 'atelier-irisee-master-plugin' ), 0, 12, '' );
+		$field( 'fq_url', __( 'The button goes to (standard: the page with the contact form)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
+		echo '</fieldset>';
+
+		$group( 'br_opts', __( 'Brands', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'br_names', __( 'Names instead of logos', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'br_gray', __( 'Logos in grey, in colour when pointed at', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Only brands with products are shown. A logo is the picture of the brand under Products → Brands.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 	}
 

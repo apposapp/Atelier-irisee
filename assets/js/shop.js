@@ -32,7 +32,7 @@
 	var DEFAULT_SORT = design.sort_default || 'recommended';
 
 	function defaultFilters() {
-		return { category: [], search: '', min: '', max: '', inStock: false, lining: false, sort: DEFAULT_SORT, attrs: {}, skills: [], buttons: {} };
+		return { category: [], search: '', min: '', max: '', inStock: false, lining: false, brand: '', sort: DEFAULT_SORT, attrs: {}, skills: [], buttons: {} };
 	}
 
 	function isDrawer() {
@@ -111,6 +111,7 @@
 		f.max = params.get('aimp_max') || '';
 		f.inStock = params.get('aimp_stock') === '1';
 		f.lining = params.get('aimp_lining') === '1';
+		f.brand = (params.get('aimp_brand') || '').slice(0, 100);
 		f.sort = params.get('aimp_sort') || DEFAULT_SORT;
 		f.skills = (params.get('aimp_skill') || '').split(',').filter(Boolean);
 		this.state.page = parseInt(params.get('aimp_page') || '1', 10) || 1;
@@ -163,6 +164,9 @@
 		}
 		if (f.lining) {
 			params.set('aimp_lining', '1');
+		}
+		if (f.brand) {
+			params.set('aimp_brand', f.brand);
 		}
 		if (f.skills.length) {
 			params.set('aimp_skill', f.skills.join(','));
@@ -300,7 +304,7 @@
 
 	Shop.prototype.activeCount = function () {
 		var f = this.state.filters;
-		var count = f.category.length + (f.search ? 1 : 0) + (f.min !== '' || f.max !== '' ? 1 : 0) + (f.inStock ? 1 : 0) + (f.lining ? 1 : 0) + f.skills.length;
+		var count = f.category.length + (f.search ? 1 : 0) + (f.min !== '' || f.max !== '' ? 1 : 0) + (f.inStock ? 1 : 0) + (f.lining ? 1 : 0) + (f.brand ? 1 : 0) + f.skills.length;
 		Object.keys(f.attrs).forEach(function (taxonomy) {
 			count += f.attrs[taxonomy].length;
 		});
@@ -683,6 +687,9 @@
 		if (f.lining) {
 			chip(t.lining, 'lining', '');
 		}
+		if (f.brand) {
+			chip(s.data.brand || f.brand, 'brand', '');
+		}
 		var total = parseInt(s.data.total, 10) || 0;
 		this.summaryEl.innerHTML =
 			'<p class="aimp-shop-results">' + esc((total === 1 ? t.resultOne : t.resultMany).replace('%d', total)) + '</p>' +
@@ -723,6 +730,8 @@
 			f.inStock = false;
 		} else if (kind === 'lining') {
 			f.lining = false;
+		} else if (kind === 'brand') {
+			f.brand = '';
 		}
 		this.state.page = 1;
 		this.renderTexts();
@@ -757,6 +766,7 @@
 			max: f.max,
 			in_stock: f.inStock ? 1 : 0,
 			lining: f.lining ? 1 : 0,
+			brand: f.brand,
 			skill: f.skills.join(','),
 			sort: f.sort
 		};

@@ -1004,6 +1004,26 @@ body.aimp-ds-screen .aimp-ds {
 	font-size: 11px;
 }
 
+/* Pairs (question and answer): the name of each half; long halves have text boxes. */
+.aimp-ds-line-sub {
+	margin: 6px 0 2px;
+	color: #8a6a33;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.aimp-ds-setting textarea,
+.aimp-ds-trio textarea {
+	width: 100%;
+	resize: vertical;
+}
+
+.aimp-ds-setting label:has(textarea),
+.aimp-ds-trio.is-long label {
+	align-items: start;
+}
+
 /* The focal point: the picture with a cross to click or drag. */
 .aimp-ds-focal {
 	position: relative;
