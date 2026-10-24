@@ -285,7 +285,9 @@
 	var cfg = window.aimpFooter;
 	var form = document.querySelector('.aimp-footer [data-aimp-newsletter]');
 	var SEEN = 'aimp_nl_popup';
-	if (!cfg || !cfg.popup || !form || /(?:^|;\s*)aimp_nl=/.test(document.cookie)) {
+	// wp_localize_script sends numbers as text ("0" would count as on): read it as a number.
+	var popupDelay = cfg ? parseInt(cfg.popup, 10) || 0 : 0;
+	if (!cfg || !popupDelay || !form || /(?:^|;\s*)aimp_nl=/.test(document.cookie)) {
 		return;
 	}
 	try {
@@ -346,5 +348,5 @@
 		if (input) {
 			input.focus();
 		}
-	}, cfg.popup * 1000);
+	}, popupDelay * 1000);
 })();

@@ -63,14 +63,16 @@
 		}
 	}
 
-	// The page header's standard height: twice the menu bar (on phones, where it is hidden: the header row) plus the
-	// gold bar (page-header.css --aimp-ph-base).
+	// The page header's standard height: twice the menu bar plus the gold bar (page-header.css --aimp-ph-base). On
+	// tablets and phones the menu bar is hidden: then as high as it is on computers (about 1.35 × the gold bar), so the
+	// header is as compact there.
 	function headerBase() {
 		var height = function (selector) {
 			var el = document.querySelector(selector);
 			return el ? el.getBoundingClientRect().height : 0;
 		};
-		var base = (height('.aimp-header-bar') || height('.aimp-header-inner')) + height('.aimp-info-bar');
+		var gold = height('.aimp-info-bar') || 35;
+		var base = (height('.aimp-header-bar') || Math.round(gold * 1.35)) + gold;
 		if (base > 20) {
 			document.documentElement.style.setProperty('--aimp-ph-base', Math.round(base) + 'px');
 		}
