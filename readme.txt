@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.45.0
+Stable tag: 3.45.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.45.1 =
+* Newsletter pop-up: really only for logged-in customers now (the setting arrived as the text "0", which counted as on).
+* Page header: as compact on tablets and phones as on computers (there the hidden menu bar counts as on computers, not the taller header row).
+* Login: the automatic registration pop-up is also off on the Atelier Irisee account page (not only on WooCommerce's).
 
 = 3.45.0 =
 * Page header: a fixed height, whatever the size of the picture. Standard (small): twice the menu bar plus the gold bar (measured on the page; on phones the header row and the gold bar); medium 3×, large 4.5×, or the whole screen. The picture or video always fills the band, also with the title in the picture; the title scales with the band.

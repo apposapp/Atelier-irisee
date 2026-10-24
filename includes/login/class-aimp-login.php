@@ -292,6 +292,23 @@ class AIMP_Login {
 	 *
 	 * @return bool
 	 */
+	/**
+	 * The my account page (WooCommerce's or the Atelier Irisee account page): it has a login form of its own.
+	 *
+	 * @return bool
+	 */
+	private static function is_account_screen() {
+		if ( function_exists( 'is_account_page' ) && is_account_page() ) {
+			return true;
+		}
+		$account = class_exists( 'AIMP_Settings' ) ? (int) AIMP_Settings::get( 'account_page' ) : 0;
+		if ( $account && is_page( $account ) ) {
+			return true;
+		}
+		$post = get_post();
+		return is_singular() && $post && class_exists( 'AIMP_Account' ) && has_shortcode( $post->post_content, AIMP_Account::SHORTCODE );
+	}
+
 	private static function is_shopping_page() {
 		$configurator = class_exists( 'AIMP_Settings' ) ? (int) AIMP_Settings::get( 'configurator_page' ) : 0;
 		return ( function_exists( 'is_cart' ) && is_cart() ) || ( function_exists( 'is_checkout' ) && is_checkout() ) || ( $configurator && is_page( $configurator ) );
@@ -433,7 +450,7 @@ class AIMP_Login {
 			'strengthMin'     => (int) self::opt( 'strength_min' ),
 			// Never on the cart, the checkout or the configurator, where it would interrupt a purchase, and never on the
 			// my account page: its own login form is there (the pop-up would cover it while someone logs in).
-			'autoOpen'        => self::opt( 'auto_open' ) && ! is_user_logged_in() && ( ! $auto_pages || is_page( $auto_pages ) ) && ! self::is_shopping_page() && ! ( function_exists( 'is_account_page' ) && is_account_page() ),
+			'autoOpen'        => self::opt( 'auto_open' ) && ! is_user_logged_in() && ( ! $auto_pages || is_page( $auto_pages ) ) && ! self::is_shopping_page() && ! self::is_account_screen(),
 			'autoOpenForm'    => self::opt( 'auto_open_form' ),
 			'autoOpenDelay'   => (int) self::opt( 'auto_open_delay' ),
 			'checkoutPopup'   => (bool) self::opt( 'checkout_popup' ),
