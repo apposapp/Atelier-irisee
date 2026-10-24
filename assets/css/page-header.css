@@ -259,3 +259,18 @@
 		display: none;
 	}
 }
+
+/* Design studio's preview: a header that visitors do not see (no picture or video, "Hide the header where no picture
+   or video is chosen"), shown as a slim dashed band so it can be clicked. */
+.aimp-page-header.is-empty-preview {
+	--ph-height: 0px;
+	padding: 0.9rem 1rem;
+	border: 2px dashed var(--ph-gold);
+	border-width: 2px 0;
+	background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--ph-gold) 10%, #fff) 0 10px, #fff 10px 20px);
+	opacity: 0.75;
+}
+
+.aimp-page-header.is-empty-preview .aimp-page-header-title {
+	font-size: 1.1rem;
+}

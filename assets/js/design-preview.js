@@ -728,7 +728,7 @@
 			present: present,
 			layers: layers(),
 			// The page itself (its page header settings are per page).
-			postId: parseInt((document.body.className.match(/(?:^|\s)(?:page-id|postid)-(\d+)/) || [])[1] || '0', 10),
+			postId: document.body.classList.contains('single-product') ? 'product' : ((document.body.className.match(/(?:^|\s)page-id-(\d+)/) || [])[1] || 'other'),
 			texts: (window.aimpDesignTexts || []).map(function (row) {
 				return row[0];
 			})

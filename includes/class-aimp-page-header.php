@@ -21,11 +21,16 @@ class AIMP_Page_Header {
 
 	const TAG = 'atelier_irisee_page_header';
 
+	/** Printed on this page already (automatically or by the shortcode). */
+	private static $printed = false;
+
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
 		// The list of pages with a header is kept until a page or post is saved.
 		add_action( 'save_post', array( __CLASS__, 'flush' ) );
+		// Divi: at the top of every page, above the content (Design studio → Page header → Where).
+		add_action( 'et_before_main_content', array( __CLASS__, 'auto' ) );
 	}
 
 	public static function flush() {
@@ -61,18 +66,21 @@ class AIMP_Page_Header {
 		if ( ! function_exists( 'get_posts' ) ) {
 			return $pages;
 		}
+		// Every page (the header comes at the top of each one), not the home page.
+		$front = (int) get_option( 'page_on_front' );
 		foreach ( get_posts(
 			array(
-				'post_type'      => array( 'page', 'post' ),
+				'post_type'      => 'page',
 				'post_status'    => array( 'publish', 'draft', 'private' ),
-				's'              => '[' . self::TAG,
-				'posts_per_page' => 60,
+				'posts_per_page' => 100,
 				'fields'         => 'ids',
 				'orderby'        => 'title',
 				'order'          => 'ASC',
 			)
 		) as $id ) {
-			$pages[ (int) $id ] = get_the_title( $id );
+			if ( (int) $id !== $front ) {
+				$pages[ (int) $id ] = get_the_title( $id );
+			}
 		}
 		if ( function_exists( 'set_transient' ) ) {
 			set_transient( 'aimp_page_headers', $pages, DAY_IN_SECONDS );
@@ -93,6 +101,77 @@ class AIMP_Page_Header {
 	}
 
 	/**
+	 * What is shown: the settings of this page (its id), of all product pages ("product") or of the other pages
+	 * ("other": shop categories, blog, search, …), its title, and whether the title is the page's main heading (not
+	 * on product pages and pages that have one of their own).
+	 *
+	 * @return array [ key, title, heading ]
+	 */
+	private static function context() {
+		if ( function_exists( 'is_product' ) && is_product() ) {
+			return array( 'product', get_the_title( get_queried_object_id() ), false );
+		}
+		if ( is_page() ) {
+			$id      = (int) get_queried_object_id();
+			$content = (string) get_post_field( 'post_content', $id );
+			$own_h1  = false !== strpos( $content, '[atelier_irisee_about' ) || false !== strpos( $content, '[atelier_irisee_contact' );
+			return array( $id, get_the_title( $id ), ! $own_h1 );
+		}
+		if ( function_exists( 'is_shop' ) && is_shop() ) {
+			return array( 'other', get_the_title( wc_get_page_id( 'shop' ) ), true );
+		}
+		if ( is_search() ) {
+			/* translators: %s: what was searched */
+			return array( 'other', sprintf( __( 'Search results for "%s"', 'atelier-irisee-master-plugin' ), get_search_query() ), true );
+		}
+		if ( is_404() ) {
+			return array( 'other', __( 'Page not found', 'atelier-irisee-master-plugin' ), true );
+		}
+		if ( is_singular() ) {
+			return array( 'other', get_the_title( get_queried_object_id() ), false );
+		}
+		if ( is_archive() ) {
+			return array( 'other', wp_strip_all_tags( get_the_archive_title() ), true );
+		}
+		return array( 'other', get_bloginfo( 'name' ), false );
+	}
+
+	/**
+	 * Whether this page gets the header automatically (Design studio → Page header → Where).
+	 *
+	 * @return bool
+	 */
+	private static function applies() {
+		if ( is_admin() || is_feed() || is_front_page() || 'manual' === self::design( 'where', '' ) ) {
+			return false;
+		}
+		if ( function_exists( 'is_product' ) && is_product() ) {
+			return ! self::design( 'noproducts' );
+		}
+		if ( is_page() ) {
+			$id      = (int) get_queried_object_id();
+			$content = (string) get_post_field( 'post_content', $id );
+			// The home page hero is a header of its own.
+			if ( false !== strpos( $content, '[atelier_irisee_hero' ) || self::design( 'off', false, $id ) ) {
+				return false;
+			}
+			$commerce = ( function_exists( 'is_cart' ) && is_cart() ) || ( function_exists( 'is_checkout' ) && is_checkout() ) || ( function_exists( 'is_account_page' ) && is_account_page() );
+			return $commerce ? ! self::design( 'nocommerce' ) : true;
+		}
+		return ! self::design( 'noother' );
+	}
+
+	/**
+	 * Divi (et_before_main_content): the header at the top of every page, above the content and full width.
+	 */
+	public static function auto() {
+		if ( self::$printed || ! self::applies() ) {
+			return;
+		}
+		echo self::render( self::context(), '', '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in render().
+	}
+
+	/**
 	 * @param array|string $atts Attributes: title (another title), sub (a line under it).
 	 * @return string
 	 */
@@ -105,6 +184,23 @@ class AIMP_Page_Header {
 			$atts,
 			self::TAG
 		);
+		// Already at the top of the page (automatic): not a second time.
+		if ( self::$printed ) {
+			return '';
+		}
+		return self::render( self::context(), $atts['title'], $atts['sub'] );
+	}
+
+	/**
+	 * The header.
+	 *
+	 * @param array  $context   context().
+	 * @param string $title_att Title from the shortcode.
+	 * @param string $sub_att   Line from the shortcode.
+	 * @return string
+	 */
+	private static function render( $context, $title_att, $sub_att ) {
+		self::$printed = true;
 		if ( ! wp_style_is( 'aimp-page-header', 'registered' ) ) {
 			self::register_assets();
 		}
@@ -112,8 +208,11 @@ class AIMP_Page_Header {
 		// The full width (scrollbar) and the video (home-blocks.js).
 		wp_enqueue_script( 'aimp-home-blocks' );
 
-		$page    = (int) get_queried_object_id();
-		$page    = $page ? $page : (int) get_the_ID();
+		list( $page, $page_title, $heading ) = $context;
+		$atts    = array(
+			'title' => $title_att,
+			'sub'   => $sub_att,
+		);
 		$mode    = (string) self::design( 'mode', '', $page );
 		$picture = (int) self::design( 'img', 0, $page );
 		$phone   = (int) self::design( 'pimg', 0, $page );
@@ -122,11 +221,16 @@ class AIMP_Page_Header {
 		$fx      = (int) self::design( 'fx', -1, $page );
 		$fy      = (int) self::design( 'fy', -1, $page );
 		$title   = (string) self::design( 'title', '', $page );
-		$title   = '' !== $title ? AIMP_Settings::localized( $title ) : ( '' !== $atts['title'] ? $atts['title'] : get_the_title( $page ) );
+		$title   = '' !== $title ? AIMP_Settings::localized( $title ) : ( '' !== $atts['title'] ? $atts['title'] : $page_title );
 		$sub     = (string) self::design( 'sub', '', $page );
 		$sub     = '' !== $sub ? AIMP_Settings::localized( $sub ) : $atts['sub'];
 		// "Title in the picture" needs a picture (or a video); without one the title is shown as text.
 		$baked   = 'baked' === $mode && ( $picture || $video );
+		// Design studio: no header where no picture or video is chosen (in the studio's preview a slim band, to click).
+		$empty = ! $picture && ! $video && self::design( 'hideempty' );
+		if ( $empty && ! ( class_exists( 'AIMP_Design' ) && AIMP_Design::is_preview() ) ) {
+			return '';
+		}
 
 		$image_url  = $picture ? wp_get_attachment_image_url( $picture, 'full' ) : '';
 		$phone_url  = $phone ? wp_get_attachment_image_url( $phone, 'large' ) : '';
@@ -149,6 +253,9 @@ class AIMP_Page_Header {
 		$style   .= $size > 0 ? '--ph-size:' . $size . 'px;' : '';
 		$classes  = array( 'aimp-page-header', $baked ? 'is-baked' : 'is-text' );
 		$classes[] = ( $picture || $video ) ? 'has-media' : 'has-no-media';
+		if ( $empty ) {
+			$classes[] = 'is-empty-preview';
+		}
 		$classes[] = 'is-' . ( in_array( $height, array( 'small', 'large', 'full' ), true ) ? $height : 'medium' );
 		$classes[] = 'is-phone-' . ( in_array( $pheight, array( 'small', 'medium', 'large', 'full' ), true ) ? $pheight : 'same' );
 		$classes[] = 'is-' . ( in_array( $align, array( 'left', 'bottomleft' ), true ) ? $align : 'center' );
@@ -170,13 +277,15 @@ class AIMP_Page_Header {
 			$html .= '</div>';
 		}
 		if ( $baked ) {
-			$html .= '<h1 class="screen-reader-text">' . esc_html( $title ) . '</h1>';
+			// The title in the picture: still on the page for search engines and screen readers (not where the page has a heading of its own).
+			$html .= $heading ? '<h1 class="screen-reader-text">' . esc_html( $title ) . '</h1>' : '';
 		} else {
 			$html .= '<div class="aimp-page-header-text">';
 			if ( self::design( 'crumbs' ) ) {
 				$html .= '<nav class="aimp-page-header-crumbs" aria-label="' . esc_attr__( 'Breadcrumb', 'atelier-irisee-master-plugin' ) . '"><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Home', 'atelier-irisee-master-plugin' ) . '</a> <span aria-hidden="true">›</span> <span aria-current="page">' . esc_html( $title ) . '</span></nav>';
 			}
-			$html .= '<h1 class="aimp-page-header-title"><span>' . esc_html( $title ) . '</span></h1>';
+			$tag   = $heading ? 'h1' : 'p';
+			$html .= '<' . $tag . ' class="aimp-page-header-title"><span>' . esc_html( $title ) . '</span></' . $tag . '>';
 			if ( '' !== $sub ) {
 				$html .= '<p class="aimp-page-header-sub">' . esc_html( $sub ) . '</p>';
 			}

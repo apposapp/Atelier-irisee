@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.42.0
+Stable tag: 3.43.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.43.0 =
+* Page header on every page: automatically at the top of all pages (Divi), product pages (title: the product's name), the cart, checkout and my account, shop categories, blog and search results; never on the home page and pages with the hero. No shortcode needed (it still works, without a second header).
+  * Design studio → Page header: a block per page (with "No page header on this page"), one for all product pages and one for the other pages; the panel shows the block of the page in the preview.
+  * Where: automatically or only where the shortcode is; not on product pages, the cart/checkout/account or the other pages (each can be switched off); "Hide the header where no picture or video is chosen" (in the studio's preview it stays as a slim dashed band, to click).
+  * On product pages and pages with a title of their own (About, Contact) the header's title is not a second main heading.
 
 = 3.42.0 =
 * Page header: the shortcode [atelier_irisee_page_header], a full-width band at the top of a page. Per page in the Design studio (Page header): a picture with the title over it, or a picture with the title already in it (shown whole; the title stays on the page for search engines), a phone picture, a video instead of the picture (MP4 without sound, the picture shows until it plays; not with "reduced motion" or the data saver), a phone video, the focal point, another title and a line under it. The look of all headers: height (also on phones), tint, place, colour and size of the title, a breadcrumb. Without a picture: a gold band with the title.

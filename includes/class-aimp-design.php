@@ -723,6 +723,11 @@ class AIMP_Design {
 			// The page header: per page (ph_{page}_…) and the look of all of them.
 			'ph_page'     => self::page_header_fields(),
 			'ph_look'     => array(
+				'ph_where'      => array( 'select', array( '', 'manual' ) ),
+				'ph_noproducts' => 'bool',
+				'ph_nocommerce' => 'bool',
+				'ph_noother'    => 'bool',
+				'ph_hideempty'  => 'bool',
 				'ph_height'   => array( 'select', array( '', 'small', 'large', 'full' ) ),
 				'ph_pheight'  => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
 				'ph_align'    => array( 'select', array( '', 'left', 'bottomleft' ) ),
@@ -1029,8 +1034,12 @@ class AIMP_Design {
 	 */
 	private static function page_header_fields() {
 		$fields = array();
-		foreach ( array_keys( class_exists( 'AIMP_Page_Header' ) ? AIMP_Page_Header::pages() : array() ) as $id ) {
+		// Per page, and once for all product pages and once for the other pages (shop categories, blog, search, …).
+		foreach ( array_merge( array_keys( class_exists( 'AIMP_Page_Header' ) ? AIMP_Page_Header::pages() : array() ), array( 'product', 'other' ) ) as $id ) {
 			$p                     = 'ph_' . $id . '_';
+			if ( is_int( $id ) ) {
+				$fields[ $p . 'off' ] = 'bool';
+			}
 			$fields[ $p . 'mode' ]   = array( 'select', array( '', 'baked' ) );
 			$fields[ $p . 'img' ]    = 'image';
 			$fields[ $p . 'pimg' ]   = 'image';
@@ -1038,7 +1047,9 @@ class AIMP_Design {
 			$fields[ $p . 'pvideo' ] = 'video';
 			$fields[ $p . 'fx' ]     = array( 0, 100, -1 );
 			$fields[ $p . 'fy' ]     = array( 0, 100, -1 );
-			$fields[ $p . 'title' ]  = 'text';
+			if ( 'product' !== $id ) {
+				$fields[ $p . 'title' ] = 'text';
+			}
 			$fields[ $p . 'sub' ]    = 'text';
 		}
 		return $fields;
@@ -4200,7 +4211,7 @@ class AIMP_Design {
 		echo '</fieldset>';
 
 		$group( 'ph_page', __( 'Picture or video of this page', 'atelier-irisee-master-plugin' ) );
-		echo '<p class="description aimp-ds-ph-none">' . esc_html__( 'This page has no page header yet: add the shortcode [atelier_irisee_page_header] at the top of the page (in Divi: a Text or Code module), save the page and open it here again.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '<p class="description aimp-ds-ph-none">' . esc_html__( 'This page has no page header of its own (the home page, or a page with the hero).', 'atelier-irisee-master-plugin' ) . '</p>';
 		$video_field = function ( $key, $label ) use ( $standard ) {
 			printf(
 				'<div class="aimp-ds-image" data-image="%1$s"><span class="aimp-ds-file-name"></span><button type="button" class="button aimp-ds-image-choose" data-image-key="%1$s" data-media="video">%2$s</button><button type="button" class="button-link" data-clear="%1$s">%3$s</button></div>',
@@ -4209,10 +4220,16 @@ class AIMP_Design {
 				esc_html( $standard )
 			);
 		};
-		foreach ( class_exists( 'AIMP_Page_Header' ) ? AIMP_Page_Header::pages() : array() as $page_id => $page_title ) {
+		$header_pages = class_exists( 'AIMP_Page_Header' ) ? AIMP_Page_Header::pages() : array();
+		$header_pages['product'] = __( 'All product pages (the title is the product\'s name)', 'atelier-irisee-master-plugin' );
+		$header_pages['other']   = __( 'Other pages: shop categories, blog, search results', 'atelier-irisee-master-plugin' );
+		foreach ( $header_pages as $page_id => $page_title ) {
 			$p = 'ph_' . $page_id . '_';
-			echo '<div class="aimp-ds-ph-page" data-ph-page="' . (int) $page_id . '">';
+			echo '<div class="aimp-ds-ph-page" data-ph-page="' . esc_attr( (string) $page_id ) . '">';
 			echo '<p class="aimp-ds-sub">' . esc_html( $page_title ) . '</p>';
+			if ( is_int( $page_id ) ) {
+				self::check_box( $p . 'off', __( 'No page header on this page', 'atelier-irisee-master-plugin' ) );
+			}
 			self::choice(
 				$p . 'mode',
 				__( 'Kind', 'atelier-irisee-master-plugin' ),
@@ -4227,13 +4244,28 @@ class AIMP_Design {
 			$video_field( $p . 'pvideo', __( 'Other video for phones (optional)', 'atelier-irisee-master-plugin' ) );
 			self::number( $p . 'fx', __( 'Focal point: left / right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
 			self::number( $p . 'fy', __( 'Focal point: top / bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
-			$field( $p . 'title', __( 'Title (empty = the page title)', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+			if ( 'product' !== $page_id ) {
+				$field( $p . 'title', __( 'Title (empty = the page title)', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+			}
 			$field( $p . 'sub', __( 'Line under the title', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
 			echo '</div>';
 		}
 		echo '</fieldset>';
 
-		$group( 'ph_look', __( 'Look of all page headers', 'atelier-irisee-master-plugin' ) );
+		$group( 'ph_look', __( 'Where and look of all page headers', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'ph_where',
+			__( 'Where', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Automatically at the top of every page (standard)', 'atelier-irisee-master-plugin' ),
+				'manual' => __( 'Only where I place the shortcode [atelier_irisee_page_header]', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'ph_noproducts', __( 'Not on product pages', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ph_nocommerce', __( 'Not on the cart, checkout and my account', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ph_noother', __( 'Not on shop categories, blog and search results', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ph_hideempty', __( 'Hide the header where no picture or video is chosen', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Never on the home page and pages with the hero. A single page can be left out in its own block above.', 'atelier-irisee-master-plugin' ) . '</p>';
 		self::choice(
 			'ph_height',
 			__( 'Height', 'atelier-irisee-master-plugin' ),

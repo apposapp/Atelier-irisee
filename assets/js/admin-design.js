@@ -2620,7 +2620,7 @@
 			present = Array.isArray(e.data.present) ? e.data.present : null;
 			layerRows = Array.isArray(e.data.layers) && e.data.layers.length ? e.data.layers : null;
 			frameTitle = String(e.data.title || '').split(/ [|–-] /)[0];
-			framePostId = parseInt(e.data.postId, 10) || 0;
+			framePostId = String(e.data.postId || 'other');
 			if (current) {
 				showPageBlocks();
 			}
