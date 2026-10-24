@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.44.1
+Stable tag: 3.44.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.44.2 =
+* Design studio: something clicked in a page header (a <header> of its own page) is now kept to that page, like everything else on a page. Before, a picture chosen there for the header was used in the page header of every page.
 
 = 3.44.1 =
 * Newsletter pop-up: repaired. The hidden spam-trap field no longer shows as a second box, and the field and button have the shop's look (they only had it inside the footer).

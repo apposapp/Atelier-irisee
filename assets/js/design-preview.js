@@ -401,7 +401,8 @@
 		}
 		var selector = parts.join(' > ');
 		var page = (document.body.className.match(/(?:^|\s)((?:page-id|postid)-\d+)(?:\s|$)/) || [])[1];
-		if (page && !el.closest('.aimp-header, .aimp-footer, .aimp-side-menu, .aimp-tabbar, header, footer')) {
+		// The site's header and footer are on every page; the page header (also a <header>) belongs to this page.
+		if (page && !el.closest('.aimp-header, .aimp-footer, .aimp-side-menu, .aimp-tabbar, header:not(.aimp-page-header), footer')) {
 			selector = 'body.' + page + ' ' + selector;
 		}
 		return selector;
