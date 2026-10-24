@@ -275,3 +275,10 @@
 .aimp-page-header.is-empty-preview .aimp-page-header-title {
 	font-size: 1.1rem;
 }
+
+/* Placed automatically above the page's content: that area is full width already, no reaching out needed (which
+   needs the scrollbar's width, measured by a script). */
+.aimp-page-header.is-auto {
+	width: 100%;
+	margin-left: 0;
+}

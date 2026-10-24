@@ -24,6 +24,9 @@ class AIMP_Page_Header {
 	/** Printed on this page already (automatically or by the shortcode). */
 	private static $printed = false;
 
+	/** Placed automatically (above the content, already full width). */
+	private static $auto = false;
+
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
@@ -125,7 +128,7 @@ class AIMP_Page_Header {
 			return array( 'other', sprintf( __( 'Search results for "%s"', 'atelier-irisee-master-plugin' ), get_search_query() ), true );
 		}
 		if ( is_404() ) {
-			return array( 'other', __( 'Page not found', 'atelier-irisee-master-plugin' ), true );
+			return array( 'other', __( 'Page not found', 'atelier-irisee-master-plugin' ), false );
 		}
 		if ( is_singular() ) {
 			return array( 'other', get_the_title( get_queried_object_id() ), false );
@@ -168,6 +171,7 @@ class AIMP_Page_Header {
 		if ( self::$printed || ! self::applies() ) {
 			return;
 		}
+		self::$auto = true;
 		echo self::render( self::context(), '', '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in render().
 	}
 
@@ -252,6 +256,9 @@ class AIMP_Page_Header {
 		$style   .= '' !== $color ? '--ph-color:' . $color . ';' : '';
 		$style   .= $size > 0 ? '--ph-size:' . $size . 'px;' : '';
 		$classes  = array( 'aimp-page-header', $baked ? 'is-baked' : 'is-text' );
+		if ( self::$auto ) {
+			$classes[] = 'is-auto';
+		}
 		$classes[] = ( $picture || $video ) ? 'has-media' : 'has-no-media';
 		if ( $empty ) {
 			$classes[] = 'is-empty-preview';

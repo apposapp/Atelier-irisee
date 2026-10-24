@@ -374,7 +374,7 @@ class AIMP_Home_Blocks {
 		}
 		$html .= '<div class="aimp-home-nl-main">' . self::title( AIMP_Blocks::text( 'hn_title' ) ) .
 			'<p class="aimp-newsletter-intro">' . nl2br( esc_html( AIMP_Blocks::text( 'hn_text' ) ) ) . '</p>' .
-			'<form class="aimp-newsletter aimp-home-nl-form" data-aimp-newsletter novalidate>' .
+			'<form class="aimp-home-nl-form" data-aimp-newsletter novalidate>' .
 			'<label class="screen-reader-text" for="' . esc_attr( $id ) . '">' . esc_html__( 'Email address', 'atelier-irisee-master-plugin' ) . '</label>' .
 			'<input type="email" id="' . esc_attr( $id ) . '" name="email" required autocomplete="email" placeholder="' . esc_attr__( 'Your e-mail address', 'atelier-irisee-master-plugin' ) . '">' .
 			'<input type="text" name="aimp_hp" value="" tabindex="-1" autocomplete="off" class="aimp-newsletter-hp" aria-hidden="true">' .

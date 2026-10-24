@@ -835,11 +835,17 @@
 			}
 			window.sessionStorage.setItem('aimp_el_auto', '1');
 		} catch (e) {}
-		setTimeout(function () {
+		// Never two pop-ups at once: while the newsletter pop-up is open, wait until it is closed.
+		var tryOpen = function () {
+			if (document.querySelector('.aimp-nl-popup')) {
+				setTimeout(tryOpen, 1500);
+				return;
+			}
 			if (modal.hidden) {
 				open(cfg.autoOpenForm || 'login');
 			}
-		}, Math.max(0, cfg.autoOpenDelay || 0) * 1000);
+		};
+		setTimeout(tryOpen, Math.max(0, cfg.autoOpenDelay || 0) * 1000);
 	}
 
 	function boot() {

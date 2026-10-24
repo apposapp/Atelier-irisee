@@ -381,3 +381,80 @@ body.aimp-replace-theme-footer :is(#main-footer, .et-l--footer, #colophon, .site
 .aimp-nl-popup .aimp-newsletter input[type="email"] {
 	width: 100%;
 }
+
+/* The pop-up's copy of the footer form: the same look as in the footer (those rules only reach .aimp-footer). */
+.aimp-nl-popup [hidden] {
+	display: none !important;
+}
+
+.aimp-nl-popup .aimp-newsletter {
+	align-items: stretch;
+}
+
+.aimp-nl-popup .aimp-newsletter input[type="email"] {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0.7rem 1rem;
+	border: 1px var(--aimp-site-line, solid) var(--aimp-site-gold, #b38f4f);
+	border-radius: 100px;
+	background: #fff;
+	color: var(--aimp-site-brown, #613907);
+	font: inherit;
+}
+
+.aimp-nl-popup .aimp-newsletter-hp,
+.aimp-nl-popup .screen-reader-text {
+	position: absolute !important;
+	left: -9999px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	opacity: 0;
+}
+
+.aimp-nl-popup .aimp-footer-button {
+	padding: 0.6rem 1.5rem;
+	border: 5px double var(--aimp-site-gold, #b38f4f);
+	border-radius: 100px;
+	background: var(--aimp-site-gold, #b38f4f);
+	box-shadow: none;
+	color: #fff;
+	font: inherit;
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.aimp-nl-popup .aimp-footer-button:hover,
+.aimp-nl-popup .aimp-footer-button:focus-visible {
+	background: #fff;
+	color: var(--aimp-site-brown, #613907);
+}
+
+.aimp-nl-popup .aimp-footer-button--ghost {
+	background: transparent;
+	color: var(--aimp-site-brown, #613907);
+}
+
+.aimp-nl-popup .aimp-newsletter-message,
+.aimp-nl-popup .aimp-newsletter-consent {
+	margin: 0.5rem 0 0;
+	font-size: 13px;
+}
+
+.aimp-nl-popup .aimp-newsletter-message.is-error {
+	color: var(--aimp-site-error, #a3352b);
+}
+
+.aimp-nl-popup .aimp-newsletter-consent a {
+	color: var(--aimp-site-gold-text, #8a6a33);
+}
+
+.aimp-nl-popup .aimp-newsletter-state-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}

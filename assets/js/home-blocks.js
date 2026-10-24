@@ -66,6 +66,10 @@
 	function start() {
 		scrollbar();
 		window.addEventListener('resize', scrollbar);
+		// The page can grow after loading (a shop or the customizer filled in later): the scrollbar appears then.
+		if (window.ResizeObserver && document.body) {
+			new window.ResizeObserver(scrollbar).observe(document.body);
+		}
 		document.querySelectorAll('[data-aimp-slider]').forEach(init);
 		document.querySelectorAll('[data-aimp-ph-video]').forEach(video);
 	}
