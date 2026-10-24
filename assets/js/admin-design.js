@@ -129,10 +129,36 @@
 		});
 	}
 
+	// This studio tab was opened before a plugin update: a banner to reload (the server does not save from it).
+	var staleShown = false;
+	function staleStudio() {
+		if (staleShown) {
+			return;
+		}
+		staleShown = true;
+		var banner = document.createElement('div');
+		banner.className = 'aimp-ds-stale';
+		banner.setAttribute('role', 'alert');
+		var text = document.createElement('span');
+		text.textContent = t.staleStudio;
+		var reload = document.createElement('button');
+		reload.type = 'button';
+		reload.className = 'button button-primary';
+		reload.textContent = t.reloadStudio;
+		reload.addEventListener('click', function () {
+			window.location.reload();
+		});
+		banner.appendChild(text);
+		banner.appendChild(reload);
+		document.body.appendChild(banner);
+	}
+
 	function post(action, data) {
 		var body = new URLSearchParams();
 		body.append('action', 'aimp_design_' + action);
 		body.append('nonce', cfg.nonce);
+		// The server only saves from a studio of its own plugin version (an old tab: reload first).
+		body.append('version', cfg.version || '');
 		Object.keys(data || {}).forEach(function (key) {
 			body.append(key, data[key]);
 		});
@@ -145,6 +171,9 @@
 			return r.json();
 		}).then(function (json) {
 			if (!json || !json.success) {
+				if (json && json.data && json.data.reload) {
+					staleStudio();
+				}
 				throw new Error(json && json.data && json.data.message ? json.data.message : t.failed);
 			}
 			return json.data;
@@ -212,6 +241,10 @@
 				return;
 			}
 			var base = el.selector;
+			// An own part in a page header that is not kept to one page (made by an old studio tab): no CSS (as the server).
+			if (el.own && base.indexOf('aimp-page-header') !== -1 && base.indexOf('body.') === -1) {
+				return;
+			}
 			var sel = prefixed(base);
 			var common = '';
 			[['color', 'color'], ['bg', 'background-color'], ['border', 'border-color']].forEach(function (pair) {
@@ -2619,6 +2652,10 @@
 			return;
 		}
 		if (e.data.type === 'aimp-design-ready') {
+			// The page runs another plugin version than this studio tab: the plugin was updated, reload first.
+			if (e.data.version && cfg.version && e.data.version !== cfg.version) {
+				staleStudio();
+			}
 			// The parts and shop texts on this page: the lists show those first.
 			present = Array.isArray(e.data.present) ? e.data.present : null;
 			layerRows = Array.isArray(e.data.layers) && e.data.layers.length ? e.data.layers : null;

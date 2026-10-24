@@ -1344,3 +1344,23 @@ body.aimp-ds-screen .aimp-ds {
 .aimp-ds-ph-page {
 	margin-bottom: 8px;
 }
+
+/* The plugin was updated after this studio tab was opened: reload first. */
+.aimp-ds-stale {
+	position: fixed;
+	top: 46px;
+	left: 50%;
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	max-width: min(720px, calc(100vw - 32px));
+	padding: 12px 16px;
+	border: 2px solid #b32d2e;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+	color: #1d2327;
+	font-weight: 600;
+	transform: translateX(-50%);
+}

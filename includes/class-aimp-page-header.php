@@ -263,7 +263,8 @@ class AIMP_Page_Header {
 		if ( $empty ) {
 			$classes[] = 'is-empty-preview';
 		}
-		$classes[] = 'is-' . ( in_array( $height, array( 'small', 'large', 'full' ), true ) ? $height : 'medium' );
+		// Standard: small (twice the menu bar and gold bar, page-header.css).
+		$classes[] = 'is-' . ( in_array( $height, array( 'medium', 'large', 'full' ), true ) ? $height : 'small' );
 		$classes[] = 'is-phone-' . ( in_array( $pheight, array( 'small', 'medium', 'large', 'full' ), true ) ? $pheight : 'same' );
 		$classes[] = 'is-' . ( in_array( $align, array( 'left', 'bottomleft' ), true ) ? $align : 'center' );
 

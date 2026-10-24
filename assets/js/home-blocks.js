@@ -63,9 +63,26 @@
 		}
 	}
 
+	// The page header's standard height: twice the menu bar (on phones, where it is hidden: the header row) plus the
+	// gold bar (page-header.css --aimp-ph-base).
+	function headerBase() {
+		var height = function (selector) {
+			var el = document.querySelector(selector);
+			return el ? el.getBoundingClientRect().height : 0;
+		};
+		var base = (height('.aimp-header-bar') || height('.aimp-header-inner')) + height('.aimp-info-bar');
+		if (base > 20) {
+			document.documentElement.style.setProperty('--aimp-ph-base', Math.round(base) + 'px');
+		}
+	}
+
 	function start() {
 		scrollbar();
 		window.addEventListener('resize', scrollbar);
+		if (document.querySelector('.aimp-page-header')) {
+			headerBase();
+			window.addEventListener('resize', headerBase);
+		}
 		// The page can grow after loading (a shop or the customizer filled in later): the scrollbar appears then.
 		if (window.ResizeObserver && document.body) {
 			new window.ResizeObserver(scrollbar).observe(document.body);

@@ -566,6 +566,7 @@ class AIMP_Design {
 			'nl_opts'     => array(
 				'nl_popup'       => array( 0, 120, 0 ),
 				'nl_popup_title' => 'text',
+				'nl_popup_who'   => array( 'select', array( '', 'all' ) ),
 				'nl_wide'        => 'bool',
 			),
 			'gc_opts'     => array(
@@ -738,7 +739,7 @@ class AIMP_Design {
 				'ph_nocommerce' => 'bool',
 				'ph_noother'    => 'bool',
 				'ph_hideempty'  => 'bool',
-				'ph_height'   => array( 'select', array( '', 'small', 'large', 'full' ) ),
+				'ph_height'   => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
 				'ph_pheight'  => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
 				'ph_align'    => array( 'select', array( '', 'left', 'bottomleft' ) ),
 				'ph_tint'     => 'color',
@@ -1886,6 +1887,9 @@ class AIMP_Design {
 				continue;
 			}
 			$base     = $element['selector'];
+			if ( self::is_own( $id ) && false !== strpos( $base, 'aimp-page-header' ) && false === strpos( $base, 'body.' ) ) {
+				continue;
+			}
 			$selector = self::prefixed( $base );
 			$common   = '';
 			foreach ( array( 'color' => 'color', 'bg' => 'background-color', 'border' => 'border-color' ) as $key => $property ) {
@@ -2784,6 +2788,8 @@ class AIMP_Design {
 			'aimpDesignPreview',
 			array(
 				'origin'   => admin_url(),
+				// The studio compares it with its own: an open studio tab from before an update must be reloaded.
+				'version'  => AIMP_VERSION,
 				'param'    => self::PREVIEW,
 				'phone'    => self::PHONE,
 				// Parts of the page only ("Whole site" has nothing to click), with their names for the label under the mouse.
@@ -2911,6 +2917,7 @@ class AIMP_Design {
 				array(
 					'ajax'     => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( self::NONCE ),
+					'version'  => AIMP_VERSION,
 					'param'    => self::PREVIEW,
 					'phone'    => self::PHONE,
 					'tablet'   => self::TABLET,
@@ -2956,6 +2963,8 @@ class AIMP_Design {
 						'ownParts'    => __( 'Your own picks', 'atelier-irisee-master-plugin' ),
 						'ownScope'    => __( 'An element you clicked: these settings count for this element on this page (header and footer: on every page).', 'atelier-irisee-master-plugin' ),
 						'pathTitle'   => __( 'Change instead:', 'atelier-irisee-master-plugin' ),
+						'staleStudio'      => __( 'The plugin was updated since this Design studio was opened. Reload it before you change anything: until then nothing is saved.', 'atelier-irisee-master-plugin' ),
+						'reloadStudio'     => __( 'Reload the studio', 'atelier-irisee-master-plugin' ),
 						// Translating, back to standard, finding settings, layers.
 						'translate'        => __( 'Translate to the empty languages', 'atelier-irisee-master-plugin' ),
 						'translating'      => __( 'Translating…', 'atelier-irisee-master-plugin' ),
@@ -3961,6 +3970,14 @@ class AIMP_Design {
 		$group( 'nl_opts', __( 'Newsletter', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'nl_wide', __( 'The button next to the field', 'atelier-irisee-master-plugin' ) );
 		self::number( 'nl_popup', __( 'A pop-up with the sign-up after (0 = no pop-up)', 'atelier-irisee-master-plugin' ), 0, 120, __( 'seconds', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'nl_popup_who',
+			__( 'The pop-up for', 'atelier-irisee-master-plugin' ),
+			array(
+				''    => __( 'Logged-in customers only (standard; others get the registration pop-up)', 'atelier-irisee-master-plugin' ),
+				'all' => __( 'Every visitor', 'atelier-irisee-master-plugin' ),
+			)
+		);
 		$field( 'nl_popup_title', __( 'Title of the pop-up', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
 		echo '<p class="description">' . esc_html__( 'The pop-up shows once per visitor, never to subscribers. The texts come from the footer settings and the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
@@ -4290,10 +4307,11 @@ class AIMP_Design {
 			'ph_height',
 			__( 'Height', 'atelier-irisee-master-plugin' ),
 			array(
-				''      => __( 'Medium (standard)', 'atelier-irisee-master-plugin' ),
-				'small' => __( 'Small', 'atelier-irisee-master-plugin' ),
-				'large' => __( 'Large', 'atelier-irisee-master-plugin' ),
-				'full'  => __( 'Whole screen', 'atelier-irisee-master-plugin' ),
+				''       => __( 'Small (standard): twice the menu bar and gold bar', 'atelier-irisee-master-plugin' ),
+				'small'  => __( 'Small', 'atelier-irisee-master-plugin' ),
+				'medium' => __( 'Medium', 'atelier-irisee-master-plugin' ),
+				'large'  => __( 'Large', 'atelier-irisee-master-plugin' ),
+				'full'   => __( 'Whole screen', 'atelier-irisee-master-plugin' ),
 			)
 		);
 		self::choice(
@@ -4440,6 +4458,24 @@ class AIMP_Design {
 	}
 
 	/**
+	 * Saving and publishing only from a studio of this plugin version: a studio tab opened before an update does not
+	 * know the newest parts and could save their settings wrongly (it sends no version, or an older one).
+	 */
+	private static function check_version() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked in check().
+		$version = isset( $_POST['version'] ) ? sanitize_text_field( wp_unslash( $_POST['version'] ) ) : '';
+		if ( AIMP_VERSION !== $version ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'The plugin was updated: reload the Design studio (F5) before you change anything. Nothing was saved.', 'atelier-irisee-master-plugin' ),
+					'reload'  => true,
+				),
+				409
+			);
+		}
+	}
+
+	/**
 	 * A posted JSON field.
 	 *
 	 * @param string $field Field.
@@ -4533,6 +4569,7 @@ class AIMP_Design {
 	/** The draft, saved while editing (the parts, the texts, or both). */
 	public static function ajax_save() {
 		self::check();
+		self::check_version();
 		$changes = array( 'draft_time' => time() );
 		$styles  = self::posted_json( 'styles' );
 		$texts   = self::posted_json( 'texts' );
@@ -4563,6 +4600,7 @@ class AIMP_Design {
 	/** The draft becomes the live look; the look it replaces goes into the history. */
 	public static function ajax_publish() {
 		self::check();
+		self::check_version();
 		$styles  = self::posted_json( 'styles' );
 		$texts   = self::posted_json( 'texts' );
 		$history = self::history();
@@ -4604,6 +4642,7 @@ class AIMP_Design {
 	/** The draft goes back to the live look. */
 	public static function ajax_discard() {
 		self::check();
+		self::check_version();
 		self::store(
 			array(
 				'draft'          => null,
@@ -4618,6 +4657,7 @@ class AIMP_Design {
 	/** An earlier look goes into the draft. */
 	public static function ajax_restore() {
 		self::check();
+		self::check_version();
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked in check().
 		$index   = isset( $_POST['index'] ) ? absint( $_POST['index'] ) : -1;
 		$history = self::history();
@@ -4637,6 +4677,7 @@ class AIMP_Design {
 	/** A downloaded file goes into the draft. */
 	public static function ajax_import() {
 		self::check();
+		self::check_version();
 		$texts = self::posted_json( 'texts' );
 		self::store(
 			array(
@@ -4683,6 +4724,7 @@ class AIMP_Design {
 	/** The draft is saved as a named look. */
 	public static function ajax_look_save() {
 		self::check();
+		self::check_version();
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked in check().
 		$name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 		if ( '' === $name ) {
@@ -4714,6 +4756,7 @@ class AIMP_Design {
 	/** A saved look goes into the draft. */
 	public static function ajax_look_load() {
 		self::check();
+		self::check_version();
 		list( $id, $looks ) = self::posted_look();
 		self::store(
 			array(
@@ -4727,6 +4770,7 @@ class AIMP_Design {
 
 	public static function ajax_look_delete() {
 		self::check();
+		self::check_version();
 		list( $id, $looks ) = self::posted_look();
 		$was_on = ! empty( $looks[ $id ]['from'] ) && $looks[ $id ]['from'] <= time() && time() < $looks[ $id ]['to'];
 		unset( $looks[ $id ] );
@@ -4743,6 +4787,7 @@ class AIMP_Design {
 	 */
 	public static function ajax_look_plan() {
 		self::check();
+		self::check_version();
 		list( $id, $looks ) = self::posted_look();
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked in check().
 		$from = isset( $_POST['from'] ) ? sanitize_text_field( wp_unslash( $_POST['from'] ) ) : '';

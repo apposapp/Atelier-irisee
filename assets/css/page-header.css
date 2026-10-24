@@ -1,13 +1,19 @@
 /* [atelier_irisee_page_header]: a full-width band at the top of a page, with a picture or video. "Picture + title":
-   the picture fills the band under a gold tint, the title over it. "Title in the picture": the picture whole. */
+   the picture fills the band under a gold tint, the title over it. "Title in the picture": only the picture.
+
+   Its height is fixed, whatever the size of the picture: standard ("small") twice the menu bar plus the gold bar
+   (--aimp-ph-base, measured by home-blocks.js; 85px without the script), medium 3×, large 4.5×, or the whole screen.
+   The picture always fills the band; its focal point and position decide what stays in view. */
 .aimp-page-header {
 	--ph-gold: var(--aimp-site-gold, #b38f4f);
 	--ph-brown: var(--aimp-site-brown, #613907);
 	--ph-tint: #6b4b1a;
 	--ph-strength: 0.35;
 	--ph-color: #fff;
-	--ph-size: clamp(1.9rem, 4.6vw, 3.6rem);
-	--ph-height: 45vh;
+	--ph-base: var(--aimp-ph-base, 85px);
+	--ph-height: calc(var(--ph-base) * 2);
+	/* The title fits the band: at most a third of its height. */
+	--ph-size: min(clamp(1.4rem, 3.4vw, 2.8rem), calc(var(--ph-height) * 0.3));
 	box-sizing: border-box;
 	position: relative;
 	display: flex;
@@ -16,10 +22,11 @@
 	/* Full width, also inside a Divi row (--aimp-hero-sb: the width of a desktop scrollbar). */
 	width: calc(100vw - var(--aimp-hero-sb, 0px));
 	max-width: none;
-	min-height: var(--ph-height);
+	height: var(--ph-height);
+	min-height: 0;
 	/* Never space under it: the page continues right below (a margin can be set in the Design studio). */
 	margin: 0 0 0 calc(50% - 50vw + var(--aimp-hero-sb, 0px) / 2);
-	padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 6vw, 7rem);
+	padding: 0 clamp(1rem, 6vw, 7rem);
 	overflow: hidden;
 	color: var(--ph-color);
 	text-align: center;
@@ -41,21 +48,27 @@
 }
 
 /* Heights (Design studio → Page header). */
-.aimp-page-header.is-small {
-	--ph-height: 30vh;
+.aimp-page-header.is-medium {
+	--ph-height: calc(var(--ph-base) * 3);
 }
 
 .aimp-page-header.is-large {
-	--ph-height: 65vh;
+	--ph-height: calc(var(--ph-base) * 4.5);
 }
 
 .aimp-page-header.is-full {
 	--ph-height: calc(100svh - var(--aimp-header-offset, 0px));
 }
 
+/* Placed automatically above the page's content: that area is full width already, no reaching out needed (which
+   needs the scrollbar's width, measured by a script). */
+.aimp-page-header.is-auto {
+	width: 100%;
+	margin-left: 0;
+}
+
 /* Without a picture: a calm gold band. */
 .aimp-page-header.has-no-media {
-	--ph-height: 26vh;
 	background:
 		radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, var(--ph-gold) 30%, #fff) 0%, transparent 70%),
 		color-mix(in srgb, var(--ph-gold) 12%, #fff);
@@ -79,7 +92,9 @@
 	width: 100%;
 	height: 100%;
 	max-width: none;
+	max-height: none;
 	object-fit: cover;
+	object-position: 50% 50%;
 }
 
 /* The video lies over the picture once it plays (home-blocks.js). */
@@ -109,8 +124,9 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 0.6rem;
+	gap: 0.4rem;
 	max-width: 62rem;
+	max-height: 100%;
 }
 
 .aimp-page-header .aimp-page-header-title {
@@ -143,7 +159,7 @@
 	max-width: 46rem;
 	margin: 0;
 	color: inherit;
-	font-size: clamp(1rem, 1.6vw, 1.2rem);
+	font-size: clamp(0.9rem, 1.4vw, 1.1rem);
 	font-weight: 600;
 	text-shadow: 0 1px 10px rgba(0, 0, 0, 0.25);
 }
@@ -153,7 +169,7 @@
 }
 
 .aimp-page-header-crumbs {
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 600;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
@@ -184,33 +200,13 @@
 
 .aimp-page-header.is-bottomleft {
 	align-items: flex-end;
+	padding-bottom: 1rem;
 }
 
-/* ------------------------------------------------------------------ title in the picture: the picture whole */
+/* ------------------------------------------------------------------ title in the picture: only the picture */
 .aimp-page-header.is-baked {
 	display: block;
-	min-height: 0;
 	padding: 0;
-	line-height: 0;
-}
-
-.aimp-page-header.is-baked .aimp-page-header-media,
-.aimp-page-header.is-baked .aimp-page-header-media picture {
-	position: relative;
-	inset: auto;
-}
-
-.aimp-page-header.is-baked .aimp-page-header-image {
-	position: relative;
-	height: auto;
-	object-fit: contain;
-}
-
-.aimp-page-header.is-baked .aimp-page-header-video {
-	top: 0;
-	left: 0;
-	height: 100%;
-	object-fit: cover;
 }
 
 .aimp-page-header .screen-reader-text {
@@ -229,24 +225,19 @@
 /* ------------------------------------------------------------------ phone */
 @media (max-width: 700px) {
 	.aimp-page-header.is-phone-small {
-		--ph-height: 26vh;
+		--ph-height: calc(var(--ph-base) * 2);
 	}
 
 	.aimp-page-header.is-phone-medium {
-		--ph-height: 40vh;
+		--ph-height: calc(var(--ph-base) * 3);
 	}
 
 	.aimp-page-header.is-phone-large {
-		--ph-height: 60vh;
+		--ph-height: calc(var(--ph-base) * 4.5);
 	}
 
 	.aimp-page-header.is-phone-full {
 		--ph-height: calc(100svh - var(--aimp-header-offset, 0px) - var(--aimp-tabbar-h, 0px));
-	}
-
-	.aimp-page-header.is-full.is-phone-same,
-	.aimp-page-header.is-large.is-phone-same {
-		--ph-height: 50vh;
 	}
 
 	.aimp-page-header .aimp-page-header-title::before,
@@ -264,7 +255,7 @@
 /* Design studio's preview: a header that visitors do not see (no picture or video, "Hide the header where no picture
    or video is chosen"), shown as a slim dashed band so it can be clicked. */
 .aimp-page-header.is-empty-preview {
-	--ph-height: 0px;
+	height: auto;
 	padding: 0.9rem 1rem;
 	border: 2px dashed var(--ph-gold);
 	border-width: 2px 0;
@@ -274,11 +265,4 @@
 
 .aimp-page-header.is-empty-preview .aimp-page-header-title {
 	font-size: 1.1rem;
-}
-
-/* Placed automatically above the page's content: that area is full width already, no reaching out needed (which
-   needs the scrollbar's width, measured by a script). */
-.aimp-page-header.is-auto {
-	width: 100%;
-	margin-left: 0;
 }

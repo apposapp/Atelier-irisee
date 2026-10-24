@@ -728,6 +728,7 @@
 			title: document.title,
 			present: present,
 			layers: layers(),
+			version: cfg.version || '',
 			// The page itself (its page header settings are per page).
 			postId: document.body.classList.contains('single-product') ? 'product' : ((document.body.className.match(/(?:^|\s)page-id-(\d+)/) || [])[1] || 'other'),
 			texts: (window.aimpDesignTexts || []).map(function (row) {

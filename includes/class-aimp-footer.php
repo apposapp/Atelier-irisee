@@ -269,7 +269,8 @@ class AIMP_Footer {
 					'unsubscribed' => __( 'You are unsubscribed from our newsletter.', 'atelier-irisee-master-plugin' ),
 				),
 				// Design studio (Newsletter): the sign-up in a pop-up after this many seconds (0 = never).
-				'popup'       => class_exists( 'AIMP_Design' ) ? (int) AIMP_Design::opt( 'newsletter', 'nl_popup', 0 ) : 0,
+				// Standard only for logged-in customers (visitors who are not logged in get the registration pop-up).
+				'popup'       => class_exists( 'AIMP_Design' ) && ( is_user_logged_in() || 'all' === AIMP_Design::opt( 'newsletter', 'nl_popup_who', '' ) ) ? (int) AIMP_Design::opt( 'newsletter', 'nl_popup', 0 ) : 0,
 				'popupTitle'  => class_exists( 'AIMP_Design' ) && '' !== (string) AIMP_Design::opt( 'newsletter', 'nl_popup_title', '' ) ? AIMP_Settings::localized( AIMP_Design::opt( 'newsletter', 'nl_popup_title', '' ) ) : __( 'Newsletter', 'atelier-irisee-master-plugin' ),
 				'close'       => __( 'Close', 'atelier-irisee-master-plugin' ),
 			)

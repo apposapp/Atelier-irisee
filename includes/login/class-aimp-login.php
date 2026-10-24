@@ -431,8 +431,9 @@ class AIMP_Login {
 			'i18n'            => $i18n,
 			'singleField'     => (bool) self::opt( 'single_field' ),
 			'strengthMin'     => (int) self::opt( 'strength_min' ),
-			// Never on the cart, the checkout or the configurator, where it would interrupt a purchase.
-			'autoOpen'        => self::opt( 'auto_open' ) && ! is_user_logged_in() && ( ! $auto_pages || is_page( $auto_pages ) ) && ! self::is_shopping_page(),
+			// Never on the cart, the checkout or the configurator, where it would interrupt a purchase, and never on the
+			// my account page: its own login form is there (the pop-up would cover it while someone logs in).
+			'autoOpen'        => self::opt( 'auto_open' ) && ! is_user_logged_in() && ( ! $auto_pages || is_page( $auto_pages ) ) && ! self::is_shopping_page() && ! ( function_exists( 'is_account_page' ) && is_account_page() ),
 			'autoOpenForm'    => self::opt( 'auto_open_form' ),
 			'autoOpenDelay'   => (int) self::opt( 'auto_open_delay' ),
 			'checkoutPopup'   => (bool) self::opt( 'checkout_popup' ),

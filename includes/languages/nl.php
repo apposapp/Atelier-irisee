@@ -2455,7 +2455,6 @@ return array(
 	'In the middle (standard)' => 'In het midden (standaard)',
 	'Large' => 'Groot',
 	'Line under the title' => 'Regel onder de titel',
-	'Medium (standard)' => 'Middelgroot (standaard)',
 	'On the left' => 'Links',
 	'Other picture for phones (optional)' => 'Andere foto voor gsm\'s (optioneel)',
 	'Other video for phones (optional)' => 'Andere video voor gsm\'s (optioneel)',
@@ -2495,4 +2494,13 @@ return array(
 
 	// Height of every part (3.44)
 	'Empty height = the part\'s own height. A height smaller than the content can cut it off; pictures and headers fill the height you choose.' => 'Lege hoogte = de eigen hoogte van het onderdeel. Een hoogte kleiner dan de inhoud kan die afsnijden; foto\'s en koppen vullen de hoogte die je kiest.',
+
+	// Header size, stale studio, pop-ups (3.45)
+	'Every visitor' => 'Elke bezoeker',
+	'Logged-in customers only (standard; others get the registration pop-up)' => 'Alleen ingelogde klanten (standaard; anderen krijgen de registratie-pop-up)',
+	'Reload the studio' => 'Studio herladen',
+	'Small (standard): twice the menu bar and gold bar' => 'Klein (standaard): twee keer de menubalk en gouden balk',
+	'The plugin was updated since this Design studio was opened. Reload it before you change anything: until then nothing is saved.' => 'De plugin werd bijgewerkt sinds deze Design studio geopend werd. Herlaad hem voor je iets verandert: tot dan wordt niets bewaard.',
+	'The plugin was updated: reload the Design studio (F5) before you change anything. Nothing was saved.' => 'De plugin werd bijgewerkt: herlaad de Design studio (F5) voor je iets verandert. Er werd niets bewaard.',
+	'The pop-up for' => 'De pop-up voor',
 );

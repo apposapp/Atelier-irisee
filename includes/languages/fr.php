@@ -2455,7 +2455,6 @@ return array(
 	'In the middle (standard)' => 'Au centre (standard)',
 	'Large' => 'Grand',
 	'Line under the title' => 'Ligne sous le titre',
-	'Medium (standard)' => 'Moyen (standard)',
 	'On the left' => 'À gauche',
 	'Other picture for phones (optional)' => 'Autre photo pour téléphones (facultatif)',
 	'Other video for phones (optional)' => 'Autre vidéo pour téléphones (facultatif)',
@@ -2495,4 +2494,13 @@ return array(
 
 	// Height of every part (3.44)
 	'Empty height = the part\'s own height. A height smaller than the content can cut it off; pictures and headers fill the height you choose.' => 'Hauteur vide = la hauteur propre de l\'élément. Une hauteur plus petite que le contenu peut le couper ; les photos et en-têtes remplissent la hauteur choisie.',
+
+	// Header size, stale studio, pop-ups (3.45)
+	'Every visitor' => 'Chaque visiteur',
+	'Logged-in customers only (standard; others get the registration pop-up)' => 'Seulement les clients connectés (standard ; les autres reçoivent la pop-up d\'inscription)',
+	'Reload the studio' => 'Recharger le studio',
+	'Small (standard): twice the menu bar and gold bar' => 'Petit (standard) : deux fois la barre de menu et la barre dorée',
+	'The plugin was updated since this Design studio was opened. Reload it before you change anything: until then nothing is saved.' => 'Le plugin a été mis à jour depuis l\'ouverture de ce Design studio. Rechargez-le avant de modifier quoi que ce soit : jusque-là, rien n\'est enregistré.',
+	'The plugin was updated: reload the Design studio (F5) before you change anything. Nothing was saved.' => 'Le plugin a été mis à jour : rechargez le Design studio (F5) avant de modifier quoi que ce soit. Rien n\'a été enregistré.',
+	'The pop-up for' => 'La pop-up pour',
 );

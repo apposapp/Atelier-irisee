@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.44.2
+Stable tag: 3.45.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.45.0 =
+* Page header: a fixed height, whatever the size of the picture. Standard (small): twice the menu bar plus the gold bar (measured on the page; on phones the header row and the gold bar); medium 3×, large 4.5×, or the whole screen. The picture or video always fills the band, also with the title in the picture; the title scales with the band.
+* Design studio: a studio tab opened before an update no longer saves (it shows "reload the studio"); an own part in a page header that is not kept to one page (made by such a tab) no longer changes the page headers.
+* Pop-ups: the newsletter pop-up is for logged-in customers (studio: or every visitor); visitors who are not logged in get the registration pop-up.
+* Login: the automatic registration pop-up no longer opens on the my account page or while someone is typing in a form (it switched the login to registration).
 
 = 3.44.2 =
 * Design studio: something clicked in a page header (a <header> of its own page) is now kept to that page, like everything else on a page. Before, a picture chosen there for the header was used in the page header of every page.

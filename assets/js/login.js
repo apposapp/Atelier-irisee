@@ -841,6 +841,12 @@
 				setTimeout(tryOpen, 1500);
 				return;
 			}
+			// Not over a login or registration form on the page itself, and not while the visitor is typing or has
+			// typed in a form: it would take over what they are doing.
+			var active = document.activeElement;
+			if (inlineContainer() || document.querySelector('[data-aimp-touched]') || (active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName))) {
+				return;
+			}
 			if (modal.hidden) {
 				open(cfg.autoOpenForm || 'login');
 			}
