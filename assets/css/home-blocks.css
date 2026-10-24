@@ -19,10 +19,10 @@
 }
 
 /* The home page blocks use the full width of the screen, also inside a Divi row (like the hero; --aimp-hero-sb is
-   the width of a desktop scrollbar, set by hero.js and home-blocks.js). The content stays within 1800px. */
+   the width of a desktop scrollbar, set by hero.js and home-blocks.js), with a margin at the sides. */
 .aimp-home-block,
 .aimp-home-block.aimp-configurator {
-	--hb-pad-x: max(clamp(1rem, 4vw, 4rem), (100vw - 1800px) / 2);
+	--hb-pad-x: clamp(1rem, 3vw, 4rem);
 	width: calc(100vw - var(--aimp-hero-sb, 0px));
 	max-width: none;
 	margin: 0 0 0 calc(50% - 50vw + var(--aimp-hero-sb, 0px) / 2);
