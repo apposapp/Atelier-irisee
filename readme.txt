@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.39.0
+Stable tag: 3.39.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.39.1 =
+* Home page blocks: they use the full width of the screen, also inside a Divi row (like the hero). "Meet the maker" without a picture keeps its text in a readable column. A background picture of the newsletter block fills its gold frame.
 
 = 3.39.0 =
 * Contact page: the shortcode [atelier_irisee_contact]. Contact cards (email with a copy button, phone with a WhatsApp link, the address with "Plan your route", the answer time, social media; from the footer settings), a contact form sent in the background (name, email, subject, order number — a list of their orders for logged-in customers —, message, privacy consent; spam stopped by a hidden field, a time check and a limit per visitor, no cookies), an email to the shop with Reply-To the customer and a copy to the customer, and the questions and answers below.
