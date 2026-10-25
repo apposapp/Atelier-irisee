@@ -1201,8 +1201,9 @@ class AIMP_Design {
 	}
 
 	/**
-	 * A colour: a hex value, or one of the site's brand colours as a link (var(--aimp-site-gold,#b38f4f)), which follows
-	 * later changes of that brand colour. Emails cannot use links: hex only.
+	 * A colour: a hex value, or one of Divi's global colours as a link (var(--gcid-primary-color,#fbefef)), which follows
+	 * later changes of that colour in Divi (the hex after the comma is used when Divi is off). Emails cannot use links:
+	 * hex only. Links to the brand colours of 3.48.0 (var(--aimp-site-gold,#b38f4f)) are still accepted.
 	 *
 	 * @param string $value  Value.
 	 * @param bool   $hex    Hex only.
@@ -1210,11 +1211,57 @@ class AIMP_Design {
 	 */
 	public static function clean_color( $value, $hex = false ) {
 		$value = trim( $value );
-		if ( ! $hex && preg_match( '/^var\(--aimp-site-(gold|gold-text|brown|success|error),\s?(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6})\)$/', $value, $m ) ) {
-			return 'var(--aimp-site-' . $m[1] . ',' . strtolower( $m[2] ) . ')';
+		if ( ! $hex && preg_match( '/^var\(--(gcid-[a-z0-9-]{1,60}|aimp-site-(?:gold|gold-text|brown|success|error)),\s?(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6})\)$/', $value, $m ) ) {
+			return 'var(--' . $m[1] . ',' . strtolower( $m[2] ) . ')';
 		}
 		$color = sanitize_hex_color( $value );
 		return $color ? $color : '';
+	}
+
+	/**
+	 * Divi's global colours (Theme Customizer and the builder's global colours): CSS name (Divi prints
+	 * --gcid-<name> on every page) => label and the colour now. The five standard ones first, then any own ones.
+	 *
+	 * @return array
+	 */
+	public static function divi_colors() {
+		$get    = function ( $option, $default ) {
+			$value = function_exists( 'et_get_option' ) ? sanitize_hex_color( (string) et_get_option( $option, '' ) ) : '';
+			return $value ? strtolower( $value ) : $default;
+		};
+		$colors = array(
+			'gcid-primary-color'   => array( __( 'Primary colour (Divi)', 'atelier-irisee-master-plugin' ), $get( 'accent_color', '#fbefef' ) ),
+			'gcid-secondary-color' => array( __( 'Secondary colour (Divi)', 'atelier-irisee-master-plugin' ), $get( 'secondary_accent_color', '#d9bcea' ) ),
+			'gcid-heading-color'   => array( __( 'Heading text colour (Divi)', 'atelier-irisee-master-plugin' ), $get( 'header_color', '#b38f4f' ) ),
+			'gcid-body-color'      => array( __( 'Body text colour (Divi)', 'atelier-irisee-master-plugin' ), $get( 'font_color', '#968b8e' ) ),
+			'gcid-link-color'      => array( __( 'Link colour (Divi)', 'atelier-irisee-master-plugin' ), $get( 'link_color', '#b38f4f' ) ),
+		);
+		// Own global colours: Divi 5, Divi 4, or the saved option itself.
+		$own = array();
+		if ( class_exists( '\ET\Builder\Packages\GlobalData\GlobalData' ) && method_exists( '\ET\Builder\Packages\GlobalData\GlobalData', 'get_global_colors' ) ) {
+			$own = \ET\Builder\Packages\GlobalData\GlobalData::get_global_colors();
+		} elseif ( function_exists( 'et_builder_get_all_global_colors' ) ) {
+			$own = et_builder_get_all_global_colors();
+		} elseif ( function_exists( 'et_get_option' ) ) {
+			$data = et_get_option( 'et_global_data', array() );
+			$own  = is_array( $data ) && isset( $data['global_colors'] ) ? $data['global_colors'] : array();
+		}
+		$number = 0;
+		foreach ( is_array( $own ) ? $own : array() as $id => $row ) {
+			$id = strtolower( (string) $id );
+			if ( ! is_array( $row ) || isset( $colors[ $id ] ) || ! preg_match( '/^gcid-[a-z0-9-]{1,55}$/', $id ) ) {
+				continue;
+			}
+			$off = ( isset( $row['active'] ) && 'yes' !== $row['active'] ) || ( isset( $row['status'] ) && 'active' !== $row['status'] );
+			$hex = isset( $row['color'] ) ? sanitize_hex_color( (string) $row['color'] ) : '';
+			if ( $off || ! $hex ) {
+				continue;
+			}
+			++$number;
+			$label         = isset( $row['label'] ) && '' !== trim( (string) $row['label'] ) ? (string) $row['label'] : sprintf( /* translators: %d: number */ __( 'Global colour %d (Divi)', 'atelier-irisee-master-plugin' ), $number );
+			$colors[ $id ] = array( wp_strip_all_tags( $label ), strtolower( $hex ) );
+		}
+		return $colors;
 	}
 
 	/**
@@ -3102,14 +3149,9 @@ class AIMP_Design {
 						'ownScope'    => __( 'An element you clicked: these settings count for this element on this page (header and footer: on every page).', 'atelier-irisee-master-plugin' ),
 						'pathTitle'   => __( 'Change instead:', 'atelier-irisee-master-plugin' ),
 						// The site's colours as one-click choices.
-						'color_gold'      => __( 'Gold (brand colour)', 'atelier-irisee-master-plugin' ),
-						'color_gold_text' => __( 'Gold for text (brand colour)', 'atelier-irisee-master-plugin' ),
-						'color_brown'     => __( 'Brown (brand colour)', 'atelier-irisee-master-plugin' ),
-						'color_success'   => __( 'Green (brand colour)', 'atelier-irisee-master-plugin' ),
-						'color_error'     => __( 'Red (brand colour)', 'atelier-irisee-master-plugin' ),
 						'color_white'     => __( 'White', 'atelier-irisee-master-plugin' ),
 						'color_black'     => __( 'Black', 'atelier-irisee-master-plugin' ),
-						'colorLinked'     => __( 'Linked to the brand colour: it changes along with it.', 'atelier-irisee-master-plugin' ),
+						'colorLinked'     => __( "Linked to Divi's global colour: it changes along with it.", 'atelier-irisee-master-plugin' ),
 						'resizeTablet'    => __( 'Tablets use the computer\'s position; their own size is set with the handles in the tablet view.', 'atelier-irisee-master-plugin' ),
 						'staleStudio'      => __( 'The plugin was updated since this Design studio was opened. Reload it before you change anything: until then nothing is saved.', 'atelier-irisee-master-plugin' ),
 						'reloadStudio'     => __( 'Reload the studio', 'atelier-irisee-master-plugin' ),
@@ -4704,6 +4746,8 @@ class AIMP_Design {
 			'siteCss'    => self::site_css( $draft ) . self::opts_css( $draft ),
 			'draftTexts' => (object) self::draft_texts(),
 			'liveTexts'  => (object) self::live_texts(),
+			// Divi's global colours, offered under every colour field.
+			'diviColors' => self::divi_colors(),
 			// Texts of the Atelier Irisee settings: the draft wording and what is published now.
 			'draftSettings' => (object) self::data()['draft_settings'],
 			'liveSettings'  => (object) array_combine(

@@ -2526,14 +2526,17 @@ return array(
 
 	// Design studio 3.48
 	'Black' => 'Zwart',
-	'Brown (brand colour)' => 'Bruin (huiskleur)',
-	'Gold (brand colour)' => 'Goud (huiskleur)',
-	'Gold for text (brand colour)' => 'Goud voor tekst (huiskleur)',
-	'Green (brand colour)' => 'Groen (huiskleur)',
-	'Linked to the brand colour: it changes along with it.' => 'Gekoppeld aan de huiskleur: verandert mee.',
-	'Red (brand colour)' => 'Rood (huiskleur)',
 	'Tablets use the computer\'s position; their own size is set with the handles in the tablet view.' => 'Tablets gebruiken de plaats van de computer; hun eigen grootte stel je in met de grepen in de tabletweergave.',
 	'Title: left / right' => 'Titel: links / rechts',
 	'Title: top / bottom' => 'Titel: boven / onder',
 	'White' => 'Wit',
+
+	// Design studio 3.48.2 (Divi colours)
+	'Primary colour (Divi)' => 'Primaire kleur (Divi)',
+	'Secondary colour (Divi)' => 'Secundaire kleur (Divi)',
+	'Heading text colour (Divi)' => 'Kleur van titels (Divi)',
+	'Body text colour (Divi)' => 'Kleur van tekst (Divi)',
+	'Link colour (Divi)' => 'Kleur van links (Divi)',
+	'Global colour %d (Divi)' => 'Globale kleur %d (Divi)',
+	'Linked to Divi\'s global colour: it changes along with it.' => 'Gekoppeld aan de globale kleur van Divi: verandert mee.',
 );

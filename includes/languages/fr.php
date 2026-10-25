@@ -2526,14 +2526,17 @@ return array(
 
 	// Design studio 3.48
 	'Black' => 'Noir',
-	'Brown (brand colour)' => 'Brun (couleur de la marque)',
-	'Gold (brand colour)' => 'Or (couleur de la marque)',
-	'Gold for text (brand colour)' => 'Or pour le texte (couleur de la marque)',
-	'Green (brand colour)' => 'Vert (couleur de la marque)',
-	'Linked to the brand colour: it changes along with it.' => 'Liée à la couleur de la marque : elle change avec elle.',
-	'Red (brand colour)' => 'Rouge (couleur de la marque)',
 	'Tablets use the computer\'s position; their own size is set with the handles in the tablet view.' => 'Les tablettes utilisent la position de l\'ordinateur ; leur propre taille se règle avec les poignées dans la vue tablette.',
 	'Title: left / right' => 'Titre : gauche / droite',
 	'Title: top / bottom' => 'Titre : haut / bas',
 	'White' => 'Blanc',
+
+	// Design studio 3.48.2 (Divi colours)
+	'Primary colour (Divi)' => 'Couleur principale (Divi)',
+	'Secondary colour (Divi)' => 'Couleur secondaire (Divi)',
+	'Heading text colour (Divi)' => 'Couleur des titres (Divi)',
+	'Body text colour (Divi)' => 'Couleur du texte (Divi)',
+	'Link colour (Divi)' => 'Couleur des liens (Divi)',
+	'Global colour %d (Divi)' => 'Couleur globale %d (Divi)',
+	'Linked to Divi\'s global colour: it changes along with it.' => 'Liée à la couleur globale de Divi : elle change avec elle.',
 );

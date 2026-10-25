@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.48.1
+Stable tag: 3.48.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.48.2 =
+* Design studio: the swatches under every colour field are now Divi's global colours (primary, secondary, heading text, body text and link colour from the Theme Customizer, plus any own global colours added in Divi), with white and black. A chosen Divi colour is linked, so it follows later changes of that colour in Divi. Email colours get the colour itself.
 
 = 3.48.1 =
 * Design studio: a dragged header title always stays fully inside the header. Its place is now measured in the room around it (0 % = against the left or top side, 100 % = against the right or bottom side), so a wide title can no longer be cut off at the edge.

@@ -2482,24 +2482,19 @@
 		}
 	}
 
-	/* ---------------- the site's colours as one-click choices ---------------- */
+	/* ---------------- Divi's global colours as one-click choices ---------------- */
 
-	// The brand colours (Design studio → Brand colours): key in that part, CSS name, standard.
-	var SITE_COLORS = [['gold', 'gold', '#b38f4f'], ['gold_text', 'gold-text', '#8a6a33'], ['brown', 'brown', '#613907'], ['success', 'success', '#2e6b3a'], ['error', 'error', '#a3352b']];
-	function siteColor(key, fallback) {
-		var row = draft['site-colors'] || {};
-		return row[key] && /^#[0-9a-f]{3,6}$/i.test(row[key]) ? row[key] : fallback;
-	}
-	// The colour a value shows: hex as it is, a link to a site colour as that colour now.
+	// Divi's global colours (Theme Customizer and the builder): CSS name => [label, colour now].
+	var DIVI_COLORS = cfg.diviColors || {};
+	// The colour a value shows: hex as it is, a link to a Divi colour as that colour now.
 	function colorHex(value) {
-		var m = /^var\(--aimp-site-([a-z-]+),\s?(#[0-9a-f]{3,6})\)$/i.exec(String(value || ''));
+		var m = /^var\(--([a-z0-9-]+),\s?(#[0-9a-f]{3,6})\)$/i.exec(String(value || ''));
 		if (!m) {
 			return /^#[0-9a-f]{6}$/i.test(value) ? value : '#ffffff';
 		}
-		var found = SITE_COLORS.filter(function (c) {
-			return c[1] === m[1];
-		})[0];
-		return found ? siteColor(found[0], m[2]) : m[2];
+		var hex = DIVI_COLORS[m[1]] ? DIVI_COLORS[m[1]][1] : m[2];
+		// The colour field only takes 6 digits.
+		return hex.length === 4 ? '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3] : hex;
 	}
 	function markSwatches(input, value) {
 		var box = input.closest('.aimp-ds-color');
@@ -2507,43 +2502,40 @@
 		if (!swatches || !swatches.classList.contains('aimp-ds-swatches')) {
 			return;
 		}
-		swatches.querySelectorAll('[data-swatch]').forEach(function (button) {
-			var c = SITE_COLORS.filter(function (s) {
-				return s[1] === button.getAttribute('data-swatch');
-			})[0];
-			if (c) {
-				button.style.background = siteColor(c[0], c[2]);
-			}
+		swatches.querySelectorAll('.aimp-ds-swatch').forEach(function (button) {
 			button.classList.toggle('is-current', button.getAttribute('data-value') === value || button.getAttribute('data-link') === value);
 		});
-		var linked = /^var\(--aimp-site-/.test(value);
+		var linked = /^var\(--/.test(value);
 		swatches.querySelector('.aimp-ds-swatch-note').hidden = !linked;
 	}
 	edit.querySelectorAll('.aimp-ds-color').forEach(function (rowEl) {
 		var input = rowEl.querySelector('input[type="color"]');
-		// Not for the brand colours themselves.
+		// Not for the plugin's own brand colours.
 		if (!input || rowEl.closest('[data-group="palette"]')) {
 			return;
 		}
 		var key = input.getAttribute('data-key');
-		// Emails cannot use the site's colour links: the colour itself.
+		// Emails cannot use Divi's colour links: the colour itself.
 		var hexOnly = key.indexOf('em_') === 0;
 		var swatches = document.createElement('div');
 		swatches.className = 'aimp-ds-swatches';
-		SITE_COLORS.concat([['white', '', '#ffffff'], ['black', '', '#000000']]).forEach(function (c) {
+		// [CSS name ('' = a plain colour), label, colour].
+		var choices = Object.keys(DIVI_COLORS).map(function (name) {
+			return [name, DIVI_COLORS[name][0], DIVI_COLORS[name][1]];
+		}).concat([['', t.color_white, '#ffffff'], ['', t.color_black, '#000000']]);
+		choices.forEach(function (c) {
 			var button = document.createElement('button');
 			button.type = 'button';
 			button.className = 'aimp-ds-swatch';
-			button.title = t['color_' + c[0]] || c[0];
+			button.title = c[1] + ' · ' + c[2];
 			button.setAttribute('aria-label', button.title);
-			button.style.background = c[1] ? siteColor(c[0], c[2]) : c[2];
-			if (c[1]) {
-				button.setAttribute('data-swatch', c[1]);
-				button.setAttribute('data-link', 'var(--aimp-site-' + c[1] + ',' + c[2] + ')');
+			button.style.background = c[2];
+			if (c[0]) {
+				button.setAttribute('data-link', 'var(--' + c[0] + ',' + c[2] + ')');
 			}
 			button.setAttribute('data-value', c[2]);
 			button.addEventListener('click', function () {
-				var value = c[1] && !hexOnly ? button.getAttribute('data-link') : (c[1] ? siteColor(c[0], c[2]) : c[2]);
+				var value = c[0] && !hexOnly ? button.getAttribute('data-link') : c[2];
 				change(key, value);
 				input.value = colorHex(value);
 				rowEl.classList.add('is-set');
