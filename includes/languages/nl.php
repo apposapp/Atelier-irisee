@@ -2515,4 +2515,12 @@ return array(
 	'The page as visitors see it now (the published look), in a new tab' => 'De pagina zoals bezoekers ze nu zien (het gepubliceerde uitzicht), in een nieuw tabblad',
 	'The page with your draft, as it will look after Publish, in a new tab' => 'De pagina met je concept, zoals ze eruit zal zien na Publiceren, in een nieuw tabblad',
 	'View page' => 'Pagina bekijken',
+
+	// Studio element names (3.46.1)
+	'Card' => 'Kaart',
+	'Clickable button' => 'Knop',
+	'Divi module' => 'Divi-module',
+	'Field' => 'Veld',
+	'Form' => 'Formulier',
+	'Grid of cards' => 'Raster met kaarten',
 );

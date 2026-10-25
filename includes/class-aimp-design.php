@@ -2412,6 +2412,9 @@ class AIMP_Design {
 		}
 		if ( null !== $get( 'page-header', 'ph_strength' ) && (int) $get( 'page-header', 'ph_strength' ) >= 0 ) {
 			$ph_vars .= '--ph-strength:' . ( (int) $get( 'page-header', 'ph_strength' ) / 100 ) . ';';
+		} elseif ( $get( 'page-header', 'ph_tint' ) ) {
+			// A colour chosen without a strength: the overlay shows (35 %), also over a picture with the title in it.
+			$ph_vars .= '--ph-strength:0.35;';
 		}
 		if ( $get( 'page-header', 'ph_color' ) ) {
 			$ph_vars .= '--ph-color:' . $get( 'page-header', 'ph_color' ) . ';';
@@ -2841,21 +2844,37 @@ class AIMP_Design {
 				// Parts of the page only ("Whole site" has nothing to click), with their names for the label under the mouse.
 				'elements' => array_filter( wp_list_pluck( self::elements(), 'selector' ) ),
 				'names'    => wp_list_pluck( self::elements(), 'label' ),
-				// Names for other elements.
-				'words'    => array(
-					'section'   => __( 'Section', 'atelier-irisee-master-plugin' ),
-					'row'       => __( 'Row', 'atelier-irisee-master-plugin' ),
-					'column'    => __( 'Column', 'atelier-irisee-master-plugin' ),
-					'title'     => __( 'Title', 'atelier-irisee-master-plugin' ),
-					'paragraph' => __( 'Paragraph', 'atelier-irisee-master-plugin' ),
-					'link'      => __( 'Link', 'atelier-irisee-master-plugin' ),
-					'button'    => __( 'Button', 'atelier-irisee-master-plugin' ),
-					'picture'   => __( 'Picture', 'atelier-irisee-master-plugin' ),
-					'item'      => __( 'List item', 'atelier-irisee-master-plugin' ),
-					'list'      => __( 'List', 'atelier-irisee-master-plugin' ),
-					'block'     => __( 'Block', 'atelier-irisee-master-plugin' ),
-				),
+				// Names for other elements, in the studio's language (the dashboard's), not the shop's.
+				'words'    => AIMP_I18n::with_language( AIMP_I18n::from_locale( get_user_locale() ), array( __CLASS__, 'element_words' ) ),
 			)
+		);
+	}
+
+	/**
+	 * Names of the kinds of elements that can be clicked in the preview ("Change instead").
+	 *
+	 * @return array
+	 */
+	public static function element_words() {
+		return array(
+			'section'   => __( 'Section', 'atelier-irisee-master-plugin' ),
+			'row'       => __( 'Row', 'atelier-irisee-master-plugin' ),
+			'column'    => __( 'Column', 'atelier-irisee-master-plugin' ),
+			'module'    => __( 'Divi module', 'atelier-irisee-master-plugin' ),
+			'title'     => __( 'Title', 'atelier-irisee-master-plugin' ),
+			'paragraph' => __( 'Paragraph', 'atelier-irisee-master-plugin' ),
+			'text'      => __( 'Text', 'atelier-irisee-master-plugin' ),
+			'link'      => __( 'Link', 'atelier-irisee-master-plugin' ),
+			// Not "Button": in the shop that is a sewing button.
+			'button'    => __( 'Clickable button', 'atelier-irisee-master-plugin' ),
+			'picture'   => __( 'Picture', 'atelier-irisee-master-plugin' ),
+			'item'      => __( 'List item', 'atelier-irisee-master-plugin' ),
+			'list'      => __( 'List', 'atelier-irisee-master-plugin' ),
+			'card'      => __( 'Card', 'atelier-irisee-master-plugin' ),
+			'grid'      => __( 'Grid of cards', 'atelier-irisee-master-plugin' ),
+			'form'      => __( 'Form', 'atelier-irisee-master-plugin' ),
+			'field'     => __( 'Field', 'atelier-irisee-master-plugin' ),
+			'block'     => __( 'Block', 'atelier-irisee-master-plugin' ),
 		);
 	}
 

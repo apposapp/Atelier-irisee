@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.46.0
+Stable tag: 3.46.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.46.1 =
+* Design studio: the All products and Haberdashery pages show their overview cards in the studio again (the preview counted as a filter and showed the product list instead), so the overview and the haberdashery kinds can be edited there.
+* Design studio: "View page" and "Preview draft" follow the chosen page at once; the "Change instead" names are clearer and in the studio's language (card, grid of cards, Divi module, "block · shop chips", …; no "Knoop" for a clickable button).
+* Page header: choosing an overlay colour shows the overlay (35 % unless a strength is set), also with the title in the picture.
 
 = 3.46.0 =
 * Design studio:

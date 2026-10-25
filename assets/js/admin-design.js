@@ -2531,7 +2531,18 @@
 		frame.src = u.toString();
 	}
 
+	// "View page" and "Preview draft" follow the chosen page at once (and again once it has loaded).
+	function setOpenLinks(url) {
+		try {
+			var visit = new URL(url, window.location.href);
+			visit.searchParams.delete(cfg.param);
+			q('.aimp-ds-open-page').href = visit.toString();
+			visit.searchParams.set(cfg.param, '1');
+			q('.aimp-ds-open-draft').href = visit.toString();
+		} catch (err) {}
+	}
 	pageSelect.addEventListener('change', function () {
+		setOpenLinks(pageSelect.value);
 		load(pageSelect.value);
 	});
 
@@ -2671,13 +2682,7 @@
 			if (frameUrl) {
 				showPageInList(frameUrl, String(e.data.title || '').split(/ [|–-] /)[0]);
 				// "View page" (without the preview marker) and "Preview draft" (with it) open the page in the preview.
-				try {
-					var visit = new URL(frameUrl);
-					visit.searchParams.delete(cfg.param);
-					q('.aimp-ds-open-page').href = visit.toString();
-					visit.searchParams.set(cfg.param, '1');
-					q('.aimp-ds-open-draft').href = visit.toString();
-				} catch (err) {}
+				setOpenLinks(frameUrl);
 			}
 			if (texts) {
 				renderTexts();

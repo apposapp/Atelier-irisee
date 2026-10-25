@@ -2515,4 +2515,12 @@ return array(
 	'The page as visitors see it now (the published look), in a new tab' => 'La page telle que les visiteurs la voient maintenant (l\'apparence publiée), dans un nouvel onglet',
 	'The page with your draft, as it will look after Publish, in a new tab' => 'La page avec votre brouillon, telle qu\'elle sera après Publier, dans un nouvel onglet',
 	'View page' => 'Voir la page',
+
+	// Studio element names (3.46.1)
+	'Card' => 'Carte',
+	'Clickable button' => 'Bouton',
+	'Divi module' => 'Module Divi',
+	'Field' => 'Champ',
+	'Form' => 'Formulaire',
+	'Grid of cards' => 'Grille de cartes',
 );

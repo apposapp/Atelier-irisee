@@ -392,7 +392,8 @@ class AIMP_Shop {
 	private static function has_filters_in_url( $ignore_all = false ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only reads which filters are in the address.
 		foreach ( array_keys( $_GET ) as $key ) {
-			if ( 0 === strpos( (string) $key, 'aimp_' ) && 'aimp_lang' !== $key && ! ( $ignore_all && 'aimp_all' === $key ) ) {
+			// Not the language, nor the Design studio's preview marker (aimp_design_preview): those filter nothing.
+			if ( 0 === strpos( (string) $key, 'aimp_' ) && 'aimp_lang' !== $key && 'aimp_design_preview' !== $key && ! ( $ignore_all && 'aimp_all' === $key ) ) {
 				return true;
 			}
 		}

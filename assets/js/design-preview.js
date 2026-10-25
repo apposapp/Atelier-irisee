@@ -362,8 +362,15 @@
 		var cls = ' ' + (typeof el.className === 'string' ? el.className : '') + ' ';
 		var tag = el.tagName.toLowerCase();
 		var kind = /\set_pb_section\s/.test(cls) ? words.section : /\set_pb_row\s/.test(cls) ? words.row : /\set_pb_column\s/.test(cls) ? words.column :
+			/\set_pb_module\s/.test(cls) ? words.module : /\saimp-card\s/.test(cls) ? words.card : /\saimp-grid\s/.test(cls) ? words.grid :
 			/^h[1-6]$/.test(tag) ? words.title : tag === 'p' ? words.paragraph : tag === 'a' ? words.link : tag === 'button' ? words.button :
-			tag === 'img' ? words.picture : tag === 'li' ? words.item : (tag === 'ul' || tag === 'ol') ? words.list : words.block;
+			tag === 'img' || tag === 'picture' ? words.picture : tag === 'li' ? words.item : (tag === 'ul' || tag === 'ol') ? words.list :
+			tag === 'form' ? words.form : /^(input|select|textarea)$/.test(tag) ? words.field : /^(span|small|strong|em|label)$/.test(tag) ? words.text : words.block;
+		// A plain block: what it is from its own class (e.g. "Block · shop chips"), so blocks can be told apart.
+		var own = kind === words.block ? (cls.match(/\saimp-([a-z][a-z0-9-]*)\s/) || [])[1] : '';
+		if (own) {
+			kind += ' · ' + own.replace(/-/g, ' ');
+		}
 		var text = tag === 'img' ? '' : norm(el.textContent);
 		return (kind || tag) + (text && text.length < 400 ? ' "' + (text.length > 28 ? text.slice(0, 28) + '…' : text) + '"' : '');
 	}
