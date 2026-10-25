@@ -2467,7 +2467,7 @@ class AIMP_Design {
 		if ( '' !== $ph_vars ) {
 			$css .= 'html body .aimp-page-header.aimp-page-header{' . $ph_vars . '}';
 		}
-		// The title's place, per page (dragged in the preview).
+		// The title's place, per page (dragged in the preview): % of the room around it, so it always stays inside.
 		$ph_row = isset( $styles['page-header'] ) && is_array( $styles['page-header'] ) ? $styles['page-header'] : array();
 		foreach ( $ph_row as $key => $value ) {
 			if ( ! preg_match( '/^ph_(\d+|product|other)_tx$/', $key, $m ) ) {
@@ -2475,13 +2475,13 @@ class AIMP_Design {
 			}
 			$ty    = isset( $ph_row[ 'ph_' . $m[1] . '_ty' ] ) ? (int) $ph_row[ 'ph_' . $m[1] . '_ty' ] : 50;
 			$scope = ctype_digit( $m[1] ) ? 'body.page-id-' . $m[1] : ( 'product' === $m[1] ? 'body.single-product' : 'body:not(.page):not(.single-product)' );
-			$css  .= 'html ' . $scope . ' .aimp-page-header.is-text .aimp-page-header-text{position:absolute!important;left:' . (int) $value . '%!important;top:' . $ty . '%!important;transform:translate(-50%,-50%)!important;margin:0!important;max-width:90%!important}';
+			$css  .= 'html ' . $scope . ' .aimp-page-header.is-text .aimp-page-header-text{position:absolute!important;left:' . (int) $value . '%!important;top:' . $ty . '%!important;transform:translate(-' . (int) $value . '%,-' . $ty . '%)!important;margin:0!important;max-width:90%!important}';
 		}
 		foreach ( $ph_row as $key => $value ) {
 			// Only "up / down" chosen: the left / right stays in the middle.
 			if ( preg_match( '/^ph_(\d+|product|other)_ty$/', $key, $m ) && ! isset( $ph_row[ 'ph_' . $m[1] . '_tx' ] ) ) {
 				$scope = ctype_digit( $m[1] ) ? 'body.page-id-' . $m[1] : ( 'product' === $m[1] ? 'body.single-product' : 'body:not(.page):not(.single-product)' );
-				$css  .= 'html ' . $scope . ' .aimp-page-header.is-text .aimp-page-header-text{position:absolute!important;left:50%!important;top:' . (int) $value . '%!important;transform:translate(-50%,-50%)!important;margin:0!important;max-width:90%!important}';
+				$css  .= 'html ' . $scope . ' .aimp-page-header.is-text .aimp-page-header-text{position:absolute!important;left:50%!important;top:' . (int) $value . '%!important;transform:translate(-50%,-' . (int) $value . '%)!important;margin:0!important;max-width:90%!important}';
 			}
 		}
 		$ph_dir = (string) $get( 'page-header', 'ph_tint_dir' );

@@ -532,17 +532,20 @@
 		if (text) {
 			var hr = text.closest('.aimp-page-header').getBoundingClientRect();
 			var tr = text.getBoundingClientRect();
-			drag.title = { el: text, header: hr, cx: tr.left + tr.width / 2, cy: tr.top + tr.height / 2 };
+			drag.title = { el: text, header: hr, l: tr.left, t: tr.top, w: tr.width, h: tr.height };
 		}
 		e.preventDefault();
 	}, true);
-	// Where the title's centre is, in % of its header (5–95 %, so it stays inside).
+	// The title's place in % of the room it has in its header: 0 = against the left (top) side, 100 = against the
+	// right (bottom) side. So the whole title always stays inside the header, however wide it is.
 	function titlePlace(dx, dy) {
 		var t = drag.title;
-		var tx = Math.max(5, Math.min(95, (t.cx + dx - t.header.left) / t.header.width * 100));
-		var ty = Math.max(5, Math.min(95, (t.cy + dy - t.header.top) / t.header.height * 100));
+		var roomX = t.header.width - t.w;
+		var roomY = t.header.height - t.h;
+		var tx = roomX > 0 ? Math.max(0, Math.min(100, (t.l + dx - t.header.left) / roomX * 100)) : 50;
+		var ty = roomY > 0 ? Math.max(0, Math.min(100, (t.t + dy - t.header.top) / roomY * 100)) : 50;
 		// Shown at once on the page; the studio's CSS takes over after the drag.
-		t.el.style.cssText = 'position:absolute;left:' + tx + '%;top:' + ty + '%;transform:translate(-50%,-50%);margin:0;max-width:90%';
+		t.el.style.cssText = 'position:absolute;left:' + tx + '%;top:' + ty + '%;transform:translate(-' + tx + '%,-' + ty + '%);margin:0;max-width:90%';
 		return { tx: tx, ty: ty };
 	}
 	document.addEventListener('mousemove', function (e) {
