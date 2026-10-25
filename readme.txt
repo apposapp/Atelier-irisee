@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.47.0
+Stable tag: 3.48.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.48.0 =
+* Design studio: drag the title of a page header ("picture + title") to any place in the header; its place is kept per page (also as "Title: left / right" and "Title: top / bottom" in the page's block).
+* Design studio: every part can now be moved by dragging (the hero, page header, contact, cart and account pages too), up to 1000 px.
+* Design studio: resize the chosen part with 8 handles, like a picture in Word: a corner keeps the proportions (Shift: free), a side changes only the width or height. A new "Width" per screen next to "Height".
+* Design studio: the brand colours (gold, gold for text, brown, green, red) plus white and black as one-click swatches under every colour field; a brand colour is linked, so it follows later changes of that colour.
 
 = 3.47.0 =
 * Haberdashery: no "All haberdashery" any more in the side menu and on the Haberdashery page; all categories are tiles of the same size (4 per row, 3 on tablets, 2 on phones). The address ?aimp_all=1 and [atelier_irisee_shop type="haberdashery" list="all"] still list all haberdashery.

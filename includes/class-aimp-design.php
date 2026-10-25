@@ -233,7 +233,7 @@ class AIMP_Design {
 		}
 		// The page header: the picture or video per page, the shared look, spacing.
 		if ( isset( $elements['page-header'] ) ) {
-			$elements['page-header']['controls'] = array( 'ph_page', 'ph_look', 'ph_style', 'space', 'hide', 'anim' );
+			$elements['page-header']['controls'] = array( 'ph_page', 'ph_pos', 'ph_look', 'ph_style', 'space', 'hide', 'anim' );
 		}
 		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
 		if ( isset( $elements['product-page'] ) ) {
@@ -258,10 +258,12 @@ class AIMP_Design {
 				$elements[ $id ]['controls'] = array( $group, 'space', 'colors', 'radius' );
 			}
 		}
-		// Size (zoom and height): every part of a page.
+		// Size (zoom, width, height) and position (dragging in the preview): every part of a page.
 		foreach ( $elements as $id => $row ) {
-			if ( ! in_array( 'size', $row['controls'], true ) ) {
-				$elements[ $id ]['controls'][] = 'size';
+			foreach ( array( 'size', 'move' ) as $group ) {
+				if ( ! in_array( $group, $elements[ $id ]['controls'], true ) ) {
+					$elements[ $id ]['controls'][] = $group;
+				}
 			}
 		}
 		// Picture position (move and zoom): every part with pictures, also those with pictures of their own.
@@ -303,10 +305,10 @@ class AIMP_Design {
 	public static function groups() {
 		return array(
 			'move'       => array(
-				'x'  => array( -200, 200, 0 ),
-				'y'  => array( -200, 200, 0 ),
-				'px' => array( -200, 200, 0 ),
-				'py' => array( -200, 200, 0 ),
+				'x'  => array( -1000, 1000, 0 ),
+				'y'  => array( -1000, 1000, 0 ),
+				'px' => array( -1000, 1000, 0 ),
+				'py' => array( -1000, 1000, 0 ),
 			),
 			'size'       => array(
 				'zoom'  => array( 40, 250, 100 ),
@@ -315,6 +317,10 @@ class AIMP_Design {
 				'hgt'   => array( 20, 1500, -1 ),
 				'thgt'  => array( 20, 1500, -1 ),
 				'phgt'  => array( 20, 1500, -1 ),
+				// Width in px (the handles in the preview set it, like a picture in Word).
+				'wdt'   => array( 20, 2400, -1 ),
+				'twdt'  => array( 20, 2400, -1 ),
+				'pwdt'  => array( 20, 2400, -1 ),
 			),
 			'space'      => self::space_fields(),
 			'hide'       => array(
@@ -736,6 +742,8 @@ class AIMP_Design {
 			'ab_chapters' => self::about_chapter_fields(),
 			// The page header: per page (ph_{page}_…) and the look of all of them.
 			'ph_page'     => self::page_header_fields(),
+			// Where the title stands in the header, per page (dragged in the preview; CSS only, no reload).
+			'ph_pos'      => self::page_header_positions(),
 			'ph_look'     => array(
 				'ph_where'      => array( 'select', array( '', 'manual' ) ),
 				'ph_noproducts' => 'bool',
@@ -1074,6 +1082,20 @@ class AIMP_Design {
 	}
 
 	/**
+	 * The title's place in the page header per page (and for product pages and the other pages): % of the header.
+	 *
+	 * @return array
+	 */
+	private static function page_header_positions() {
+		$fields = array();
+		foreach ( array_merge( array_keys( class_exists( 'AIMP_Page_Header' ) ? AIMP_Page_Header::pages() : array() ), array( 'product', 'other' ) ) as $id ) {
+			$fields[ 'ph_' . $id . '_tx' ] = array( 0, 100, -1 );
+			$fields[ 'ph_' . $id . '_ty' ] = array( 0, 100, -1 );
+		}
+		return $fields;
+	}
+
+	/**
 	 * The brands with products: term id => name (a picture per brand in the Brands block).
 	 *
 	 * @return array
@@ -1176,6 +1198,23 @@ class AIMP_Design {
 			$styles = self::current_styles();
 		}
 		return isset( $styles[ $part ][ $key ] ) ? $styles[ $part ][ $key ] : $default;
+	}
+
+	/**
+	 * A colour: a hex value, or one of the site's brand colours as a link (var(--aimp-site-gold,#b38f4f)), which follows
+	 * later changes of that brand colour. Emails cannot use links: hex only.
+	 *
+	 * @param string $value  Value.
+	 * @param bool   $hex    Hex only.
+	 * @return string '' when not valid.
+	 */
+	public static function clean_color( $value, $hex = false ) {
+		$value = trim( $value );
+		if ( ! $hex && preg_match( '/^var\(--aimp-site-(gold|gold-text|brown|success|error),\s?(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6})\)$/', $value, $m ) ) {
+			return 'var(--aimp-site-' . $m[1] . ',' . strtolower( $m[2] ) . ')';
+		}
+		$color = sanitize_hex_color( $value );
+		return $color ? $color : '';
 	}
 
 	/**
@@ -1307,8 +1346,8 @@ class AIMP_Design {
 						$row[ $key ] = 1;
 					}
 				} elseif ( 'color' === $rule ) {
-					$color = sanitize_hex_color( (string) $value );
-					if ( $color ) {
+					$color = self::clean_color( (string) $value, 0 === strpos( $key, 'em_' ) );
+					if ( '' !== $color ) {
 						$row[ $key ] = $color;
 					}
 				} elseif ( 'image' === $rule ) {
@@ -1958,6 +1997,9 @@ class AIMP_Design {
 				if ( isset( $row[ $prefix . 'hgt' ] ) ) {
 					$css .= 'height:' . (int) $row[ $prefix . 'hgt' ] . 'px!important;min-height:0!important;';
 				}
+				if ( isset( $row[ $prefix . 'wdt' ] ) ) {
+					$css .= 'width:' . (int) $row[ $prefix . 'wdt' ] . 'px!important;max-width:100%!important;';
+				}
 				$sides = array(
 					'mt'   => 'margin-top',
 					'mr'   => 'margin-right',
@@ -2424,6 +2466,23 @@ class AIMP_Design {
 		}
 		if ( '' !== $ph_vars ) {
 			$css .= 'html body .aimp-page-header.aimp-page-header{' . $ph_vars . '}';
+		}
+		// The title's place, per page (dragged in the preview).
+		$ph_row = isset( $styles['page-header'] ) && is_array( $styles['page-header'] ) ? $styles['page-header'] : array();
+		foreach ( $ph_row as $key => $value ) {
+			if ( ! preg_match( '/^ph_(\d+|product|other)_tx$/', $key, $m ) ) {
+				continue;
+			}
+			$ty    = isset( $ph_row[ 'ph_' . $m[1] . '_ty' ] ) ? (int) $ph_row[ 'ph_' . $m[1] . '_ty' ] : 50;
+			$scope = ctype_digit( $m[1] ) ? 'body.page-id-' . $m[1] : ( 'product' === $m[1] ? 'body.single-product' : 'body:not(.page):not(.single-product)' );
+			$css  .= 'html ' . $scope . ' .aimp-page-header.is-text .aimp-page-header-text{position:absolute!important;left:' . (int) $value . '%!important;top:' . $ty . '%!important;transform:translate(-50%,-50%)!important;margin:0!important;max-width:90%!important}';
+		}
+		foreach ( $ph_row as $key => $value ) {
+			// Only "up / down" chosen: the left / right stays in the middle.
+			if ( preg_match( '/^ph_(\d+|product|other)_ty$/', $key, $m ) && ! isset( $ph_row[ 'ph_' . $m[1] . '_tx' ] ) ) {
+				$scope = ctype_digit( $m[1] ) ? 'body.page-id-' . $m[1] : ( 'product' === $m[1] ? 'body.single-product' : 'body:not(.page):not(.single-product)' );
+				$css  .= 'html ' . $scope . ' .aimp-page-header.is-text .aimp-page-header-text{position:absolute!important;left:50%!important;top:' . (int) $value . '%!important;transform:translate(-50%,-50%)!important;margin:0!important;max-width:90%!important}';
+			}
 		}
 		$ph_dir = (string) $get( 'page-header', 'ph_tint_dir' );
 		if ( 'bottom' === $ph_dir ) {
@@ -3042,6 +3101,16 @@ class AIMP_Design {
 						'ownParts'    => __( 'Your own picks', 'atelier-irisee-master-plugin' ),
 						'ownScope'    => __( 'An element you clicked: these settings count for this element on this page (header and footer: on every page).', 'atelier-irisee-master-plugin' ),
 						'pathTitle'   => __( 'Change instead:', 'atelier-irisee-master-plugin' ),
+						// The site's colours as one-click choices.
+						'color_gold'      => __( 'Gold (brand colour)', 'atelier-irisee-master-plugin' ),
+						'color_gold_text' => __( 'Gold for text (brand colour)', 'atelier-irisee-master-plugin' ),
+						'color_brown'     => __( 'Brown (brand colour)', 'atelier-irisee-master-plugin' ),
+						'color_success'   => __( 'Green (brand colour)', 'atelier-irisee-master-plugin' ),
+						'color_error'     => __( 'Red (brand colour)', 'atelier-irisee-master-plugin' ),
+						'color_white'     => __( 'White', 'atelier-irisee-master-plugin' ),
+						'color_black'     => __( 'Black', 'atelier-irisee-master-plugin' ),
+						'colorLinked'     => __( 'Linked to the brand colour: it changes along with it.', 'atelier-irisee-master-plugin' ),
+						'resizeTablet'    => __( 'Tablets use the computer\'s position; their own size is set with the handles in the tablet view.', 'atelier-irisee-master-plugin' ),
 						'staleStudio'      => __( 'The plugin was updated since this Design studio was opened. Reload it before you change anything: until then nothing is saved.', 'atelier-irisee-master-plugin' ),
 						'reloadStudio'     => __( 'Reload the studio', 'atelier-irisee-master-plugin' ),
 						// Translating, back to standard, finding settings, layers.
@@ -3237,21 +3306,24 @@ class AIMP_Design {
 		$group( 'move', __( 'Position', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'Tip: drag the part in the preview, or use the arrow keys (Shift: 10 px at a time). The preview shows where it was and how far it moved.', 'atelier-irisee-master-plugin' ) . '</p>';
 		$sub( $computer );
-		self::number( 'x', __( 'Left / right', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
-		self::number( 'y', __( 'Up / down', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
+		self::number( 'x', __( 'Left / right', 'atelier-irisee-master-plugin' ), -1000, 1000, 'px' );
+		self::number( 'y', __( 'Up / down', 'atelier-irisee-master-plugin' ), -1000, 1000, 'px' );
 		$sub( $phone );
-		self::number( 'px', __( 'Left / right', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
-		self::number( 'py', __( 'Up / down', 'atelier-irisee-master-plugin' ), -200, 200, 'px' );
+		self::number( 'px', __( 'Left / right', 'atelier-irisee-master-plugin' ), -1000, 1000, 'px' );
+		self::number( 'py', __( 'Up / down', 'atelier-irisee-master-plugin' ), -1000, 1000, 'px' );
 		echo '</fieldset>';
 
 		$group( 'size', __( 'Size', 'atelier-irisee-master-plugin' ) );
 		$sub( $computer );
 		self::number( 'zoom', __( 'Zoom', 'atelier-irisee-master-plugin' ), 40, 250, '%' );
+		self::number( 'wdt', __( 'Width', 'atelier-irisee-master-plugin' ), 20, 2400, 'px' );
 		self::number( 'hgt', __( 'Height', 'atelier-irisee-master-plugin' ), 20, 1500, 'px' );
 		echo '<p class="aimp-ds-sub" data-device-sub="tablet">' . esc_html__( 'Tablet', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::number( 'twdt', __( 'Width', 'atelier-irisee-master-plugin' ), 20, 2400, 'px' );
 		self::number( 'thgt', __( 'Height', 'atelier-irisee-master-plugin' ), 20, 1500, 'px' );
 		$sub( $phone );
 		self::number( 'pzoom', __( 'Zoom', 'atelier-irisee-master-plugin' ), 40, 250, '%' );
+		self::number( 'pwdt', __( 'Width', 'atelier-irisee-master-plugin' ), 20, 2400, 'px' );
 		self::number( 'phgt', __( 'Height', 'atelier-irisee-master-plugin' ), 20, 1500, 'px' );
 		echo '<p class="description">' . esc_html__( 'Empty height = the part\'s own height. A height smaller than the content can cut it off; pictures and headers fill the height you choose.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
@@ -4364,6 +4436,9 @@ class AIMP_Design {
 				$field( $p . 'title', __( 'Title (empty = the page title)', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
 			}
 			$field( $p . 'sub', __( 'Line under the title', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+			// The title's place (drag the title in the preview; empty = in the middle). Not with the title in the picture.
+			self::number( $p . 'tx', __( 'Title: left / right', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+			self::number( $p . 'ty', __( 'Title: top / bottom', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
 			echo '</div>';
 		}
 		echo '</fieldset>';

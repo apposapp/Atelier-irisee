@@ -1391,3 +1391,39 @@ body.aimp-ds-screen .aimp-ds {
 	font-weight: 600;
 	transform: translateX(-50%);
 }
+
+/* The site's colours under every colour field (a link to a brand colour follows it when it changes). */
+.aimp-ds-swatches {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 5px;
+	margin: -2px 0 8px 134px;
+}
+
+.aimp-ds-swatch {
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border: 1px solid rgba(0, 0, 0, 0.25);
+	border-radius: 50%;
+	cursor: pointer;
+}
+
+.aimp-ds-swatch:hover,
+.aimp-ds-swatch:focus-visible {
+	transform: scale(1.15);
+}
+
+.aimp-ds-swatch.is-current {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px #8a6a33;
+}
+
+.aimp-ds-swatch-note {
+	color: #8a6a33;
+	font-size: 11px;
+}
+
+.aimp-ds-edit.is-searching .is-search-off + .aimp-ds-swatches {
+	display: none;
+}

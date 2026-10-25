@@ -302,6 +302,9 @@
 				if (row[p + 'hgt'] !== undefined) {
 					out += 'height:' + parseInt(row[p + 'hgt'], 10) + 'px!important;min-height:0!important;';
 				}
+				if (row[p + 'wdt'] !== undefined) {
+					out += 'width:' + parseInt(row[p + 'wdt'], 10) + 'px!important;max-width:100%!important;';
+				}
 				SIDES.forEach(function (pair) {
 					if (row[p + pair[0]] !== undefined) {
 						out += pair[1] + ':' + parseInt(row[p + pair[0]], 10) + 'px!important;';
@@ -670,8 +673,9 @@
 			if (input.type === 'checkbox') {
 				input.checked = !!row[key];
 			} else if (input.type === 'color') {
-				input.value = row[key] || '#ffffff';
+				input.value = row[key] ? colorHex(row[key]) : '#ffffff';
 				input.closest('.aimp-ds-color').classList.toggle('is-set', !!row[key]);
+				markSwatches(input, row[key] || '');
 			} else if (input.tagName === 'SELECT' || input.tagName === 'TEXTAREA' || input.type === 'text' || input.type === 'url') {
 				input.value = row[key] !== undefined ? row[key] : '';
 			} else {
@@ -877,16 +881,40 @@
 	function moveBy(dx, dy, base) {
 		var p = device === 'phone' ? 'p' : '';
 		var clamp = function (n) {
-			return Math.max(-200, Math.min(200, Math.round(n)));
+			return Math.max(-1000, Math.min(1000, Math.round(n)));
 		};
 		var row = draft[current] || {};
 		var from = base || { x: parseInt(row[p + 'x'] || 0, 10), y: parseInt(row[p + 'y'] || 0, 10) };
 		change(p + 'x', clamp(from.x + dx));
 		change(p + 'y', clamp(from.y + dy));
 	}
+	// A setting of another part than the chosen one (e.g. the page header while its title is chosen).
+	function changeOn(part, key, value) {
+		var was = current;
+		current = part;
+		change(key, value);
+		current = was;
+		markGroups();
+	}
 	function onDrag(data) {
+		// The title of a page header: dragged to a place in the header (% of it), kept per page.
+		if (data.tx !== undefined && data.ty !== undefined) {
+			if (data.phase !== 'start') {
+				lastSnap = Date.now();
+			}
+			var base = 'ph_' + (framePostId || 'other') + '_';
+			changeOn('page-header', base + 'tx', Math.max(0, Math.min(100, Math.round(data.tx))));
+			changeOn('page-header', base + 'ty', Math.max(0, Math.min(100, Math.round(data.ty))));
+			if (data.phase === 'end') {
+				showEdit();
+			}
+			return;
+		}
 		if (!canMove()) {
 			return;
+		}
+		if (device === 'tablet' && data.phase === 'start') {
+			showStatus(t.resizeTablet);
 		}
 		var p = device === 'phone' ? 'p' : '';
 		var row = draft[current] || {};
@@ -899,6 +927,25 @@
 		moveBy(data.dx || 0, data.dy || 0, dragBase);
 		if (data.phase === 'end') {
 			dragBase = null;
+			showEdit();
+		}
+	}
+	function onResize(data) {
+		if (!current || !cfg.elements[current] || !cfg.elements[current].selector) {
+			return;
+		}
+		var p = device === 'phone' ? 'p' : (device === 'tablet' ? 't' : '');
+		if (data.phase !== 'start') {
+			// One Undo step for the whole drag.
+			lastSnap = Date.now();
+		}
+		if (data.w !== undefined && data.w !== null) {
+			change(p + 'wdt', Math.max(20, Math.min(2400, Math.round(data.w))));
+		}
+		if (data.h !== undefined && data.h !== null) {
+			change(p + 'hgt', Math.max(20, Math.min(1500, Math.round(data.h))));
+		}
+		if (data.phase === 'end') {
 			showEdit();
 		}
 	}
@@ -2435,6 +2482,83 @@
 		}
 	}
 
+	/* ---------------- the site's colours as one-click choices ---------------- */
+
+	// The brand colours (Design studio → Brand colours): key in that part, CSS name, standard.
+	var SITE_COLORS = [['gold', 'gold', '#b38f4f'], ['gold_text', 'gold-text', '#8a6a33'], ['brown', 'brown', '#613907'], ['success', 'success', '#2e6b3a'], ['error', 'error', '#a3352b']];
+	function siteColor(key, fallback) {
+		var row = draft['site-colors'] || {};
+		return row[key] && /^#[0-9a-f]{3,6}$/i.test(row[key]) ? row[key] : fallback;
+	}
+	// The colour a value shows: hex as it is, a link to a site colour as that colour now.
+	function colorHex(value) {
+		var m = /^var\(--aimp-site-([a-z-]+),\s?(#[0-9a-f]{3,6})\)$/i.exec(String(value || ''));
+		if (!m) {
+			return /^#[0-9a-f]{6}$/i.test(value) ? value : '#ffffff';
+		}
+		var found = SITE_COLORS.filter(function (c) {
+			return c[1] === m[1];
+		})[0];
+		return found ? siteColor(found[0], m[2]) : m[2];
+	}
+	function markSwatches(input, value) {
+		var box = input.closest('.aimp-ds-color');
+		var swatches = box ? box.nextElementSibling : null;
+		if (!swatches || !swatches.classList.contains('aimp-ds-swatches')) {
+			return;
+		}
+		swatches.querySelectorAll('[data-swatch]').forEach(function (button) {
+			var c = SITE_COLORS.filter(function (s) {
+				return s[1] === button.getAttribute('data-swatch');
+			})[0];
+			if (c) {
+				button.style.background = siteColor(c[0], c[2]);
+			}
+			button.classList.toggle('is-current', button.getAttribute('data-value') === value || button.getAttribute('data-link') === value);
+		});
+		var linked = /^var\(--aimp-site-/.test(value);
+		swatches.querySelector('.aimp-ds-swatch-note').hidden = !linked;
+	}
+	edit.querySelectorAll('.aimp-ds-color').forEach(function (rowEl) {
+		var input = rowEl.querySelector('input[type="color"]');
+		// Not for the brand colours themselves.
+		if (!input || rowEl.closest('[data-group="palette"]')) {
+			return;
+		}
+		var key = input.getAttribute('data-key');
+		// Emails cannot use the site's colour links: the colour itself.
+		var hexOnly = key.indexOf('em_') === 0;
+		var swatches = document.createElement('div');
+		swatches.className = 'aimp-ds-swatches';
+		SITE_COLORS.concat([['white', '', '#ffffff'], ['black', '', '#000000']]).forEach(function (c) {
+			var button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'aimp-ds-swatch';
+			button.title = t['color_' + c[0]] || c[0];
+			button.setAttribute('aria-label', button.title);
+			button.style.background = c[1] ? siteColor(c[0], c[2]) : c[2];
+			if (c[1]) {
+				button.setAttribute('data-swatch', c[1]);
+				button.setAttribute('data-link', 'var(--aimp-site-' + c[1] + ',' + c[2] + ')');
+			}
+			button.setAttribute('data-value', c[2]);
+			button.addEventListener('click', function () {
+				var value = c[1] && !hexOnly ? button.getAttribute('data-link') : (c[1] ? siteColor(c[0], c[2]) : c[2]);
+				change(key, value);
+				input.value = colorHex(value);
+				rowEl.classList.add('is-set');
+				markSwatches(input, value);
+			});
+			swatches.appendChild(button);
+		});
+		var note = document.createElement('span');
+		note.className = 'aimp-ds-swatch-note';
+		note.textContent = t.colorLinked;
+		note.hidden = true;
+		swatches.appendChild(note);
+		rowEl.insertAdjacentElement('afterend', swatches);
+	});
+
 	// The tab and open block per part, kept in this browser for the next time.
 	var OPEN_KEY = 'aimp-ds-open';
 	function openMemory() {
@@ -2658,6 +2782,10 @@
 		}
 		if (e.data.type === 'aimp-design-space') {
 			onSpaceDrag(e.data);
+			return;
+		}
+		if (e.data.type === 'aimp-design-resize') {
+			onResize(e.data);
 			return;
 		}
 		if (e.data.type === 'aimp-design-key') {

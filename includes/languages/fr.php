@@ -2523,4 +2523,17 @@ return array(
 	// Haberdashery overview (3.47)
 	'Extra categories on the Haberdashery page' => 'Catégories supplémentaires sur la page Mercerie',
 	'Each category ticked here gets a tile on the Haberdashery page (and in [atelier_irisee_haberdashery]), after the haberdashery kinds, and its products are listed on that page. The tile\'s picture is the category\'s own picture (Products → Categories), else a picture of one of its products. The kinds\' own categories are on the page already.' => 'Chaque catégorie cochée ici reçoit une tuile sur la page Mercerie (et dans [atelier_irisee_haberdashery]), après les types de mercerie, et ses produits sont listés sur cette page. La photo de la tuile est la photo de la catégorie (Produits → Catégories), sinon la photo d\'un de ses produits. Les catégories propres aux types sont déjà sur la page.',
+
+	// Design studio 3.48
+	'Black' => 'Noir',
+	'Brown (brand colour)' => 'Brun (couleur de la marque)',
+	'Gold (brand colour)' => 'Or (couleur de la marque)',
+	'Gold for text (brand colour)' => 'Or pour le texte (couleur de la marque)',
+	'Green (brand colour)' => 'Vert (couleur de la marque)',
+	'Linked to the brand colour: it changes along with it.' => 'Liée à la couleur de la marque : elle change avec elle.',
+	'Red (brand colour)' => 'Rouge (couleur de la marque)',
+	'Tablets use the computer\'s position; their own size is set with the handles in the tablet view.' => 'Les tablettes utilisent la position de l\'ordinateur ; leur propre taille se règle avec les poignées dans la vue tablette.',
+	'Title: left / right' => 'Titre : gauche / droite',
+	'Title: top / bottom' => 'Titre : haut / bas',
+	'White' => 'Blanc',
 );

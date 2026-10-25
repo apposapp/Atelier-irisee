@@ -527,8 +527,24 @@
 			return;
 		}
 		drag = { x: e.clientX, y: e.clientY, started: false };
+		// The title of a page header (with the title over the picture): dragged to a place in the header.
+		var text = el.closest('.aimp-page-header.is-text .aimp-page-header-text') || (el.matches('.aimp-page-header.is-text') ? el.querySelector('.aimp-page-header-text') : null);
+		if (text) {
+			var hr = text.closest('.aimp-page-header').getBoundingClientRect();
+			var tr = text.getBoundingClientRect();
+			drag.title = { el: text, header: hr, cx: tr.left + tr.width / 2, cy: tr.top + tr.height / 2 };
+		}
 		e.preventDefault();
 	}, true);
+	// Where the title's centre is, in % of its header (5–95 %, so it stays inside).
+	function titlePlace(dx, dy) {
+		var t = drag.title;
+		var tx = Math.max(5, Math.min(95, (t.cx + dx - t.header.left) / t.header.width * 100));
+		var ty = Math.max(5, Math.min(95, (t.cy + dy - t.header.top) / t.header.height * 100));
+		// Shown at once on the page; the studio's CSS takes over after the drag.
+		t.el.style.cssText = 'position:absolute;left:' + tx + '%;top:' + ty + '%;transform:translate(-50%,-50%);margin:0;max-width:90%';
+		return { tx: tx, ty: ty };
+	}
 	document.addEventListener('mousemove', function (e) {
 		if (!drag) {
 			return;
@@ -538,6 +554,12 @@
 		if (!drag.started && Math.abs(dx) + Math.abs(dy) < 4) {
 			return;
 		}
+		if (drag.title) {
+			var place = titlePlace(dx, dy);
+			send({ type: 'aimp-design-drag', phase: drag.started ? 'move' : 'start', tx: place.tx, ty: place.ty });
+			drag.started = true;
+			return;
+		}
 		if (!drag.started) {
 			drag.started = true;
 			send({ type: 'aimp-design-drag', phase: 'start', dx: 0, dy: 0 });
@@ -545,13 +567,135 @@
 		send({ type: 'aimp-design-drag', phase: 'move', dx: dx, dy: dy });
 	}, true);
 	document.addEventListener('mouseup', function (e) {
-		if (drag && drag.started) {
+		if (drag && drag.started && drag.title) {
+			var end = titlePlace(e.clientX - drag.x, e.clientY - drag.y);
+			send({ type: 'aimp-design-drag', phase: 'end', tx: end.tx, ty: end.ty });
+			// The studio's CSS places it from now on (a moment later): the inline place goes then.
+			var titleEl = drag.title.el;
+			window.setTimeout(function () {
+				titleEl.style.cssText = '';
+			}, 1500);
+			dragged = true;
+		} else if (drag && drag.started) {
 			send({ type: 'aimp-design-drag', phase: 'end', dx: e.clientX - drag.x, dy: e.clientY - drag.y });
 			// The click that ends a drag does not select something else.
 			dragged = true;
 		}
 		drag = null;
 	}, true);
+	/*
+	 * Resizing like a picture in Word: 8 handles around the chosen part. A corner keeps the proportions (with Shift:
+	 * free), a side changes only the width or the height. The studio keeps the new size for the screen shown.
+	 */
+	var handles = document.createElement('div');
+	handles.setAttribute('data-aimp-ds-layer', '');
+	handles.setAttribute('aria-hidden', 'true');
+	handles.style.cssText = 'position:fixed;inset:0;z-index:2147483645;pointer-events:none;display:none';
+	(document.body || document.documentElement).appendChild(handles);
+	var CURSORS = { nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize' };
+	Object.keys(CURSORS).forEach(function (dir) {
+		var h = document.createElement('div');
+		h.setAttribute('data-dir', dir);
+		h.style.cssText = 'position:fixed;width:12px;height:12px;margin:-6px 0 0 -6px;box-sizing:border-box;background:#fff;border:2px solid #b38f4f;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.35);pointer-events:auto;cursor:' + CURSORS[dir];
+		handles.appendChild(h);
+	});
+	var sizeTag = document.createElement('div');
+	sizeTag.style.cssText = 'position:fixed;display:none;padding:2px 8px;border-radius:100px;background:#8a6a33;color:#fff;font:600 12px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;white-space:nowrap';
+	handles.appendChild(sizeTag);
+	var resize = null;
+	function chosenEl() {
+		try {
+			return selectedSel ? document.querySelector(prefixed(selectedSel)) : null;
+		} catch (e) {
+			return null;
+		}
+	}
+	function drawHandles() {
+		if (resize) {
+			return;
+		}
+		var el = pick ? chosenEl() : null;
+		var r = el ? el.getBoundingClientRect() : null;
+		if (!r || r.width < 4 || r.height < 4) {
+			handles.style.display = 'none';
+			return;
+		}
+		handles.style.display = 'block';
+		var x = { w: r.left, n: r.left + r.width / 2, s: r.left + r.width / 2, e: r.right, nw: r.left, sw: r.left, ne: r.right, se: r.right };
+		var y = { n: r.top, s: r.bottom, e: r.top + r.height / 2, w: r.top + r.height / 2, nw: r.top, ne: r.top, sw: r.bottom, se: r.bottom };
+		handles.querySelectorAll('[data-dir]').forEach(function (h) {
+			var dir = h.getAttribute('data-dir');
+			h.style.left = x[dir] + 'px';
+			h.style.top = y[dir] + 'px';
+		});
+	}
+	window.addEventListener('scroll', drawHandles, true);
+	window.addEventListener('resize', drawHandles);
+	// The page can change under it (styles, pictures loading): kept in place.
+	window.setInterval(drawHandles, 400);
+	handles.addEventListener('mousedown', function (e) {
+		var dir = e.target.getAttribute && e.target.getAttribute('data-dir');
+		var el = chosenEl();
+		if (!dir || !el || e.button !== 0) {
+			return;
+		}
+		e.preventDefault();
+		e.stopPropagation();
+		var r = el.getBoundingClientRect();
+		resize = { dir: dir, x: e.clientX, y: e.clientY, w: r.width, h: r.height, started: false, last: null };
+	});
+	document.addEventListener('mousemove', function (e) {
+		if (!resize) {
+			return;
+		}
+		var d = resize.dir;
+		var w = resize.w;
+		var h = resize.h;
+		if (d.indexOf('e') !== -1) {
+			w += e.clientX - resize.x;
+		}
+		if (d.indexOf('w') !== -1) {
+			w -= e.clientX - resize.x;
+		}
+		if (d.indexOf('s') !== -1) {
+			h += e.clientY - resize.y;
+		}
+		if (d.indexOf('n') !== -1) {
+			h -= e.clientY - resize.y;
+		}
+		// A corner keeps the proportions (the larger change leads), unless Shift is held.
+		if (d.length === 2 && !e.shiftKey) {
+			if (Math.abs(w - resize.w) / resize.w >= Math.abs(h - resize.h) / resize.h) {
+				h = w * resize.h / resize.w;
+			} else {
+				w = h * resize.w / resize.h;
+			}
+		}
+		w = Math.max(20, Math.round(w));
+		h = Math.max(20, Math.round(h));
+		resize.last = { w: d === 'n' || d === 's' ? null : w, h: d === 'e' || d === 'w' ? null : h };
+		send({ type: 'aimp-design-resize', phase: resize.started ? 'move' : 'start', w: resize.last.w, h: resize.last.h });
+		resize.started = true;
+		sizeTag.textContent = (resize.last.w !== null ? w : Math.round(resize.w)) + ' × ' + (resize.last.h !== null ? h : Math.round(resize.h)) + ' px';
+		sizeTag.style.display = 'block';
+		sizeTag.style.left = Math.min(e.clientX + 14, window.innerWidth - 120) + 'px';
+		sizeTag.style.top = Math.max(4, e.clientY - 28) + 'px';
+		e.preventDefault();
+	}, true);
+	document.addEventListener('mouseup', function () {
+		if (!resize) {
+			return;
+		}
+		if (resize.started && resize.last) {
+			send({ type: 'aimp-design-resize', phase: 'end', w: resize.last.w, h: resize.last.h });
+			// The click that ends the resizing does not select something else.
+			dragged = true;
+		}
+		resize = null;
+		sizeTag.style.display = 'none';
+		window.setTimeout(drawHandles, 300);
+	}, true);
+
 	document.addEventListener('keydown', function (e) {
 		if (pick && /^Arrow(Left|Right|Up|Down)$/.test(e.key) && !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
 			e.preventDefault();
@@ -560,6 +704,13 @@
 	}, true);
 
 	document.addEventListener('click', function (e) {
+		// A click on the studio's own layers (handles, labels) selects nothing.
+		if (pick && e.target.closest && e.target.closest('[data-aimp-ds-layer]')) {
+			dragged = false;
+			e.preventDefault();
+			e.stopPropagation();
+			return;
+		}
 		if (pick && dragged) {
 			dragged = false;
 			e.preventDefault();

@@ -2523,4 +2523,17 @@ return array(
 	// Haberdashery overview (3.47)
 	'Extra categories on the Haberdashery page' => 'Extra categorieën op de pagina Fournituren',
 	'Each category ticked here gets a tile on the Haberdashery page (and in [atelier_irisee_haberdashery]), after the haberdashery kinds, and its products are listed on that page. The tile\'s picture is the category\'s own picture (Products → Categories), else a picture of one of its products. The kinds\' own categories are on the page already.' => 'Elke categorie die je hier aanvinkt krijgt een tegel op de pagina Fournituren (en in [atelier_irisee_haberdashery]), na de soorten fournituren, en haar producten staan op die pagina. De foto van de tegel is de eigen foto van de categorie (Producten → Categorieën), anders een foto van een van haar producten. De eigen categorieën van de soorten staan al op de pagina.',
+
+	// Design studio 3.48
+	'Black' => 'Zwart',
+	'Brown (brand colour)' => 'Bruin (huiskleur)',
+	'Gold (brand colour)' => 'Goud (huiskleur)',
+	'Gold for text (brand colour)' => 'Goud voor tekst (huiskleur)',
+	'Green (brand colour)' => 'Groen (huiskleur)',
+	'Linked to the brand colour: it changes along with it.' => 'Gekoppeld aan de huiskleur: verandert mee.',
+	'Red (brand colour)' => 'Rood (huiskleur)',
+	'Tablets use the computer\'s position; their own size is set with the handles in the tablet view.' => 'Tablets gebruiken de plaats van de computer; hun eigen grootte stel je in met de grepen in de tabletweergave.',
+	'Title: left / right' => 'Titel: links / rechts',
+	'Title: top / bottom' => 'Titel: boven / onder',
+	'White' => 'Wit',
 );
