@@ -7,7 +7,8 @@
 .aimp-page-header {
 	--ph-gold: var(--aimp-site-gold, #b38f4f);
 	--ph-brown: var(--aimp-site-brown, #613907);
-	--ph-tint: #6b4b1a;
+	--ph-tint: rgb(150, 112, 52);
+	--ph-tint2: var(--aimp-site-gold, #b38f4f);
 	--ph-strength: 0.35;
 	--ph-color: #fff;
 	--ph-base: var(--aimp-ph-base, 85px);
@@ -107,14 +108,19 @@
 	opacity: 1;
 }
 
-/* Picture + title: a tint over the picture, so the title can be read. */
-.aimp-page-header.is-text.has-media::after {
+/* The overlay, like the hero's: a see-through gold layer, deeper on the left (Design studio → Overlay: colour,
+   strength, direction). Standard 35 % over a picture with the title on it, 0 % when the title is in the picture. */
+.aimp-page-header.has-media::after {
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(180deg, transparent 0%, var(--ph-tint) 100%);
+	background: linear-gradient(90deg, var(--ph-tint) 0%, color-mix(in srgb, var(--ph-tint2) 88%, transparent) 55%, color-mix(in srgb, var(--ph-tint2) 76%, transparent) 100%);
 	opacity: var(--ph-strength);
 	pointer-events: none;
+}
+
+.aimp-page-header.is-baked {
+	--ph-strength: 0;
 }
 
 /* ------------------------------------------------------------------ the title */

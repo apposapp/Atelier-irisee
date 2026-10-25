@@ -30,6 +30,8 @@ class AIMP_Shop {
 
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'render' ) );
+		// [atelier_irisee_haberdashery]: the overview of the haberdashery kinds (as on the Haberdashery page), anywhere.
+		add_shortcode( 'atelier_irisee_haberdashery', array( __CLASS__, 'haberdashery_shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
 		add_action( 'wc_ajax_aimp_shop', array( __CLASS__, 'ajax' ) );
 
@@ -313,13 +315,24 @@ class AIMP_Shop {
 	 * @return string
 	 */
 	public static function render( $atts ) {
-		$atts = shortcode_atts( array( 'type' => 'all' ), $atts, self::TAG );
-		$type = in_array( $atts['type'], self::TYPES, true ) ? $atts['type'] : 'all';
+		$atts     = shortcode_atts(
+			array(
+				'type'     => 'all',
+				// list="all": always the products, never the overview (e.g. a page with all haberdashery).
+				'list'     => '',
+				// category="58": the products of that category (and its subcategories).
+				'category' => '',
+			),
+			$atts,
+			self::TAG
+		);
+		$type     = in_array( $atts['type'], self::TYPES, true ) ? $atts['type'] : 'all';
+		$category = absint( $atts['category'] );
 
 		// The All products page is an overview of the shop sections, and the Haberdashery page one of its kinds,
 		// unless a category link or filter (or "All haberdashery": aimp_all) brought the visitor here: then it
 		// lists the products.
-		if ( ! self::has_filters_in_url() ) {
+		if ( ! self::has_filters_in_url() && 'all' !== $atts['list'] && ! $category ) {
 			$overview = '';
 			if ( 'all' === $type ) {
 				$overview = self::overview_html();
@@ -335,13 +348,13 @@ class AIMP_Shop {
 		// The first page of products (with the filter options) comes with the page, so the grid shows at once; the
 		// script only asks the server again when the visitor filters, sorts or pages.
 		$initial = '';
-		if ( ! self::has_filters_in_url( true ) ) {
+		if ( ! self::has_filters_in_url( true ) && ! $category ) {
 			$data            = self::query( self::default_args( $type ) );
 			$data['facets']  = self::facets( $type );
 			$data['lang']    = AIMP_I18n::current();
 			$initial         = ' data-initial="' . esc_attr( wp_json_encode( $data ) ) . '"';
 		}
-		return '<div class="aimp-configurator aimp-shop" data-aimp-shop data-type="' . esc_attr( $type ) . '"' . $initial . '><noscript>' .
+		return '<div class="aimp-configurator aimp-shop" data-aimp-shop data-type="' . esc_attr( $type ) . '"' . ( $category ? ' data-category="' . $category . '"' : '' ) . $initial . '><noscript>' .
 			esc_html__( 'Please enable JavaScript to browse the products.', 'atelier-irisee-master-plugin' ) .
 			'</noscript></div>';
 	}
@@ -568,6 +581,16 @@ class AIMP_Shop {
 	 *
 	 * @return string Empty when there is no haberdashery page or no kind with products.
 	 */
+	/**
+	 * [atelier_irisee_haberdashery]: the tiles of the haberdashery kinds and "All haberdashery". Its links lead to the
+	 * Haberdashery page (Settings → Shop pages), which lists the products of the kind clicked.
+	 *
+	 * @return string
+	 */
+	public static function haberdashery_shortcode() {
+		return self::haberdashery_overview_html();
+	}
+
 	public static function haberdashery_overview_html() {
 		$page  = self::page_for_type( 'haberdashery' );
 		$kinds = $page ? self::haberdashery_kinds() : array();

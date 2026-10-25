@@ -2468,9 +2468,7 @@ return array(
 	'Place of the title' => 'Position du titre',
 	'Size of the title (0 = standard)' => 'Taille du titre (0 = standard)',
 	'Small' => 'Petit',
-	'Strength of the tint' => 'Intensité du filtre',
 	'The title in the picture is still on the page for search engines and screen readers. Without a picture the header is a calm gold band with the title.' => 'Le titre dans la photo reste sur la page pour les moteurs de recherche et les lecteurs d\'écran. Sans photo, l\'en-tête est une bande dorée calme avec le titre.',
-	'Tint over the picture' => 'Filtre de couleur sur la photo',
 	'Title (empty = the page title)' => 'Titre (vide = le titre de la page)',
 	'Video instead of the picture (MP4, without sound; the picture shows until it plays)' => 'Vidéo à la place de la photo (MP4, sans son ; la photo s\'affiche jusqu\'à la lecture)',
 	'Whole screen' => 'Plein écran',
@@ -2503,4 +2501,18 @@ return array(
 	'The plugin was updated since this Design studio was opened. Reload it before you change anything: until then nothing is saved.' => 'Le plugin a été mis à jour depuis l\'ouverture de ce Design studio. Rechargez-le avant de modifier quoi que ce soit : jusque-là, rien n\'est enregistré.',
 	'The plugin was updated: reload the Design studio (F5) before you change anything. Nothing was saved.' => 'Le plugin a été mis à jour : rechargez le Design studio (F5) avant de modifier quoi que ce soit. Rien n\'a été enregistré.',
 	'The pop-up for' => 'La pop-up pour',
+
+	// Studio fixes, overlay (3.46)
+	'A see-through layer over the picture, like the hero\'s: deeper on one side. Standard 35 % with the title over the picture, 0 % with the title in the picture.' => 'Une couche transparente sur la photo, comme celle du hero : plus foncée d\'un côté. Standard 35 % avec le titre sur la photo, 0 % avec le titre dans la photo.',
+	'Colour of the overlay (standard: gold)' => 'Couleur de la couche (standard : or)',
+	'Deeper at the bottom' => 'Plus foncée en bas',
+	'Deeper on the left, like the hero (standard)' => 'Plus foncée à gauche, comme le hero (standard)',
+	'Even, everywhere the same' => 'Uniforme, partout pareille',
+	'Overlay' => 'Couche sur la photo',
+	'Overlay and title colour' => 'Couche sur la photo et couleur du titre',
+	'Preview draft' => 'Aperçu du brouillon',
+	'Strength of the overlay' => 'Intensité de la couche',
+	'The page as visitors see it now (the published look), in a new tab' => 'La page telle que les visiteurs la voient maintenant (l\'apparence publiée), dans un nouvel onglet',
+	'The page with your draft, as it will look after Publish, in a new tab' => 'La page avec votre brouillon, telle qu\'elle sera après Publier, dans un nouvel onglet',
+	'View page' => 'Voir la page',
 );

@@ -212,6 +212,8 @@
 
 	function showStatus(text) {
 		status.textContent = text || (unpublished() ? t.unpublished : t.published);
+		// The whole text on hover: the bar keeps one line (a long text is cut off with …).
+		status.title = status.textContent;
 		status.classList.toggle('is-draft', unpublished());
 	}
 
@@ -2668,6 +2670,14 @@
 			frameUrl = e.data.url || '';
 			if (frameUrl) {
 				showPageInList(frameUrl, String(e.data.title || '').split(/ [|–-] /)[0]);
+				// "View page" (without the preview marker) and "Preview draft" (with it) open the page in the preview.
+				try {
+					var visit = new URL(frameUrl);
+					visit.searchParams.delete(cfg.param);
+					q('.aimp-ds-open-page').href = visit.toString();
+					visit.searchParams.set(cfg.param, '1');
+					q('.aimp-ds-open-draft').href = visit.toString();
+				} catch (err) {}
 			}
 			if (texts) {
 				renderTexts();

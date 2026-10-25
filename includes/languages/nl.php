@@ -2468,9 +2468,7 @@ return array(
 	'Place of the title' => 'Plaats van de titel',
 	'Size of the title (0 = standard)' => 'Grootte van de titel (0 = standaard)',
 	'Small' => 'Klein',
-	'Strength of the tint' => 'Sterkte van de kleurfilter',
 	'The title in the picture is still on the page for search engines and screen readers. Without a picture the header is a calm gold band with the title.' => 'De titel in de foto staat nog steeds op de pagina voor zoekmachines en schermlezers. Zonder foto is de kop een rustige gouden band met de titel.',
-	'Tint over the picture' => 'Kleurfilter over de foto',
 	'Title (empty = the page title)' => 'Titel (leeg = de titel van de pagina)',
 	'Video instead of the picture (MP4, without sound; the picture shows until it plays)' => 'Video in plaats van de foto (MP4, zonder geluid; de foto staat er tot de video speelt)',
 	'Whole screen' => 'Volledig scherm',
@@ -2503,4 +2501,18 @@ return array(
 	'The plugin was updated since this Design studio was opened. Reload it before you change anything: until then nothing is saved.' => 'De plugin werd bijgewerkt sinds deze Design studio geopend werd. Herlaad hem voor je iets verandert: tot dan wordt niets bewaard.',
 	'The plugin was updated: reload the Design studio (F5) before you change anything. Nothing was saved.' => 'De plugin werd bijgewerkt: herlaad de Design studio (F5) voor je iets verandert. Er werd niets bewaard.',
 	'The pop-up for' => 'De pop-up voor',
+
+	// Studio fixes, overlay (3.46)
+	'A see-through layer over the picture, like the hero\'s: deeper on one side. Standard 35 % with the title over the picture, 0 % with the title in the picture.' => 'Een doorzichtige laag over de foto, zoals bij de hero: aan één kant dieper. Standaard 35 % met de titel over de foto, 0 % met de titel in de foto.',
+	'Colour of the overlay (standard: gold)' => 'Kleur van de laag (standaard: goud)',
+	'Deeper at the bottom' => 'Onderaan dieper',
+	'Deeper on the left, like the hero (standard)' => 'Links dieper, zoals de hero (standaard)',
+	'Even, everywhere the same' => 'Gelijkmatig, overal hetzelfde',
+	'Overlay' => 'Laag over de foto',
+	'Overlay and title colour' => 'Laag over de foto en kleur van de titel',
+	'Preview draft' => 'Voorbeeld van het concept',
+	'Strength of the overlay' => 'Sterkte van de laag',
+	'The page as visitors see it now (the published look), in a new tab' => 'De pagina zoals bezoekers ze nu zien (het gepubliceerde uitzicht), in een nieuw tabblad',
+	'The page with your draft, as it will look after Publish, in a new tab' => 'De pagina met je concept, zoals ze eruit zal zien na Publiceren, in een nieuw tabblad',
+	'View page' => 'Pagina bekijken',
 );

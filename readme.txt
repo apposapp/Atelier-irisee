@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.45.1
+Stable tag: 3.46.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,15 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.46.0 =
+* Design studio:
+  * Every page can be edited: a page that sends visitors on to another one (e.g. WooCommerce's shop page "Artikelen" to All products) stays a preview there. "Artikelen" is no longer in the list (it is All products).
+  * "View page ↗" (as visitors see it now) and "Preview draft ↗" (with your draft) open the page in the preview in a new tab.
+  * The top bar stays on one line: a longer status ("not published yet") no longer pushes the buttons and the preview down.
+  * Haberdashery in the list of pages: all haberdashery and each kind (buttons, zips, …), to edit those pages too.
+* Page header: the overlay works like the hero's (a see-through gold layer, deeper on the left; or at the bottom, or even), also with the title in the picture (standard 0 % there, 35 % with the title over the picture). Its colour, strength and the title's colour and size show at once in the studio, without reloading.
+* Shortcodes: [atelier_irisee_haberdashery] (the overview of the haberdashery kinds on any page); [atelier_irisee_shop type="haberdashery" list="all"] (all haberdashery products) and category="…" (one category).
 
 = 3.45.1 =
 * Newsletter pop-up: really only for logged-in customers now (the setting arrived as the text "0", which counted as on).

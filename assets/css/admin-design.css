@@ -11,7 +11,9 @@
 
 .aimp-ds-bar {
 	display: flex;
-	flex-wrap: wrap;
+	/* One line, always: a longer status must not push the buttons (and the preview) down. */
+	flex-wrap: nowrap;
+	min-width: 0;
 	gap: 8px 12px;
 	align-items: center;
 	padding: 0 0 10px;
@@ -35,8 +37,33 @@
 }
 
 .aimp-ds-status {
+	flex: 0 1 auto;
+	min-width: 0;
+	max-width: 260px;
 	margin-left: auto;
+	overflow: hidden;
 	color: #50575e;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.aimp-ds-bar > * {
+	flex-shrink: 0;
+}
+
+.aimp-ds-bar > .aimp-ds-status,
+.aimp-ds-bar > .aimp-ds-page {
+	flex-shrink: 1;
+	min-width: 0;
+}
+
+.aimp-ds-bar > .aimp-ds-page {
+	max-width: 240px;
+}
+
+.aimp-ds-open-page,
+.aimp-ds-open-draft {
+	white-space: nowrap;
 }
 
 .aimp-ds-status.is-draft {

@@ -65,6 +65,9 @@ class AIMP_Design {
 		add_action( 'template_redirect', array( __CLASS__, 'preview_headers' ), 0 );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'preview_assets' ), 30 );
 		add_filter( 'show_admin_bar', array( __CLASS__, 'hide_admin_bar' ), 50 );
+		// A page of the preview that sends on to another page of the site (e.g. the WooCommerce shop page to All
+		// products): the other page is a preview too, else nothing could be chosen there.
+		add_filter( 'wp_redirect', array( __CLASS__, 'keep_preview' ), 99 );
 		// A planned look starts or ends: cached pages get the new look.
 		add_action( 'aimp_design_switch', array( __CLASS__, 'purge' ) );
 	}
@@ -230,7 +233,7 @@ class AIMP_Design {
 		}
 		// The page header: the picture or video per page, the shared look, spacing.
 		if ( isset( $elements['page-header'] ) ) {
-			$elements['page-header']['controls'] = array( 'ph_page', 'ph_look', 'space', 'hide', 'anim' );
+			$elements['page-header']['controls'] = array( 'ph_page', 'ph_look', 'ph_style', 'space', 'hide', 'anim' );
 		}
 		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
 		if ( isset( $elements['product-page'] ) ) {
@@ -742,11 +745,15 @@ class AIMP_Design {
 				'ph_height'   => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
 				'ph_pheight'  => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
 				'ph_align'    => array( 'select', array( '', 'left', 'bottomleft' ) ),
+				'ph_crumbs'   => 'bool',
+			),
+			// The overlay and the title's colour and size: CSS only (opts_css), shown at once in the studio.
+			'ph_style'    => array(
 				'ph_tint'     => 'color',
 				'ph_strength' => array( 0, 90, -1 ),
+				'ph_tint_dir' => array( 'select', array( '', 'bottom', 'flat' ) ),
 				'ph_color'    => 'color',
 				'ph_size'     => array( 0, 120, 0 ),
-				'ph_crumbs'   => 'bool',
 			),
 			'ab_closing'  => array( 'ab_sign_img' => 'image' ),
 			'cz_summary'  => array(
@@ -2398,6 +2405,29 @@ class AIMP_Design {
 		}
 
 		// Kit steps bar: the thread.
+		// The page header: overlay and title (CSS variables of page-header.css).
+		$ph_vars = '';
+		if ( $get( 'page-header', 'ph_tint' ) ) {
+			$ph_vars .= '--ph-tint:' . $get( 'page-header', 'ph_tint' ) . ';--ph-tint2:' . $get( 'page-header', 'ph_tint' ) . ';';
+		}
+		if ( null !== $get( 'page-header', 'ph_strength' ) && (int) $get( 'page-header', 'ph_strength' ) >= 0 ) {
+			$ph_vars .= '--ph-strength:' . ( (int) $get( 'page-header', 'ph_strength' ) / 100 ) . ';';
+		}
+		if ( $get( 'page-header', 'ph_color' ) ) {
+			$ph_vars .= '--ph-color:' . $get( 'page-header', 'ph_color' ) . ';';
+		}
+		if ( (int) $get( 'page-header', 'ph_size' ) > 0 ) {
+			$ph_vars .= '--ph-size:' . (int) $get( 'page-header', 'ph_size' ) . 'px;';
+		}
+		if ( '' !== $ph_vars ) {
+			$css .= 'html body .aimp-page-header.aimp-page-header{' . $ph_vars . '}';
+		}
+		$ph_dir = (string) $get( 'page-header', 'ph_tint_dir' );
+		if ( 'bottom' === $ph_dir ) {
+			$css .= 'html body .aimp-page-header.has-media::after{background:linear-gradient(180deg,color-mix(in srgb,var(--ph-tint2) 40%,transparent) 0%,var(--ph-tint) 100%)!important}';
+		} elseif ( 'flat' === $ph_dir ) {
+			$css .= 'html body .aimp-page-header.has-media::after{background:var(--ph-tint)!important}';
+		}
 		if ( $get( 'kit-steps', 'ks_thread' ) ) {
 			$css .= 'html body .aimp-kit-steps .ks-seam-sewn{stroke:' . $get( 'kit-steps', 'ks_thread' ) . '!important}html body .aimp-kit-steps .ks-seam-guide{stroke:color-mix(in srgb,' . $get( 'kit-steps', 'ks_thread' ) . ' 35%,transparent)!important}';
 		}
@@ -2774,6 +2804,22 @@ class AIMP_Design {
 		do_action( 'litespeed_control_set_nocache', 'Atelier Irisee design preview' );
 	}
 
+	/**
+	 * @param string $location Where the redirect goes.
+	 * @return string
+	 */
+	public static function keep_preview( $location ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only keeps a marker in the address.
+		if ( ! isset( $_GET[ self::PREVIEW ] ) || is_admin() || ! is_string( $location ) || '' === $location ) {
+			return $location;
+		}
+		$host = wp_parse_url( $location, PHP_URL_HOST );
+		if ( $host && wp_parse_url( home_url(), PHP_URL_HOST ) !== $host ) {
+			return $location;
+		}
+		return add_query_arg( self::PREVIEW, '1', $location );
+	}
+
 	public static function hide_admin_bar( $show ) {
 		return self::is_preview() ? false : $show;
 	}
@@ -2840,6 +2886,16 @@ class AIMP_Design {
 				$pages[] = array( $label, get_permalink( $page ) );
 			}
 		}
+		// The haberdashery: everything, and each kind (the same page with a choice in the address).
+		$haberdashery = AIMP_Shop::page_for_type( 'haberdashery' );
+		if ( $haberdashery ) {
+			$group   = __( 'Haberdashery', 'atelier-irisee-master-plugin' );
+			$hab_url = get_permalink( $haberdashery );
+			$pages[] = array( __( 'All haberdashery', 'atelier-irisee-master-plugin' ), add_query_arg( 'aimp_all', 1, $hab_url ), $group );
+			foreach ( AIMP_Shop::haberdashery_kinds() as $kind ) {
+				$pages[] = array( $kind[0], add_query_arg( 'aimp_cat', $kind[1], $hab_url ), $group );
+			}
+		}
 		$configurator = AIMP_Settings::get( 'configurator_page' );
 		if ( $configurator && 'publish' === get_post_status( $configurator ) ) {
 			$pages[] = array( __( 'Customizer', 'atelier-irisee-master-plugin' ), get_permalink( $configurator ) );
@@ -2889,8 +2945,13 @@ class AIMP_Design {
 				)
 			),
 		);
+		// WooCommerce's own shop page sends visitors to All products: not a page of its own here.
+		$wc_shop = AIMP_Shop::page_for_type( 'all' ) ? (int) wc_get_page_id( 'shop' ) : 0;
 		foreach ( $more as $group => $posts ) {
 			foreach ( $posts as $post ) {
+				if ( $wc_shop && (int) $post->ID === $wc_shop ) {
+					continue;
+				}
 				$url = get_permalink( $post );
 				if ( $url && ! in_array( untrailingslashit( $url ), $known, true ) ) {
 					$known[] = untrailingslashit( $url );
@@ -4334,12 +4395,25 @@ class AIMP_Design {
 				'bottomleft' => __( 'At the bottom left', 'atelier-irisee-master-plugin' ),
 			)
 		);
-		self::color( 'ph_tint', __( 'Tint over the picture', 'atelier-irisee-master-plugin' ) );
-		self::number( 'ph_strength', __( 'Strength of the tint', 'atelier-irisee-master-plugin' ), 0, 90, '%' );
-		self::color( 'ph_color', __( 'Colour of the title', 'atelier-irisee-master-plugin' ) );
-		self::number( 'ph_size', __( 'Size of the title (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 120, 'px' );
 		self::check_box( 'ph_crumbs', __( 'A breadcrumb above the title (Home › page)', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'The title in the picture is still on the page for search engines and screen readers. Without a picture the header is a calm gold band with the title.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'ph_style', __( 'Overlay and title colour', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'A see-through layer over the picture, like the hero\'s: deeper on one side. Standard 35 % with the title over the picture, 0 % with the title in the picture.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::color( 'ph_tint', __( 'Colour of the overlay (standard: gold)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'ph_strength', __( 'Strength of the overlay', 'atelier-irisee-master-plugin' ), 0, 90, '%' );
+		self::choice(
+			'ph_tint_dir',
+			__( 'Overlay', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Deeper on the left, like the hero (standard)', 'atelier-irisee-master-plugin' ),
+				'bottom' => __( 'Deeper at the bottom', 'atelier-irisee-master-plugin' ),
+				'flat'   => __( 'Even, everywhere the same', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::color( 'ph_color', __( 'Colour of the title', 'atelier-irisee-master-plugin' ) );
+		self::number( 'ph_size', __( 'Size of the title (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 120, 'px' );
 		echo '</fieldset>';
 
 		$group( 'ab_closing', __( 'Closing', 'atelier-irisee-master-plugin' ) );
@@ -4378,6 +4452,9 @@ class AIMP_Design {
 			<div class="aimp-ds-bar">
 				<h1><?php esc_html_e( 'Design studio', 'atelier-irisee-master-plugin' ); ?></h1>
 				<select class="aimp-ds-page" aria-label="<?php esc_attr_e( 'Page', 'atelier-irisee-master-plugin' ); ?>"></select>
+				<?php // The page in the preview in a new tab: as visitors see it now, or with the draft (admin-design.js sets the addresses). ?>
+				<a class="button aimp-ds-open-page" href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener" title="<?php esc_attr_e( 'The page as visitors see it now (the published look), in a new tab', 'atelier-irisee-master-plugin' ); ?>"><?php esc_html_e( 'View page', 'atelier-irisee-master-plugin' ); ?> ↗</a>
+				<a class="button aimp-ds-open-draft" href="<?php echo esc_url( add_query_arg( self::PREVIEW, '1', home_url( '/' ) ) ); ?>" target="_blank" rel="noopener" title="<?php esc_attr_e( 'The page with your draft, as it will look after Publish, in a new tab', 'atelier-irisee-master-plugin' ); ?>"><?php esc_html_e( 'Preview draft', 'atelier-irisee-master-plugin' ); ?> ↗</a>
 				<div class="aimp-ds-devices" role="group" aria-label="<?php esc_attr_e( 'Screen', 'atelier-irisee-master-plugin' ); ?>">
 					<button type="button" class="button" data-width="1280" aria-pressed="true"><?php echo esc_html( $computer ); ?></button>
 					<button type="button" class="button" data-width="820" aria-pressed="false"><?php esc_html_e( 'Tablet', 'atelier-irisee-master-plugin' ); ?></button>

@@ -247,14 +247,7 @@ class AIMP_Page_Header {
 		$pheight  = (string) self::design( 'pheight', '' );
 		$align    = (string) self::design( 'align', '' );
 		$style    = '';
-		$tint     = (string) self::design( 'tint', '' );
-		$strength = (int) self::design( 'strength', -1 );
-		$color    = (string) self::design( 'color', '' );
-		$size     = (int) self::design( 'size', 0 );
-		$style   .= '' !== $tint ? '--ph-tint:' . $tint . ';' : '';
-		$style   .= $strength >= 0 ? '--ph-strength:' . ( $strength / 100 ) . ';' : '';
-		$style   .= '' !== $color ? '--ph-color:' . $color . ';' : '';
-		$style   .= $size > 0 ? '--ph-size:' . $size . 'px;' : '';
+		// The overlay and the title's colour and size come from the Design studio as CSS (AIMP_Design::opts_css()).
 		$classes  = array( 'aimp-page-header', $baked ? 'is-baked' : 'is-text' );
 		if ( self::$auto ) {
 			$classes[] = 'is-auto';

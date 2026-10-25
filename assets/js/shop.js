@@ -84,6 +84,11 @@
 		if (syncUrl) {
 			this.readUrl();
 		}
+		// [atelier_irisee_shop category="…"]: that category, unless the address chooses another one.
+		var fixed = parseInt(root.getAttribute('data-category') || '0', 10);
+		if (fixed && !this.state.filters.category.length) {
+			this.state.filters.category = [fixed];
+		}
 		// The first page of products, sent with the page (class-aimp-shop.php): no request for a first visit.
 		this.initial = null;
 		try {
