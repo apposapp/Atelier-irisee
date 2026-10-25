@@ -269,6 +269,14 @@ class AIMP_Settings {
 		}
 
 		add_settings_field(
+			'aimp_hab_extra_cats',
+			__( 'Extra categories on the Haberdashery page', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_hab_extra_cats_field' ),
+			self::PAGE,
+			'aimp_shop_pages'
+		);
+
+		add_settings_field(
 			'aimp_cart_page',
 			__( 'Cart page', 'atelier-irisee-master-plugin' ),
 			array( __CLASS__, 'render_cart_page_field' ),
@@ -507,6 +515,55 @@ class AIMP_Settings {
 		);
 	}
 
+	/**
+	 * The product categories that are added to the Haberdashery page as tiles of their own, after the kinds.
+	 *
+	 * @return int[]
+	 */
+	public static function hab_extra_cats() {
+		$options = (array) get_option( self::OPTION, array() );
+		return isset( $options['hab_extra_cats'] ) ? array_values( array_filter( array_map( 'absint', (array) $options['hab_extra_cats'] ) ) ) : array();
+	}
+
+	/**
+	 * Tick boxes for every product category (as a tree), except the categories of the haberdashery kinds.
+	 */
+	public static function render_hab_extra_cats_field() {
+		$chosen = self::hab_extra_cats();
+		$kinds  = array_filter( array_map( array( __CLASS__, 'get' ), array_column( AIMP_Notions::kinds(), 'setting' ) ) );
+		$terms  = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => false,
+				'orderby'    => 'name',
+			)
+		);
+		$children = array();
+		foreach ( is_wp_error( $terms ) ? array() : $terms as $term ) {
+			$children[ (int) $term->parent ][] = $term;
+		}
+		$walk = function ( $parent, $depth ) use ( &$walk, $children, $chosen, $kinds ) {
+			foreach ( isset( $children[ $parent ] ) ? $children[ $parent ] : array() as $term ) {
+				$id = (int) $term->term_id;
+				if ( ! in_array( $id, $kinds, true ) ) {
+					printf(
+						'<label style="display:block;margin:2px 0 2px %1$dpx"><input type="checkbox" name="%2$s[hab_extra_cats][]" value="%3$d"%4$s> %5$s <span class="description">(%6$d)</span></label>',
+						(int) $depth * 18,
+						esc_attr( self::OPTION ),
+						$id,
+						checked( in_array( $id, $chosen, true ), true, false ),
+						esc_html( $term->name ),
+						(int) $term->count
+					);
+				}
+				$walk( $id, $depth + 1 );
+			}
+		};
+		echo '<div style="max-height:260px;overflow:auto;padding:6px 10px;border:1px solid #dcdcde;background:#fff;max-width:520px">';
+		$walk( 0, 0 );
+		echo '</div><p class="description">' . esc_html__( 'Each category ticked here gets a tile on the Haberdashery page (and in [atelier_irisee_haberdashery]), after the haberdashery kinds, and its products are listed on that page. The tile\'s picture is the category\'s own picture (Products → Categories), else a picture of one of its products. The kinds\' own categories are on the page already.', 'atelier-irisee-master-plugin' ) . '</p>';
+	}
+
 	public static function shop_pages_intro() {
 		echo '<p>' . esc_html__( 'Choose the pages with the shop shortcode. Category links on the site then open these pages with that category already selected, instead of the standard WooCommerce category pages.', 'atelier-irisee-master-plugin' ) . '</p>';
 	}
@@ -547,7 +604,6 @@ class AIMP_Settings {
 			'overview_img_giftcards'    => __( 'Overview picture: Gift cards', 'atelier-irisee-master-plugin' ),
 			'overview_img_configurator' => __( 'Overview picture: Sewing project kits', 'atelier-irisee-master-plugin' ),
 		);
-		$fields['overview_img_hab_all'] = __( 'Haberdashery overview picture: All haberdashery', 'atelier-irisee-master-plugin' );
 		foreach ( AIMP_Notions::kinds() as $kind => $info ) {
 			/* translators: %s: kind of haberdashery, e.g. Buttons. */
 			$fields[ 'overview_img_hab_' . $kind ] = sprintf( __( 'Haberdashery overview picture: %s', 'atelier-irisee-master-plugin' ), $info['name'] );
@@ -763,6 +819,7 @@ class AIMP_Settings {
 			$sanitized[ $key ] = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : 0;
 		}
 		$sanitized['category_redirect'] = empty( $input['category_redirect'] ) ? 0 : 1;
+		$sanitized['hab_extra_cats']    = isset( $input['hab_extra_cats'] ) ? array_values( array_unique( array_filter( array_map( 'absint', (array) $input['hab_extra_cats'] ) ) ) ) : array();
 		// The cart page is stored as WooCommerce's own setting, not in ours.
 		if ( isset( $input['cart_page'] ) && absint( $input['cart_page'] ) && 'page' === get_post_type( absint( $input['cart_page'] ) ) ) {
 			update_option( 'woocommerce_cart_page_id', absint( $input['cart_page'] ) );

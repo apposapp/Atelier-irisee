@@ -2910,7 +2910,6 @@ class AIMP_Design {
 		if ( $haberdashery ) {
 			$group   = __( 'Haberdashery', 'atelier-irisee-master-plugin' );
 			$hab_url = get_permalink( $haberdashery );
-			$pages[] = array( __( 'All haberdashery', 'atelier-irisee-master-plugin' ), add_query_arg( 'aimp_all', 1, $hab_url ), $group );
 			foreach ( AIMP_Shop::haberdashery_kinds() as $kind ) {
 				$pages[] = array( $kind[0], add_query_arg( 'aimp_cat', $kind[1], $hab_url ), $group );
 			}

@@ -1506,15 +1506,11 @@ return array(
 
 	// 3.15.0
 	'(not in the list)' => '(pas dans la liste)',
-	'All haberdashery' => 'Toute la mercerie',
 	'Button materials' => 'Matières des boutons',
-	'Buttons, zips, ribbons and more for your sewing project' => 'Boutons, fermetures éclair, rubans et plus pour votre projet de couture',
 	'Choose per kind of clothing which icon the "Ideal for" cards show on the product pages.' => 'Choisissez par type de vêtement l\'icône que les cartes « Idéal pour » affichent sur les pages produit.',
 	'Haberdashery options' => 'Options de mercerie',
 	'Haberdashery overview picture: %s' => 'Image de l\'aperçu mercerie : %s',
-	'Haberdashery overview picture: All haberdashery' => 'Image de l\'aperçu mercerie : Toute la mercerie',
 	'Ideal for icons' => 'Icônes « Idéal pour »',
-	'Show everything' => 'Tout afficher',
 	'Surface finishes' => 'Finitions',
 	'The choices for buttons in the product editor (Haberdashery details). One option per line, written as Dutch | French | English, for example "Hout | Bois | Wood". The Dutch name is what a product keeps: changing it later does not change products that already have it.' => 'Les choix pour les boutons dans l\'éditeur de produit (détails de la mercerie). Une option par ligne, écrite comme néerlandais | français | anglais, par exemple « Hout | Bois | Wood ». Un produit garde le nom néerlandais : le modifier plus tard ne change pas les produits qui l\'ont déjà.',
 
@@ -2523,4 +2519,8 @@ return array(
 	'Field' => 'Champ',
 	'Form' => 'Formulaire',
 	'Grid of cards' => 'Grille de cartes',
+
+	// Haberdashery overview (3.47)
+	'Extra categories on the Haberdashery page' => 'Catégories supplémentaires sur la page Mercerie',
+	'Each category ticked here gets a tile on the Haberdashery page (and in [atelier_irisee_haberdashery]), after the haberdashery kinds, and its products are listed on that page. The tile\'s picture is the category\'s own picture (Products → Categories), else a picture of one of its products. The kinds\' own categories are on the page already.' => 'Chaque catégorie cochée ici reçoit une tuile sur la page Mercerie (et dans [atelier_irisee_haberdashery]), après les types de mercerie, et ses produits sont listés sur cette page. La photo de la tuile est la photo de la catégorie (Produits → Catégories), sinon la photo d\'un de ses produits. Les catégories propres aux types sont déjà sur la page.',
 );

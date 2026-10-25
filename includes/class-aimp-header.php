@@ -140,7 +140,8 @@ class AIMP_Header {
 			if ( ! $kinds ) {
 				return array();
 			}
-			$links = array( array( 'all', __( 'All haberdashery', 'atelier-irisee-master-plugin' ), add_query_arg( 'aimp_all', 1, $url ) ) );
+			// The kinds and the extra categories (no "All haberdashery": the page itself shows the overview).
+			$links = array();
 			foreach ( $kinds as $kind => $item ) {
 				$links[] = array( $kind, $item[0], add_query_arg( 'aimp_cat', $item[1], $url ) );
 			}

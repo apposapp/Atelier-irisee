@@ -509,7 +509,7 @@ class AIMP_Shop {
 	 * @param bool   $topbar With the language choice.
 	 * @return string Empty without cards.
 	 */
-	private static function overview_wrap( $hero, $cards, $topbar = true ) {
+	private static function overview_wrap( $hero, $cards, $topbar = true, $grid_class = '' ) {
 		$cards = $hero . $cards;
 		if ( '' === $cards ) {
 			return '';
@@ -520,7 +520,7 @@ class AIMP_Shop {
 		}
 		wp_enqueue_style( 'aimp-shop' );
 		return '<div class="aimp-configurator aimp-shop aimp-overview">' . ( $topbar ? '<div class="aimp-topbar">' . AIMP_Product_Page::languages_html() . '</div>' : '' ) .
-			'<ul class="aimp-grid aimp-overview-grid' . ( $hero ? ' has-hero' : '' ) . '">' . $cards . '</ul></div>';
+			'<ul class="aimp-grid aimp-overview-grid' . ( $hero ? ' has-hero' : '' ) . ( '' !== $grid_class ? ' ' . esc_attr( $grid_class ) : '' ) . '">' . $cards . '</ul></div>';
 	}
 
 	/**
@@ -540,6 +540,12 @@ class AIMP_Shop {
 					$filled[] = $cat;
 				}
 			}
+			// Extra categories (Settings → Shop pages) with products.
+			foreach ( AIMP_Settings::hab_extra_cats() as $cat ) {
+				if ( ! in_array( $cat, $filled, true ) && self::category_has_products( $cat ) ) {
+					$filled[] = $cat;
+				}
+			}
 			set_transient( $key, $filled, DAY_IN_SECONDS );
 		}
 		$list = array();
@@ -553,7 +559,21 @@ class AIMP_Shop {
 		foreach ( $list as $cat => $item ) {
 			$kinds[ $item[0] ] = array( $item[1], $cat, $item[2] );
 		}
-		return $kinds;
+		// Extra categories: "cat_{id}" => [ name, category, '' (no setting) ], A to Z.
+		$extra = array();
+		foreach ( AIMP_Settings::hab_extra_cats() as $cat ) {
+			$term = get_term( $cat, 'product_cat' );
+			if ( $term && ! is_wp_error( $term ) && ! isset( $list[ $cat ] ) && in_array( $cat, $filled, true ) ) {
+				$extra[ 'cat_' . $cat ] = array( $term->name, $cat, '' );
+			}
+		}
+		uasort(
+			$extra,
+			function ( $a, $b ) {
+				return strcasecmp( $a[0], $b[0] );
+			}
+		);
+		return $kinds + $extra;
 	}
 
 	/**
@@ -583,7 +603,7 @@ class AIMP_Shop {
 	 * @return string Empty when there is no haberdashery page or no kind with products.
 	 */
 	/**
-	 * [atelier_irisee_haberdashery]: the tiles of the haberdashery kinds and "All haberdashery". Its links lead to the
+	 * [atelier_irisee_haberdashery]: the tiles of the haberdashery kinds and the extra categories. Its links lead to the
 	 * Haberdashery page (Settings → Shop pages), which lists the products of the kind clicked.
 	 *
 	 * @return string
@@ -601,24 +621,44 @@ class AIMP_Shop {
 		$url   = get_permalink( $page );
 		$cards = '';
 		foreach ( $kinds as $kind => $item ) {
-			$cards .= sprintf(
-				'<li class="aimp-overview-card"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
+			// An extra category (no setting of its own): its own picture (Products → Categories), else one of its products.
+			$picture = '' !== $item[2] ? self::overview_image( 'overview_img_hab_' . $kind, array( $item[2] ), $page ) : self::category_image( $item[1] );
+			$cards  .= sprintf(
+				'<li class="aimp-overview-card aimp-overview-card--%4$s"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
 				esc_url( add_query_arg( 'aimp_cat', $item[1], $url ) ),
-				esc_url( self::overview_image( 'overview_img_hab_' . $kind, array( $item[2] ), $page ) ),
-				esc_html( $item[0] )
+				esc_url( $picture ),
+				esc_html( $item[0] ),
+				esc_attr( $kind )
 			);
 		}
-		// The large card is as high as the rows of kinds next to it (two per row).
-		$hero = sprintf(
-			'<li class="aimp-overview-card aimp-overview-hero" style="--aimp-hero-rows:%6$d"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-overview-hero-text"><span class="aimp-card-name">%3$s</span><span class="aimp-overview-hero-line">%4$s</span><span class="aimp-button aimp-overview-hero-button">%5$s</span></span></a></li>',
-			esc_url( add_query_arg( 'aimp_all', 1, $url ) ),
-			esc_url( self::overview_image( 'overview_img_hab_all', array_column( $kinds, 2 ), $page ) ),
-			esc_html__( 'All haberdashery', 'atelier-irisee-master-plugin' ),
-			esc_html__( 'Buttons, zips, ribbons and more for your sewing project', 'atelier-irisee-master-plugin' ),
-			esc_html__( 'Show everything', 'atelier-irisee-master-plugin' ),
-			max( 1, (int) ceil( count( $kinds ) / 2 ) )
-		);
-		return self::overview_wrap( $hero, $cards );
+		// All tiles the same size (no large "All haberdashery" tile; ?aimp_all=1 still lists everything).
+		return self::overview_wrap( '', $cards, true, 'aimp-hab-grid' );
+	}
+
+	/**
+	 * The picture of a product category: its own (Products → Categories), else a picture of one of its products.
+	 *
+	 * @param int $cat Category.
+	 * @return string
+	 */
+	private static function category_image( $cat ) {
+		$image_id = (int) get_term_meta( $cat, 'thumbnail_id', true );
+		if ( ! $image_id ) {
+			$query    = new WP_Query(
+				array(
+					'post_type'      => 'product',
+					'post_status'    => 'publish',
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+					'no_found_rows'  => true,
+					'tax_query'      => self::scope_tax_query( array( $cat ) ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+					'meta_query'     => array( array( 'key' => '_thumbnail_id' ) ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				)
+			);
+			$image_id = $query->posts ? (int) get_post_thumbnail_id( $query->posts[0] ) : 0;
+		}
+		$url = $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_single' ) : '';
+		return $url ? $url : wc_placeholder_img_src( 'woocommerce_single' );
 	}
 
 	/* ------------------------------------------------------------------
@@ -640,12 +680,14 @@ class AIMP_Shop {
 				$keys = array( 'fabric_cat' );
 				break;
 			case 'haberdashery':
-				$keys = array_column( AIMP_Notions::kinds(), 'setting' );
+				$keys  = array_column( AIMP_Notions::kinds(), 'setting' );
+				// The extra categories of the Haberdashery page (Settings → Shop pages) belong to it as well.
+				$extra = AIMP_Settings::hab_extra_cats();
 				break;
 			default:
 				return array();
 		}
-		$roots = array();
+		$roots = isset( $extra ) ? $extra : array();
 		foreach ( $keys as $key ) {
 			$roots[] = AIMP_Settings::get( $key );
 		}

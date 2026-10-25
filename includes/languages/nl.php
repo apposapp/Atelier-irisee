@@ -1506,15 +1506,11 @@ return array(
 
 	// 3.15.0
 	'(not in the list)' => '(niet in de lijst)',
-	'All haberdashery' => 'Alle fournituren',
 	'Button materials' => 'Knoopmaterialen',
-	'Buttons, zips, ribbons and more for your sewing project' => 'Knopen, ritsen, linten en meer voor je naaiproject',
 	'Choose per kind of clothing which icon the "Ideal for" cards show on the product pages.' => 'Kies per soort kledingstuk welk icoon de "Ideaal voor"-kaartjes op de productpagina\'s tonen.',
 	'Haberdashery options' => 'Fournituren-opties',
 	'Haberdashery overview picture: %s' => 'Overzichtsafbeelding fournituren: %s',
-	'Haberdashery overview picture: All haberdashery' => 'Overzichtsafbeelding fournituren: Alle fournituren',
 	'Ideal for icons' => 'Iconen "Ideaal voor"',
-	'Show everything' => 'Toon alles',
 	'Surface finishes' => 'Afwerkingen',
 	'The choices for buttons in the product editor (Haberdashery details). One option per line, written as Dutch | French | English, for example "Hout | Bois | Wood". The Dutch name is what a product keeps: changing it later does not change products that already have it.' => 'De keuzes voor knopen in de producteditor (Fournituurgegevens). Eén optie per regel, geschreven als Nederlands | Frans | Engels, bijvoorbeeld "Hout | Bois | Wood". Een product bewaart de Nederlandse naam: die later wijzigen verandert niets aan producten die hem al hebben.',
 
@@ -2523,4 +2519,8 @@ return array(
 	'Field' => 'Veld',
 	'Form' => 'Formulier',
 	'Grid of cards' => 'Raster met kaarten',
+
+	// Haberdashery overview (3.47)
+	'Extra categories on the Haberdashery page' => 'Extra categorieën op de pagina Fournituren',
+	'Each category ticked here gets a tile on the Haberdashery page (and in [atelier_irisee_haberdashery]), after the haberdashery kinds, and its products are listed on that page. The tile\'s picture is the category\'s own picture (Products → Categories), else a picture of one of its products. The kinds\' own categories are on the page already.' => 'Elke categorie die je hier aanvinkt krijgt een tegel op de pagina Fournituren (en in [atelier_irisee_haberdashery]), na de soorten fournituren, en haar producten staan op die pagina. De foto van de tegel is de eigen foto van de categorie (Producten → Categorieën), anders een foto van een van haar producten. De eigen categorieën van de soorten staan al op de pagina.',
 );

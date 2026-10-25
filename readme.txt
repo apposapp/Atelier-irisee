@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.46.1
+Stable tag: 3.47.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.47.0 =
+* Haberdashery: no "All haberdashery" any more in the side menu and on the Haberdashery page; all categories are tiles of the same size (4 per row, 3 on tablets, 2 on phones). The address ?aimp_all=1 and [atelier_irisee_shop type="haberdashery" list="all"] still list all haberdashery.
+* Extra categories on the Haberdashery page (Settings → Shop pages): tick any product category to give it a tile there (its own picture from Products → Categories, else a product's), in the side menu and in the studio, with its products listed on that page.
+* [atelier_irisee_haberdashery] shows the same tiles on any page.
 
 = 3.46.1 =
 * Design studio: the All products and Haberdashery pages show their overview cards in the studio again (the preview counted as a filter and showed the product list instead), so the overview and the haberdashery kinds can be edited there.

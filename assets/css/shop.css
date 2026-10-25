@@ -1150,3 +1150,27 @@ html.aimp-sheet-open body {
 .aimp-shop-more[hidden] {
 	display: none !important;
 }
+
+/* Haberdashery overview (the Haberdashery page and [atelier_irisee_haberdashery]): every kind and extra category the
+ * same size, 4 per row, 3 on tablets, 2 on phones (Design studio → Overview cards can choose other numbers). */
+.aimp-configurator .aimp-overview-grid.aimp-hab-grid {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--aimp-gap);
+}
+
+.aimp-configurator .aimp-hab-grid .aimp-card-image {
+	aspect-ratio: 1 / 1;
+}
+
+@container aimp (max-width: 900px) {
+	.aimp-configurator .aimp-overview-grid.aimp-hab-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@container aimp (max-width: 560px) {
+	.aimp-configurator .aimp-overview-grid.aimp-hab-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.6rem;
+	}
+}
