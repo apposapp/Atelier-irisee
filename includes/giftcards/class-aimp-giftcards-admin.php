@@ -69,7 +69,17 @@ class AIMP_Giftcards_Admin {
 		wp_enqueue_media();
 		wp_enqueue_style( 'aimp-admin', AIMP_PLUGIN_URL . 'assets/css/admin.css', array(), AIMP_VERSION );
 		wp_enqueue_script( 'aimp-admin-giftcards', AIMP_PLUGIN_URL . 'assets/js/admin-giftcards.js', array( 'jquery', 'jquery-ui-sortable' ), AIMP_VERSION, true );
-		wp_localize_script( 'aimp-admin-giftcards', 'aimpAdminGc', array( 'choose' => __( 'Choose image', 'atelier-irisee-master-plugin' ) ) );
+		wp_localize_script(
+			'aimp-admin-giftcards',
+			'aimpAdminGc',
+			array(
+				'choose'  => __( 'Choose image', 'atelier-irisee-master-plugin' ),
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'aimp_gc_admin_preview' ),
+				'working' => __( 'Drawing…', 'atelier-irisee-master-plugin' ),
+				'error'   => __( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ),
+			)
+		);
 	}
 
 	public static function notices() {
@@ -274,6 +284,7 @@ class AIMP_Giftcards_Admin {
 			</td></tr>
 			<tr><th><label for="aimp_gc_recipient_name"><?php esc_html_e( 'Recipient name', 'atelier-irisee-master-plugin' ); ?></label></th><td><input type="text" id="aimp_gc_recipient_name" name="aimp_gc_recipient_name" class="regular-text" value="<?php echo esc_attr( $card['recipient_name'] ); ?>"></td></tr>
 			<tr><th><label for="aimp_gc_recipient_email"><?php esc_html_e( 'Recipient email', 'atelier-irisee-master-plugin' ); ?></label></th><td><input type="email" id="aimp_gc_recipient_email" name="aimp_gc_recipient_email" class="regular-text" value="<?php echo esc_attr( $card['recipient_email'] ); ?>"></td></tr>
+			<tr><th><label for="aimp_gc_greeting"><?php esc_html_e( 'Greeting', 'atelier-irisee-master-plugin' ); ?></label></th><td><input type="text" id="aimp_gc_greeting" name="aimp_gc_greeting" class="regular-text" maxlength="80" value="<?php echo esc_attr( AIMP_Giftcards_Render::greeting( $card ) ); ?>"></td></tr>
 			<tr><th><label for="aimp_gc_message"><?php esc_html_e( 'Message', 'atelier-irisee-master-plugin' ); ?></label></th><td><textarea id="aimp_gc_message" name="aimp_gc_message" class="large-text" rows="3" maxlength="300"><?php echo esc_textarea( $card['message'] ); ?></textarea></td></tr>
 			<tr><th><?php esc_html_e( 'Buyer', 'atelier-irisee-master-plugin' ); ?></th><td><?php echo esc_html( $card['purchaser_email'] ? $card['purchaser_email'] : '—' ); ?><?php echo $order ? ' · <a href="' . esc_url( $order->get_edit_order_url() ) . '">' . esc_html__( 'Order', 'atelier-irisee-master-plugin' ) . ' #' . esc_html( $order->get_order_number() ) . '</a>' : ''; ?></td></tr>
 		</table>
@@ -328,6 +339,11 @@ class AIMP_Giftcards_Admin {
 		update_post_meta( $post_id, '_aimp_gc_recipient_name', isset( $_POST['aimp_gc_recipient_name'] ) ? sanitize_text_field( wp_unslash( $_POST['aimp_gc_recipient_name'] ) ) : '' );
 		update_post_meta( $post_id, '_aimp_gc_recipient_email', isset( $_POST['aimp_gc_recipient_email'] ) ? sanitize_email( wp_unslash( $_POST['aimp_gc_recipient_email'] ) ) : '' );
 		update_post_meta( $post_id, '_aimp_gc_message', isset( $_POST['aimp_gc_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['aimp_gc_message'] ) ) : '' );
+		// The greeting: only stored when it differs from the theme's (so the theme's stays in use otherwise).
+		$greeting = isset( $_POST['aimp_gc_greeting'] ) ? sanitize_text_field( wp_unslash( $_POST['aimp_gc_greeting'] ) ) : null;
+		if ( null !== $greeting && $greeting !== AIMP_Giftcards_Render::greeting( AIMP_Giftcards::get( $post_id ) ) ) {
+			update_post_meta( $post_id, '_aimp_gc_greeting', $greeting );
+		}
 
 		if ( 'post' === $card['delivery'] ) {
 			$shipped = ! empty( $_POST['aimp_gc_shipped'] );
@@ -371,6 +387,7 @@ class AIMP_Giftcards_Admin {
 		AIMP_I18n::with_language(
 			$card['lang'],
 			function () use ( $card ) {
+				$drawn = (bool) AIMP_Giftcards_Render::files( $card );
 				?>
 				<!doctype html>
 				<html <?php language_attributes(); ?>>
@@ -381,12 +398,23 @@ class AIMP_Giftcards_Admin {
 						body { margin: 0; padding: 32px; font-family: Georgia, serif; background: #fff; }
 						.aimp-print-bar { max-width: 560px; margin: 0 auto 20px; text-align: right; }
 						.aimp-print-bar button { padding: 10px 22px; border: 3px double #b38f4f; border-radius: 100px; background: #fff; color: #b38f4f; font: inherit; font-weight: bold; cursor: pointer; }
+						.aimp-print-side { max-width: 740px; margin: 0 auto 24px; }
+						.aimp-print-side img { display: block; width: 100%; height: auto; box-shadow: 0 2px 12px rgba(0,0,0,.15); }
 						@media print { .aimp-print-bar { display: none; } body { padding: 0; } @page { margin: 12mm; } }
+						<?php if ( $drawn ) : ?>
+						@media print { .aimp-print-side { max-width: none; margin: 0; page-break-after: always; break-after: page; } .aimp-print-side img { width: 148mm; height: 105mm; box-shadow: none; } @page { size: 148mm 105mm; margin: 0; } }
+						<?php endif; ?>
 					</style>
 				</head>
 				<body>
 					<div class="aimp-print-bar"><button type="button" onclick="window.print()"><?php esc_html_e( 'Print', 'atelier-irisee-master-plugin' ); ?></button></div>
-					<?php echo AIMP_Giftcards::card_html( $card ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in the template. ?>
+					<?php if ( $drawn ) : ?>
+						<?php // Both sides, one per A6 page: print on both sides of the paper (flip on the long edge). ?>
+						<div class="aimp-print-side"><img src="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'front', true ) ); ?>" alt=""></div>
+						<div class="aimp-print-side"><img src="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'back', true ) ); ?>" alt=""></div>
+					<?php else : ?>
+						<?php echo AIMP_Giftcards::card_html( $card ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in the template. ?>
+					<?php endif; ?>
 				</body>
 				</html>
 				<?php
@@ -506,7 +534,19 @@ class AIMP_Giftcards_Admin {
 				<?php wp_nonce_field( 'aimp_gc_save_settings' ); ?>
 
 				<h2><?php esc_html_e( 'Designs', 'atelier-irisee-master-plugin' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Customers choose one of the active designs. Use a landscape picture, for example 1200 × 750 pixels.', 'atelier-irisee-master-plugin' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Customers choose one of the active designs. Each design is a theme: a front (its picture with your logo), a back with the card details and a greeting, and its own email texts. Customers receive both sides as pictures and as a PDF.', 'atelier-irisee-master-plugin' ); ?></p>
+				<?php if ( ! AIMP_Giftcards_Render::available() ) : ?>
+					<div class="notice notice-warning inline"><p><?php echo esc_html( AIMP_Giftcards_Render::unavailable_text() ); ?></p></div>
+				<?php endif; ?>
+				<?php $aimp_logo = (int) $o( 'logo_id' ) ? wp_get_attachment_image_url( (int) $o( 'logo_id' ), 'thumbnail' ) : ''; ?>
+				<p class="aimp-gc-logo-row">
+					<strong><?php esc_html_e( 'Logo on the cards', 'atelier-irisee-master-plugin' ); ?></strong>
+					<span class="aimp-gc-design-preview aimp-gc-logo-preview"><?php echo $aimp_logo ? '<img src="' . esc_url( $aimp_logo ) . '" alt="">' : ''; ?></span>
+					<input type="hidden" class="aimp-gc-logo-id" name="logo_id" value="<?php echo esc_attr( (int) $o( 'logo_id' ) ); ?>">
+					<button type="button" class="button aimp-gc-logo-choose"><?php esc_html_e( 'Choose logo', 'atelier-irisee-master-plugin' ); ?></button>
+					<button type="button" class="button-link aimp-gc-logo-remove"><?php esc_html_e( 'Use the Divi logo', 'atelier-irisee-master-plugin' ); ?></button>
+					<span class="description"><?php esc_html_e( 'A PNG with a transparent background works best. Empty = the Divi logo.', 'atelier-irisee-master-plugin' ); ?></span>
+				</p>
 				<div class="aimp-gc-designs-admin">
 					<ul class="aimp-gc-design-list">
 						<?php foreach ( array_values( $designs ) as $i => $design ) : ?>
@@ -541,17 +581,35 @@ class AIMP_Giftcards_Admin {
 	}
 
 	private static function design_row( $index, $design ) {
-		$design = wp_parse_args(
-			$design,
-			array(
-				'id'       => '',
-				'name'     => '',
-				'image_id' => 0,
-				'active'   => 1,
-			)
-		);
+		$design = wp_parse_args( $design, AIMP_Giftcards_Render::theme_defaults() );
 		$base   = 'designs[' . $index . ']';
 		$image  = $design['image_id'] ? wp_get_attachment_image_url( (int) $design['image_id'], 'thumbnail' ) : '';
+		$back   = $design['back_image_id'] ? wp_get_attachment_image_url( (int) $design['back_image_id'], 'thumbnail' ) : '';
+		$name   = function ( $key ) use ( $base ) {
+			return esc_attr( $base . '[' . $key . ']' );
+		};
+		$places = array(
+			'tl' => __( 'Top left', 'atelier-irisee-master-plugin' ),
+			't'  => __( 'Top', 'atelier-irisee-master-plugin' ),
+			'tr' => __( 'Top right', 'atelier-irisee-master-plugin' ),
+			'l'  => __( 'Left', 'atelier-irisee-master-plugin' ),
+			'c'  => __( 'Middle', 'atelier-irisee-master-plugin' ),
+			'r'  => __( 'Right', 'atelier-irisee-master-plugin' ),
+			'bl' => __( 'Bottom left', 'atelier-irisee-master-plugin' ),
+			'b'  => __( 'Bottom', 'atelier-irisee-master-plugin' ),
+			'br' => __( 'Bottom right', 'atelier-irisee-master-plugin' ),
+		);
+		$colors = class_exists( 'AIMP_Design' ) ? AIMP_Design::divi_colors() : array();
+		$color  = function ( $key, $label ) use ( $design, $name, $colors ) {
+			?>
+			<span class="aimp-gc-color">
+				<label><?php echo esc_html( $label ); ?> <input type="color" name="<?php echo $name( $key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $name. ?>" value="<?php echo esc_attr( $design[ $key ] ); ?>"></label>
+				<?php foreach ( $colors as $color ) : ?>
+					<button type="button" class="aimp-gc-swatch" data-color="<?php echo esc_attr( $color[1] ); ?>" title="<?php echo esc_attr( $color[0] . ' · ' . $color[1] ); ?>" style="background:<?php echo esc_attr( $color[1] ); ?>"><span class="screen-reader-text"><?php echo esc_html( $color[0] ); ?></span></button>
+				<?php endforeach; ?>
+			</span>
+			<?php
+		};
 		?>
 		<li class="aimp-gc-design-row">
 			<span class="aimp-field-handle dashicons dashicons-menu" title="<?php esc_attr_e( 'Drag to reorder', 'atelier-irisee-master-plugin' ); ?>"></span>
@@ -562,8 +620,104 @@ class AIMP_Giftcards_Admin {
 			<input type="text" name="<?php echo esc_attr( $base ); ?>[name]" value="<?php echo esc_attr( $design['name'] ); ?>" placeholder="<?php esc_attr_e( 'Name, e.g. Golden ribbon', 'atelier-irisee-master-plugin' ); ?>" class="regular-text">
 			<label><input type="checkbox" name="<?php echo esc_attr( $base ); ?>[active]" value="1" <?php checked( 1, (int) $design['active'] ); ?>> <?php esc_html_e( 'Active', 'atelier-irisee-master-plugin' ); ?></label>
 			<button type="button" class="button-link button-link-delete aimp-gc-design-remove"><?php esc_html_e( 'Delete', 'atelier-irisee-master-plugin' ); ?></button>
+			<details class="aimp-gc-theme">
+				<summary><?php esc_html_e( 'Card design: front, back, greeting and email', 'atelier-irisee-master-plugin' ); ?></summary>
+				<div class="aimp-gc-theme-grid">
+					<fieldset>
+						<legend><?php esc_html_e( 'Front', 'atelier-irisee-master-plugin' ); ?></legend>
+						<p class="description"><?php esc_html_e( 'The picture above fills the front (A6 landscape, 148 × 105 mm). Use a picture of at least 1748 × 1240 pixels.', 'atelier-irisee-master-plugin' ); ?></p>
+						<p>
+							<label><?php esc_html_e( 'Focus left / right', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" max="100" class="small-text" name="<?php echo $name( 'fx' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['fx'] ); ?>"> %</label>
+							<label><?php esc_html_e( 'top / bottom', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" max="100" class="small-text" name="<?php echo $name( 'fy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['fy'] ); ?>"> %</label>
+						</p>
+						<p><label><input type="checkbox" name="<?php echo $name( 'logo' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['logo'] ); ?>> <?php esc_html_e( 'Logo on the front', 'atelier-irisee-master-plugin' ); ?></label></p>
+						<p>
+							<label><?php esc_html_e( 'Place', 'atelier-irisee-master-plugin' ); ?>
+								<select name="<?php echo $name( 'logo_place' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
+									<?php foreach ( $places as $key => $label ) : ?>
+										<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $design['logo_place'], $key ); ?>><?php echo esc_html( $label ); ?></option>
+									<?php endforeach; ?>
+								</select>
+							</label>
+							<label><?php esc_html_e( 'Size', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="8" max="60" class="small-text" name="<?php echo $name( 'logo_size' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['logo_size'] ); ?>"> %</label>
+						</p>
+						<p><label><input type="checkbox" name="<?php echo $name( 'logo_badge' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['logo_badge'] ); ?>> <?php esc_html_e( 'Light round badge behind the logo', 'atelier-irisee-master-plugin' ); ?></label></p>
+					</fieldset>
+					<fieldset>
+						<legend><?php esc_html_e( 'Back', 'atelier-irisee-master-plugin' ); ?></legend>
+						<p>
+							<span class="aimp-gc-design-preview aimp-gc-back-preview"><?php echo $back ? '<img src="' . esc_url( $back ) . '" alt="">' : ''; ?></span>
+							<input type="hidden" class="aimp-gc-back-image" name="<?php echo $name( 'back_image_id' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['back_image_id'] ); ?>">
+							<button type="button" class="button aimp-gc-back-choose"><?php esc_html_e( 'Background picture', 'atelier-irisee-master-plugin' ); ?></button>
+							<button type="button" class="button-link aimp-gc-back-remove"><?php esc_html_e( 'No picture', 'atelier-irisee-master-plugin' ); ?></button>
+						</p>
+						<p class="description"><?php esc_html_e( 'A calm, light picture, so the text stays readable. Without a picture the background colour is used.', 'atelier-irisee-master-plugin' ); ?></p>
+						<p><?php $color( 'back_color', __( 'Background', 'atelier-irisee-master-plugin' ) ); ?></p>
+						<p><?php $color( 'text_color', __( 'Text', 'atelier-irisee-master-plugin' ) ); ?></p>
+						<p><?php $color( 'accent_color', __( 'Titles, amount and frame', 'atelier-irisee-master-plugin' ) ); ?></p>
+						<p><label><input type="checkbox" name="<?php echo $name( 'frame' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['frame'] ); ?>> <?php esc_html_e( 'Double line around the back', 'atelier-irisee-master-plugin' ); ?></label></p>
+					</fieldset>
+					<fieldset class="aimp-gc-theme-texts">
+						<legend><?php esc_html_e( 'Texts', 'atelier-irisee-master-plugin' ); ?></legend>
+						<p class="description"><?php esc_html_e( 'Write each text as "Dutch | French | English", or one text for all. In the email texts, {sender}, {recipient} and {shop} are filled in. Empty = the standard text.', 'atelier-irisee-master-plugin' ); ?></p>
+						<p><label><?php esc_html_e( 'Greeting on the back (customers may change it)', 'atelier-irisee-master-plugin' ); ?><br><input type="text" class="large-text" name="<?php echo $name( 'greeting' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['greeting'] ); ?>" placeholder="<?php esc_attr_e( 'Gelukkige verjaardag! | Joyeux anniversaire ! | Happy birthday!', 'atelier-irisee-master-plugin' ); ?>"></label></p>
+						<p><label><?php esc_html_e( 'Email subject, card for the buyer', 'atelier-irisee-master-plugin' ); ?><br><input type="text" class="large-text" name="<?php echo $name( 'subject_self' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['subject_self'] ); ?>"></label></p>
+						<p><label><?php esc_html_e( 'Email subject, card sent to someone else', 'atelier-irisee-master-plugin' ); ?><br><input type="text" class="large-text" name="<?php echo $name( 'subject_other' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['subject_other'] ); ?>" placeholder="<?php esc_attr_e( '{sender} wishes you a happy birthday!', 'atelier-irisee-master-plugin' ); ?>"></label></p>
+						<p><label><?php esc_html_e( 'Email intro (above the card)', 'atelier-irisee-master-plugin' ); ?><br><textarea class="large-text" rows="3" name="<?php echo $name( 'intro' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php echo esc_textarea( $design['intro'] ); ?></textarea></label></p>
+					</fieldset>
+				</div>
+				<p>
+					<button type="button" class="button aimp-gc-theme-preview"><?php esc_html_e( 'Preview front and back', 'atelier-irisee-master-plugin' ); ?></button>
+					<span class="aimp-gc-theme-msg" role="status"></span>
+				</p>
+				<div class="aimp-gc-theme-sides" hidden><img alt="" class="aimp-gc-theme-front"><img alt="" class="aimp-gc-theme-back"></div>
+			</details>
 		</li>
 		<?php
+	}
+
+	/**
+	 * One design row of the settings form, cleaned (also for the preview of unsaved settings).
+	 *
+	 * @param array $row Posted row (unslashed).
+	 * @return array
+	 */
+	public static function clean_design( $row ) {
+		$row   = is_array( $row ) ? $row : array();
+		$text  = function ( $key, $long = false ) use ( $row ) {
+			$value = isset( $row[ $key ] ) && is_scalar( $row[ $key ] ) ? (string) $row[ $key ] : '';
+			return $long ? sanitize_textarea_field( $value ) : sanitize_text_field( $value );
+		};
+		$num   = function ( $key, $min, $max, $default ) use ( $row ) {
+			return isset( $row[ $key ] ) && is_numeric( $row[ $key ] ) ? max( $min, min( $max, (int) $row[ $key ] ) ) : $default;
+		};
+		$hex   = function ( $key, $default ) use ( $row ) {
+			$value = isset( $row[ $key ] ) ? sanitize_hex_color( (string) $row[ $key ] ) : '';
+			return $value ? strtolower( $value ) : $default;
+		};
+		$d     = AIMP_Giftcards_Render::theme_defaults();
+		$place = isset( $row['logo_place'] ) && in_array( $row['logo_place'], AIMP_Giftcards_Render::PLACES, true ) ? $row['logo_place'] : 'c';
+		return array(
+			'id'            => isset( $row['id'] ) && '' !== $row['id'] ? sanitize_key( $row['id'] ) : '',
+			'name'          => $text( 'name' ),
+			'image_id'      => isset( $row['image_id'] ) ? absint( $row['image_id'] ) : 0,
+			'active'        => empty( $row['active'] ) ? 0 : 1,
+			'fx'            => $num( 'fx', 0, 100, 50 ),
+			'fy'            => $num( 'fy', 0, 100, 50 ),
+			'logo'          => empty( $row['logo'] ) ? 0 : 1,
+			'logo_place'    => $place,
+			'logo_size'     => $num( 'logo_size', 8, 60, 30 ),
+			'logo_badge'    => empty( $row['logo_badge'] ) ? 0 : 1,
+			'back_image_id' => isset( $row['back_image_id'] ) ? absint( $row['back_image_id'] ) : 0,
+			'back_color'    => $hex( 'back_color', $d['back_color'] ),
+			'text_color'    => $hex( 'text_color', $d['text_color'] ),
+			'accent_color'  => $hex( 'accent_color', $d['accent_color'] ),
+			'frame'         => empty( $row['frame'] ) ? 0 : 1,
+			'greeting'      => $text( 'greeting' ),
+			'subject_self'  => $text( 'subject_self' ),
+			'subject_other' => $text( 'subject_other' ),
+			'intro'         => $text( 'intro', true ),
+		);
 	}
 
 	public static function save_settings() {
@@ -571,18 +725,17 @@ class AIMP_Giftcards_Admin {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked in check().
 		$designs = array();
 		foreach ( isset( $_POST['designs'] ) && is_array( $_POST['designs'] ) ? wp_unslash( $_POST['designs'] ) : array() as $row ) {
-			$name  = isset( $row['name'] ) ? sanitize_text_field( $row['name'] ) : '';
-			$image = isset( $row['image_id'] ) ? absint( $row['image_id'] ) : 0;
-			if ( '' === $name && ! $image ) {
+			$design = self::clean_design( $row );
+			if ( '' === $design['name'] && ! $design['image_id'] ) {
 				continue;
 			}
-			$id        = isset( $row['id'] ) && '' !== $row['id'] ? sanitize_key( $row['id'] ) : 'd' . strtolower( wp_generate_password( 8, false, false ) );
-			$designs[] = array(
-				'id'       => $id,
-				'name'     => '' !== $name ? $name : __( 'Design', 'atelier-irisee-master-plugin' ),
-				'image_id' => $image,
-				'active'   => empty( $row['active'] ) ? 0 : 1,
-			);
+			if ( '' === $design['id'] ) {
+				$design['id'] = 'd' . strtolower( wp_generate_password( 8, false, false ) );
+			}
+			if ( '' === $design['name'] ) {
+				$design['name'] = __( 'Design', 'atelier-irisee-master-plugin' );
+			}
+			$designs[] = $design;
 		}
 		$num = function ( $key, $default, $min = 0 ) {
 			$value = isset( $_POST[ $key ] ) ? (float) str_replace( ',', '.', sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) ) : $default;
@@ -611,6 +764,7 @@ class AIMP_Giftcards_Admin {
 				'allow_send_date' => empty( $_POST['allow_send_date'] ) ? 0 : 1,
 				'allow_post'      => empty( $_POST['allow_post'] ) ? 0 : 1,
 				'post_fee'        => $num( 'post_fee', 0 ),
+				'logo_id'         => isset( $_POST['logo_id'] ) ? absint( $_POST['logo_id'] ) : 0,
 				'code_prefix'     => substr( strtoupper( preg_replace( '/[^A-Za-z0-9]/', '', isset( $_POST['code_prefix'] ) ? sanitize_text_field( wp_unslash( $_POST['code_prefix'] ) ) : '' ) ), 0, 8 ),
 			)
 		);

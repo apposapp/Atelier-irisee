@@ -39,6 +39,7 @@ class AIMP_Giftcards {
 		require_once $dir . 'class-aimp-giftcards-product.php';
 		require_once $dir . 'class-aimp-giftcards-redeem.php';
 		require_once $dir . 'class-aimp-giftcards-admin.php';
+		require_once $dir . 'class-aimp-giftcards-render.php';
 
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
 		add_action( 'aimp_gc_send', array( __CLASS__, 'send_scheduled' ) );
@@ -46,6 +47,7 @@ class AIMP_Giftcards {
 		AIMP_Giftcards_Product::init();
 		AIMP_Giftcards_Redeem::init();
 		AIMP_Giftcards_Admin::init();
+		AIMP_Giftcards_Render::init();
 	}
 
 	public static function register_post_type() {
@@ -104,6 +106,8 @@ class AIMP_Giftcards {
 			'post_fee'        => 2.5,
 			'code_prefix'     => 'IRIS',
 			'product_id'      => 0,
+			// The logo on the drawn cards (0 = the Divi logo).
+			'logo_id'         => 0,
 		);
 	}
 
@@ -146,6 +150,11 @@ class AIMP_Giftcards {
 	}
 
 	public static function design_image( $design_id, $size = 'large' ) {
+		// The drawn front of the theme (the picture with the logo), when the server can draw it.
+		$front = class_exists( 'AIMP_Giftcards_Render' ) ? AIMP_Giftcards_Render::theme_front_url( $design_id, ! in_array( $size, array( 'large', 'full', 'woocommerce_single' ), true ) ) : '';
+		if ( '' !== $front ) {
+			return $front;
+		}
 		$designs = self::designs( true );
 		$image   = isset( $designs[ $design_id ]['image_id'] ) ? wp_get_attachment_image_url( (int) $designs[ $design_id ]['image_id'], $size ) : '';
 		return $image ? $image : wc_placeholder_img_src( $size );
@@ -240,6 +249,8 @@ class AIMP_Giftcards {
 				'recipient_name'  => '',
 				'recipient_email' => '',
 				'message'         => '',
+				// null = the theme's greeting; a text (also '') = the customer's own.
+				'greeting'        => null,
 				'send_date'       => '',
 				'order_id'        => 0,
 				'item_id'         => 0,
@@ -291,6 +302,9 @@ class AIMP_Giftcards {
 			'_aimp_gc_shipped'         => 'post' === $args['delivery'] ? 0 : 1,
 			'_aimp_gc_ledger'          => array(),
 		);
+		if ( null !== $args['greeting'] ) {
+			$meta['_aimp_gc_greeting'] = sanitize_text_field( $args['greeting'] );
+		}
 		foreach ( $meta as $key => $value ) {
 			update_post_meta( $id, $key, $value );
 		}
@@ -326,6 +340,8 @@ class AIMP_Giftcards {
 			'recipient_name'  => (string) $m( 'recipient_name' ),
 			'recipient_email' => (string) $m( 'recipient_email' ),
 			'message'         => (string) $m( 'message' ),
+			// null when the card has no greeting of its own (the theme's greeting is used).
+			'greeting'        => metadata_exists( 'post', $id, '_aimp_gc_greeting' ) ? (string) $m( 'greeting' ) : null,
 			'send_date'       => (string) $m( 'send_date' ),
 			'order_id'        => (int) $m( 'order' ),
 			'status'          => (string) $m( 'status' ),
@@ -436,19 +452,22 @@ class AIMP_Giftcards {
 	 *
 	 * @param string   $to      Recipient.
 	 * @param string   $lang    Language code.
-	 * @param callable $builder Returns [ subject, html ] (runs in that language).
+	 * @param callable $builder Returns [ subject, html ] or [ subject, html, attachments ] (runs in that language).
 	 */
 	public static function mail( $to, $lang, $builder ) {
 		$lang = AIMP_I18n::is_valid( $lang ) ? $lang : AIMP_I18n::default_language();
 		AIMP_I18n::with_language(
 			$lang,
 			function () use ( $to, $builder ) {
-				list( $subject, $html ) = call_user_func( $builder );
+				$parts       = call_user_func( $builder );
+				$subject     = $parts[0];
+				$html        = $parts[1];
+				$attachments = isset( $parts[2] ) ? (array) $parts[2] : array();
 				if ( function_exists( 'WC' ) && WC()->mailer() ) {
 					$mailer = WC()->mailer();
-					$mailer->send( $to, $subject, $mailer->wrap_message( $subject, $html ), array( 'Content-Type: text/html; charset=UTF-8' ) );
+					$mailer->send( $to, $subject, $mailer->wrap_message( $subject, $html ), array( 'Content-Type: text/html; charset=UTF-8' ), $attachments );
 				} else {
-					wp_mail( $to, $subject, $html, array( 'Content-Type: text/html; charset=UTF-8' ) );
+					wp_mail( $to, $subject, $html, array( 'Content-Type: text/html; charset=UTF-8' ), $attachments );
 				}
 			}
 		);
@@ -495,12 +514,22 @@ class AIMP_Giftcards {
 			$card['lang'],
 			function () use ( $card ) {
 				$site    = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
-				$subject = $card['sender_name'] && 'email_other' === $card['delivery']
-					/* translators: 1: sender name, 2: shop name */
-					? sprintf( __( '%1$s sent you a gift card for %2$s', 'atelier-irisee-master-plugin' ), $card['sender_name'], $site )
-					/* translators: %s: shop name */
-					: sprintf( __( 'Your gift card for %s', 'atelier-irisee-master-plugin' ), $site );
-				return array( $subject, AIMP_Giftcards::card_html( $card, true ) );
+				$other   = $card['sender_name'] && 'email_other' === $card['delivery'];
+				$theme   = AIMP_Giftcards_Render::theme( $card['design'] );
+				$own     = AIMP_Giftcards_Render::in_language( $other ? $theme['subject_other'] : $theme['subject_self'], $card['lang'] );
+				$subject = '' !== $own
+					? self::fill( $own, $card )
+					: ( $other
+						/* translators: 1: sender name, 2: shop name */
+						? sprintf( __( '%1$s sent you a gift card for %2$s', 'atelier-irisee-master-plugin' ), $card['sender_name'], $site )
+						/* translators: %s: shop name */
+						: sprintf( __( 'Your gift card for %s', 'atelier-irisee-master-plugin' ), $site ) );
+				// The drawn front and back, shown and attached; without them the HTML card as before.
+				$files = AIMP_Giftcards_Render::files( $card );
+				if ( ! $files ) {
+					return array( $subject, AIMP_Giftcards::card_html( $card, true ) );
+				}
+				return array( $subject, self::email_html( $card ), array_values( $files ) );
 			}
 		);
 		update_post_meta( $card['id'], '_aimp_gc_sent', current_time( 'mysql' ) );
@@ -521,6 +550,47 @@ class AIMP_Giftcards {
 				return array( $subject, $html );
 			}
 		);
+	}
+
+	/**
+	 * A theme text with {sender}, {recipient} and {shop} filled in.
+	 *
+	 * @param string $text Text.
+	 * @param array  $card Card.
+	 * @return string
+	 */
+	public static function fill( $text, $card ) {
+		return strtr(
+			$text,
+			array(
+				'{sender}'    => $card['sender_name'],
+				'{recipient}' => $card['recipient_name'],
+				'{shop}'      => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ),
+			)
+		);
+	}
+
+	/**
+	 * The email with the drawn card: the theme's intro, the front and back, the code and the downloads.
+	 *
+	 * @param array $card Card.
+	 * @return string
+	 */
+	public static function email_html( $card ) {
+		$theme = AIMP_Giftcards_Render::theme( $card['design'] );
+		ob_start();
+		$aimp_card  = $card;
+		$aimp_intro = self::fill( AIMP_Giftcards_Render::in_language( $theme['intro'], $card['lang'] ), $card );
+		$aimp_links = array(
+			'front' => AIMP_Giftcards_Render::url( $card, 'front', true ),
+			'back'  => AIMP_Giftcards_Render::url( $card, 'back', true ),
+			'pdf'   => AIMP_Giftcards_Render::url( $card, 'pdf' ),
+			'front_download' => AIMP_Giftcards_Render::url( $card, 'front' ),
+			'back_download'  => AIMP_Giftcards_Render::url( $card, 'back' ),
+		);
+		$template = locate_template( 'atelier-irisee/giftcards/email.php' );
+		include $template ? $template : AIMP_PLUGIN_DIR . 'templates/giftcards/email.php';
+		return ob_get_clean();
 	}
 
 	/**

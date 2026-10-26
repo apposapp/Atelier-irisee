@@ -1417,3 +1417,89 @@ table.aimp-design-fabrics {
 .aimp-ai-design-state {
 	color: #646970;
 }
+
+/* Gift card themes: front, back, texts and the preview of both sides. */
+.aimp-gc-theme {
+	flex-basis: 100%;
+	margin-top: 4px;
+}
+
+.aimp-gc-theme summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.aimp-gc-theme-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 12px 24px;
+	margin-top: 10px;
+}
+
+.aimp-gc-theme-grid fieldset {
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.aimp-gc-theme-grid legend {
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.aimp-gc-theme-texts {
+	grid-column: 1 / -1;
+}
+
+.aimp-gc-color {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+}
+
+.aimp-gc-color input[type="color"] {
+	vertical-align: middle;
+}
+
+.aimp-gc-swatch {
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: 1px solid #c3c4c7;
+	border-radius: 50%;
+	cursor: pointer;
+}
+
+.aimp-gc-swatch:hover,
+.aimp-gc-swatch:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
+
+.aimp-gc-theme-sides {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 12px;
+	max-width: 900px;
+}
+
+.aimp-gc-theme-sides[hidden] {
+	display: none;
+}
+
+.aimp-gc-theme-sides img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+}
+
+.aimp-gc-logo-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+}

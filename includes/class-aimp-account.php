@@ -502,6 +502,14 @@ class AIMP_Account {
 								<span><?php echo esc_html( $for_who ); ?></span>
 							<?php endif; ?>
 						</p>
+						<?php if ( AIMP_Giftcards_Render::available() ) : ?>
+							<p class="aimp-gc-downloads">
+								<span><?php esc_html_e( 'Download:', 'atelier-irisee-master-plugin' ); ?></span>
+								<a href="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'front' ) ); ?>"><?php esc_html_e( 'Front', 'atelier-irisee-master-plugin' ); ?></a>
+								<a href="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'back' ) ); ?>"><?php esc_html_e( 'Back', 'atelier-irisee-master-plugin' ); ?></a>
+								<a href="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'pdf' ) ); ?>"><?php esc_html_e( 'PDF to print', 'atelier-irisee-master-plugin' ); ?></a>
+							</p>
+						<?php endif; ?>
 					</div>
 					<?php if ( $usable ) : ?>
 						<button type="button" class="aimp-account-button" data-aimp-gc-use="<?php echo esc_attr( $card['code'] ); ?>"><?php esc_html_e( 'Use in my cart', 'atelier-irisee-master-plugin' ); ?></button>

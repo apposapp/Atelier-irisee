@@ -49,6 +49,21 @@ foreach ( $aimp_gift_cards as $aimp_gift_card ) {
 	wp_delete_post( $aimp_gift_card, true );
 }
 wp_unschedule_hook( 'aimp_gc_send' );
+// The drawn gift card pictures and PDFs.
+delete_option( 'aimp_gc_files' );
+$aimp_uploads = wp_upload_dir();
+foreach ( array( 'aimp-giftcards', 'aimp-giftcards-themes' ) as $aimp_folder ) {
+	$aimp_base = trailingslashit( $aimp_uploads['basedir'] ) . $aimp_folder;
+	foreach ( array_merge( (array) glob( $aimp_base . '/*/{.htaccess,*}', GLOB_BRACE ), (array) glob( $aimp_base . '/{.htaccess,*}', GLOB_BRACE ) ) as $aimp_file ) {
+		if ( is_file( $aimp_file ) ) {
+			wp_delete_file( $aimp_file );
+		}
+	}
+	foreach ( (array) glob( $aimp_base . '/*', GLOB_ONLYDIR ) as $aimp_dir ) {
+		@rmdir( $aimp_dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
+	}
+	@rmdir( $aimp_base ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
+}
 
 // Footer, mosaic and the newsletter subscribers (their addresses are removed with the plugin).
 delete_option( 'aimp_footer' );

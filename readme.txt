@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.48.2
+Stable tag: 3.49.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.49.0 =
+* Gift cards are now real cards: a front (the design's picture with your logo) and a back (greeting, for/from, amount, message, code, valid until), drawn as A6 landscape pictures (148 × 105 mm, 300 dpi).
+* Each design is a theme (WooCommerce → Gift card settings → "Card design"): logo place, size and badge; back background picture or colour, text and accent colours (with Divi's global colours), double frame; a greeting and its own email subject and intro, in Dutch | French | English. "Preview front and back" shows both sides before saving. New setting "Logo on the cards" (empty = the Divi logo).
+* Product page: a "Greeting on the card" field, filled in from the chosen design (customers may change it), and "Preview your card" (front and back with what was filled in, marked as an example).
+* The gift card email uses the design's subject and intro, shows the front and back, and attaches both pictures and a 2-page PDF to print; download links too. The account page has the downloads for each card, and the admin print page prints both sides on A6.
+* Fonts Cinzel and Cormorant Garamond (SIL Open Font License) are included for the cards. Without PHP GD the gift card is sent as before.
 
 = 3.48.2 =
 * Design studio: the swatches under every colour field are now Divi's global colours (primary, secondary, heading text, body text and link colour from the Theme Customizer, plus any own global colours added in Divi), with white and black. A chosen Divi colour is linked, so it follows later changes of that colour in Divi. Email colours get the colour itself.

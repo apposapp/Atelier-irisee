@@ -38,7 +38,7 @@ $aimp_v    = function ( $key ) use ( $aimp_sent ) {
 				<?php $aimp_first = true; ?>
 				<?php foreach ( $aimp_designs as $aimp_id => $aimp_design ) : ?>
 					<label class="aimp-gc-design">
-						<input type="radio" name="aimp_gc[design]" value="<?php echo esc_attr( $aimp_id ); ?>" data-large="<?php echo esc_url( AIMP_Giftcards::design_image( $aimp_id, 'woocommerce_single' ) ); ?>" <?php checked( '' !== $aimp_v( 'design' ) ? (string) $aimp_id === $aimp_v( 'design' ) : $aimp_first ); ?> required>
+						<input type="radio" name="aimp_gc[design]" value="<?php echo esc_attr( $aimp_id ); ?>" data-large="<?php echo esc_url( AIMP_Giftcards::design_image( $aimp_id, 'woocommerce_single' ) ); ?>" data-greeting="<?php echo esc_attr( AIMP_Giftcards_Render::in_language( AIMP_Giftcards_Render::theme( $aimp_id )['greeting'] ) ); ?>" <?php checked( '' !== $aimp_v( 'design' ) ? (string) $aimp_id === $aimp_v( 'design' ) : $aimp_first ); ?> required>
 						<img src="<?php echo esc_url( AIMP_Giftcards::design_image( $aimp_id, 'woocommerce_thumbnail' ) ); ?>" alt="" loading="lazy">
 						<span><?php echo esc_html( $aimp_design['name'] ); ?></span>
 					</label>
@@ -129,6 +129,10 @@ $aimp_v    = function ( $key ) use ( $aimp_sent ) {
 			</p>
 		<?php endif; ?>
 		<p class="aimp-gc-field">
+			<label for="aimp-gc-greeting"><?php esc_html_e( 'Greeting on the card (you may change it)', 'atelier-irisee-master-plugin' ); ?></label>
+			<input type="text" id="aimp-gc-greeting" name="aimp_gc[greeting]" maxlength="80" autocomplete="off" value="<?php echo esc_attr( $aimp_v( 'greeting' ) ); ?>"<?php echo '' !== $aimp_v( 'greeting' ) ? ' data-aimp-gc-own="1"' : ''; ?>>
+		</p>
+		<p class="aimp-gc-field">
 			<label for="aimp-gc-message"><?php esc_html_e( 'Personal message (optional, max. 300 characters)', 'atelier-irisee-master-plugin' ); ?></label>
 			<textarea id="aimp-gc-message" name="aimp_gc[message]" rows="3" maxlength="300"><?php echo esc_textarea( $aimp_v( 'message' ) ); ?></textarea>
 		</p>
@@ -139,6 +143,17 @@ $aimp_v    = function ( $key ) use ( $aimp_sent ) {
 			</p>
 		<?php endif; ?>
 	</fieldset>
+
+	<?php if ( AIMP_Giftcards_Render::available() && $aimp_designs ) : ?>
+		<div class="aimp-gc-preview" data-aimp-gc-preview>
+			<button type="button" class="aimp-gc-preview-button" data-aimp-gc-preview-button><?php esc_html_e( 'Preview your card', 'atelier-irisee-master-plugin' ); ?></button>
+			<div class="aimp-gc-preview-sides" hidden>
+				<figure><img alt="" data-aimp-gc-preview-front><figcaption><?php esc_html_e( 'Front', 'atelier-irisee-master-plugin' ); ?></figcaption></figure>
+				<figure><img alt="" data-aimp-gc-preview-back><figcaption><?php esc_html_e( 'Back', 'atelier-irisee-master-plugin' ); ?></figcaption></figure>
+			</div>
+			<p class="aimp-gc-preview-msg" role="status" hidden></p>
+		</div>
+	<?php endif; ?>
 
 	<p class="aimp-gc-total" aria-live="polite"><?php esc_html_e( 'Total', 'atelier-irisee-master-plugin' ); ?>: <strong data-aimp-gc-total></strong></p>
 </div>

@@ -136,6 +136,8 @@ class AIMP_Giftcards_Redeem {
 			array(
 				'endpoint' => WC_AJAX::get_endpoint( '%%endpoint%%' ),
 				'nonce'    => wp_create_nonce( self::NONCE ),
+				// "Preview your card" on the product page.
+				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
 				'cartUrl'  => wc_get_cart_url(),
 				'lang'     => AIMP_I18n::current(),
 				'currency' => array(

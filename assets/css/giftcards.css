@@ -56,7 +56,7 @@
 .aimp-gc-design img {
 	display: block;
 	width: 100%;
-	aspect-ratio: 8 / 5;
+	aspect-ratio: 148 / 105;
 	object-fit: cover;
 	border-radius: 10px;
 }
@@ -295,7 +295,7 @@
 
 .aimp-gc-item-image {
 	width: 120px;
-	aspect-ratio: 8 / 5;
+	aspect-ratio: 148 / 105;
 	object-fit: cover;
 	border-radius: 12px;
 }
@@ -349,4 +349,80 @@
 
 .aimp-gc-check .aimp-gc-redeem-msg {
 	flex-basis: 100%;
+}
+
+/* ------------------------------------------------------------------
+ * Preview of the drawn card (product page) and the downloads (account)
+ * ------------------------------------------------------------------ */
+.aimp-gc-preview-button {
+	padding: 0.6em 1.3em;
+	border: 5px double var(--aimp-gc-gold);
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-gc-text);
+	font: inherit;
+	font-size: 15px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.aimp-gc-preview-button:hover,
+.aimp-gc-preview-button:focus-visible {
+	background: var(--aimp-gc-gold);
+	color: #fff;
+}
+
+.aimp-gc-preview-button[aria-busy="true"] {
+	opacity: 0.6;
+	cursor: progress;
+}
+
+.aimp-gc-preview-sides {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 0.75rem;
+	margin-top: 0.75rem;
+}
+
+.aimp-gc-preview-sides[hidden],
+.aimp-gc-preview-msg[hidden] {
+	display: none;
+}
+
+.aimp-gc-preview-sides figure {
+	margin: 0;
+	text-align: center;
+	font-size: 0.9em;
+	font-weight: 600;
+}
+
+.aimp-gc-preview-sides img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 148 / 105;
+	border-radius: 10px;
+	box-shadow: 0 4px 16px rgba(97, 57, 7, 0.15);
+}
+
+.aimp-gc-preview-sides figcaption {
+	margin-top: 0.35rem;
+}
+
+.aimp-gc-preview-msg {
+	margin: 0.5rem 0 0;
+}
+
+.aimp-gc-downloads {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem 0.9rem;
+	margin: 0.35rem 0 0;
+	font-size: 0.95em;
+}
+
+.aimp-gc-downloads a {
+	color: var(--aimp-gc-gold);
+	font-weight: 700;
+	text-decoration: underline;
 }

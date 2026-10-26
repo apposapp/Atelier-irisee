@@ -231,6 +231,12 @@ class AIMP_Giftcards_Product {
 		$values['sender_name']     = sanitize_text_field( $get( 'sender_name' ) );
 		$message                   = sanitize_textarea_field( $get( 'message' ) );
 		$values['message']         = function_exists( 'mb_substr' ) ? mb_substr( $message, 0, 300 ) : substr( $message, 0, 300 );
+		// The greeting on the card: filled in from the theme; the customer may change or empty it.
+		$values['greeting'] = null;
+		if ( array_key_exists( 'greeting', $raw ) ) {
+			$greeting           = sanitize_text_field( $get( 'greeting' ) );
+			$values['greeting'] = function_exists( 'mb_substr' ) ? mb_substr( $greeting, 0, 80 ) : substr( $greeting, 0, 80 );
+		}
 		$values['send_date']       = '';
 
 		if ( 'email_other' === $values['delivery'] ) {
@@ -292,7 +298,15 @@ class AIMP_Giftcards_Product {
 	public static function design_img( $gc, $size = 'woocommerce_thumbnail' ) {
 		$design  = is_array( $gc ) && isset( $gc['design'] ) ? (string) $gc['design'] : '';
 		$designs = AIMP_Giftcards::designs( true );
-		if ( '' === $design || empty( $designs[ $design ]['image_id'] ) ) {
+		if ( '' === $design || ! isset( $designs[ $design ] ) ) {
+			return '';
+		}
+		// The drawn front of the theme (picture with logo).
+		$front = AIMP_Giftcards_Render::theme_front_url( $design, true );
+		if ( '' !== $front ) {
+			return '<img src="' . esc_url( $front ) . '" alt="' . esc_attr( AIMP_Giftcards::design_name( $design ) ) . '" class="attachment-' . esc_attr( $size ) . '" loading="lazy">';
+		}
+		if ( empty( $designs[ $design ]['image_id'] ) ) {
 			return '';
 		}
 		return (string) wp_get_attachment_image( (int) $designs[ $design ]['image_id'], $size, false, array( 'alt' => AIMP_Giftcards::design_name( $design ) ) );
@@ -358,6 +372,9 @@ class AIMP_Giftcards_Product {
 		}
 		if ( ! empty( $gc['send_date'] ) ) {
 			$rows[ __( 'Send on', 'atelier-irisee-master-plugin' ) ] = date_i18n( get_option( 'date_format' ), strtotime( $gc['send_date'] ) );
+		}
+		if ( isset( $gc['greeting'] ) && '' !== $gc['greeting'] ) {
+			$rows[ __( 'Greeting', 'atelier-irisee-master-plugin' ) ] = $gc['greeting'];
 		}
 		if ( ! empty( $gc['message'] ) ) {
 			$rows[ __( 'Message', 'atelier-irisee-master-plugin' ) ] = $gc['message'];
@@ -433,6 +450,7 @@ class AIMP_Giftcards_Product {
 						'recipient_name'  => $gc['recipient_name'],
 						'recipient_email' => $gc['recipient_email'],
 						'message'         => $gc['message'],
+						'greeting'        => array_key_exists( 'greeting', $gc ) ? $gc['greeting'] : null,
 						'send_date'       => $gc['send_date'],
 						'order_id'        => $order->get_id(),
 						'item_id'         => $item_id,

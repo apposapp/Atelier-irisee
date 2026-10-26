@@ -110,6 +110,73 @@
 		form.addEventListener('change', update);
 		form.addEventListener('input', update);
 		update();
+
+		// The greeting follows the chosen theme, until the customer writes their own.
+		var greeting = form.querySelector('#aimp-gc-greeting');
+		function themeGreeting() {
+			var design = form.querySelector('input[name="aimp_gc[design]"]:checked');
+			if (greeting && design && !greeting.hasAttribute('data-aimp-gc-own')) {
+				greeting.value = design.getAttribute('data-greeting') || '';
+			}
+		}
+		if (greeting) {
+			greeting.addEventListener('input', function () {
+				greeting.setAttribute('data-aimp-gc-own', '1');
+			});
+			form.addEventListener('change', function (e) {
+				if (e.target && e.target.name === 'aimp_gc[design]') {
+					themeGreeting();
+				}
+			});
+			themeGreeting();
+		}
+
+		// "Preview your card": the front of the theme and the back with what was filled in.
+		var preview = form.querySelector('[data-aimp-gc-preview]');
+		if (preview) {
+			var button = preview.querySelector('[data-aimp-gc-preview-button]');
+			var sides = preview.querySelector('.aimp-gc-preview-sides');
+			var msg = preview.querySelector('.aimp-gc-preview-msg');
+			button.addEventListener('click', function () {
+				var custom = form.querySelector('#aimp-gc-custom');
+				var amountChoice = checked('amount');
+				var field = function (id) {
+					var el = form.querySelector(id);
+					return el && !el.disabled ? el.value : '';
+				};
+				var data = new FormData();
+				data.append('action', 'aimp_gc_preview');
+				data.append('design', checked('design'));
+				data.append('amount', amountChoice === 'custom' ? ((custom && custom.value) || '') : amountChoice);
+				data.append('delivery', checked('delivery'));
+				data.append('recipient_name', field('#aimp-gc-recipient-name'));
+				data.append('sender_name', field('#aimp-gc-sender'));
+				data.append('greeting', field('#aimp-gc-greeting'));
+				data.append('message', field('#aimp-gc-message'));
+				button.setAttribute('aria-busy', 'true');
+				msg.hidden = false;
+				msg.textContent = t.working || '';
+				fetch(cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: data })
+					.then(function (response) {
+						return response.json();
+					})
+					.then(function (res) {
+						if (!res || !res.success || !res.data.back) {
+							throw new Error('preview');
+						}
+						preview.querySelector('[data-aimp-gc-preview-front]').src = res.data.front;
+						preview.querySelector('[data-aimp-gc-preview-back]').src = res.data.back;
+						sides.hidden = false;
+						msg.hidden = true;
+					})
+					.catch(function () {
+						msg.textContent = t.error || '';
+					})
+					.then(function () {
+						button.removeAttribute('aria-busy');
+					});
+			});
+		}
 	}
 
 	document.querySelectorAll('[data-aimp-gc-form]').forEach(initForm);
