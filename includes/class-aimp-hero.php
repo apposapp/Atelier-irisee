@@ -158,7 +158,7 @@ class AIMP_Hero {
 					?>
 					<div class="aimp-hero-buttons">
 						<?php if ( $kit_url ) : ?>
-							<a class="aimp-hero-button is-primary" href="<?php echo esc_url( $kit_url ); ?>"><?php esc_html_e( 'Make your sewing kit', 'atelier-irisee-master-plugin' ); ?></a>
+							<a class="aimp-hero-button is-primary" href="<?php echo esc_url( $kit_url ); ?>"><?php esc_html_e( 'Create your sewing kit', 'atelier-irisee-master-plugin' ); ?></a>
 						<?php endif; ?>
 						<?php if ( $shop_url ) : ?>
 							<a class="aimp-hero-button is-outline" href="<?php echo esc_url( $shop_url ); ?>"><?php esc_html_e( 'Discover the shop', 'atelier-irisee-master-plugin' ); ?></a>

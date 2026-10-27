@@ -359,7 +359,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 					<?php endif; ?>
 					<?php if ( $data['configurator_url'] ) : ?>
 						<div class="aimp-recommend-kit">
-							<p><?php esc_html_e( 'Start making my own sewing project kit', 'atelier-irisee-master-plugin' ); ?></p>
+							<p><?php esc_html_e( 'Create your sewing kit', 'atelier-irisee-master-plugin' ); ?></p>
 							<?php if ( count( $aimp_designs ) > 1 ) : ?>
 								<?php // One button per design of the pack. ?>
 								<?php foreach ( $aimp_designs as $aimp_design ) : ?>

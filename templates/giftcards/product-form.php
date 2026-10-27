@@ -25,6 +25,19 @@ $aimp_stepper   = class_exists( 'AIMP_Product_Page' ) && AIMP_Product_Page::is_r
 // The cart refused the gift card (e.g. a wrong email address): what was filled in comes back.
 // phpcs:ignore WordPress.Security.NonceVerification.Missing -- only shown back in the form.
 $aimp_sent = ( isset( $_POST['aimp_gc'] ) && is_array( $_POST['aimp_gc'] ) && function_exists( 'wc_notice_count' ) && wc_notice_count( 'error' ) ) ? wc_clean( wp_unslash( $_POST['aimp_gc'] ) ) : array();
+// A link from the gift card promo (?aimp_gc_design=… or ?aimp_gc_amount=…) chooses that design or amount.
+// phpcs:disable WordPress.Security.NonceVerification.Recommended -- only preselects a choice.
+if ( ! $aimp_sent ) {
+	$aimp_link_design = isset( $_GET['aimp_gc_design'] ) ? sanitize_key( wp_unslash( $_GET['aimp_gc_design'] ) ) : '';
+	$aimp_link_amount = isset( $_GET['aimp_gc_amount'] ) ? (float) wp_unslash( $_GET['aimp_gc_amount'] ) : 0;
+	if ( isset( $aimp_designs[ $aimp_link_design ] ) ) {
+		$aimp_sent['design'] = $aimp_link_design;
+	}
+	if ( in_array( $aimp_link_amount, $aimp_amounts, true ) ) {
+		$aimp_sent['amount'] = (string) $aimp_link_amount;
+	}
+}
+// phpcs:enable
 $aimp_v    = function ( $key ) use ( $aimp_sent ) {
 	return isset( $aimp_sent[ $key ] ) && is_string( $aimp_sent[ $key ] ) ? $aimp_sent[ $key ] : '';
 };

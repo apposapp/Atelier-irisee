@@ -1,0 +1,206 @@
+/* Social media icons (AIMP_Footer::socials_html()): in the header, the gold info bar, a strip at the side of the
+   screen and the [atelier_irisee_socials] shortcode. Style: gold line icons, round gold buttons or filled. */
+.aimp-socials {
+	--aimp-social-size: 22px;
+	--aimp-social-gold: var(--aimp-site-gold, #b38f4f);
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.6rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-socials li {
+	margin: 0;
+	padding: 0;
+}
+
+.aimp-socials a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--aimp-social-size);
+	height: var(--aimp-social-size);
+	color: var(--aimp-social-gold);
+	text-decoration: none;
+	transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.aimp-socials a:hover,
+.aimp-socials a:focus-visible {
+	transform: translateY(-2px);
+}
+
+.aimp-socials svg {
+	width: 100%;
+	height: 100%;
+}
+
+/* Round gold buttons: the icon in a thin gold circle. */
+.aimp-socials.is-round a,
+.aimp-socials.is-filled a {
+	width: calc(var(--aimp-social-size) * 1.8);
+	height: calc(var(--aimp-social-size) * 1.8);
+	padding: calc(var(--aimp-social-size) * 0.4);
+	border: 1.5px solid var(--aimp-social-gold);
+	border-radius: 50%;
+}
+
+.aimp-socials.is-round a:hover,
+.aimp-socials.is-round a:focus-visible,
+.aimp-socials.is-filled a {
+	background: var(--aimp-social-gold);
+	color: #fff;
+}
+
+.aimp-socials.is-filled a:hover,
+.aimp-socials.is-filled a:focus-visible {
+	background: transparent;
+	color: var(--aimp-social-gold);
+}
+
+/* In the header: next to the shortcuts, on computers only. */
+.aimp-socials--header {
+	--aimp-social-size: 18px;
+	align-self: center;
+	flex-wrap: nowrap;
+	margin-right: 1rem;
+	padding-right: 1rem;
+	border-right: 1px solid color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 45%, transparent);
+}
+
+@media (max-width: 1024px) {
+	.aimp-socials--header {
+		display: none;
+	}
+}
+
+/* In the gold info bar: white, at the right end. */
+.aimp-info-bar:has(.aimp-socials--info) {
+	position: relative;
+}
+
+.aimp-socials--info {
+	--aimp-social-gold: #fff;
+	--aimp-social-size: 16px;
+	position: absolute;
+	top: 50%;
+	right: clamp(0.75rem, 3vw, 2rem);
+	flex-wrap: nowrap;
+	transform: translateY(-50%);
+}
+
+.aimp-socials--info.is-filled a {
+	color: var(--aimp-site-gold, #b38f4f);
+}
+
+@media (max-width: 700px) {
+	.aimp-socials--info {
+		display: none;
+	}
+}
+
+/* A strip at the side of the screen, halfway down. */
+.aimp-socials-float {
+	position: fixed;
+	top: 50%;
+	z-index: 9990;
+	display: flex;
+	align-items: center;
+	transform: translateY(-50%);
+}
+
+.aimp-socials-float.is-left {
+	left: 0;
+}
+
+.aimp-socials-float.is-right {
+	right: 0;
+	flex-direction: row-reverse;
+}
+
+.aimp-socials-float .aimp-socials {
+	flex-direction: column;
+	padding: 0.7rem 0.5rem;
+	background: #fff;
+	box-shadow: 0 6px 22px rgba(97, 57, 7, 0.16);
+}
+
+.aimp-socials-float.is-left .aimp-socials {
+	border-radius: 0 16px 16px 0;
+}
+
+.aimp-socials-float.is-right .aimp-socials {
+	border-radius: 16px 0 0 16px;
+}
+
+.aimp-socials-toggle {
+	display: none;
+}
+
+/* Phones: a small gold tab; it opens the strip. */
+@media (max-width: 700px) {
+	.aimp-socials-float {
+		top: auto;
+		bottom: calc(var(--aimp-tabbar-h, 64px) + 1rem);
+		transform: none;
+	}
+
+	.aimp-socials-toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.4rem;
+		height: 2.4rem;
+		padding: 0.5rem;
+		border: 0;
+		background: var(--aimp-site-gold, #b38f4f);
+		color: #fff;
+		cursor: pointer;
+	}
+
+	.aimp-socials-float.is-left .aimp-socials-toggle {
+		border-radius: 0 12px 12px 0;
+	}
+
+	.aimp-socials-float.is-right .aimp-socials-toggle {
+		border-radius: 12px 0 0 12px;
+	}
+
+	.aimp-socials-toggle svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.aimp-socials-float .aimp-socials {
+		display: none;
+	}
+
+	.aimp-socials-float.is-open .aimp-socials {
+		display: flex;
+	}
+}
+
+/* [atelier_irisee_socials]: centred, with an optional title. */
+.aimp-socials-block {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.6rem;
+	text-align: center;
+}
+
+.aimp-socials-block .aimp-socials {
+	--aimp-social-size: 26px;
+	justify-content: center;
+}
+
+.aimp-socials-title {
+	margin: 0;
+	color: var(--aimp-site-gold-text, #8a6a33);
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}

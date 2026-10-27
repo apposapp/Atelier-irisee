@@ -204,12 +204,90 @@
 		);
 	}
 
+	function money(amount) {
+		var c = cfg.currency;
+		var parts = Number(amount).toFixed(c.decimals).split('.');
+		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, c.thousand);
+		var value = parts.join(c.decimal);
+		switch (c.position) {
+			case 'right':
+				return value + c.symbol;
+			case 'left_space':
+				return c.symbol + ' ' + value;
+			case 'right_space':
+				return value + ' ' + c.symbol;
+			default:
+				return c.symbol + value;
+		}
+	}
+
+	// The buy bar under each favourite: ‹ amount › (cm for fabric), the price for that amount, "Add to cart"
+	// (the shop's own add-to-cart endpoint, added in the background).
+	function bindBuyBars(container) {
+		container.querySelectorAll('[data-aimp-fav-buy]').forEach(function (bar) {
+			var field = bar.querySelector('.aimp-stepper-input');
+			var total = bar.querySelector('[data-role="total"]');
+			var message = bar.querySelector('[data-role="message"]');
+			var add = bar.querySelector('[data-role="add"]');
+			var unit = parseFloat(bar.getAttribute('data-unit')) || 0;
+			var per10 = bar.getAttribute('data-per10') === '1';
+			var step = parseInt(bar.getAttribute('data-step'), 10) || 1;
+			var min = parseInt(bar.getAttribute('data-min'), 10) || step;
+			var max = parseInt(bar.getAttribute('data-max'), 10) || 0;
+			var clean = function (value) {
+				var n = Math.max(min, Math.ceil((parseFloat(value) || 0) / step) * step);
+				return max ? Math.min(max, n) : n;
+			};
+			var units = function () {
+				return per10 ? parseInt(field.value, 10) / 10 : parseInt(field.value, 10);
+			};
+			var show = function () {
+				total.textContent = unit && cfg.currency ? money(unit * units()) : '';
+			};
+			bar.querySelectorAll('.aimp-stepper-btn').forEach(function (btn) {
+				btn.addEventListener('click', function () {
+					field.value = clean((parseInt(field.value, 10) || min) + step * parseInt(btn.getAttribute('data-dir'), 10));
+					show();
+				});
+			});
+			field.addEventListener('change', function () {
+				field.value = clean(field.value);
+				show();
+			});
+			show();
+
+			add.addEventListener('click', function () {
+				field.value = clean(field.value);
+				add.disabled = true;
+				add.textContent = t().adding;
+				message.innerHTML = '';
+				request('shop_buy', { product_id: bar.getAttribute('data-id'), quantity: units() })
+					.then(function (data) {
+						message.innerHTML = '<p class="aimp-fav-buy-ok">' + esc(data.message) + ' <a href="' + esc(data.cart_url) + '">' + esc(t().viewCart) + '</a></p>';
+						// The cart count in the header and the mini cart.
+						if (window.jQuery) {
+							window.jQuery(document.body).trigger('wc_fragment_refresh');
+						}
+						document.body.dispatchEvent(new CustomEvent('wc-blocks_added_to_cart', { bubbles: true, detail: { preserveCartData: false } }));
+					})
+					.catch(function (err) {
+						message.innerHTML = '<p class="aimp-fav-buy-error">' + esc((err && err.message) || t().error) + '</p>';
+					})
+					.then(function () {
+						add.disabled = false;
+						add.textContent = t().addToCart;
+					});
+			});
+		});
+	}
+
 	function loadPage(container) {
 		container.innerHTML = '<p class="aimp-fav-loading">' + esc(t().loading) + '</p>';
 		request('favorites_list', {})
 			.then(function (data) {
 				container.innerHTML = data.html || emptyHtml();
 				refresh(container);
+				bindBuyBars(container);
 			})
 			.catch(function () {
 				container.innerHTML = '<p class="aimp-fav-empty">' + esc(t().error) + '</p>';

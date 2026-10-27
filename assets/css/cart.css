@@ -429,15 +429,30 @@
 	height: 1.6rem;
 }
 
+/* "Continue shopping": a round gold double-line button at the top left of the cart. */
+.aimp-configurator .aimp-cart-top {
+	margin: 0 0 1.25rem;
+	text-align: left;
+}
+
 .aimp-configurator .aimp-cart-continue {
-	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5em;
+	padding: 0.55em 1.4em;
+	border: 5px double var(--aimp-site-gold, #b38f4f);
+	border-radius: 100px;
+	background: transparent;
+	color: var(--aimp-site-brown, #613907);
 	font-weight: 700;
 	text-decoration: none;
+	transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .aimp-configurator .aimp-cart-continue:hover,
 .aimp-configurator .aimp-cart-continue:focus-visible {
-	text-decoration: underline;
+	background: var(--aimp-site-gold, #b38f4f);
+	color: #fff;
 }
 
 /* Phones: every product a stacked card (picture and name, then amount and price on their own line);

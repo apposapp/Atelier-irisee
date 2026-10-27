@@ -478,14 +478,13 @@ class AIMP_Shop {
 			$line = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'overview', 'ov_sub_' . $key, '' ) : '';
 			$line = '' !== $line ? AIMP_Settings::localized( $line ) : '';
 			if ( $hero_key === $key ) {
-				// Sewing project kits: the hero, a large tile on the left (bento).
+				// Sewing project kits: the hero, a large tile on the left (bento), with only its picture and name.
 				$hero = sprintf(
-					'<li class="aimp-overview-card aimp-overview-hero aimp-overview-card--' . esc_attr( $key ) . '"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-overview-hero-text"><span class="aimp-card-name">%3$s</span><span class="aimp-overview-hero-line">%4$s</span><span class="aimp-button aimp-overview-hero-button">%5$s</span></span></a></li>',
+					'<li class="aimp-overview-card aimp-overview-hero aimp-overview-card--%4$s"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
 					esc_url( get_permalink( $link_id ) ),
 					esc_url( self::overview_image( $setting, $cat_keys, $link_id ) ),
 					esc_html( $label ),
-					esc_html( '' !== $line ? $line : ( 'configurator' === $key ? __( 'Pattern, fabric and haberdashery together', 'atelier-irisee-master-plugin' ) : '' ) ),
-					'configurator' === $key ? esc_html__( 'Compose your kit', 'atelier-irisee-master-plugin' ) : esc_html__( 'Discover', 'atelier-irisee-master-plugin' )
+					esc_attr( $key )
 				);
 				continue;
 			}

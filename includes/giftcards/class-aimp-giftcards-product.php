@@ -302,7 +302,7 @@ class AIMP_Giftcards_Product {
 			return '';
 		}
 		// The drawn front of the theme (picture with logo).
-		$front = AIMP_Giftcards_Render::theme_front_url( $design, true );
+		$front = AIMP_Giftcards_Render::theme_picture_url( $design, true );
 		if ( '' !== $front ) {
 			return '<img src="' . esc_url( $front ) . '" alt="' . esc_attr( AIMP_Giftcards::design_name( $design ) ) . '" class="attachment-' . esc_attr( $size ) . '" loading="lazy">';
 		}

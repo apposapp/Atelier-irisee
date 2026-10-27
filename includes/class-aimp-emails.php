@@ -192,6 +192,12 @@ class AIMP_Emails {
 		}
 		$divi = function_exists( 'et_get_option' ) ? (string) et_get_option( 'divi_logo' ) : '';
 		if ( '' !== $divi ) {
+			// A smaller copy of the logo (the original can be 1000+ px wide and a WebP, which Outlook cannot show).
+			$id = attachment_url_to_postid( $divi );
+			if ( $id ) {
+				$small = wp_get_attachment_image_url( $id, 'medium' );
+				return $small ? (string) $small : $divi;
+			}
 			return $divi;
 		}
 		$logo = get_theme_mod( 'custom_logo' );
@@ -243,7 +249,7 @@ class AIMP_Emails {
 			#template_footer #credit, #template_footer #credit p { color: {$brown}; }
 			.button, a.button { display: inline-block; padding: 12px 26px; border: 4px double {$gold}; border-radius: 100px; color: {$brown} !important; background: transparent !important; font-weight: bold; text-decoration: none; }
 			#template_container { max-width: 600px !important; }
-			#template_header_image img { background: #ffffff; padding: 8px 14px; border-radius: 12px; }
+			#template_header_image img { width: 160px; max-width: 160px !important; height: auto !important; background: #ffffff; padding: 8px 14px; border-radius: 12px; }
 			@media screen and (max-width: 600px) {
 				#template_container, #template_body, #template_header, #template_footer { width: 100% !important; }
 				#body_content_inner, #body_content_inner p, #body_content_inner td { font-size: 16px !important; line-height: 1.5 !important; }

@@ -517,6 +517,11 @@ class AIMP_Product_Page {
 					break;
 				}
 			}
+			// A link from the gift card promo (?aimp_gc_amount=50) starts at that amount.
+			$link = isset( $_GET['aimp_gc_amount'] ) ? (float) wp_unslash( $_GET['aimp_gc_amount'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only preselects an amount.
+			if ( $link >= $min && $link <= $max && abs( fmod( $link, AIMP_Giftcards::AMOUNT_STEP ) ) < 0.001 ) {
+				$value = $link;
+			}
 			return array(
 				'available'  => $product->is_purchasable(),
 				'pattern'    => false,

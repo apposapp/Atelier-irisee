@@ -24,10 +24,8 @@ class AIMP_Giftcards_Render {
 	const H = 1240;
 
 	/** Raise when the drawing changes, so cached pictures are drawn again. */
-	const DRAW_VERSION = 1;
+	const DRAW_VERSION = 2;
 
-	/** Logo places on the front. */
-	const PLACES = array( 'tl', 't', 'tr', 'l', 'c', 'r', 'bl', 'b', 'br' );
 
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'serve' ), 5 );
@@ -82,10 +80,9 @@ class AIMP_Giftcards_Render {
 			'active'        => 1,
 			'fx'            => 50,
 			'fy'            => 50,
+			// The logo at the top of the text side (the front); its width in % of the card.
 			'logo'          => 1,
-			'logo_place'    => 'c',
-			'logo_size'     => 30,
-			'logo_badge'    => 1,
+			'logo_size'     => 13,
 			'back_image_id' => 0,
 			'back_color'    => '#fffaf7',
 			'text_color'    => '#613907',
@@ -179,8 +176,8 @@ class AIMP_Giftcards_Render {
 	 * @return string
 	 */
 	private static function front_hash( $theme ) {
-		$keys = array( 'image_id', 'fx', 'fy', 'logo', 'logo_place', 'logo_size', 'logo_badge' );
-		return substr( md5( wp_json_encode( array( array_intersect_key( $theme, array_flip( $keys ) ), self::logo_id(), self::DRAW_VERSION ) ) ), 0, 10 );
+		$keys = array( 'image_id', 'fx', 'fy', 'back_color' );
+		return substr( md5( wp_json_encode( array( array_intersect_key( $theme, array_flip( $keys ) ), self::DRAW_VERSION ) ) ), 0, 10 );
 	}
 
 	/**
@@ -190,7 +187,7 @@ class AIMP_Giftcards_Render {
 	 * @param bool   $small     700 px wide (for the choice on the product page, the cart and the account page).
 	 * @return string URL, or '' when it cannot be drawn.
 	 */
-	public static function theme_front_url( $design_id, $small = false ) {
+	public static function theme_picture_url( $design_id, $small = false ) {
 		$designs = AIMP_Giftcards::designs( true );
 		if ( ! self::available() || '' === (string) $design_id || ! isset( $designs[ $design_id ] ) ) {
 			return '';
@@ -205,7 +202,7 @@ class AIMP_Giftcards_Render {
 			foreach ( (array) glob( $dir . sanitize_key( $design_id ) . '-*' ) as $old ) {
 				wp_delete_file( $old );
 			}
-			$im = self::draw_front( $theme );
+			$im = self::draw_picture( $theme );
 			if ( ! $im ) {
 				return '';
 			}
@@ -242,8 +239,8 @@ class AIMP_Giftcards_Render {
 		foreach ( (array) glob( $dir . (int) $card['id'] . '-*' ) as $old ) {
 			wp_delete_file( $old );
 		}
-		$front = self::draw_front( $theme );
-		$back  = self::draw_back( $theme, $data, false );
+		$front = self::draw_details( $theme, $data, false );
+		$back  = self::draw_picture( $theme );
 		if ( ! $front || ! $back ) {
 			return array();
 		}
@@ -405,11 +402,11 @@ class AIMP_Giftcards_Render {
 			)
 		);
 		$theme = self::theme( $design );
-		$back  = self::draw_back( $theme, self::back_data( $card ), true );
+		$front = self::draw_details( $theme, self::back_data( $card ), true );
 		wp_send_json_success(
 			array(
-				'front' => self::theme_front_url( $design ),
-				'back'  => self::data_uri( $back ? self::scaled( $back, 1000 ) : null ),
+				'front' => self::data_uri( $front ? self::scaled( $front, 1000 ) : null ),
+				'back'  => self::theme_picture_url( $design ),
 			)
 		);
 	}
@@ -429,8 +426,8 @@ class AIMP_Giftcards_Render {
 		$row   = isset( $_POST['design'] ) && is_array( $_POST['design'] ) ? AIMP_Giftcards_Admin::clean_design( wp_unslash( $_POST['design'] ) ) : array();
 		$theme = wp_parse_args( $row, self::theme_defaults() );
 		$card  = self::example_card( '', array( 'greeting' => self::in_language( $theme['greeting'] ) ) );
-		$front = self::draw_front( $theme );
-		$back  = self::draw_back( $theme, self::back_data( $card ), true );
+		$front = self::draw_details( $theme, self::back_data( $card ), true );
+		$back  = self::draw_picture( $theme );
 		wp_send_json_success(
 			array(
 				'front' => self::data_uri( $front ? self::scaled( $front, 900 ) : null ),
@@ -633,38 +630,12 @@ class AIMP_Giftcards_Render {
 	}
 
 	/**
-	 * Puts a logo (with an optional round light badge behind it) centred on a point.
-	 */
-	private static function place_logo( $im, $cx, $cy, $width, $badge ) {
-		$logo = self::load( self::logo_id(), (int) $width );
-		if ( ! $logo ) {
-			return;
-		}
-		$lw = imagesx( $logo );
-		$lh = imagesy( $logo );
-		$w  = (int) round( $width );
-		$h  = (int) round( $width * $lh / $lw );
-		if ( $badge ) {
-			$d = (int) round( max( $w, $h ) * 1.32 );
-			self::smooth(
-				$im,
-				function ( $layer, $s ) use ( $cx, $cy, $d ) {
-					imagefilledellipse( $layer, (int) ( $cx * $s ), (int) ( $cy * $s ), $d * $s, $d * $s, self::color( $layer, '#fffaf7', 14 ) );
-				}
-			);
-		}
-		imagealphablending( $im, true );
-		imagecopyresampled( $im, $logo, (int) round( $cx - $w / 2 ), (int) round( $cy - $h / 2 ), 0, 0, $w, $h, $lw, $lh );
-		imagedestroy( $logo );
-	}
-
-	/**
-	 * The front: the theme's picture with the logo.
+	 * The picture side (the back of the card): only the theme's picture.
 	 *
 	 * @param array $theme Theme.
 	 * @return resource|GdImage|null
 	 */
-	public static function draw_front( $theme ) {
+	public static function draw_picture( $theme ) {
 		// A card at 300 dpi takes about 90 MB while drawing.
 		wp_raise_memory_limit( 'image' );
 		$im = self::canvas();
@@ -673,14 +644,6 @@ class AIMP_Giftcards_Render {
 		if ( $picture ) {
 			self::cover( $im, $picture, (float) $theme['fx'], (float) $theme['fy'] );
 			imagedestroy( $picture );
-		}
-		if ( $theme['logo'] ) {
-			$width  = self::W * max( 8, min( 60, (float) $theme['logo_size'] ) ) / 100;
-			$margin = 80 + $width * ( $theme['logo_badge'] ? 0.66 : 0.5 );
-			$place  = in_array( $theme['logo_place'], self::PLACES, true ) ? $theme['logo_place'] : 'c';
-			$cx     = false !== strpos( $place, 'l' ) ? $margin : ( false !== strpos( $place, 'r' ) ? self::W - $margin : self::W / 2 );
-			$cy     = 0 === strpos( $place, 't' ) ? $margin : ( 0 === strpos( $place, 'b' ) ? self::H - $margin : self::H / 2 );
-			self::place_logo( $im, $cx, $cy, $width, (bool) $theme['logo_badge'] );
 		}
 		return $im;
 	}
@@ -765,7 +728,7 @@ class AIMP_Giftcards_Render {
 	 * @param bool  $example Mark it as an example.
 	 * @return resource|GdImage|null
 	 */
-	public static function draw_back( $theme, $data, $example ) {
+	public static function draw_details( $theme, $data, $example ) {
 		wp_raise_memory_limit( 'image' );
 		$im = self::canvas();
 		imagefill( $im, 0, 0, self::color( $im, $theme['back_color'] ) );
@@ -788,6 +751,11 @@ class AIMP_Giftcards_Render {
 
 		// The blocks from top to bottom: [ kind, text, font, size, colour, space after ].
 		$blocks = array();
+		// The logo at the top (for a logo: its width in px, and its height / width in the text slot).
+		$logo = $theme['logo'] ? self::load( self::logo_id(), 400 ) : null;
+		if ( $logo ) {
+			$blocks[] = array( 'logo', imagesy( $logo ) / imagesx( $logo ), 'display', self::W * max( 5, min( 30, (float) $theme['logo_size'] ) ) / 100, '', 22 );
+		}
 		if ( '' !== trim( $data['greeting'] ) ) {
 			$blocks[] = array( 'lines', $data['greeting'], 'display-bold', 54, $accent, 26 );
 		}
@@ -824,7 +792,11 @@ class AIMP_Giftcards_Render {
 		foreach ( $laid as $block ) {
 			$font  = self::font( $block['font'] );
 			$color = self::color( $im, $block['color'] );
-			if ( 'code' === $block['kind'] ) {
+			if ( 'logo' === $block['kind'] ) {
+				$w = (int) round( $block['size'] );
+				imagealphablending( $im, true );
+				imagecopyresampled( $im, $logo, (int) round( ( self::W - $w ) / 2 ), $y, 0, 0, $w, $block['line'], imagesx( $logo ), imagesy( $logo ) );
+			} elseif ( 'code' === $block['kind'] ) {
 				$m   = self::measure( $block['lines'][0], $font, $block['size'] );
 				$pad = (int) round( 22 * $scale );
 				$x1  = (int) round( ( self::W - $m['w'] ) / 2 ) - $pad * 2;
@@ -857,6 +829,9 @@ class AIMP_Giftcards_Render {
 			$h    = max( $box[1], $box[3] ) - min( $box[5], $box[7] );
 			imagettftext( $im, 130, 18, (int) round( ( self::W - $w ) / 2 ), (int) round( ( self::H + $h ) / 2 ), self::color( $im, $accent, 108 ), $font, $mark );
 		}
+		if ( $logo ) {
+			imagedestroy( $logo );
+		}
 		return $im;
 	}
 
@@ -867,6 +842,19 @@ class AIMP_Giftcards_Render {
 		$laid = array();
 		foreach ( $blocks as $block ) {
 			list( $kind, $text, $font_name, $size, $color, $after ) = $block;
+			if ( 'logo' === $kind ) {
+				$width  = $size * $scale;
+				$laid[] = array(
+					'kind'  => 'logo',
+					'lines' => array(),
+					'font'  => $font_name,
+					'size'  => $width,
+					'color' => '#000000',
+					'line'  => (int) round( $width * $text ),
+					'h'     => (int) round( $width * $text ) + (int) round( $after * $scale ),
+				);
+				continue;
+			}
 			$size = max( 9, $size * $scale );
 			$font = self::font( $font_name );
 			if ( 'label' === $kind ) {

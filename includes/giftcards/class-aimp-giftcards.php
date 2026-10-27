@@ -151,7 +151,7 @@ class AIMP_Giftcards {
 
 	public static function design_image( $design_id, $size = 'large' ) {
 		// The drawn front of the theme (the picture with the logo), when the server can draw it.
-		$front = class_exists( 'AIMP_Giftcards_Render' ) ? AIMP_Giftcards_Render::theme_front_url( $design_id, ! in_array( $size, array( 'large', 'full', 'woocommerce_single' ), true ) ) : '';
+		$front = class_exists( 'AIMP_Giftcards_Render' ) ? AIMP_Giftcards_Render::theme_picture_url( $design_id, ! in_array( $size, array( 'large', 'full', 'woocommerce_single' ), true ) ) : '';
 		if ( '' !== $front ) {
 			return $front;
 		}

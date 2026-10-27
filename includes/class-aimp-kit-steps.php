@@ -80,7 +80,7 @@ class AIMP_Kit_Steps {
 			// The fifth step (Design studio → Kit steps bar).
 			'ks_s5_title' => __( 'Start sewing', 'atelier-irisee-master-plugin' ),
 			'ks_s5_text'  => __( 'Follow the pattern, step by step.', 'atelier-irisee-master-plugin' ),
-			'ks_button'   => __( 'Start making your project sewing kit', 'atelier-irisee-master-plugin' ),
+			'ks_button'   => __( 'Create your sewing kit', 'atelier-irisee-master-plugin' ),
 		);
 	}
 

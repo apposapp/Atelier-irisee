@@ -171,6 +171,9 @@ class AIMP_Favorites {
 			'browse'      => __( 'Browse the shop', 'atelier-irisee-master-plugin' ),
 			'loading'     => __( 'Loading…', 'atelier-irisee-master-plugin' ),
 			'error'       => __( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ),
+			'addToCart'   => __( 'Add to cart', 'atelier-irisee-master-plugin' ),
+			'adding'      => __( 'Adding…', 'atelier-irisee-master-plugin' ),
+			'viewCart'    => __( 'View cart', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -200,6 +203,14 @@ class AIMP_Favorites {
 				'icon'            => self::icon(),
 				'defaultLanguage' => AIMP_I18n::default_language(),
 				'i18n'            => $i18n,
+				// The price in the buy bars of the favorites page.
+				'currency'        => array(
+					'symbol'   => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
+					'position' => get_option( 'woocommerce_currency_pos', 'left' ),
+					'decimals' => wc_get_price_decimals(),
+					'decimal'  => wc_get_price_decimal_separator(),
+					'thousand' => wc_get_price_thousand_separator(),
+				),
 			)
 		);
 	}
@@ -270,11 +281,13 @@ class AIMP_Favorites {
 	 * @return string
 	 */
 	private static function card_html( $product ) {
-		// The card of the category pages, as a link to the product page (the amount, length or size is
-		// chosen there), with a "View product" button at the bottom.
+		// The card of the category pages, as a link to the product page, with the buy bar of the shop under it:
+		// ‹ amount › (10 cm steps for fabric), the price for that amount and "Add to cart". Products that cannot be
+		// bought straight from here (gift cards, out of stock) keep a "View product" button.
 		$card   = AIMP_Catalog::card( $product );
 		$suffix = ( '' !== AIMP_Catalog::price_suffix( $product ) ? ' <small>' . esc_html( AIMP_Catalog::price_suffix( $product ) ) . '</small>' : '' );
 		$badge  = $product->is_in_stock() ? '' : '<span class="aimp-badge">' . esc_html__( 'Out of stock', 'atelier-irisee-master-plugin' ) . '</span>';
+		$buy    = self::buy_bar_html( $product );
 
 		return sprintf(
 			'<li class="aimp-fav-item aimp-fav-wrap" data-aimp-fav-card="%1$d">' .
@@ -282,8 +295,8 @@ class AIMP_Favorites {
 			'<span class="aimp-card-image"><img src="%4$s" alt="%5$s" loading="lazy"></span>' .
 			'<span class="aimp-card-name">%6$s</span>' .
 			'<span class="aimp-card-price">%7$s%8$s</span>%9$s' .
-			'<span class="aimp-button aimp-fav-view">%10$s</span>' .
-			'</a>%11$s</li>',
+			( '' === $buy ? '<span class="aimp-button aimp-fav-view">%10$s</span>' : '' ) .
+			'</a>%11$s' . $buy . '</li>',
 			$product->get_id(),
 			$product->is_in_stock() ? '' : ' is-unavailable',
 			esc_url( $card['permalink'] ),
@@ -295,6 +308,49 @@ class AIMP_Favorites {
 			$badge, // Escaped above.
 			esc_html__( 'View product', 'atelier-irisee-master-plugin' ),
 			self::button_html( $product->get_id(), 'aimp-fav--overlay' )
+		);
+	}
+
+	/**
+	 * The buy bar of a favourite (favorites.js makes it work), or '' when it cannot be bought from here.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	private static function buy_bar_html( $product ) {
+		$is_giftcard = class_exists( 'AIMP_Giftcards_Product' ) && AIMP_Giftcards_Product::is_giftcard( $product );
+		if ( $is_giftcard || ! $product->is_in_stock() ) {
+			return '';
+		}
+		$per_10cm = AIMP_Catalog::sold_per_10cm( $product );
+		$buy      = AIMP_Product_Page::buy_data( $product, $per_10cm );
+		if ( ! $buy || empty( $buy['available'] ) ) {
+			return '';
+		}
+		$step  = max( 1, (int) $buy['step'] );
+		$min   = max( $step, (int) $buy['min'] );
+		$label = $per_10cm ? __( 'Length in cm', 'atelier-irisee-master-plugin' ) : __( 'Quantity', 'atelier-irisee-master-plugin' );
+		return sprintf(
+			'<div class="aimp-buy-bar aimp-fav-buy" data-aimp-fav-buy data-id="%1$d" data-unit="%2$s" data-per10="%3$d" data-min="%4$d" data-max="%5$d" data-step="%6$d">' .
+			'<p class="aimp-fav-buy-total" data-role="total"></p>' .
+			'<div class="aimp-buy-controls"><div class="aimp-stepper">' .
+			'<button type="button" class="aimp-stepper-btn" data-dir="-1" aria-label="%7$s">‹</button>' .
+			'<input type="number" class="aimp-stepper-input" inputmode="numeric" value="%4$d" min="%4$d" step="%6$d"%8$s aria-label="%9$s">%10$s' .
+			'<button type="button" class="aimp-stepper-btn" data-dir="1" aria-label="%11$s">›</button>' .
+			'</div><button type="button" class="aimp-button aimp-add-to-cart" data-role="add">%12$s</button></div>' .
+			'<div class="aimp-fav-buy-message" data-role="message" aria-live="polite"></div></div>',
+			$product->get_id(),
+			esc_attr( (string) (float) $buy['unit_price'] ),
+			$per_10cm ? 1 : 0,
+			$min,
+			(int) $buy['max'],
+			$step,
+			esc_attr__( 'Less', 'atelier-irisee-master-plugin' ),
+			(int) $buy['max'] ? ' max="' . (int) $buy['max'] . '"' : '',
+			esc_attr( $label ),
+			$per_10cm ? '<span class="aimp-stepper-unit">' . esc_html__( 'cm', 'atelier-irisee-master-plugin' ) . '</span>' : '',
+			esc_attr__( 'More', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Add to cart', 'atelier-irisee-master-plugin' )
 		);
 	}
 

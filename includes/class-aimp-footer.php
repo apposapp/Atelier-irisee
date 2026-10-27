@@ -37,6 +37,8 @@ class AIMP_Footer {
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
+		add_shortcode( 'atelier_irisee_socials', array( __CLASS__, 'socials_shortcode' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'socials_assets' ), 30 );
 		add_action( 'wc_ajax_aimp_subscribe', array( __CLASS__, 'subscribe' ) );
 		add_action( 'wc_ajax_aimp_newsletter_status', array( __CLASS__, 'ajax_status' ) );
 		add_action( 'wc_ajax_aimp_unsubscribe', array( __CLASS__, 'unsubscribe' ) );
@@ -339,6 +341,78 @@ class AIMP_Footer {
 			'pinterest' => '<path d="M11.5 8.5c-3 0-4.6 2-4.6 4.3 0 1.2.6 2.6 1.6 3"/><path d="M12 8.4c2.7 0 4.6 1.8 4.6 4.1 0 2.6-1.5 4.5-3.5 4.5-1 0-1.8-.7-1.5-1.7l.9-3.3"/><path d="M11.7 12.5 9.8 20"/>',
 		);
 		return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . ( isset( $paths[ $network ] ) ? $paths[ $network ] : '' ) . '</svg>';
+	}
+
+	/**
+	 * The social media addresses that are filled in (Footer settings): network => address.
+	 *
+	 * @return array
+	 */
+	public static function socials() {
+		return array_filter(
+			array(
+				'facebook'  => (string) self::get( 'facebook' ),
+				'instagram' => (string) self::get( 'instagram' ),
+				'tiktok'    => (string) self::get( 'tiktok' ),
+				'pinterest' => (string) self::get( 'pinterest' ),
+			)
+		);
+	}
+
+	/**
+	 * The social media icons for a place on the site (Design studio → Social media icons: the style and size).
+	 *
+	 * @param string $context header, info, float or shortcode.
+	 * @param string $style   '' (the studio's), line, round or filled.
+	 * @return string '' without addresses.
+	 */
+	public static function socials_html( $context, $style = '' ) {
+		$socials = self::socials();
+		if ( ! $socials ) {
+			return '';
+		}
+		$opt   = function ( $key, $default = '' ) {
+			return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'socials', $key, $default ) : $default;
+		};
+		$style = in_array( $style, array( 'line', 'round', 'filled' ), true ) ? $style : (string) $opt( 'so_style', '' );
+		$style = in_array( $style, array( 'round', 'filled' ), true ) ? $style : 'line';
+		$size  = (int) $opt( 'so_size', 0 );
+		$html  = '';
+		foreach ( $socials as $network => $url ) {
+			$html .= '<li><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener" aria-label="' . esc_attr( ucfirst( $network ) ) . '">' . self::social_icon( $network ) . '</a></li>';
+		}
+		return '<ul class="aimp-socials aimp-socials--' . esc_attr( $context ) . ' is-' . esc_attr( $style ) . '"' . ( $size ? ' style="--aimp-social-size:' . $size . 'px"' : '' ) . '>' . $html . '</ul>';
+	}
+
+	public static function socials_assets() {
+		wp_enqueue_style( 'aimp-socials', AIMP_PLUGIN_URL . 'assets/css/socials.css', array(), AIMP_VERSION );
+		// The floating strip opens and closes on phones.
+		if ( class_exists( 'AIMP_Design' ) && '' !== (string) AIMP_Design::opt( 'socials', 'so_float', '' ) ) {
+			wp_add_inline_script( 'aimp-header', "document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-aimp-socials-toggle]');if(t){var b=t.closest('.aimp-socials-float');b.classList.toggle('is-open');t.setAttribute('aria-expanded',b.classList.contains('is-open')?'true':'false');}});" );
+		}
+	}
+
+	/**
+	 * [atelier_irisee_socials title="Volg ons" style="round"]: the icons anywhere.
+	 *
+	 * @param array|string $atts title, style (line, round, filled).
+	 * @return string
+	 */
+	public static function socials_shortcode( $atts = array() ) {
+		$atts = shortcode_atts(
+			array(
+				'title' => '',
+				'style' => '',
+			),
+			$atts,
+			'atelier_irisee_socials'
+		);
+		$icons = self::socials_html( 'shortcode', sanitize_key( $atts['style'] ) );
+		if ( '' === $icons ) {
+			return '';
+		}
+		$title = '' !== $atts['title'] ? AIMP_Settings::localized( $atts['title'] ) : '';
+		return '<div class="aimp-socials-block">' . ( '' !== $title ? '<p class="aimp-socials-title">' . esc_html( $title ) . '</p>' : '' ) . $icons . '</div>';
 	}
 
 	/**

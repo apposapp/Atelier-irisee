@@ -259,7 +259,8 @@ class AIMP_Page_Header {
 		// Standard: small (twice the menu bar and gold bar, page-header.css).
 		$classes[] = 'is-' . ( in_array( $height, array( 'medium', 'large', 'full' ), true ) ? $height : 'small' );
 		$classes[] = 'is-phone-' . ( in_array( $pheight, array( 'small', 'medium', 'large', 'full' ), true ) ? $pheight : 'same' );
-		$classes[] = 'is-' . ( in_array( $align, array( 'left', 'bottomleft' ), true ) ? $align : 'center' );
+		// Standard: on the left, in the middle of the height, on every screen.
+		$classes[] = 'is-' . ( in_array( $align, array( 'center', 'bottomleft' ), true ) ? $align : 'left' );
 
 		$html = '<header class="' . esc_attr( implode( ' ', $classes ) ) . '"' . ( '' !== $style ? ' style="' . esc_attr( $style ) . '"' : '' ) . '>';
 		if ( $picture || $video ) {

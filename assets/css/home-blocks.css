@@ -444,8 +444,12 @@
 	text-align: center;
 }
 
+/* The media box is as wide as the arched frame (4:5, at most 38rem high), so the round inset always sits on the
+   frame's corner, also when the column is wider than the frame. */
 .aimp-maker-media {
 	position: relative;
+	justify-self: center;
+	width: min(100%, 30.4rem);
 	padding: 0 0 1.5rem;
 }
 
@@ -797,6 +801,281 @@
 	letter-spacing: 0.06em;
 	text-align: center;
 	text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ gift card promo */
+/* Banner and amounts: the card picture (slightly turned, like a card on a table) next to the text. */
+.aimp-home-giftcards.is-banner,
+.aimp-home-giftcards.is-amounts {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	align-items: center;
+	gap: clamp(1.5rem, 5vw, 4.5rem);
+}
+
+.aimp-home-giftcards.has-no-picture {
+	grid-template-columns: minmax(0, 46rem);
+	justify-content: center;
+	text-align: center;
+}
+
+.aimp-gp-media {
+	display: flex;
+	justify-content: center;
+	padding: 1rem;
+}
+
+.aimp-gp-card {
+	display: block;
+	width: min(100%, 34rem);
+	height: auto;
+	aspect-ratio: 148 / 105;
+	object-fit: cover;
+	border-radius: 14px;
+	box-shadow: 0 18px 40px color-mix(in srgb, var(--hb-brown) 22%, transparent);
+	transform: rotate(-4deg);
+}
+
+.aimp-gp-kicker {
+	margin: 0 0 0.4rem;
+	color: var(--hb-gold-text);
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+.aimp-home-block .aimp-gp-title {
+	margin: 0 0 0.75rem;
+	padding: 0;
+	color: var(--hb-gold);
+	font-size: clamp(1.6rem, 3vw, 2.4rem);
+	line-height: 1.2;
+	text-wrap: balance;
+}
+
+.aimp-gp-text {
+	max-width: 46ch;
+	margin: 0 0 1.25rem;
+}
+
+.aimp-home-giftcards.has-no-picture .aimp-gp-text,
+.aimp-home-giftcards.is-designs .aimp-gp-text {
+	margin-right: auto;
+	margin-left: auto;
+	text-align: center;
+}
+
+.aimp-gp-actions {
+	margin: 0;
+}
+
+/* Amounts: round chips that open the gift card with that amount chosen. */
+.aimp-gp-amounts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+	margin: 0 0 1rem;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-home-giftcards.has-no-picture .aimp-gp-amounts {
+	justify-content: center;
+}
+
+.aimp-gp-amount {
+	display: inline-block;
+	min-width: 5.5rem;
+	padding: 0.65rem 1.2rem;
+	border: 5px double var(--hb-gold);
+	border-radius: 100px;
+	color: var(--hb-brown);
+	font-size: 1.1rem;
+	font-weight: 700;
+	text-align: center;
+	text-decoration: none;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.aimp-gp-amount:hover,
+.aimp-gp-amount:focus-visible {
+	background: var(--hb-gold);
+	color: #fff;
+}
+
+.aimp-gp-amount .woocommerce-Price-amount,
+.aimp-gp-amount bdi {
+	color: inherit;
+}
+
+.aimp-gp-other {
+	margin: 0;
+}
+
+.aimp-gp-other a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	color: var(--hb-gold-text);
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.aimp-gp-other a:hover,
+.aimp-gp-other a:focus-visible {
+	text-decoration: underline;
+}
+
+/* Designs: the card designs side by side in a slider, each opening the gift card in that design. */
+.aimp-home-giftcards .aimp-gp-designs > li {
+	width: clamp(13rem, 23%, 19rem);
+}
+
+.aimp-gp-design {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	color: var(--hb-brown);
+	font-weight: 700;
+	text-align: center;
+	text-decoration: none;
+}
+
+.aimp-gp-design img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 148 / 105;
+	object-fit: cover;
+	border: 5px double var(--hb-gold);
+	border-radius: 16px;
+	transition: transform 0.3s ease;
+}
+
+.aimp-gp-design:hover img,
+.aimp-gp-design:focus-visible img {
+	transform: translateY(-4px);
+}
+
+.aimp-gp-more {
+	margin: 1.5rem 0 0;
+	text-align: center;
+}
+
+@media (max-width: 700px) {
+	.aimp-home-giftcards.is-banner,
+	.aimp-home-giftcards.is-amounts {
+		grid-template-columns: minmax(0, 1fr);
+		text-align: center;
+	}
+
+	.aimp-home-giftcards .aimp-gp-text {
+		margin-right: auto;
+		margin-left: auto;
+	}
+
+	.aimp-gp-amounts {
+		justify-content: center;
+	}
+
+	.aimp-home-giftcards .aimp-gp-designs > li {
+		width: 72%;
+	}
+}
+
+/* ------------------------------------------------------------------ Instagram */
+/* Square pictures in one row on computers (up to 6), three per row on tablets and phones. */
+.aimp-ig-grid {
+	display: grid;
+	grid-template-columns: repeat(var(--aimp-ig-count, 6), minmax(0, 1fr));
+	gap: 0.75rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-ig-post {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	aspect-ratio: 1;
+	border-radius: 14px;
+}
+
+.aimp-ig-post img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.4s ease;
+}
+
+.aimp-ig-post::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: color-mix(in srgb, var(--hb-gold) 35%, transparent);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.aimp-ig-post:hover img,
+.aimp-ig-post:focus-visible img {
+	transform: scale(1.05);
+}
+
+.aimp-ig-post:hover::after,
+.aimp-ig-post:focus-visible::after {
+	opacity: 1;
+}
+
+/* Videos: a small white play mark in the corner. */
+.aimp-ig-video {
+	position: absolute;
+	top: 0.6rem;
+	right: 0.6rem;
+	z-index: 1;
+	width: 0;
+	height: 0;
+	border-top: 0.45rem solid transparent;
+	border-bottom: 0.45rem solid transparent;
+	border-left: 0.75rem solid #fff;
+	filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+}
+
+.aimp-ig-follow {
+	margin: 1.5rem 0 0;
+	text-align: center;
+}
+
+@media (max-width: 1024px) {
+	.aimp-ig-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+/* ------------------------------------------------------------------ computers: 80 % wide blocks */
+/* New products, "Meet the maker" and the questions take 80 % of the screen, centred. */
+@media (min-width: 1025px) {
+	.aimp-home-block.aimp-home-new,
+	.aimp-home-block.aimp-home-maker,
+	.aimp-home-block.aimp-home-faq {
+		padding-right: 10vw;
+		padding-left: 10vw;
+	}
+
+	.aimp-home-faq .aimp-faq {
+		max-width: none;
+	}
+
+	/* Six new products fill the row exactly; with fewer they stay together in the middle. */
+	.aimp-home-new .aimp-new-list > li {
+		width: calc((100% - 5 * 1.25rem) / 6);
+	}
+
+	.aimp-home-new .aimp-slider-track > .aimp-new-list {
+		justify-content: safe center;
+	}
 }
 
 /* ------------------------------------------------------------------ tablet */

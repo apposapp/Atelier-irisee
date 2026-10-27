@@ -49,10 +49,14 @@ foreach ( $aimp_gift_cards as $aimp_gift_card ) {
 	wp_delete_post( $aimp_gift_card, true );
 }
 wp_unschedule_hook( 'aimp_gc_send' );
+// Instagram: the token, the saved posts and their pictures.
+delete_option( 'aimp_instagram' );
+delete_option( 'aimp_instagram_feed' );
+wp_unschedule_hook( 'aimp_instagram_sync' );
 // The drawn gift card pictures and PDFs.
 delete_option( 'aimp_gc_files' );
 $aimp_uploads = wp_upload_dir();
-foreach ( array( 'aimp-giftcards', 'aimp-giftcards-themes' ) as $aimp_folder ) {
+foreach ( array( 'aimp-giftcards', 'aimp-giftcards-themes', 'aimp-instagram' ) as $aimp_folder ) {
 	$aimp_base = trailingslashit( $aimp_uploads['basedir'] ) . $aimp_folder;
 	foreach ( array_merge( (array) glob( $aimp_base . '/*/{.htaccess,*}', GLOB_BRACE ), (array) glob( $aimp_base . '/{.htaccess,*}', GLOB_BRACE ) ) as $aimp_file ) {
 		if ( is_file( $aimp_file ) ) {

@@ -273,8 +273,11 @@
 	list-style: none;
 }
 
+/* A sub-menu: indented, with a fine vertical line along all its items. */
 .aimp-side-menu-list .sub-menu {
+	margin-left: 0.3rem;
 	padding-left: 1rem;
+	border-left: 1px solid var(--aimp-side-line, rgba(255, 255, 255, 0.5));
 }
 
 /* Sub-menus fold open and closed with a fade (header.js toggles .is-open on the item). */

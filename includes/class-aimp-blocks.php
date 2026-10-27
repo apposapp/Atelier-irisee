@@ -120,6 +120,16 @@ class AIMP_Blocks {
 			'fq_title'        => __( 'Frequently asked questions', 'atelier-irisee-master-plugin' ),
 			'fq_button'       => __( 'More questions? Contact us', 'atelier-irisee-master-plugin' ),
 			'br_title'        => __( 'Our brands', 'atelier-irisee-master-plugin' ),
+			// Gift card promo.
+			'gp_kicker'       => __( 'Gift card', 'atelier-irisee-master-plugin' ),
+			'gp_title'        => __( 'Give creativity as a gift', 'atelier-irisee-master-plugin' ),
+			'gp_text'         => __( 'Fabrics, patterns, haberdashery or a whole sewing kit: they choose what they make. By email, on the day you choose, or printed by post.', 'atelier-irisee-master-plugin' ),
+			'gp_button'       => __( 'Choose a gift card', 'atelier-irisee-master-plugin' ),
+			'gp_other'        => __( 'Another amount', 'atelier-irisee-master-plugin' ),
+			// Instagram.
+			'ig_title'        => __( 'Follow us on Instagram', 'atelier-irisee-master-plugin' ),
+			/* translators: {account} stays as it is: it becomes the Instagram account, e.g. @atelier.irisee */
+			'ig_button'       => __( 'Follow {account}', 'atelier-irisee-master-plugin' ),
 			// About page (the owner's own story; an empty line between paragraphs).
 			'ab_kicker'       => __( 'About us', 'atelier-irisee-master-plugin' ),
 			'ab_title'        => __( 'The story behind Atelier Irisée', 'atelier-irisee-master-plugin' ),
@@ -158,7 +168,7 @@ class AIMP_Blocks {
 			'ab_quote'        => __( 'Get inspired and make clothes with a story. Your story.', 'atelier-irisee-master-plugin' ),
 			'ab_sign'         => __( 'Happy sewing,', 'atelier-irisee-master-plugin' ) . "\n" . __( 'Dorien & a well-deserved paw from Klaus 🐾', 'atelier-irisee-master-plugin' ),
 			'ab_shop_button'  => __( 'Shop', 'atelier-irisee-master-plugin' ),
-			'ab_kit_button'   => __( 'Compose your sewing kit', 'atelier-irisee-master-plugin' ),
+			'ab_kit_button'   => __( 'Create your sewing kit', 'atelier-irisee-master-plugin' ),
 		);
 	}
 

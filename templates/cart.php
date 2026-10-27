@@ -13,6 +13,11 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <div class="aimp-configurator aimp-cart woocommerce">
 
+	<?php if ( ! $data['empty'] ) : ?>
+		<?php // "Continue shopping" at the top left: back to the last shop page visited (cart.js). ?>
+		<p class="aimp-cart-top"><a class="aimp-cart-continue" href="<?php echo esc_url( AIMP_Search::results_url() ); ?>" data-aimp-continue><span aria-hidden="true">←</span> <?php esc_html_e( 'Continue shopping', 'atelier-irisee-master-plugin' ); ?></a></p>
+	<?php endif; ?>
+
 	<?php wc_print_notices(); ?>
 
 	<?php if ( $data['empty'] ) : ?>
@@ -38,7 +43,7 @@ defined( 'ABSPATH' ) || exit;
 										<img src="<?php echo esc_url( $aimp_kit_image ); ?>" alt="" loading="lazy">
 									<?php endif; ?>
 								</span>
-								<span class="aimp-card-name"><?php esc_html_e( 'Compose your own sewing project kit', 'atelier-irisee-master-plugin' ); ?></span>
+								<span class="aimp-card-name"><?php esc_html_e( 'Create your sewing kit', 'atelier-irisee-master-plugin' ); ?></span>
 								<span class="aimp-card-price"><?php esc_html_e( 'Pattern, fabric and haberdashery together', 'atelier-irisee-master-plugin' ); ?></span>
 							</a>
 						</li>

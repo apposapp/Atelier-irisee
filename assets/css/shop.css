@@ -715,35 +715,10 @@
 	grid-row: span var(--aimp-hero-rows, 2);
 }
 
-.aimp-configurator .aimp-overview-hero a.aimp-card {
-	justify-content: flex-start;
-	padding: 1.1rem 1.1rem 1.6rem;
-}
-
 .aimp-configurator .aimp-overview-hero .aimp-card-image {
 	flex: 1 1 auto;
 	aspect-ratio: auto;
 	min-height: 18rem;
-}
-
-.aimp-configurator .aimp-overview-hero-text {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.5rem;
-	padding-top: 0.6rem;
-}
-
-.aimp-configurator .aimp-overview-hero .aimp-card-name {
-	font-size: 1.35em;
-}
-
-.aimp-configurator .aimp-overview-hero-line {
-	color: var(--aimp-body-text);
-}
-
-.aimp-configurator .aimp-overview-hero-button {
-	margin-top: 0.3rem;
 }
 
 @container aimp (max-width: 900px) {
@@ -914,11 +889,6 @@ html.aimp-sheet-open body {
 
 	.aimp-configurator .aimp-overview-hero .aimp-card-image {
 		min-height: 0;
-	}
-
-	.aimp-configurator .aimp-overview-hero-text {
-		gap: 0.3rem;
-		padding-top: 0.3rem;
 	}
 }
 

@@ -117,7 +117,7 @@ class AIMP_Trust {
 		}
 		return '<div class="aimp-cart-trust">' . self::delivery_html() .
 			( $logos ? '<div class="aimp-cart-payments" aria-label="' . esc_attr__( 'Payment methods', 'atelier-irisee-master-plugin' ) . '">' . $logos . '</div>' : '' ) .
-			'<a class="aimp-cart-continue" href="' . esc_url( AIMP_Search::results_url() ) . '" data-aimp-continue>← ' . esc_html__( 'Continue shopping', 'atelier-irisee-master-plugin' ) . '</a></div>';
+			'</div>';
 	}
 
 	/* ------------------------------------------------------------------

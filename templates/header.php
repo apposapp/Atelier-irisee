@@ -35,6 +35,9 @@ $aimp_d = function ( $part, $key, $default = null ) {
 		</div>
 
 		<nav class="aimp-header-icons" aria-label="<?php esc_attr_e( 'Shortcuts', 'atelier-irisee-master-plugin' ); ?>">
+			<?php if ( $aimp_d( 'socials', 'so_header' ) && class_exists( 'AIMP_Footer' ) ) : ?>
+				<?php echo AIMP_Footer::socials_html( 'header' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in socials_html(). ?>
+			<?php endif; ?>
 			<button type="button" class="aimp-header-link aimp-header-search-toggle" data-aimp-search-toggle aria-expanded="false" aria-controls="aimp-header-search">
 				<span class="aimp-header-icon-wrap"><?php echo AIMP_Header::icon( 'search' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
 				<span class="aimp-header-label"><?php esc_html_e( 'Search', 'atelier-irisee-master-plugin' ); ?></span>
@@ -123,6 +126,9 @@ $aimp_d = function ( $part, $key, $default = null ) {
 					<li><span class="aimp-info-bar-mark" aria-hidden="true">✦</span><?php if ( '' !== $aimp_link ) : ?><a href="<?php echo esc_url( $aimp_link ); ?>"><?php echo esc_html( $aimp_info ); ?></a><?php else : ?><?php echo esc_html( $aimp_info ); ?><?php endif; ?></li>
 				<?php endforeach; ?>
 			</ul>
+			<?php if ( $aimp_d( 'socials', 'so_info' ) && class_exists( 'AIMP_Footer' ) ) : ?>
+				<?php echo AIMP_Footer::socials_html( 'info' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in socials_html(). ?>
+			<?php endif; ?>
 		</div>
 	<?php endif; ?>
 
@@ -138,7 +144,7 @@ $aimp_d = function ( $part, $key, $default = null ) {
 			$aimp_tabs[] = array( $data['shop_url'], 'shop', __( 'Shop', 'atelier-irisee-master-plugin' ) );
 		}
 		if ( ! $aimp_d( 'tabbar', 'tb_nokit' ) ) {
-			$aimp_tabs[] = array( isset( $data['kit_url'] ) ? $data['kit_url'] : '', 'kit', __( 'Customizer', 'atelier-irisee-master-plugin' ) );
+			$aimp_tabs[] = array( isset( $data['kit_url'] ) ? $data['kit_url'] : '', 'kit', __( 'Sewing kits', 'atelier-irisee-master-plugin' ) );
 		}
 		if ( $aimp_d( 'tabbar', 'tb_fav' ) ) {
 			$aimp_tabs[] = array( $data['favorites_url'], 'heart', __( 'Favourites', 'atelier-irisee-master-plugin' ) );
@@ -218,3 +224,14 @@ $aimp_d = function ( $part, $key, $default = null ) {
 		<?php endif; ?>
 	</nav>
 </header>
+<?php
+// Design studio (Social media icons): a strip of icons at the side of the screen; on phones a small tab opens it.
+$aimp_float       = (string) $aimp_d( 'socials', 'so_float', '' );
+$aimp_float_icons = in_array( $aimp_float, array( 'left', 'right' ), true ) && class_exists( 'AIMP_Footer' ) ? AIMP_Footer::socials_html( 'float' ) : '';
+?>
+<?php if ( '' !== $aimp_float_icons ) : ?>
+	<aside class="aimp-socials-float is-<?php echo esc_attr( $aimp_float ); ?>" aria-label="<?php esc_attr_e( 'Social media', 'atelier-irisee-master-plugin' ); ?>">
+		<button type="button" class="aimp-socials-toggle" data-aimp-socials-toggle aria-expanded="false" aria-label="<?php esc_attr_e( 'Social media', 'atelier-irisee-master-plugin' ); ?>"><?php echo AIMP_Footer::social_icon( 'instagram' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></button>
+		<?php echo $aimp_float_icons; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in socials_html(). ?>
+	</aside>
+<?php endif; ?>

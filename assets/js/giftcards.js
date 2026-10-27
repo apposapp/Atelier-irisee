@@ -161,7 +161,7 @@
 						return response.json();
 					})
 					.then(function (res) {
-						if (!res || !res.success || !res.data.back) {
+						if (!res || !res.success || !res.data.front) {
 							throw new Error('preview');
 						}
 						preview.querySelector('[data-aimp-gc-preview-front]').src = res.data.front;

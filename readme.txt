@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.49.0
+Stable tag: 3.50.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,20 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.50.0 =
+* Emails: the logo is a normal size again (at most 160 px wide, a smaller copy of the Divi logo).
+* New [atelier_irisee_giftcard_promo]: gift cards promoted on the home page in three layouts (Design studio → Gift card promo): a banner with a card, amounts to choose from (they open the gift card with that amount chosen) or the card designs side by side (each opens the gift card in that design).
+* New [atelier_irisee_instagram]: the newest posts of your Instagram account in a grid with a "Follow" button. Connect it under Atelier Irisee → Instagram (steps on that page); posts are fetched every hour and the token renews itself.
+* Social media icons in more places (Design studio → Social media icons): in the header, at the end of the gold info bar, as a strip at the side of the screen, and anywhere with [atelier_irisee_socials]; three styles and a size.
+* All products: the sewing kits tile shows only its picture and name, like the other tiles.
+* Favourites: every card has the buy bar (amount, price, Add to cart); the card itself still opens the product.
+* "Customizer" is now "Naaipakketten" everywhere; the buttons to the sewing kits say "Creëer jouw naaipakket".
+* Cart: "Continue shopping" is a button at the top left.
+* Side menu: a fine line along the items of each sub-menu.
+* Home page: New in, Meet the maker and the questions are 80 % wide on computers; New in shows 6 products, centred; the maker's picture and the round mascot always stay together.
+* Gift cards: the picture side only shows the picture; the logo is at the top of the text side, without a circle. The text side is now the front (first in the email, the downloads and the PDF).
+* Page header: the title stands on the left, in the middle of the height, on every screen ("In the middle" can still be chosen).
 
 = 3.49.0 =
 * Gift cards are now real cards: a front (the design's picture with your logo) and a back (greeting, for/from, amount, message, code, valid until), drawn as A6 landscape pictures (148 × 105 mm, 300 dpi).

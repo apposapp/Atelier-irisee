@@ -588,17 +588,6 @@ class AIMP_Giftcards_Admin {
 		$name   = function ( $key ) use ( $base ) {
 			return esc_attr( $base . '[' . $key . ']' );
 		};
-		$places = array(
-			'tl' => __( 'Top left', 'atelier-irisee-master-plugin' ),
-			't'  => __( 'Top', 'atelier-irisee-master-plugin' ),
-			'tr' => __( 'Top right', 'atelier-irisee-master-plugin' ),
-			'l'  => __( 'Left', 'atelier-irisee-master-plugin' ),
-			'c'  => __( 'Middle', 'atelier-irisee-master-plugin' ),
-			'r'  => __( 'Right', 'atelier-irisee-master-plugin' ),
-			'bl' => __( 'Bottom left', 'atelier-irisee-master-plugin' ),
-			'b'  => __( 'Bottom', 'atelier-irisee-master-plugin' ),
-			'br' => __( 'Bottom right', 'atelier-irisee-master-plugin' ),
-		);
 		$colors = class_exists( 'AIMP_Design' ) ? AIMP_Design::divi_colors() : array();
 		$color  = function ( $key, $label ) use ( $design, $name, $colors ) {
 			?>
@@ -624,27 +613,19 @@ class AIMP_Giftcards_Admin {
 				<summary><?php esc_html_e( 'Card design: front, back, greeting and email', 'atelier-irisee-master-plugin' ); ?></summary>
 				<div class="aimp-gc-theme-grid">
 					<fieldset>
-						<legend><?php esc_html_e( 'Front', 'atelier-irisee-master-plugin' ); ?></legend>
-						<p class="description"><?php esc_html_e( 'The picture above fills the front (A6 landscape, 148 × 105 mm). Use a picture of at least 1748 × 1240 pixels.', 'atelier-irisee-master-plugin' ); ?></p>
+						<legend><?php esc_html_e( 'Back (picture side)', 'atelier-irisee-master-plugin' ); ?></legend>
+						<p class="description"><?php esc_html_e( 'The picture above fills the back (A6 landscape, 148 × 105 mm), without anything on it. Use a picture of at least 1748 × 1240 pixels.', 'atelier-irisee-master-plugin' ); ?></p>
 						<p>
 							<label><?php esc_html_e( 'Focus left / right', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" max="100" class="small-text" name="<?php echo $name( 'fx' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['fx'] ); ?>"> %</label>
 							<label><?php esc_html_e( 'top / bottom', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" max="100" class="small-text" name="<?php echo $name( 'fy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['fy'] ); ?>"> %</label>
 						</p>
-						<p><label><input type="checkbox" name="<?php echo $name( 'logo' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['logo'] ); ?>> <?php esc_html_e( 'Logo on the front', 'atelier-irisee-master-plugin' ); ?></label></p>
-						<p>
-							<label><?php esc_html_e( 'Place', 'atelier-irisee-master-plugin' ); ?>
-								<select name="<?php echo $name( 'logo_place' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
-									<?php foreach ( $places as $key => $label ) : ?>
-										<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $design['logo_place'], $key ); ?>><?php echo esc_html( $label ); ?></option>
-									<?php endforeach; ?>
-								</select>
-							</label>
-							<label><?php esc_html_e( 'Size', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="8" max="60" class="small-text" name="<?php echo $name( 'logo_size' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['logo_size'] ); ?>"> %</label>
-						</p>
-						<p><label><input type="checkbox" name="<?php echo $name( 'logo_badge' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['logo_badge'] ); ?>> <?php esc_html_e( 'Light round badge behind the logo', 'atelier-irisee-master-plugin' ); ?></label></p>
 					</fieldset>
 					<fieldset>
-						<legend><?php esc_html_e( 'Back', 'atelier-irisee-master-plugin' ); ?></legend>
+						<legend><?php esc_html_e( 'Front (greeting, amount and code)', 'atelier-irisee-master-plugin' ); ?></legend>
+						<p>
+							<label><input type="checkbox" name="<?php echo $name( 'logo' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['logo'] ); ?>> <?php esc_html_e( 'Logo at the top', 'atelier-irisee-master-plugin' ); ?></label>
+							<label><?php esc_html_e( 'Size', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="5" max="30" class="small-text" name="<?php echo $name( 'logo_size' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['logo_size'] ); ?>"> %</label>
+						</p>
 						<p>
 							<span class="aimp-gc-design-preview aimp-gc-back-preview"><?php echo $back ? '<img src="' . esc_url( $back ) . '" alt="">' : ''; ?></span>
 							<input type="hidden" class="aimp-gc-back-image" name="<?php echo $name( 'back_image_id' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['back_image_id'] ); ?>">
@@ -696,7 +677,6 @@ class AIMP_Giftcards_Admin {
 			return $value ? strtolower( $value ) : $default;
 		};
 		$d     = AIMP_Giftcards_Render::theme_defaults();
-		$place = isset( $row['logo_place'] ) && in_array( $row['logo_place'], AIMP_Giftcards_Render::PLACES, true ) ? $row['logo_place'] : 'c';
 		return array(
 			'id'            => isset( $row['id'] ) && '' !== $row['id'] ? sanitize_key( $row['id'] ) : '',
 			'name'          => $text( 'name' ),
@@ -705,9 +685,7 @@ class AIMP_Giftcards_Admin {
 			'fx'            => $num( 'fx', 0, 100, 50 ),
 			'fy'            => $num( 'fy', 0, 100, 50 ),
 			'logo'          => empty( $row['logo'] ) ? 0 : 1,
-			'logo_place'    => $place,
-			'logo_size'     => $num( 'logo_size', 8, 60, 30 ),
-			'logo_badge'    => empty( $row['logo_badge'] ) ? 0 : 1,
+			'logo_size'     => $num( 'logo_size', 5, 30, 13 ),
 			'back_image_id' => isset( $row['back_image_id'] ) ? absint( $row['back_image_id'] ) : 0,
 			'back_color'    => $hex( 'back_color', $d['back_color'] ),
 			'text_color'    => $hex( 'text_color', $d['text_color'] ),

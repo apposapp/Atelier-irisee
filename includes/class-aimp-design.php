@@ -85,7 +85,7 @@ class AIMP_Design {
 		$steps   = __( 'Kit steps bar', 'atelier-irisee-master-plugin' );
 		$shop    = __( 'Shop pages', 'atelier-irisee-master-plugin' );
 		$product = __( 'Product page', 'atelier-irisee-master-plugin' );
-		$config  = __( 'Customizer', 'atelier-irisee-master-plugin' );
+		$config  = __( 'Sewing kits', 'atelier-irisee-master-plugin' );
 		$cart    = __( 'Cart', 'atelier-irisee-master-plugin' );
 		$account = __( 'My account', 'atelier-irisee-master-plugin' );
 		$footer  = __( 'Footer', 'atelier-irisee-master-plugin' );
@@ -100,6 +100,7 @@ class AIMP_Design {
 			'header-menu-bar' => array( $header, __( '"Menu" bar', 'atelier-irisee-master-plugin' ), '.aimp-header-bar' ),
 			'info-bar'        => array( $header, __( 'Gold info bar', 'atelier-irisee-master-plugin' ), '.aimp-info-bar' ),
 			'side-menu'       => array( $header, __( 'Side menu', 'atelier-irisee-master-plugin' ), '.aimp-side-menu' ),
+			'socials'         => array( $header, __( 'Social media icons', 'atelier-irisee-master-plugin' ), '.aimp-socials' ),
 			'tabbar'          => array( $header, __( 'Phone tab bar', 'atelier-irisee-master-plugin' ), '.aimp-tabbar' ),
 			'header-lang'     => array( $header, __( 'Language switch', 'atelier-irisee-master-plugin' ), '.aimp-header-lang' ),
 			'header-search'   => array( $header, __( 'Search', 'atelier-irisee-master-plugin' ), '.aimp-header-search' ),
@@ -135,7 +136,7 @@ class AIMP_Design {
 			'product-specs'   => array( $product, __( 'Specifications', 'atelier-irisee-master-plugin' ), '.aimp-info-list' ),
 			'giftcard-form'   => array( $product, __( 'Gift card choices', 'atelier-irisee-master-plugin' ), '.aimp-gc-form' ),
 			'product-recommend' => array( $product, __( 'Recommended products', 'atelier-irisee-master-plugin' ), '.aimp-recommended' ),
-			'customizer'      => array( $config, __( 'Customizer (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator[data-aimp-configurator]' ),
+			'customizer'      => array( $config, __( 'Sewing kits (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator[data-aimp-configurator]' ),
 			'config-steps'    => array( $config, __( 'Step indicator', 'atelier-irisee-master-plugin' ), '.aimp-configurator .aimp-steps' ),
 			'config-title'    => array( $config, __( 'Details titles', 'atelier-irisee-master-plugin' ), '.aimp-details-title' ),
 			'cart-page'       => array( $cart, __( 'Cart page (whole)', 'atelier-irisee-master-plugin' ), '.aimp-configurator.aimp-cart' ),
@@ -171,6 +172,8 @@ class AIMP_Design {
 			'home-newsletter' => array( $home, __( 'Newsletter block', 'atelier-irisee-master-plugin' ), '.aimp-home-newsletter' ),
 			'home-faq'        => array( $home, __( 'Questions block', 'atelier-irisee-master-plugin' ), '.aimp-home-faq' ),
 			'home-brands'     => array( $home, __( 'Brands', 'atelier-irisee-master-plugin' ), '.aimp-home-brands' ),
+			'home-giftcards'  => array( $home, __( 'Gift card promo', 'atelier-irisee-master-plugin' ), '.aimp-home-giftcards' ),
+			'home-instagram'  => array( $home, __( 'Instagram', 'atelier-irisee-master-plugin' ), '.aimp-home-instagram' ),
 			'about'           => array( $about, __( 'About page (whole)', 'atelier-irisee-master-plugin' ), '.aimp-about' ),
 			'about-head'      => array( $about, __( 'About title and intro', 'atelier-irisee-master-plugin' ), '.aimp-about-head' ),
 			'about-chapter'   => array( $about, __( 'Story chapters', 'atelier-irisee-master-plugin' ), '.aimp-about-chapter' ),
@@ -199,6 +202,7 @@ class AIMP_Design {
 			'header-icons'    => array( 'icons_opts' ),
 			'header-menu-bar' => array( 'menubar_opts' ),
 			'side-menu'       => array( 'side_opts' ),
+			'socials'         => array( 'so_opts' ),
 			'info-bar'        => array( 'info_opts' ),
 			'tabbar'          => array( 'tabbar_opts' ),
 			'header-lang'     => array( 'lang_opts' ),
@@ -219,6 +223,8 @@ class AIMP_Design {
 			'home-newsletter' => array( 'hn_opts' ),
 			'home-faq'        => array( 'fq_opts' ),
 			'home-brands'     => array( 'br_opts' ),
+			'home-giftcards'  => array( 'gp_opts' ),
+			'home-instagram'  => array( 'ig_opts' ),
 			'about'           => array( 'ab_opts' ),
 			'about-chapter'   => array( 'ab_chapters' ),
 			'about-closing'   => array( 'ab_closing' ),
@@ -268,7 +274,7 @@ class AIMP_Design {
 		}
 		// Picture position (move and zoom): every part with pictures, also those with pictures of their own.
 		foreach ( $elements as $id => $row ) {
-			if ( in_array( 'image', $row['controls'], true ) || in_array( $id, array( 'hero', 'home-maker', 'about-chapter', 'about-closing', 'home-newsletter', 'home-brands', 'page-header' ), true ) ) {
+			if ( in_array( 'image', $row['controls'], true ) || in_array( $id, array( 'hero', 'home-maker', 'about-chapter', 'about-closing', 'home-newsletter', 'home-brands', 'home-giftcards', 'page-header' ), true ) ) {
 				$elements[ $id ]['controls'][] = 'imgpos';
 			}
 		}
@@ -431,6 +437,13 @@ class AIMP_Design {
 			),
 			'icons_opts'  => self::icon_fields(),
 			'menubar_opts' => array( 'mb_align' => array( 'select', array( '', 'center', 'right' ) ) ),
+			'so_opts'     => array(
+				'so_header' => 'bool',
+				'so_info'   => 'bool',
+				'so_float'  => array( 'select', array( '', 'left', 'right' ) ),
+				'so_style'  => array( 'select', array( '', 'round', 'filled' ) ),
+				'so_size'   => array( 0, 48, 0 ),
+			),
 			'side_opts'   => array(
 				'sm_width'    => array( 0, 640, 0 ),
 				'sm_bg'       => 'color',
@@ -726,6 +739,13 @@ class AIMP_Design {
 				'fq_count' => array( 0, 12, 0 ),
 				'fq_url'   => 'url',
 			),
+			'ig_opts'     => array(
+				'ig_count' => array( 0, 12, 0 ),
+			),
+			'gp_opts'     => array(
+				'gp_layout' => array( 'select', array( '', 'amounts', 'designs' ) ),
+				'gp_img'    => 'image',
+			),
 			'br_opts'     => array_merge(
 				array(
 					'br_names' => 'bool',
@@ -752,7 +772,7 @@ class AIMP_Design {
 				'ph_hideempty'  => 'bool',
 				'ph_height'   => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
 				'ph_pheight'  => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
-				'ph_align'    => array( 'select', array( '', 'left', 'bottomleft' ) ),
+				'ph_align'    => array( 'select', array( '', 'left', 'center', 'bottomleft' ) ),
 				'ph_crumbs'   => 'bool',
 			),
 			// The overlay and the title's colour and size: CSS only (opts_css), shown at once in the studio.
@@ -1270,7 +1290,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look' );
+		return array( 'side_opts', 'so_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'gp_opts', 'ig_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look' );
 	}
 
 	/**
@@ -1614,6 +1634,14 @@ class AIMP_Design {
 		$list['fq_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-faq' ), $b . 'fq_title' );
 		$list['fq_button']       = array( __( 'Button to the contact page', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-faq' ), $b . 'fq_button' );
 		$list['br_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-brands' ), $b . 'br_title' );
+		$gp                      = array( 'home-giftcards' );
+		$list['gp_kicker']       = array( __( 'Small line above the title', 'atelier-irisee-master-plugin' ), 'lang', $gp, $b . 'gp_kicker' );
+		$list['gp_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', $gp, $b . 'gp_title' );
+		$list['gp_text']         = array( __( 'Text', 'atelier-irisee-master-plugin' ), 'langlong', $gp, $b . 'gp_text' );
+		$list['gp_button']       = array( __( 'Button', 'atelier-irisee-master-plugin' ), 'lang', $gp, $b . 'gp_button' );
+		$list['gp_other']        = array( __( 'Link "another amount"', 'atelier-irisee-master-plugin' ), 'lang', $gp, $b . 'gp_other' );
+		$list['ig_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-instagram' ), $b . 'ig_title' );
+		$list['ig_button']       = array( __( 'Button ({account} = your Instagram name)', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-instagram' ), $b . 'ig_button' );
 		// The About page.
 		$head     = array( 'about', 'about-head' );
 		$chapters = array( 'about', 'about-chapter' );
@@ -3022,7 +3050,7 @@ class AIMP_Design {
 		}
 		$configurator = AIMP_Settings::get( 'configurator_page' );
 		if ( $configurator && 'publish' === get_post_status( $configurator ) ) {
-			$pages[] = array( __( 'Customizer', 'atelier-irisee-master-plugin' ), get_permalink( $configurator ) );
+			$pages[] = array( __( 'Sewing kits', 'atelier-irisee-master-plugin' ), get_permalink( $configurator ) );
 		}
 		// One product of each kind.
 		foreach ( array( 'fabric_cat' => __( 'A fabric', 'atelier-irisee-master-plugin' ), 'pattern_cat' => __( 'A pattern', 'atelier-irisee-master-plugin' ), 'button_cat' => __( 'A button', 'atelier-irisee-master-plugin' ) ) as $setting => $label ) {
@@ -3703,7 +3731,7 @@ class AIMP_Design {
 		$group( 'tabbar_opts', __( 'Tabs', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'tb_nohome', __( 'No Home tab', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'tb_noshop', __( 'No Shop tab', 'atelier-irisee-master-plugin' ) );
-		self::check_box( 'tb_nokit', __( 'No Customizer tab', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'tb_nokit', __( 'No Sewing kits tab', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'tb_search', __( 'A Search tab', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'tb_fav', __( 'A Favourites tab', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'tb_cart', __( 'A Cart tab', 'atelier-irisee-master-plugin' ) );
@@ -4398,6 +4426,51 @@ class AIMP_Design {
 		$field( 'fq_url', __( 'The button goes to (standard: the page with the contact form)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
 		echo '</fieldset>';
 
+		$group( 'so_opts', __( 'Social media icons', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The addresses are those of Settings → Footer. The footer always shows the icons; choose where else they appear.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::check_box( 'so_header', __( 'In the header, next to the shortcuts (computers)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'so_info', __( 'At the end of the gold info bar', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'so_float',
+			__( 'A strip at the side of the screen', 'atelier-irisee-master-plugin' ),
+			array(
+				''      => __( 'No', 'atelier-irisee-master-plugin' ),
+				'left'  => __( 'On the left', 'atelier-irisee-master-plugin' ),
+				'right' => __( 'On the right', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'so_style',
+			__( 'Style', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Gold line icons (standard)', 'atelier-irisee-master-plugin' ),
+				'round'  => __( 'Round gold buttons', 'atelier-irisee-master-plugin' ),
+				'filled' => __( 'Round, filled gold', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::number( 'so_size', __( 'Icon size (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 48, 'px' );
+		echo '<p class="description">' . esc_html__( 'Under the side menu: Side menu → "Social media icons". Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"].', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'ig_opts', __( 'Instagram', 'atelier-irisee-master-plugin' ) );
+		self::number( 'ig_count', __( 'Posts shown (0 = standard, 6)', 'atelier-irisee-master-plugin' ), 0, 12, '' );
+		echo '<p class="description">' . esc_html__( 'Connect your account under Atelier Irisee → Instagram. Without a connection the block stays hidden.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'gp_opts', __( 'Gift card promo', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'gp_layout',
+			__( 'Layout', 'atelier-irisee-master-plugin' ),
+			array(
+				''        => __( 'Banner: a card, a title and a button (standard)', 'atelier-irisee-master-plugin' ),
+				'amounts' => __( 'Amounts to choose from', 'atelier-irisee-master-plugin' ),
+				'designs' => __( 'The card designs side by side', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::picture_field( 'gp_img', __( 'Picture (standard: the first card design)', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Place it with [atelier_irisee_giftcard_promo]; layout="banner", "amounts" or "designs" chooses a layout for one place.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
 		$group( 'br_opts', __( 'Brands', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'br_names', __( 'Names instead of logos', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'br_gray', __( 'Logos in grey, in colour when pointed at', 'atelier-irisee-master-plugin' ) );
@@ -4525,8 +4598,8 @@ class AIMP_Design {
 			'ph_align',
 			__( 'Place of the title', 'atelier-irisee-master-plugin' ),
 			array(
-				''           => __( 'In the middle (standard)', 'atelier-irisee-master-plugin' ),
-				'left'       => __( 'On the left', 'atelier-irisee-master-plugin' ),
+				''           => __( 'On the left, in the middle of the height (standard)', 'atelier-irisee-master-plugin' ),
+				'center'     => __( 'In the middle', 'atelier-irisee-master-plugin' ),
 				'bottomleft' => __( 'At the bottom left', 'atelier-irisee-master-plugin' ),
 			)
 		);

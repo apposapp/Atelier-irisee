@@ -8,7 +8,9 @@
  * - [atelier_irisee_new]: the newest products in a row;
  * - [atelier_irisee_newsletter]: the newsletter sign-up, with the welcome discount for new accounts;
  * - [atelier_irisee_faq]: the first questions and answers, with a button to the contact page;
- * - [atelier_irisee_brands]: the brands, linking to their products.
+ * - [atelier_irisee_brands]: the brands, linking to their products;
+ * - [atelier_irisee_giftcard_promo]: the gift cards promoted (banner, amounts or designs; layout="…");
+ * - [atelier_irisee_instagram]: the newest posts of the shop's Instagram (AIMP_Instagram; count="…").
  *
  * @package AtelierIriseeMasterPlugin
  */
@@ -28,6 +30,8 @@ class AIMP_Home_Blocks {
 		'atelier_irisee_newsletter' => 'newsletter',
 		'atelier_irisee_faq'        => 'faq',
 		'atelier_irisee_brands'     => 'brands',
+		'atelier_irisee_giftcard_promo' => 'giftcard_promo',
+		'atelier_irisee_instagram'      => 'instagram',
 	);
 
 	public static function init() {
@@ -289,7 +293,7 @@ class AIMP_Home_Blocks {
 	public static function new_in() {
 		$part  = 'home-new';
 		$count = (int) AIMP_Blocks::design( $part, 'nw_count', 0 );
-		$count = $count > 0 ? $count : 8;
+		$count = $count > 0 ? $count : 6;
 		$type  = (string) AIMP_Blocks::design( $part, 'nw_type', '' );
 		$type  = in_array( $type, array( 'fabrics', 'patterns', 'haberdashery' ), true ) ? $type : 'all';
 		$roots = 'all' === $type ? array() : AIMP_Shop::roots( $type );
@@ -429,6 +433,100 @@ class AIMP_Home_Blocks {
 		}
 		return '<section class="aimp-home-block aimp-home-faq">' . self::title( AIMP_Blocks::text( 'fq_title' ) ) . AIMP_Blocks::faq_html( $pairs ) .
 			( '' !== $url ? '<p class="aimp-home-faq-more"><a class="aimp-block-button" href="' . esc_url( $url ) . '">' . esc_html( AIMP_Blocks::text( 'fq_button' ) ) . '</a></p>' : '' ) . '</section>';
+	}
+
+	/* ------------------------------------------------------------------ gift card promo */
+
+	/**
+	 * The gift cards promoted, in one of three layouts (Design studio → Gift card promo, or layout="…"):
+	 * banner (picture of a card next to a title, line and button), amounts (quick choices that open the gift card
+	 * with that amount chosen) or designs (the card designs side by side, each opening the gift card in that design).
+	 *
+	 * @param array|string $atts layout.
+	 * @return string '' without a published gift card product.
+	 */
+	public static function giftcard_promo( $atts = array() ) {
+		if ( ! class_exists( 'AIMP_Giftcards' ) ) {
+			return '';
+		}
+		$product_id = (int) AIMP_Giftcards::opt( 'product_id' );
+		if ( ! $product_id || 'publish' !== get_post_status( $product_id ) ) {
+			return '';
+		}
+		$part   = 'home-giftcards';
+		$atts   = shortcode_atts( array( 'layout' => '' ), $atts, 'atelier_irisee_giftcard_promo' );
+		$layout = sanitize_key( '' !== $atts['layout'] ? $atts['layout'] : (string) AIMP_Blocks::design( $part, 'gp_layout', '' ) );
+		$layout = in_array( $layout, array( 'amounts', 'designs' ), true ) ? $layout : 'banner';
+		$url    = get_permalink( $product_id );
+		$designs = AIMP_Giftcards::designs();
+		self::assets();
+
+		// The picture: chosen in the studio, else the first design.
+		$picture = (int) AIMP_Blocks::design( $part, 'gp_img', 0 );
+		$src     = $picture ? (string) wp_get_attachment_image_url( $picture, 'large' ) : '';
+		if ( '' === $src && $designs ) {
+			$src = AIMP_Giftcards::design_image( (string) key( $designs ), 'large' );
+		}
+		$kicker = AIMP_Blocks::text( 'gp_kicker' );
+		$title  = AIMP_Blocks::text( 'gp_title' );
+		$text   = AIMP_Blocks::text( 'gp_text' );
+		$button = '<a class="aimp-block-button" href="' . esc_url( $url ) . '">' . esc_html( AIMP_Blocks::text( 'gp_button' ) ) . '</a>';
+
+		if ( 'designs' === $layout && $designs ) {
+			$cards = '';
+			foreach ( $designs as $id => $design ) {
+				$cards .= '<li><a class="aimp-gp-design" href="' . esc_url( add_query_arg( 'aimp_gc_design', $id, $url ) ) . '"><img src="' . esc_url( AIMP_Giftcards::design_image( $id, 'woocommerce_thumbnail' ) ) . '" alt="" loading="lazy"><span>' . esc_html( $design['name'] ) . '</span></a></li>';
+			}
+			return '<section class="aimp-home-block aimp-home-giftcards is-designs" data-aimp-slider>' . self::title( $title ) .
+				( '' !== $text ? '<p class="aimp-gp-text">' . esc_html( $text ) . '</p>' : '' ) .
+				'<div class="aimp-slider-track" tabindex="0" role="region" aria-label="' . esc_attr( $title ) . '"><ul class="aimp-gp-designs">' . $cards . '</ul></div>' . self::arrows() .
+				'<p class="aimp-gp-more">' . $button . '</p></section>';
+		}
+
+		$media = '' !== $src ? '<div class="aimp-gp-media"><img class="aimp-gp-card" src="' . esc_url( $src ) . '" alt="" loading="lazy"></div>' : '';
+		$body  = ( '' !== $kicker ? '<p class="aimp-gp-kicker">' . esc_html( $kicker ) . '</p>' : '' ) .
+			( '' !== $title ? '<h2 class="aimp-gp-title">' . esc_html( $title ) . '</h2>' : '' ) .
+			( '' !== $text ? '<p class="aimp-gp-text">' . esc_html( $text ) . '</p>' : '' );
+		if ( 'amounts' === $layout ) {
+			$chips = '';
+			foreach ( AIMP_Giftcards::preset_amounts() as $amount ) {
+				$chips .= '<li><a class="aimp-gp-amount" href="' . esc_url( add_query_arg( 'aimp_gc_amount', $amount, $url ) ) . '">' . wp_kses_post( wc_price( $amount, array( 'decimals' => floor( $amount ) == $amount ? 0 : wc_get_price_decimals() ) ) ) . '</a></li>'; // phpcs:ignore Universal.Operators.StrictComparisons -- whole euros.
+			}
+			$body .= '<ul class="aimp-gp-amounts">' . $chips . '</ul><p class="aimp-gp-other"><a href="' . esc_url( $url ) . '">' . esc_html( AIMP_Blocks::text( 'gp_other' ) ) . AIMP_Blocks::icon( 'arrow-right' ) . '</a></p>';
+		} else {
+			$body .= '<p class="aimp-gp-actions">' . $button . '</p>';
+		}
+		return '<section class="aimp-home-block aimp-home-giftcards is-' . esc_attr( $layout ) . ( '' === $media ? ' has-no-picture' : '' ) . '">' . $media . '<div class="aimp-gp-body">' . $body . '</div></section>';
+	}
+
+	/* ------------------------------------------------------------------ Instagram */
+
+	/**
+	 * The newest Instagram posts in a square grid, each linking to its post, with a "Follow" button.
+	 *
+	 * @param array|string $atts count.
+	 * @return string '' without posts (no token yet, or Instagram failed).
+	 */
+	public static function instagram( $atts = array() ) {
+		$part  = 'home-instagram';
+		$atts  = shortcode_atts( array( 'count' => '' ), $atts, 'atelier_irisee_instagram' );
+		$count = (int) ( '' !== $atts['count'] ? $atts['count'] : AIMP_Blocks::design( $part, 'ig_count', 0 ) );
+		$count = $count > 0 ? min( AIMP_Instagram::MAX, $count ) : 6;
+		$items = array_slice( AIMP_Instagram::items(), 0, $count );
+		if ( ! $items ) {
+			return '';
+		}
+		self::assets();
+		$user  = AIMP_Instagram::username();
+		$cards = '';
+		foreach ( $items as $item ) {
+			$caption = function_exists( 'mb_substr' ) ? mb_substr( (string) $item['caption'], 0, 120 ) : substr( (string) $item['caption'], 0, 120 );
+			$cards  .= '<li><a class="aimp-ig-post" href="' . esc_url( $item['permalink'] ) . '" target="_blank" rel="noopener"><img src="' . esc_url( $item['image'] ) . '" alt="' . esc_attr( $caption ) . '" loading="lazy">' .
+				( 'VIDEO' === $item['type'] ? '<span class="aimp-ig-video" aria-hidden="true"></span>' : '' ) . '</a></li>';
+		}
+		$follow = '' !== $user ? '<p class="aimp-ig-follow"><a class="aimp-block-button" href="' . esc_url( 'https://www.instagram.com/' . rawurlencode( $user ) . '/' ) . '" target="_blank" rel="noopener">' . esc_html( str_replace( '{account}', '@' . $user, AIMP_Blocks::text( 'ig_button' ) ) ) . '</a></p>' : '';
+		return '<section class="aimp-home-block aimp-home-instagram">' . self::title( AIMP_Blocks::text( 'ig_title' ) ) .
+			'<ul class="aimp-ig-grid" style="--aimp-ig-count:' . (int) min( 6, count( $items ) ) . '">' . $cards . '</ul>' . $follow . '</section>';
 	}
 
 	/* ------------------------------------------------------------------ brands */
