@@ -2534,7 +2534,6 @@ return array(
 	'Card design: front, back, greeting and email' => 'Design de la carte : recto, verso, vœu et e-mail',
 	'Choose logo' => 'Choisir le logo',
 	'Customers choose one of the active designs. Each design is a theme: a front (its picture with your logo), a back with the card details and a greeting, and its own email texts. Customers receive both sides as pictures and as a PDF.' => 'Les clients choisissent l\'un des designs actifs. Chaque design est un thème : un recto (son image avec votre logo), un verso avec les données de la carte et un vœu, et ses propres textes d\'e-mail. Les clients reçoivent les deux faces en images et en PDF.',
-	'Double line around the back' => 'Double ligne autour du verso',
 	'Download:' => 'Télécharger :',
 	'Drawing…' => 'Création en cours…',
 	'Email intro (above the card)' => 'Introduction de l\'e-mail (au-dessus de la carte)',
@@ -2644,4 +2643,7 @@ return array(
 	'One colour' => 'Une seule couleur',
 	'Gradient: middle' => 'Dégradé : centre',
 	'Gradient: edges' => 'Dégradé : bords',
+
+	// 3.50.3
+	'Double gold border at the edge' => 'Double bordure dorée au bord',
 );

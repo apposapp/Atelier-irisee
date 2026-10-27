@@ -2534,7 +2534,6 @@ return array(
 	'Card design: front, back, greeting and email' => 'Ontwerp van de kaart: voorkant, achterkant, wens en e-mail',
 	'Choose logo' => 'Logo kiezen',
 	'Customers choose one of the active designs. Each design is a theme: a front (its picture with your logo), a back with the card details and a greeting, and its own email texts. Customers receive both sides as pictures and as a PDF.' => 'Klanten kiezen een van de actieve ontwerpen. Elk ontwerp is een thema: een voorkant (de foto met je logo), een achterkant met de gegevens van de bon en een wens, en eigen e-mailteksten. Klanten krijgen beide kanten als afbeelding en als pdf.',
-	'Double line around the back' => 'Dubbele lijn rond de achterkant',
 	'Download:' => 'Downloaden:',
 	'Drawing…' => 'Bezig met tekenen…',
 	'Email intro (above the card)' => 'Inleiding van de e-mail (boven de kaart)',
@@ -2644,4 +2643,7 @@ return array(
 	'One colour' => 'Eén kleur',
 	'Gradient: middle' => 'Kleurverloop: midden',
 	'Gradient: edges' => 'Kleurverloop: randen',
+
+	// 3.50.3
+	'Double gold border at the edge' => 'Dubbele gouden rand aan de rand',
 );

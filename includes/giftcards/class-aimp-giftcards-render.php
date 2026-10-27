@@ -26,7 +26,7 @@ class AIMP_Giftcards_Render {
 	private static $size = null;
 
 	/** Raise when the drawing changes, so cached pictures are drawn again. */
-	const DRAW_VERSION = 4;
+	const DRAW_VERSION = 5;
 
 
 	/**
@@ -137,7 +137,9 @@ class AIMP_Giftcards_Render {
 			'grad_outer'    => isset( $divi['gcid-secondary-color'] ) ? $divi['gcid-secondary-color'][1] : '#d9bcea',
 			'text_color'    => '#613907',
 			'accent_color'  => '#b38f4f',
+			// The double gold border at the edge of the text side and of the picture side.
 			'frame'         => 1,
+			'picture_frame' => 1,
 			'greeting'      => '',
 			'subject_self'  => '',
 			'subject_other' => '',
@@ -226,7 +228,7 @@ class AIMP_Giftcards_Render {
 	 * @return string
 	 */
 	private static function front_hash( $theme ) {
-		$keys = array( 'image_id', 'fx', 'fy', 'back_color' );
+		$keys = array( 'image_id', 'fx', 'fy', 'back_color', 'picture_frame', 'accent_color' );
 		return substr( md5( wp_json_encode( array( array_intersect_key( $theme, array_flip( $keys ) ), self::size(), self::DRAW_VERSION ) ) ), 0, 10 );
 	}
 
@@ -734,7 +736,27 @@ class AIMP_Giftcards_Render {
 			self::cover( $im, $picture, (float) $theme['fx'], (float) $theme['fy'] );
 			imagedestroy( $picture );
 		}
+		if ( $theme['picture_frame'] ) {
+			self::border( $im, $theme['accent_color'] );
+		}
 		return $im;
+	}
+
+	/**
+	 * The double gold border of the website's buttons and cards (CSS "5px double"), right at the edge of the card:
+	 * two lines with a gap between them and rounded corners.
+	 *
+	 * @param resource|GdImage $im    Card.
+	 * @param string           $color Colour.
+	 */
+	private static function border( $im, $color ) {
+		self::smooth(
+			$im,
+			function ( $layer, $s ) use ( $color ) {
+				self::ring( $layer, 0, 9, 40, self::color( $layer, $color ), $s );
+				self::ring( $layer, 17, 9, 23, self::color( $layer, $color ), $s );
+			}
+		);
 	}
 
 	/**
@@ -833,13 +855,7 @@ class AIMP_Giftcards_Render {
 		$text   = $theme['text_color'];
 		$accent = $theme['accent_color'];
 		if ( $theme['frame'] ) {
-			self::smooth(
-				$im,
-				function ( $layer, $s ) use ( $accent ) {
-					self::ring( $layer, 46, 7, 70, self::color( $layer, $accent ), $s );
-					self::ring( $layer, 66, 3, 52, self::color( $layer, $accent ), $s );
-				}
-			);
+			self::border( $im, $accent );
 		}
 
 		// The blocks from top to bottom: [ kind, text, font, size, colour, space after ].

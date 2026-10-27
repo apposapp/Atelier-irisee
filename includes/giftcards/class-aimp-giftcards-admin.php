@@ -619,6 +619,7 @@ class AIMP_Giftcards_Admin {
 							<label><?php esc_html_e( 'Focus left / right', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" max="100" class="small-text" name="<?php echo $name( 'fx' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['fx'] ); ?>"> %</label>
 							<label><?php esc_html_e( 'top / bottom', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" max="100" class="small-text" name="<?php echo $name( 'fy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['fy'] ); ?>"> %</label>
 						</p>
+						<p><label><input type="checkbox" name="<?php echo $name( 'picture_frame' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['picture_frame'] ); ?>> <?php esc_html_e( 'Double gold border at the edge', 'atelier-irisee-master-plugin' ); ?></label></p>
 					</fieldset>
 					<fieldset>
 						<legend><?php esc_html_e( 'Front (greeting, amount and code)', 'atelier-irisee-master-plugin' ); ?></legend>
@@ -646,7 +647,7 @@ class AIMP_Giftcards_Admin {
 						<p><?php $color( 'back_color', __( 'One colour', 'atelier-irisee-master-plugin' ) ); ?></p>
 						<p><?php $color( 'text_color', __( 'Text', 'atelier-irisee-master-plugin' ) ); ?></p>
 						<p><?php $color( 'accent_color', __( 'Titles, amount and frame', 'atelier-irisee-master-plugin' ) ); ?></p>
-						<p><label><input type="checkbox" name="<?php echo $name( 'frame' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['frame'] ); ?>> <?php esc_html_e( 'Double line around the back', 'atelier-irisee-master-plugin' ); ?></label></p>
+						<p><label><input type="checkbox" name="<?php echo $name( 'frame' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['frame'] ); ?>> <?php esc_html_e( 'Double gold border at the edge', 'atelier-irisee-master-plugin' ); ?></label></p>
 					</fieldset>
 					<fieldset class="aimp-gc-theme-texts">
 						<legend><?php esc_html_e( 'Texts', 'atelier-irisee-master-plugin' ); ?></legend>
@@ -704,6 +705,7 @@ class AIMP_Giftcards_Admin {
 			'text_color'    => $hex( 'text_color', $d['text_color'] ),
 			'accent_color'  => $hex( 'accent_color', $d['accent_color'] ),
 			'frame'         => empty( $row['frame'] ) ? 0 : 1,
+			'picture_frame' => empty( $row['picture_frame'] ) ? 0 : 1,
 			'greeting'      => $text( 'greeting' ),
 			'subject_self'  => $text( 'subject_self' ),
 			'subject_other' => $text( 'subject_other' ),
