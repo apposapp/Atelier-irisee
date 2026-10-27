@@ -648,6 +648,7 @@ class AIMP_Giftcards_Admin {
 						<p><?php $color( 'text_color', __( 'Text', 'atelier-irisee-master-plugin' ) ); ?></p>
 						<p><?php $color( 'accent_color', __( 'Titles, amount and frame', 'atelier-irisee-master-plugin' ) ); ?></p>
 						<p><label><input type="checkbox" name="<?php echo $name( 'frame' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['frame'] ); ?>> <?php esc_html_e( 'Double gold border at the edge', 'atelier-irisee-master-plugin' ); ?></label></p>
+						<p><label><?php esc_html_e( 'Thickness of the double borders (both sides)', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="6" max="90" step="1" class="small-text" name="<?php echo $name( 'frame_width' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['frame_width'] ); ?>"> px</label><br><span class="description"><?php esc_html_e( 'Standard 26 px, about 2 mm on the printed card (the card is 1748 px wide).', 'atelier-irisee-master-plugin' ); ?></span></p>
 					</fieldset>
 					<fieldset class="aimp-gc-theme-texts">
 						<legend><?php esc_html_e( 'Texts', 'atelier-irisee-master-plugin' ); ?></legend>
@@ -706,6 +707,7 @@ class AIMP_Giftcards_Admin {
 			'accent_color'  => $hex( 'accent_color', $d['accent_color'] ),
 			'frame'         => empty( $row['frame'] ) ? 0 : 1,
 			'picture_frame' => empty( $row['picture_frame'] ) ? 0 : 1,
+			'frame_width'   => $num( 'frame_width', 6, 90, 26 ),
 			'greeting'      => $text( 'greeting' ),
 			'subject_self'  => $text( 'subject_self' ),
 			'subject_other' => $text( 'subject_other' ),

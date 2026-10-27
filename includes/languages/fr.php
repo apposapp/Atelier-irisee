@@ -2646,4 +2646,8 @@ return array(
 
 	// 3.50.3
 	'Double gold border at the edge' => 'Double bordure dorée au bord',
+
+	// 3.50.4
+	'Thickness of the double borders (both sides)' => 'Épaisseur des doubles bordures (deux côtés)',
+	'Standard 26 px, about 2 mm on the printed card (the card is 1748 px wide).' => 'Standard 26 px, environ 2 mm sur la carte imprimée (la carte fait 1748 px de large).',
 );

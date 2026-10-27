@@ -26,7 +26,7 @@ class AIMP_Giftcards_Render {
 	private static $size = null;
 
 	/** Raise when the drawing changes, so cached pictures are drawn again. */
-	const DRAW_VERSION = 5;
+	const DRAW_VERSION = 6;
 
 
 	/**
@@ -140,6 +140,8 @@ class AIMP_Giftcards_Render {
 			// The double gold border at the edge of the text side and of the picture side.
 			'frame'         => 1,
 			'picture_frame' => 1,
+			// The whole border (line, gap, line) in px of the card (1748 px = 148 mm): 26 is about 2 mm.
+			'frame_width'   => 26,
 			'greeting'      => '',
 			'subject_self'  => '',
 			'subject_other' => '',
@@ -228,7 +230,7 @@ class AIMP_Giftcards_Render {
 	 * @return string
 	 */
 	private static function front_hash( $theme ) {
-		$keys = array( 'image_id', 'fx', 'fy', 'back_color', 'picture_frame', 'accent_color' );
+		$keys = array( 'image_id', 'fx', 'fy', 'back_color', 'picture_frame', 'accent_color', 'frame_width' );
 		return substr( md5( wp_json_encode( array( array_intersect_key( $theme, array_flip( $keys ) ), self::size(), self::DRAW_VERSION ) ) ), 0, 10 );
 	}
 
@@ -737,7 +739,7 @@ class AIMP_Giftcards_Render {
 			imagedestroy( $picture );
 		}
 		if ( $theme['picture_frame'] ) {
-			self::border( $im, $theme['accent_color'] );
+			self::border( $im, $theme['accent_color'], (int) $theme['frame_width'] );
 		}
 		return $im;
 	}
@@ -748,13 +750,17 @@ class AIMP_Giftcards_Render {
 	 *
 	 * @param resource|GdImage $im    Card.
 	 * @param string           $color Colour.
+	 * @param int              $width The whole border in px: a third line, a third gap, a third line.
 	 */
-	private static function border( $im, $color ) {
+	private static function border( $im, $color, $width = 26 ) {
+		$width = max( 6, min( 90, (int) $width ) );
+		$line  = max( 2, (int) round( $width / 3 ) );
+		$gap   = max( 1, $width - 2 * $line );
 		self::smooth(
 			$im,
-			function ( $layer, $s ) use ( $color ) {
-				self::ring( $layer, 0, 9, 40, self::color( $layer, $color ), $s );
-				self::ring( $layer, 17, 9, 23, self::color( $layer, $color ), $s );
+			function ( $layer, $s ) use ( $color, $line, $gap ) {
+				self::ring( $layer, 0, $line, 40, self::color( $layer, $color ), $s );
+				self::ring( $layer, $line + $gap, $line, max( 8, 40 - $line - $gap ), self::color( $layer, $color ), $s );
 			}
 		);
 	}
@@ -855,7 +861,7 @@ class AIMP_Giftcards_Render {
 		$text   = $theme['text_color'];
 		$accent = $theme['accent_color'];
 		if ( $theme['frame'] ) {
-			self::border( $im, $accent );
+			self::border( $im, $accent, (int) $theme['frame_width'] );
 		}
 
 		// The blocks from top to bottom: [ kind, text, font, size, colour, space after ].

@@ -2646,4 +2646,8 @@ return array(
 
 	// 3.50.3
 	'Double gold border at the edge' => 'Dubbele gouden rand aan de rand',
+
+	// 3.50.4
+	'Thickness of the double borders (both sides)' => 'Dikte van de dubbele randen (beide kanten)',
+	'Standard 26 px, about 2 mm on the printed card (the card is 1748 px wide).' => 'Standaard 26 px, ongeveer 2 mm op de gedrukte kaart (de kaart is 1748 px breed).',
 );
