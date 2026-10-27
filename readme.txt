@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.50.1
+Stable tag: 3.50.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.50.2 =
+* Gift cards: the text side has the round gradient of the website's sections (Divi's primary colour in the middle, the secondary at the edges). Both colours can be chosen per design (with the Divi colours as one-click choices), or "One colour" as before.
 
 = 3.50.1 =
 * Gift cards: every card has the shape of the picture of the standard (first) design, also in the PDF and on the print page; the gift card page shows its pictures in that shape instead of a square.

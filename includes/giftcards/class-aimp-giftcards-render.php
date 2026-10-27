@@ -26,7 +26,7 @@ class AIMP_Giftcards_Render {
 	private static $size = null;
 
 	/** Raise when the drawing changes, so cached pictures are drawn again. */
-	const DRAW_VERSION = 3;
+	const DRAW_VERSION = 4;
 
 
 	/**
@@ -116,6 +116,8 @@ class AIMP_Giftcards_Render {
 	}
 
 	public static function theme_defaults() {
+		// The gradient of the website's sections: Divi's primary colour in the middle, the secondary at the edges.
+		$divi = class_exists( 'AIMP_Design' ) ? AIMP_Design::divi_colors() : array();
 		return array(
 			'id'            => '',
 			'name'          => '',
@@ -129,6 +131,10 @@ class AIMP_Giftcards_Render {
 			'text_logo_size' => 13,
 			'back_image_id' => 0,
 			'back_color'    => '#fffaf7',
+			// Background of the text side: the website's radial gradient (standard) or one colour.
+			'back_style'    => 'gradient',
+			'grad_inner'    => isset( $divi['gcid-primary-color'] ) ? $divi['gcid-primary-color'][1] : '#fbefef',
+			'grad_outer'    => isset( $divi['gcid-secondary-color'] ) ? $divi['gcid-secondary-color'][1] : '#d9bcea',
 			'text_color'    => '#613907',
 			'accent_color'  => '#b38f4f',
 			'frame'         => 1,
@@ -623,6 +629,43 @@ class AIMP_Giftcards_Render {
 	}
 
 	/**
+	 * The radial gradient of the website's sections: the middle colour up to 75 % of the way to the corners, then
+	 * fading to the edge colour (CSS: radial-gradient(circle, middle 0%, middle 75%, rgba(235,215,237,.2) 100%) over the
+	 * edge colour). Drawn as thin rings from the outside in.
+	 *
+	 * @param resource|GdImage $im    Card.
+	 * @param string           $inner Middle colour.
+	 * @param string           $outer Edge colour.
+	 */
+	private static function radial( $im, $inner, $outer ) {
+		$rgb = function ( $hex ) {
+			$hex = ltrim( (string) $hex, '#' );
+			if ( 3 === strlen( $hex ) ) {
+				$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+			}
+			return preg_match( '/^[0-9a-f]{6}$/i', $hex ) ? array( hexdec( substr( $hex, 0, 2 ) ), hexdec( substr( $hex, 2, 2 ) ), hexdec( substr( $hex, 4, 2 ) ) ) : array( 251, 239, 239 );
+		};
+		$in  = $rgb( $inner );
+		$out = $rgb( $outer );
+		// The colour at the very edge: a light, mostly see-through lilac over the edge colour, as on the website.
+		$end = array();
+		for ( $i = 0; $i < 3; $i++ ) {
+			$end[ $i ] = 0.2 * array( 235, 215, 237 )[ $i ] + 0.8 * $out[ $i ];
+		}
+		$w      = self::w();
+		$h      = self::h();
+		$radius = sqrt( $w * $w + $h * $h ) / 2;
+		imagefill( $im, 0, 0, imagecolorallocate( $im, (int) $end[0], (int) $end[1], (int) $end[2] ) );
+		$steps = 240;
+		for ( $s = $steps; $s >= 0; $s-- ) {
+			$t = $s / $steps; // 1 = the corners, 0 = 75 % of the way.
+			$r = $radius * ( 0.75 + 0.25 * $t );
+			$c = imagecolorallocate( $im, (int) round( $in[0] + ( $end[0] - $in[0] ) * $t ), (int) round( $in[1] + ( $end[1] - $in[1] ) * $t ), (int) round( $in[2] + ( $end[2] - $in[2] ) * $t ) );
+			imagefilledellipse( $im, (int) round( $w / 2 ), (int) round( $h / 2 ), (int) round( 2 * $r ), (int) round( 2 * $r ), $c );
+		}
+	}
+
+	/**
 	 * Fills the card with a picture, cut to fit (like background-size: cover) around a focus point.
 	 */
 	private static function cover( $im, $src, $fx = 50, $fy = 50 ) {
@@ -777,7 +820,11 @@ class AIMP_Giftcards_Render {
 	public static function draw_details( $theme, $data, $example ) {
 		wp_raise_memory_limit( 'image' );
 		$im = self::canvas();
-		imagefill( $im, 0, 0, self::color( $im, $theme['back_color'] ) );
+		if ( 'color' === $theme['back_style'] ) {
+			imagefill( $im, 0, 0, self::color( $im, $theme['back_color'] ) );
+		} else {
+			self::radial( $im, $theme['grad_inner'], $theme['grad_outer'] );
+		}
 		$picture = $theme['back_image_id'] ? self::load( (int) $theme['back_image_id'] ) : null;
 		if ( $picture ) {
 			self::cover( $im, $picture );

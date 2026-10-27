@@ -632,8 +632,18 @@ class AIMP_Giftcards_Admin {
 							<button type="button" class="button aimp-gc-back-choose"><?php esc_html_e( 'Background picture', 'atelier-irisee-master-plugin' ); ?></button>
 							<button type="button" class="button-link aimp-gc-back-remove"><?php esc_html_e( 'No picture', 'atelier-irisee-master-plugin' ); ?></button>
 						</p>
-						<p class="description"><?php esc_html_e( 'A calm, light picture, so the text stays readable. Without a picture the background colour is used.', 'atelier-irisee-master-plugin' ); ?></p>
-						<p><?php $color( 'back_color', __( 'Background', 'atelier-irisee-master-plugin' ) ); ?></p>
+						<p class="description"><?php esc_html_e( 'A calm, light picture, so the text stays readable. Without a picture the background below is used.', 'atelier-irisee-master-plugin' ); ?></p>
+						<p>
+							<label><?php esc_html_e( 'Background', 'atelier-irisee-master-plugin' ); ?>
+								<select name="<?php echo $name( 'back_style' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>">
+									<option value="gradient" <?php selected( $design['back_style'], 'gradient' ); ?>><?php esc_html_e( 'Round gradient, like the website (standard)', 'atelier-irisee-master-plugin' ); ?></option>
+									<option value="color" <?php selected( $design['back_style'], 'color' ); ?>><?php esc_html_e( 'One colour', 'atelier-irisee-master-plugin' ); ?></option>
+								</select>
+							</label>
+						</p>
+						<p><?php $color( 'grad_inner', __( 'Gradient: middle', 'atelier-irisee-master-plugin' ) ); ?></p>
+						<p><?php $color( 'grad_outer', __( 'Gradient: edges', 'atelier-irisee-master-plugin' ) ); ?></p>
+						<p><?php $color( 'back_color', __( 'One colour', 'atelier-irisee-master-plugin' ) ); ?></p>
 						<p><?php $color( 'text_color', __( 'Text', 'atelier-irisee-master-plugin' ) ); ?></p>
 						<p><?php $color( 'accent_color', __( 'Titles, amount and frame', 'atelier-irisee-master-plugin' ) ); ?></p>
 						<p><label><input type="checkbox" name="<?php echo $name( 'frame' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['frame'] ); ?>> <?php esc_html_e( 'Double line around the back', 'atelier-irisee-master-plugin' ); ?></label></p>
@@ -688,6 +698,9 @@ class AIMP_Giftcards_Admin {
 			'text_logo_size' => $num( 'text_logo_size', 5, 30, 13 ),
 			'back_image_id' => isset( $row['back_image_id'] ) ? absint( $row['back_image_id'] ) : 0,
 			'back_color'    => $hex( 'back_color', $d['back_color'] ),
+			'back_style'    => isset( $row['back_style'] ) && 'color' === $row['back_style'] ? 'color' : 'gradient',
+			'grad_inner'    => $hex( 'grad_inner', $d['grad_inner'] ),
+			'grad_outer'    => $hex( 'grad_outer', $d['grad_outer'] ),
 			'text_color'    => $hex( 'text_color', $d['text_color'] ),
 			'accent_color'  => $hex( 'accent_color', $d['accent_color'] ),
 			'frame'         => empty( $row['frame'] ) ? 0 : 1,

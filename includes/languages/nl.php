@@ -2531,7 +2531,6 @@ return array(
 	// Gift card themes 3.49
 	'%s gives you a gift card. Here it is, front and back.' => '%s geeft je een cadeaubon. Hier is hij, voor- en achterkant.',
 	'A PNG with a transparent background works best. Empty = the Divi logo.' => 'Een PNG met een doorzichtige achtergrond werkt het best. Leeg = het Divi-logo.',
-	'A calm, light picture, so the text stays readable. Without a picture the background colour is used.' => 'Een rustige, lichte foto, zodat de tekst leesbaar blijft. Zonder foto wordt de achtergrondkleur gebruikt.',
 	'Card design: front, back, greeting and email' => 'Ontwerp van de kaart: voorkant, achterkant, wens en e-mail',
 	'Choose logo' => 'Logo kiezen',
 	'Customers choose one of the active designs. Each design is a theme: a front (its picture with your logo), a back with the card details and a greeting, and its own email texts. Customers receive both sides as pictures and as a PDF.' => 'Klanten kiezen een van de actieve ontwerpen. Elk ontwerp is een thema: een voorkant (de foto met je logo), een achterkant met de gegevens van de bon en een wens, en eigen e-mailteksten. Klanten krijgen beide kanten als afbeelding en als pdf.',
@@ -2638,4 +2637,11 @@ return array(
 	'December' => 'december',
 	'Front side' => 'Voorkant',
 	'Back side' => 'Achterkant',
+
+	// 3.50.2
+	'A calm, light picture, so the text stays readable. Without a picture the background below is used.' => 'Een rustige, lichte foto, zodat de tekst leesbaar blijft. Zonder foto wordt de achtergrond hieronder gebruikt.',
+	'Round gradient, like the website (standard)' => 'Rond kleurverloop, zoals op de website (standaard)',
+	'One colour' => 'Eén kleur',
+	'Gradient: middle' => 'Kleurverloop: midden',
+	'Gradient: edges' => 'Kleurverloop: randen',
 );

@@ -2531,7 +2531,6 @@ return array(
 	// Gift card themes 3.49
 	'%s gives you a gift card. Here it is, front and back.' => '%s vous offre une carte-cadeau. La voici, recto et verso.',
 	'A PNG with a transparent background works best. Empty = the Divi logo.' => 'Un PNG à fond transparent donne le meilleur résultat. Vide = le logo Divi.',
-	'A calm, light picture, so the text stays readable. Without a picture the background colour is used.' => 'Une image calme et claire, pour que le texte reste lisible. Sans image, la couleur de fond est utilisée.',
 	'Card design: front, back, greeting and email' => 'Design de la carte : recto, verso, vœu et e-mail',
 	'Choose logo' => 'Choisir le logo',
 	'Customers choose one of the active designs. Each design is a theme: a front (its picture with your logo), a back with the card details and a greeting, and its own email texts. Customers receive both sides as pictures and as a PDF.' => 'Les clients choisissent l\'un des designs actifs. Chaque design est un thème : un recto (son image avec votre logo), un verso avec les données de la carte et un vœu, et ses propres textes d\'e-mail. Les clients reçoivent les deux faces en images et en PDF.',
@@ -2638,4 +2637,11 @@ return array(
 	'December' => 'décembre',
 	'Front side' => 'Recto',
 	'Back side' => 'Verso',
+
+	// 3.50.2
+	'A calm, light picture, so the text stays readable. Without a picture the background below is used.' => 'Une image calme et claire, pour que le texte reste lisible. Sans image, le fond ci-dessous est utilisé.',
+	'Round gradient, like the website (standard)' => 'Dégradé rond, comme sur le site (standard)',
+	'One colour' => 'Une seule couleur',
+	'Gradient: middle' => 'Dégradé : centre',
+	'Gradient: edges' => 'Dégradé : bords',
 );
