@@ -43,6 +43,7 @@ class AIMP_Giftcards {
 
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
 		add_action( 'aimp_gc_send', array( __CLASS__, 'send_scheduled' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'shape_css' ) );
 
 		AIMP_Giftcards_Product::init();
 		AIMP_Giftcards_Redeem::init();
@@ -550,6 +551,21 @@ class AIMP_Giftcards {
 				return array( $subject, $html );
 			}
 		);
+	}
+
+	/**
+	 * The shape of the cards for every picture of a card on the site (--aimp-gc-ratio), and on the gift card page the
+	 * product picture in that shape instead of a square.
+	 */
+	public static function shape_css() {
+		$ratio = round( AIMP_Giftcards_Render::ratio(), 4 );
+		$css   = ':root{--aimp-gc-ratio:' . $ratio . '}';
+		if ( function_exists( 'is_product' ) && is_product() && AIMP_Giftcards_Product::is_giftcard( wc_get_product( get_queried_object_id() ) ) ) {
+			$css .= 'body.single-product .aimp-gallery-main,body.single-product .aimp-gallery-main img{aspect-ratio:var(--aimp-gc-ratio)!important;height:auto!important}body.single-product .aimp-gallery-main img{object-fit:cover!important}';
+		}
+		wp_register_style( 'aimp-gc-shape', false, array(), AIMP_VERSION );
+		wp_enqueue_style( 'aimp-gc-shape' );
+		wp_add_inline_style( 'aimp-gc-shape', $css );
 	}
 
 	/**

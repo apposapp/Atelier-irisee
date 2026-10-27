@@ -371,7 +371,7 @@ class AIMP_Giftcards_Product {
 			$rows[ __( 'For', 'atelier-irisee-master-plugin' ) ] = $gc['recipient_name'] . ( ! empty( $gc['recipient_email'] ) ? ' (' . $gc['recipient_email'] . ')' : '' );
 		}
 		if ( ! empty( $gc['send_date'] ) ) {
-			$rows[ __( 'Send on', 'atelier-irisee-master-plugin' ) ] = date_i18n( get_option( 'date_format' ), strtotime( $gc['send_date'] ) );
+			$rows[ __( 'Send on', 'atelier-irisee-master-plugin' ) ] = AIMP_I18n::date( strtotime( $gc['send_date'] ) );
 		}
 		if ( isset( $gc['greeting'] ) && '' !== $gc['greeting'] ) {
 			$rows[ __( 'Greeting', 'atelier-irisee-master-plugin' ) ] = $gc['greeting'];

@@ -19,13 +19,56 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class AIMP_Giftcards_Render {
 
-	/** A6 landscape at 300 dpi. */
-	const W = 1748;
-	const H = 1240;
+	/** The long side of a card at 300 dpi (148 mm); the other side follows the shape of the standard design's picture. */
+	const SIDE = 1748;
+
+	/** Width and height of the cards in px (see size()). */
+	private static $size = null;
 
 	/** Raise when the drawing changes, so cached pictures are drawn again. */
-	const DRAW_VERSION = 2;
+	const DRAW_VERSION = 3;
 
+
+	/**
+	 * The shape of every card: that of the picture of the standard design (the first one, which the gift card page
+	 * chooses first), so that picture is never cut; A6 landscape (148 × 105 mm) without one.
+	 *
+	 * @return float Width / height.
+	 */
+	public static function ratio() {
+		$designs = AIMP_Giftcards::designs();
+		$first   = $designs ? reset( $designs ) : null;
+		$meta    = $first && ! empty( $first['image_id'] ) ? wp_get_attachment_metadata( (int) $first['image_id'] ) : array();
+		if ( ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
+			return max( 0.5, min( 2.5, $meta['width'] / $meta['height'] ) );
+		}
+		return 148 / 105;
+	}
+
+	private static function size() {
+		if ( null === self::$size ) {
+			$ratio      = self::ratio();
+			self::$size = $ratio >= 1 ? array( self::SIDE, (int) round( self::SIDE / $ratio ) ) : array( (int) round( self::SIDE * $ratio ), self::SIDE );
+		}
+		return self::$size;
+	}
+
+	public static function w() {
+		return self::size()[0];
+	}
+
+	public static function h() {
+		return self::size()[1];
+	}
+
+	/**
+	 * The card in millimetres (the long side 148 mm), for the PDF and the print page.
+	 *
+	 * @return float[] [ width, height ].
+	 */
+	public static function mm() {
+		return array( round( 148 * self::w() / self::SIDE, 1 ), round( 148 * self::h() / self::SIDE, 1 ) );
+	}
 
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'serve' ), 5 );
@@ -80,9 +123,10 @@ class AIMP_Giftcards_Render {
 			'active'        => 1,
 			'fx'            => 50,
 			'fy'            => 50,
-			// The logo at the top of the text side (the front); its width in % of the card.
-			'logo'          => 1,
-			'logo_size'     => 13,
+			// The logo at the top of the text side (the front); its width in % of the card. New keys in 3.50.1: the old
+			// "logo" and "logo_size" were the logo on the picture side and are no longer used.
+			'text_logo'      => 1,
+			'text_logo_size' => 13,
 			'back_image_id' => 0,
 			'back_color'    => '#fffaf7',
 			'text_color'    => '#613907',
@@ -177,7 +221,7 @@ class AIMP_Giftcards_Render {
 	 */
 	private static function front_hash( $theme ) {
 		$keys = array( 'image_id', 'fx', 'fy', 'back_color' );
-		return substr( md5( wp_json_encode( array( array_intersect_key( $theme, array_flip( $keys ) ), self::DRAW_VERSION ) ) ), 0, 10 );
+		return substr( md5( wp_json_encode( array( array_intersect_key( $theme, array_flip( $keys ) ), self::size(), self::DRAW_VERSION ) ) ), 0, 10 );
 	}
 
 	/**
@@ -226,7 +270,7 @@ class AIMP_Giftcards_Render {
 		}
 		$theme = self::theme( $card['design'] );
 		$data  = self::back_data( $card );
-		$hash  = substr( md5( wp_json_encode( array( $theme, $data, self::logo_id(), self::DRAW_VERSION ) ) ), 0, 12 );
+		$hash  = substr( md5( wp_json_encode( array( $theme, $data, self::logo_id(), self::size(), self::DRAW_VERSION ) ) ), 0, 12 );
 		$base  = $dir . (int) $card['id'] . '-' . $hash;
 		$files = array(
 			'front' => $base . '-front.jpg',
@@ -275,7 +319,7 @@ class AIMP_Giftcards_Render {
 					'code_label' => __( 'Your code', 'atelier-irisee-master-plugin' ),
 					'code'      => (string) $card['code'],
 					/* translators: %s: date */
-					'valid'     => $card['expires'] ? sprintf( __( 'Valid until %s', 'atelier-irisee-master-plugin' ), date_i18n( get_option( 'date_format' ), strtotime( $card['expires'] ) ) ) : '',
+					'valid'     => $card['expires'] ? sprintf( __( 'Valid until %s', 'atelier-irisee-master-plugin' ), AIMP_I18n::date( strtotime( $card['expires'] ) ) ) : '',
 					'how'       => __( 'Enter the code in the gift card field in your cart or at checkout. Anything you do not spend stays on the card.', 'atelier-irisee-master-plugin' ),
 					'site'      => preg_replace( '#^https?://(www\.)?#', '', untrailingslashit( home_url() ) ),
 				);
@@ -514,7 +558,7 @@ class AIMP_Giftcards_Render {
 	 * @param int        $min    Wanted width.
 	 * @return resource|GdImage|null
 	 */
-	private static function load( $source, $min = self::W ) {
+	private static function load( $source, $min = self::SIDE ) {
 		$path = '';
 		if ( is_numeric( $source ) && (int) $source > 0 ) {
 			$original = get_attached_file( (int) $source );
@@ -548,7 +592,9 @@ class AIMP_Giftcards_Render {
 		return $im;
 	}
 
-	private static function canvas( $w = self::W, $h = self::H, $transparent = false ) {
+	private static function canvas( $w = 0, $h = 0, $transparent = false ) {
+		$w = $w ? $w : self::w();
+		$h = $h ? $h : self::h();
 		$im = imagecreatetruecolor( $w, $h );
 		if ( $transparent ) {
 			imagealphablending( $im, false );
@@ -582,12 +628,12 @@ class AIMP_Giftcards_Render {
 	private static function cover( $im, $src, $fx = 50, $fy = 50 ) {
 		$sw    = imagesx( $src );
 		$sh    = imagesy( $src );
-		$scale = max( self::W / $sw, self::H / $sh );
-		$cw    = (int) round( self::W / $scale );
-		$ch    = (int) round( self::H / $scale );
+		$scale = max( self::w() / $sw, self::h() / $sh );
+		$cw    = (int) round( self::w() / $scale );
+		$ch    = (int) round( self::h() / $scale );
 		$sx    = (int) round( max( 0, min( $sw - $cw, $sw * $fx / 100 - $cw / 2 ) ) );
 		$sy    = (int) round( max( 0, min( $sh - $ch, $sh * $fy / 100 - $ch / 2 ) ) );
-		imagecopyresampled( $im, $src, 0, 0, $sx, $sy, self::W, self::H, $cw, $ch );
+		imagecopyresampled( $im, $src, 0, 0, $sx, $sy, self::w(), self::h(), $cw, $ch );
 	}
 
 	/**
@@ -598,15 +644,15 @@ class AIMP_Giftcards_Render {
 	 */
 	private static function smooth( $im, $draw ) {
 		$s     = 2;
-		$layer = self::canvas( self::W * $s, self::H * $s, true );
+		$layer = self::canvas( self::w() * $s, self::h() * $s, true );
 		imagealphablending( $layer, false );
 		call_user_func( $draw, $layer, $s );
-		$small = self::canvas( self::W, self::H, true );
+		$small = self::canvas( self::w(), self::h(), true );
 		imagealphablending( $small, false );
-		imagecopyresampled( $small, $layer, 0, 0, 0, 0, self::W, self::H, self::W * $s, self::H * $s );
+		imagecopyresampled( $small, $layer, 0, 0, 0, 0, self::w(), self::h(), self::w() * $s, self::h() * $s );
 		imagedestroy( $layer );
 		imagealphablending( $im, true );
-		imagecopy( $im, $small, 0, 0, 0, 0, self::W, self::H );
+		imagecopy( $im, $small, 0, 0, 0, 0, self::w(), self::h() );
 		imagedestroy( $small );
 	}
 
@@ -625,8 +671,8 @@ class AIMP_Giftcards_Render {
 		$clear = imagecolorallocatealpha( $layer, 0, 0, 0, 127 );
 		$i     = $inset * $s;
 		$w     = $width * $s;
-		self::rounded( $layer, $i, $i, self::W * $s - $i, self::H * $s - $i, $radius * $s, $color );
-		self::rounded( $layer, $i + $w, $i + $w, self::W * $s - $i - $w, self::H * $s - $i - $w, max( 1, ( $radius - $width ) * $s ), $clear );
+		self::rounded( $layer, $i, $i, self::w() * $s - $i, self::h() * $s - $i, $radius * $s, $color );
+		self::rounded( $layer, $i + $w, $i + $w, self::w() * $s - $i - $w, self::h() * $s - $i - $w, max( 1, ( $radius - $width ) * $s ), $clear );
 	}
 
 	/**
@@ -752,9 +798,9 @@ class AIMP_Giftcards_Render {
 		// The blocks from top to bottom: [ kind, text, font, size, colour, space after ].
 		$blocks = array();
 		// The logo at the top (for a logo: its width in px, and its height / width in the text slot).
-		$logo = $theme['logo'] ? self::load( self::logo_id(), 400 ) : null;
+		$logo = $theme['text_logo'] ? self::load( self::logo_id(), 400 ) : null;
 		if ( $logo ) {
-			$blocks[] = array( 'logo', imagesy( $logo ) / imagesx( $logo ), 'display', self::W * max( 5, min( 30, (float) $theme['logo_size'] ) ) / 100, '', 22 );
+			$blocks[] = array( 'logo', imagesy( $logo ) / imagesx( $logo ), 'display', self::w() * max( 5, min( 30, (float) $theme['text_logo_size'] ) ) / 100, '', 22 );
 		}
 		if ( '' !== trim( $data['greeting'] ) ) {
 			$blocks[] = array( 'lines', $data['greeting'], 'display-bold', 54, $accent, 26 );
@@ -776,8 +822,8 @@ class AIMP_Giftcards_Render {
 		}
 		$blocks[] = array( 'lines', $data['how'], 'text', 21, $text, 0 );
 
-		$max_w = self::W - 2 * 190;
-		$max_h = self::H - 2 * 130;
+		$max_w = self::w() - 2 * 190;
+		$max_h = self::h() - 2 * 130;
 		$scale = 1.0;
 		for ( $try = 0; $try < 12; $try++ ) {
 			$laid  = self::lay_out( $blocks, $scale, $max_w );
@@ -788,29 +834,29 @@ class AIMP_Giftcards_Render {
 			$scale *= 0.92;
 		}
 
-		$y = (int) round( ( self::H - $total ) / 2 );
+		$y = (int) round( ( self::h() - $total ) / 2 );
 		foreach ( $laid as $block ) {
 			$font  = self::font( $block['font'] );
 			$color = self::color( $im, $block['color'] );
 			if ( 'logo' === $block['kind'] ) {
 				$w = (int) round( $block['size'] );
 				imagealphablending( $im, true );
-				imagecopyresampled( $im, $logo, (int) round( ( self::W - $w ) / 2 ), $y, 0, 0, $w, $block['line'], imagesx( $logo ), imagesy( $logo ) );
+				imagecopyresampled( $im, $logo, (int) round( ( self::w() - $w ) / 2 ), $y, 0, 0, $w, $block['line'], imagesx( $logo ), imagesy( $logo ) );
 			} elseif ( 'code' === $block['kind'] ) {
 				$m   = self::measure( $block['lines'][0], $font, $block['size'] );
 				$pad = (int) round( 22 * $scale );
-				$x1  = (int) round( ( self::W - $m['w'] ) / 2 ) - $pad * 2;
-				$x2  = (int) round( ( self::W + $m['w'] ) / 2 ) + $pad * 2;
+				$x1  = (int) round( ( self::w() - $m['w'] ) / 2 ) - $pad * 2;
+				$x2  = (int) round( ( self::w() + $m['w'] ) / 2 ) + $pad * 2;
 				self::dashed_box( $im, $x1, $y, $x2, $y + $block['line'] + 2 * $pad, $color, max( 2, (int) round( 3 * $scale ) ) );
-				imagettftext( $im, $block['size'], 0, (int) round( ( self::W - $m['w'] ) / 2 ) - $m['x0'], $y + $pad + $m['up'], $color, $font, $block['lines'][0] );
+				imagettftext( $im, $block['size'], 0, (int) round( ( self::w() - $m['w'] ) / 2 ) - $m['x0'], $y + $pad + $m['up'], $color, $font, $block['lines'][0] );
 			} elseif ( 'label' === $block['kind'] ) {
 				$m = self::measure( 'H', $font, $block['size'] );
-				self::spaced( $im, $block['lines'][0], $font, $block['size'], $color, self::W / 2, $y + $m['up'], $block['size'] * 0.45 );
+				self::spaced( $im, $block['lines'][0], $font, $block['size'], $color, self::w() / 2, $y + $m['up'], $block['size'] * 0.45 );
 			} else {
 				$ly = $y;
 				foreach ( $block['lines'] as $line ) {
 					$m = self::measure( $line, $font, $block['size'] );
-					imagettftext( $im, $block['size'], 0, (int) round( ( self::W - $m['w'] ) / 2 ) - $m['x0'], $ly + $m['up'], $color, $font, $line );
+					imagettftext( $im, $block['size'], 0, (int) round( ( self::w() - $m['w'] ) / 2 ) - $m['x0'], $ly + $m['up'], $color, $font, $line );
 					$ly += $block['line'];
 				}
 			}
@@ -819,7 +865,7 @@ class AIMP_Giftcards_Render {
 
 		// The address of the shop, small at the bottom.
 		$font = self::font( 'display' );
-		self::spaced( $im, strtoupper( $data['site'] ), $font, 15, self::color( $im, $accent ), self::W / 2, self::H - 96, 7 );
+		self::spaced( $im, strtoupper( $data['site'] ), $font, 15, self::color( $im, $accent ), self::w() / 2, self::h() - 96, 7 );
 
 		if ( $example ) {
 			$mark = implode( ' ', preg_split( '//u', ( function_exists( 'mb_strtoupper' ) ? mb_strtoupper( __( 'Example', 'atelier-irisee-master-plugin' ) ) : strtoupper( __( 'Example', 'atelier-irisee-master-plugin' ) ) ), -1, PREG_SPLIT_NO_EMPTY ) );
@@ -827,7 +873,7 @@ class AIMP_Giftcards_Render {
 			$box  = imagettfbbox( 130, 18, $font, $mark );
 			$w    = max( $box[2], $box[4] ) - min( $box[0], $box[6] );
 			$h    = max( $box[1], $box[3] ) - min( $box[5], $box[7] );
-			imagettftext( $im, 130, 18, (int) round( ( self::W - $w ) / 2 ), (int) round( ( self::H + $h ) / 2 ), self::color( $im, $accent, 108 ), $font, $mark );
+			imagettftext( $im, 130, 18, (int) round( ( self::w() - $w ) / 2 ), (int) round( ( self::h() + $h ) / 2 ), self::color( $im, $accent, 108 ), $font, $mark );
 		}
 		if ( $logo ) {
 			imagedestroy( $logo );
@@ -933,8 +979,10 @@ class AIMP_Giftcards_Render {
 	 * @return string
 	 */
 	public static function pdf( $jpegs ) {
-		$w       = 419.53; // 148 mm in points.
-		$h       = 297.64; // 105 mm.
+		// The card's size in points (1 mm = 72 / 25.4 pt).
+		list( $w_mm, $h_mm ) = self::mm();
+		$w       = round( $w_mm * 72 / 25.4, 2 );
+		$h       = round( $h_mm * 72 / 25.4, 2 );
 		$objects = array();
 		$kids    = array();
 		$n       = count( $jpegs );

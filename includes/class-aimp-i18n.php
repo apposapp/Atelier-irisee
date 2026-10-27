@@ -242,4 +242,32 @@ class AIMP_I18n {
 		$language  = $languages[ self::current() ];
 		return number_format( (float) $number, $decimals, $language['decimal'], $language['thousand'] );
 	}
+
+	/**
+	 * A date in the visitor's language (the site's own date format follows the WordPress language, often English):
+	 * "27 oktober 2027", "27 octobre 2027", "October 27, 2027".
+	 *
+	 * @param int $timestamp Time.
+	 * @return string
+	 */
+	public static function date( $timestamp ) {
+		$months = array(
+			__( 'January', 'atelier-irisee-master-plugin' ),
+			__( 'February', 'atelier-irisee-master-plugin' ),
+			__( 'March', 'atelier-irisee-master-plugin' ),
+			__( 'April', 'atelier-irisee-master-plugin' ),
+			__( 'May', 'atelier-irisee-master-plugin' ),
+			__( 'June', 'atelier-irisee-master-plugin' ),
+			__( 'July', 'atelier-irisee-master-plugin' ),
+			__( 'August', 'atelier-irisee-master-plugin' ),
+			__( 'September', 'atelier-irisee-master-plugin' ),
+			__( 'October', 'atelier-irisee-master-plugin' ),
+			__( 'November', 'atelier-irisee-master-plugin' ),
+			__( 'December', 'atelier-irisee-master-plugin' ),
+		);
+		$month = $months[ (int) wp_date( 'n', (int) $timestamp ) - 1 ];
+		return 'en' === self::current()
+			? $month . ' ' . wp_date( 'j, Y', (int) $timestamp )
+			: wp_date( 'j', (int) $timestamp ) . ' ' . $month . ' ' . wp_date( 'Y', (int) $timestamp );
+	}
 }

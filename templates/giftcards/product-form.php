@@ -161,8 +161,8 @@ $aimp_v    = function ( $key ) use ( $aimp_sent ) {
 		<div class="aimp-gc-preview" data-aimp-gc-preview>
 			<button type="button" class="aimp-gc-preview-button" data-aimp-gc-preview-button><?php esc_html_e( 'Preview your card', 'atelier-irisee-master-plugin' ); ?></button>
 			<div class="aimp-gc-preview-sides" hidden>
-				<figure><img alt="" data-aimp-gc-preview-front><figcaption><?php esc_html_e( 'Front', 'atelier-irisee-master-plugin' ); ?></figcaption></figure>
-				<figure><img alt="" data-aimp-gc-preview-back><figcaption><?php esc_html_e( 'Back', 'atelier-irisee-master-plugin' ); ?></figcaption></figure>
+				<figure><img alt="" data-aimp-gc-preview-front><figcaption><?php esc_html_e( 'Front side', 'atelier-irisee-master-plugin' ); ?></figcaption></figure>
+				<figure><img alt="" data-aimp-gc-preview-back><figcaption><?php esc_html_e( 'Back side', 'atelier-irisee-master-plugin' ); ?></figcaption></figure>
 			</div>
 			<p class="aimp-gc-preview-msg" role="status" hidden></p>
 		</div>

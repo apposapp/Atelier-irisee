@@ -133,14 +133,14 @@ class AIMP_Giftcards_Admin {
 				echo esc_html( AIMP_Giftcards::delivery_label( $card['delivery'] ) );
 				if ( $card['send_date'] && ! $card['sent'] && 'post' !== $card['delivery'] ) {
 					/* translators: %s: date */
-					echo '<br><small>' . esc_html( sprintf( __( 'Sends on %s', 'atelier-irisee-master-plugin' ), date_i18n( get_option( 'date_format' ), strtotime( $card['send_date'] ) ) ) ) . '</small>';
+					echo '<br><small>' . esc_html( sprintf( __( 'Sends on %s', 'atelier-irisee-master-plugin' ), AIMP_I18n::date( strtotime( $card['send_date'] ) ) ) ) . '</small>';
 				}
 				break;
 			case 'aimp_stat':
 				echo '<span class="aimp-gc-status">' . esc_html( AIMP_Giftcards::status_label( $card ) ) . '</span>';
 				break;
 			case 'aimp_exp':
-				echo $card['expires'] ? esc_html( date_i18n( get_option( 'date_format' ), strtotime( $card['expires'] ) ) ) : '—';
+				echo $card['expires'] ? esc_html( AIMP_I18n::date( strtotime( $card['expires'] ) ) ) : '—';
 				break;
 			case 'aimp_ord':
 				$order = $card['order_id'] ? wc_get_order( $card['order_id'] ) : null;
@@ -402,7 +402,7 @@ class AIMP_Giftcards_Admin {
 						.aimp-print-side img { display: block; width: 100%; height: auto; box-shadow: 0 2px 12px rgba(0,0,0,.15); }
 						@media print { .aimp-print-bar { display: none; } body { padding: 0; } @page { margin: 12mm; } }
 						<?php if ( $drawn ) : ?>
-						@media print { .aimp-print-side { max-width: none; margin: 0; page-break-after: always; break-after: page; } .aimp-print-side img { width: 148mm; height: 105mm; box-shadow: none; } @page { size: 148mm 105mm; margin: 0; } }
+						@media print { .aimp-print-side { max-width: none; margin: 0; page-break-after: always; break-after: page; } .aimp-print-side img { width: <?php echo esc_html( AIMP_Giftcards_Render::mm()[0] ); ?>mm; height: <?php echo esc_html( AIMP_Giftcards_Render::mm()[1] ); ?>mm; box-shadow: none; } @page { size: <?php echo esc_html( AIMP_Giftcards_Render::mm()[0] ); ?>mm <?php echo esc_html( AIMP_Giftcards_Render::mm()[1] ); ?>mm; margin: 0; } }
 						<?php endif; ?>
 					</style>
 				</head>
@@ -623,8 +623,8 @@ class AIMP_Giftcards_Admin {
 					<fieldset>
 						<legend><?php esc_html_e( 'Front (greeting, amount and code)', 'atelier-irisee-master-plugin' ); ?></legend>
 						<p>
-							<label><input type="checkbox" name="<?php echo $name( 'logo' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['logo'] ); ?>> <?php esc_html_e( 'Logo at the top', 'atelier-irisee-master-plugin' ); ?></label>
-							<label><?php esc_html_e( 'Size', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="5" max="30" class="small-text" name="<?php echo $name( 'logo_size' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['logo_size'] ); ?>"> %</label>
+							<label><input type="checkbox" name="<?php echo $name( 'text_logo' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( 1, (int) $design['text_logo'] ); ?>> <?php esc_html_e( 'Logo at the top', 'atelier-irisee-master-plugin' ); ?></label>
+							<label><?php esc_html_e( 'Size', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="5" max="30" class="small-text" name="<?php echo $name( 'text_logo_size' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $design['text_logo_size'] ); ?>"> %</label>
 						</p>
 						<p>
 							<span class="aimp-gc-design-preview aimp-gc-back-preview"><?php echo $back ? '<img src="' . esc_url( $back ) . '" alt="">' : ''; ?></span>
@@ -684,8 +684,8 @@ class AIMP_Giftcards_Admin {
 			'active'        => empty( $row['active'] ) ? 0 : 1,
 			'fx'            => $num( 'fx', 0, 100, 50 ),
 			'fy'            => $num( 'fy', 0, 100, 50 ),
-			'logo'          => empty( $row['logo'] ) ? 0 : 1,
-			'logo_size'     => $num( 'logo_size', 5, 30, 13 ),
+			'text_logo'      => empty( $row['text_logo'] ) ? 0 : 1,
+			'text_logo_size' => $num( 'text_logo_size', 5, 30, 13 ),
 			'back_image_id' => isset( $row['back_image_id'] ) ? absint( $row['back_image_id'] ) : 0,
 			'back_color'    => $hex( 'back_color', $d['back_color'] ),
 			'text_color'    => $hex( 'text_color', $d['text_color'] ),

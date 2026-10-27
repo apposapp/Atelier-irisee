@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.50.0
+Stable tag: 3.50.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.50.1 =
+* Gift cards: every card has the shape of the picture of the standard (first) design, also in the PDF and on the print page; the gift card page shows its pictures in that shape instead of a square.
+* Gift cards: the logo on the text side has its own setting (on by standard, 13 % wide); the old "logo" setting was for the picture side.
+* Gift cards: "Achterkant" instead of "Terug" under the picture side; dates in the visitor's language ("27 oktober 2027") on the cards, the account page and the expected delivery date.
+* Page header: an old Design studio shift of the title no longer pushes it out of the header now that it stands on the left.
 
 = 3.50.0 =
 * Emails: the logo is a normal size again (at most 160 px wide, a smaller copy of the Divi logo).

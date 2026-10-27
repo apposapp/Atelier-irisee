@@ -829,7 +829,7 @@
 	display: block;
 	width: min(100%, 34rem);
 	height: auto;
-	aspect-ratio: 148 / 105;
+	aspect-ratio: var(--aimp-gc-ratio, 148 / 105);
 	object-fit: cover;
 	border-radius: 14px;
 	box-shadow: 0 18px 40px color-mix(in srgb, var(--hb-brown) 22%, transparent);
@@ -945,7 +945,7 @@
 .aimp-gp-design img {
 	display: block;
 	width: 100%;
-	aspect-ratio: 148 / 105;
+	aspect-ratio: var(--aimp-gc-ratio, 148 / 105);
 	object-fit: cover;
 	border: 5px double var(--hb-gold);
 	border-radius: 16px;

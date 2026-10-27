@@ -2544,7 +2544,6 @@ return array(
 	'Emma' => 'Emma',
 	'Example' => 'Aperçu',
 	'Focus left / right' => 'Point focal gauche / droite',
-	'Front' => 'Recto',
 	'Gelukkige verjaardag! | Joyeux anniversaire ! | Happy birthday!' => 'Gelukkige verjaardag! | Joyeux anniversaire ! | Happy birthday!',
 	'Gift card, back' => 'Carte-cadeau, verso',
 	'Gift card, front' => 'Carte-cadeau, recto',
@@ -2623,4 +2622,20 @@ return array(
 	'The plugin renews the token by itself every 30 days.' => 'Le plugin renouvelle le jeton lui-même tous les 30 jours.',
 	'Under "Generate access tokens": add your Instagram account, log in to Instagram and allow access.' => 'Sous « Generate access tokens » : ajoutez votre compte Instagram, connectez-vous à Instagram et autorisez l\'accès.',
 	'Under the side menu: Side menu → "Social media icons". Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"].' => 'Sous le menu latéral : Menu latéral → « Icônes des réseaux sociaux ». Ailleurs : [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"].',
+
+	// 3.50.1
+	'January' => 'janvier',
+	'February' => 'février',
+	'March' => 'mars',
+	'April' => 'avril',
+	'May' => 'mai',
+	'June' => 'juin',
+	'July' => 'juillet',
+	'August' => 'août',
+	'September' => 'septembre',
+	'October' => 'octobre',
+	'November' => 'novembre',
+	'December' => 'décembre',
+	'Front side' => 'Recto',
+	'Back side' => 'Verso',
 );

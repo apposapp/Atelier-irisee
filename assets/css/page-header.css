@@ -204,6 +204,12 @@
 	display: none;
 }
 
+/* The title stays in its place in the header: a "Position" shift of the title part in the Design studio (from when
+   the title was centred) would push it out of the header. Dragging the title still places it (left / top). */
+html body .aimp-page-header .aimp-page-header-text {
+	translate: none !important;
+}
+
 .aimp-page-header.is-bottomleft {
 	align-items: flex-end;
 	padding-bottom: 1rem;

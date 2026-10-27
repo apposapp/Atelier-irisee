@@ -44,9 +44,9 @@ $aimp_link  = 'color:' . $aimp_gold . ';font-weight:bold;text-decoration:underli
 	<p style="display:inline-block;margin:0 0 18px;padding:10px 18px;border:2px dashed <?php echo esc_attr( $aimp_gold ); ?>;border-radius:12px;font-family:'Courier New',monospace;font-size:22px;font-weight:bold;letter-spacing:2px;"><?php echo esc_html( $aimp_card['code'] ); ?></p>
 	<p style="margin:0 0 8px;font-size:15px;font-weight:600;"><?php esc_html_e( 'Save or print your gift card:', 'atelier-irisee-master-plugin' ); ?></p>
 	<p style="margin:0 0 22px;font-size:15px;">
-		<a href="<?php echo esc_url( $aimp_links['front_download'] ); ?>" style="<?php echo esc_attr( $aimp_link ); ?>"><?php esc_html_e( 'Front', 'atelier-irisee-master-plugin' ); ?></a>
+		<a href="<?php echo esc_url( $aimp_links['front_download'] ); ?>" style="<?php echo esc_attr( $aimp_link ); ?>"><?php esc_html_e( 'Front side', 'atelier-irisee-master-plugin' ); ?></a>
 		&nbsp;·&nbsp;
-		<a href="<?php echo esc_url( $aimp_links['back_download'] ); ?>" style="<?php echo esc_attr( $aimp_link ); ?>"><?php esc_html_e( 'Back', 'atelier-irisee-master-plugin' ); ?></a>
+		<a href="<?php echo esc_url( $aimp_links['back_download'] ); ?>" style="<?php echo esc_attr( $aimp_link ); ?>"><?php esc_html_e( 'Back side', 'atelier-irisee-master-plugin' ); ?></a>
 		&nbsp;·&nbsp;
 		<a href="<?php echo esc_url( $aimp_links['pdf'] ); ?>" style="<?php echo esc_attr( $aimp_link ); ?>"><?php esc_html_e( 'PDF to print (both sides)', 'atelier-irisee-master-plugin' ); ?></a>
 	</p>

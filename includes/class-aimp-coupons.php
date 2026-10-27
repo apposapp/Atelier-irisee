@@ -230,7 +230,7 @@ class AIMP_Coupons {
 			$html .= '<p class="aimp-gc-item-code"><code>' . esc_html( strtoupper( $coupon->get_code() ) ) . '</code> <button type="button" class="aimp-gc-link" data-aimp-gc-copy="' . esc_attr( strtoupper( $coupon->get_code() ) ) . '">' . esc_html__( 'Copy code', 'atelier-irisee-master-plugin' ) . '</button></p>';
 			if ( $expires ) {
 				/* translators: %s: date */
-				$html .= '<p class="aimp-gc-item-meta"><span>' . esc_html( sprintf( __( 'Valid until %s', 'atelier-irisee-master-plugin' ), date_i18n( get_option( 'date_format' ), $expires->getTimestamp() ) ) ) . '</span></p>';
+				$html .= '<p class="aimp-gc-item-meta"><span>' . esc_html( sprintf( __( 'Valid until %s', 'atelier-irisee-master-plugin' ), AIMP_I18n::date( $expires->getTimestamp() ) ) ) . '</span></p>';
 			}
 			$html .= '</div><a class="aimp-account-button" href="' . esc_url( add_query_arg( 'aimp_coupon', rawurlencode( $coupon->get_code() ), wc_get_cart_url() ) ) . '">' . esc_html__( 'Use in my cart', 'atelier-irisee-master-plugin' ) . '</a></li>';
 		}
@@ -287,7 +287,7 @@ class AIMP_Coupons {
 				<p class="aimp-welcome-small">
 					<?php
 					/* translators: %s: date */
-					echo esc_html( sprintf( __( 'Valid until %s. You can also find it in your account, under "Gift cards and discount codes".', 'atelier-irisee-master-plugin' ), date_i18n( get_option( 'date_format' ), $expires->getTimestamp() ) ) );
+					echo esc_html( sprintf( __( 'Valid until %s. You can also find it in your account, under "Gift cards and discount codes".', 'atelier-irisee-master-plugin' ), AIMP_I18n::date( $expires->getTimestamp() ) ) );
 					?>
 				</p>
 			<?php else : ?>

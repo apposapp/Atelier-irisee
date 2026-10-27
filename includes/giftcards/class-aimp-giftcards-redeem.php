@@ -290,7 +290,7 @@ class AIMP_Giftcards_Redeem {
 		);
 		if ( $card['expires'] ) {
 			/* translators: %s: date */
-			$text .= ' ' . sprintf( __( 'Valid until %s.', 'atelier-irisee-master-plugin' ), date_i18n( get_option( 'date_format' ), strtotime( $card['expires'] ) ) );
+			$text .= ' ' . sprintf( __( 'Valid until %s.', 'atelier-irisee-master-plugin' ), AIMP_I18n::date( strtotime( $card['expires'] ) ) );
 		}
 		wp_send_json_success( array( 'message' => $text ) );
 	}

@@ -496,7 +496,7 @@ class AIMP_Account {
 							<span class="aimp-gc-badge"><?php echo esc_html( AIMP_Giftcards::status_label( $card ) ); ?></span>
 							<?php if ( $card['expires'] ) : ?>
 								<?php /* translators: %s: date */ ?>
-								<span><?php echo esc_html( sprintf( __( 'Valid until %s', 'atelier-irisee-master-plugin' ), date_i18n( get_option( 'date_format' ), strtotime( $card['expires'] ) ) ) ); ?></span>
+								<span><?php echo esc_html( sprintf( __( 'Valid until %s', 'atelier-irisee-master-plugin' ), AIMP_I18n::date( strtotime( $card['expires'] ) ) ) ); ?></span>
 							<?php endif; ?>
 							<?php if ( $for_who ) : ?>
 								<span><?php echo esc_html( $for_who ); ?></span>
@@ -505,8 +505,8 @@ class AIMP_Account {
 						<?php if ( AIMP_Giftcards_Render::available() ) : ?>
 							<p class="aimp-gc-downloads">
 								<span><?php esc_html_e( 'Download:', 'atelier-irisee-master-plugin' ); ?></span>
-								<a href="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'front' ) ); ?>"><?php esc_html_e( 'Front', 'atelier-irisee-master-plugin' ); ?></a>
-								<a href="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'back' ) ); ?>"><?php esc_html_e( 'Back', 'atelier-irisee-master-plugin' ); ?></a>
+								<a href="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'front' ) ); ?>"><?php esc_html_e( 'Front side', 'atelier-irisee-master-plugin' ); ?></a>
+								<a href="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'back' ) ); ?>"><?php esc_html_e( 'Back side', 'atelier-irisee-master-plugin' ); ?></a>
 								<a href="<?php echo esc_url( AIMP_Giftcards_Render::url( $card, 'pdf' ) ); ?>"><?php esc_html_e( 'PDF to print', 'atelier-irisee-master-plugin' ); ?></a>
 							</p>
 						<?php endif; ?>

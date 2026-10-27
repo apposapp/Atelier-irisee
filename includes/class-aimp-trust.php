@@ -192,7 +192,7 @@ class AIMP_Trust {
 			}
 			--$days;
 		}
-		return date_i18n( get_option( 'date_format' ), $date->getTimestamp() );
+		return AIMP_I18n::date( $date->getTimestamp() );
 	}
 
 	/**

@@ -53,7 +53,7 @@ $aimp_brown = '#613907';
 				<p style="margin:0 0 8px;font-size:14px;font-weight:600;">
 					<?php
 					/* translators: %s: date */
-					printf( esc_html__( 'Valid until %s', 'atelier-irisee-master-plugin' ), esc_html( date_i18n( get_option( 'date_format' ), strtotime( $aimp_card['expires'] ) ) ) );
+					printf( esc_html__( 'Valid until %s', 'atelier-irisee-master-plugin' ), esc_html( AIMP_I18n::date( strtotime( $aimp_card['expires'] ) ) ) );
 					?>
 				</p>
 			<?php endif; ?>
