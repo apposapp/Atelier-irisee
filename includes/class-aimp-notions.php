@@ -169,6 +169,21 @@ class AIMP_Notions {
 				'range'        => 'width',
 				'range_unit'   => 'mm',
 			),
+			// Sewing thread: per spool (the dog bandana in the customizer offers it).
+			'thread'      => array(
+				'setting'      => 'thread_cat',
+				'name'         => __( 'Sewing thread', 'atelier-irisee-master-plugin' ),
+				'single'       => __( 'Sewing thread', 'atelier-irisee-master-plugin' ),
+				'all'          => __( 'All sewing thread', 'atelier-irisee-master-plugin' ),
+				'add'          => __( 'Add sewing thread', 'atelier-irisee-master-plugin' ),
+				'types'        => array(),
+				'default_type' => '',
+				'specs'        => array( 'colour', 'material' ),
+				'measure'      => 'piece',
+				'main'         => 'colour',
+				'range'        => '',
+				'range_unit'   => '',
+			),
 		);
 		// Own types (Settings → Haberdashery options): a type of their kind, sold like it unless chosen otherwise.
 		foreach ( self::own_types() as $key => $own ) {

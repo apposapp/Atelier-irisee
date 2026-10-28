@@ -1117,7 +1117,9 @@ html.aimp-sheet-open body {
 
 /* Without a chosen category the banner stays away (its display: grid would otherwise beat [hidden]). */
 .aimp-shop-banner[hidden],
-.aimp-shop-more[hidden] {
+.aimp-shop-more[hidden],
+.aimp-filter-group[hidden],
+.aimp-filter-options li[hidden] {
 	display: none !important;
 }
 

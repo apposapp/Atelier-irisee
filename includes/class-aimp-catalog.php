@@ -277,7 +277,7 @@ class AIMP_Catalog {
 			function ( $term ) {
 				return array(
 					'id'   => (int) $term->term_id,
-					'name' => $term->name,
+					'name' => wp_specialchars_decode( $term->name, ENT_QUOTES ),
 				);
 			},
 			$terms
@@ -465,7 +465,7 @@ class AIMP_Catalog {
 		$designs   = array();
 		if ( $attribute->is_taxonomy() ) {
 			foreach ( (array) $attribute->get_terms() as $term ) {
-				$designs[ $term->slug ] = $term->name;
+				$designs[ $term->slug ] = wp_specialchars_decode( $term->name, ENT_QUOTES );
 			}
 		} else {
 			foreach ( $attribute->get_options() as $option ) {
@@ -1332,7 +1332,7 @@ class AIMP_Catalog {
 				if ( array_intersect( wc_get_product_cat_ids( $id ), $tree ) ) {
 					$list[] = array(
 						'id'   => (int) $term->term_id,
-						'name' => $term->name,
+						'name' => wp_specialchars_decode( $term->name, ENT_QUOTES ),
 					);
 					break;
 				}
@@ -1695,7 +1695,7 @@ class AIMP_Catalog {
 			if ( $term && ! is_wp_error( $term ) ) {
 				$list[] = array(
 					'id'       => (int) $term->term_id,
-					'name'     => $term->name,
+					'name'     => wp_specialchars_decode( $term->name, ENT_QUOTES ),
 					'position' => isset( $priority[ $term->term_id ] ) ? $priority[ $term->term_id ] : PHP_INT_MAX,
 				);
 			}

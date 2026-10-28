@@ -50,6 +50,8 @@ class AIMP_Shortcode {
 			),
 			'measureImage'    => AIMP_PLUGIN_URL . 'assets/images/lichaamsmaten.png',
 			'kitDiscount'     => AIMP_Cart::kit_discount(),
+			// The matching dog bandana at the end (Settings → Dog bandana).
+			'bandana'         => AIMP_Bandana_Page::offered(),
 			'loggedIn'        => is_user_logged_in(),
 			// Gold line icons of the size needs (fabric, every haberdashery type, the not-sold materials).
 			'icons'           => self::need_icons(),
@@ -119,6 +121,17 @@ class AIMP_Shortcode {
 			'normalInterfacing' => __( 'Normal interfacing', 'atelier-irisee-master-plugin' ),
 			'volumeInterfacing' => __( 'Volume interfacing', 'atelier-irisee-master-plugin' ),
 			'ownInterfacingNote' => __( 'Interfacing: you use your own.', 'atelier-irisee-master-plugin' ),
+			'bandanaTitle'    => __( 'A matching dog bandana?', 'atelier-irisee-master-plugin' ),
+			/* translators: %s: length of fabric */
+			'bandanaText'     => __( 'The dog bandana pattern (PDF guide and template) and %s of the same fabric, so your dog wears what you wear.', 'atelier-irisee-master-plugin' ),
+			'bandanaAdd'      => __( 'Add the dog bandana', 'atelier-irisee-master-plugin' ),
+			'bandanaThread'   => __( 'A matching thread', 'atelier-irisee-master-plugin' ),
+			/* translators: %s: length */
+			'bandanaBand'     => __( 'A ribbon or bias tape (%s)', 'atelier-irisee-master-plugin' ),
+			'bandanaNone'     => __( 'No, thanks', 'atelier-irisee-master-plugin' ),
+			'bandanaPattern'  => __( 'Dog bandana pattern', 'atelier-irisee-master-plugin' ),
+			'bandanaFor'      => __( 'For the dog bandana', 'atelier-irisee-master-plugin' ),
+			'bandanaGuide'    => __( 'About the bandana', 'atelier-irisee-master-plugin' ),
 			'chooseInterfacingFirst' => __( 'Choose an interfacing, or "I have my own interfacing", to continue.', 'atelier-irisee-master-plugin' ),
 			'stepNotions'     => __( 'Choose your haberdashery', 'atelier-irisee-master-plugin' ),
 			'stepSummary'     => __( 'Summary', 'atelier-irisee-master-plugin' ),

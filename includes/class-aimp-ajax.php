@@ -156,7 +156,12 @@ class AIMP_Ajax {
 			self::int_param( 'variation' ),
 			self::int_param( 'fabric' ),
 			$notions,
-			self::int_param( 'lining' )
+			self::int_param( 'lining' ),
+			array(
+				'bandana' => self::int_param( 'bandana' ),
+				'thread'  => self::int_param( 'bandana_thread' ),
+				'band'    => self::int_param( 'bandana_band' ),
+			)
 		);
 
 		// WooCommerce may have queued its own notices while adding; we report errors in the configurator instead.

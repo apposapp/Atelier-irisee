@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.52.0
+Stable tag: 3.53.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,16 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.53.0 =
+* Dog bandana: [atelier_irisee_bandana] is a guide page for a reversible dog bandana in five sizes (XS–XL), with three styles: tie-on, over the collar and with a snap. Visitors see the introduction, the styles, the materials, the tools and the size chart. Buyers of the bandana pattern also see the step-by-step guide and can download the guide and the template as PDF, in Dutch, English or French, in the site's colours, logo and font.
+* Dog bandana template: the template is printed at its real size, spread over A4 sheets with half diamonds to join them, and has a 5 × 5 cm test square. It comes per size or with all sizes nested, and sheets without the pattern are left out.
+* Customizer: at the end, an optional matching dog bandana. It adds the pattern plus extra of the chosen fabric (price: pattern + length × the price per 10 cm), with an optional thread and an optional ribbon or bias tape. Settings → Dog bandana: the product, the guide page, the lengths, and whether the thread and band are offered. Orders with the pattern get a link to the guide in the email and on the order page.
+* Haberdashery: a new "Sewing thread" kind, sold per spool, with its own category setting.
+* Shop filters: "&" in category names no longer shows as "&amp;". The haberdashery filters (type, colour …) only show the values of the ticked categories. Every filter group starts unfolded except the categories, so the Design studio option "Every filter starts folded" is gone.
+* Customizer: clicking a size slides the size buttons to the top of the screen, so the measurements and the size chart under them are in view (on phones and tablets: inside the size panel).
+* Customizer: "Kit saved" is now gold and sparkles once, like the kit steps bar.
+* Checkout: WooCommerce's English text about personal data is now in Dutch and French too, with the privacy policy link in the same language.
 
 = 3.52.0 =
 * Patterns: on the Atelier Irisee tab (Haberdashery) a "This pattern needs lining" switch with a length for all sizes, like the buttons; a size can still have its own length. Patterns saved before keep their lining lengths.

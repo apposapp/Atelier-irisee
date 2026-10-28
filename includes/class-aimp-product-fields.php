@@ -791,6 +791,12 @@ class AIMP_Product_Fields {
 				<p class="description"><?php esc_html_e( 'The customer chooses it in its own step, from the linings that fit the chosen fabric (Fabric data → Lining and interfacing).', 'atelier-irisee-master-plugin' ); ?></p>
 			</fieldset>
 			<?php foreach ( AIMP_Notions::kinds() as $kind => $kind_info ) : ?>
+				<?php
+				// Kinds a pattern never asks for (sewing thread).
+				if ( ! in_array( $kind, array_column( AIMP_Notions::rules(), 0 ), true ) ) {
+					continue;
+				}
+				?>
 				<fieldset class="aimp-notion-rule-group" data-kind="<?php echo esc_attr( $kind ); ?>">
 					<legend><?php echo esc_html( $kind_info['name'] ); ?></legend>
 					<?php foreach ( AIMP_Notions::rules() as $rule_key => $info ) : ?>

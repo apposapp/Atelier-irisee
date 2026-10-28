@@ -365,7 +365,8 @@
 		}
 
 		var html = '';
-		var open = design.f_closed ? '' : ' open';
+		// Every filter starts unfolded, except the categories (unless one is ticked).
+		var open = ' open';
 
 		// Search
 		if (!design.f_nosearch) {
@@ -378,7 +379,7 @@
 
 		// Categories
 		if (!design.f_nocat && ((facets.categories && facets.categories.length) || facets.lining)) {
-			html += '<details class="aimp-filter-group"' + open + '><summary>' + esc(t.category) + '</summary><ul class="aimp-filter-options">';
+			html += '<details class="aimp-filter-group"' + (f.category.length || f.lining ? ' open' : '') + '><summary>' + esc(t.category) + '</summary><ul class="aimp-filter-options">';
 			// "Voering": the fabrics that can also be used as lining.
 			if (facets.lining) {
 				html +=
@@ -408,15 +409,16 @@
 			html += '</ul></details>';
 		}
 
-		// Buttons: type, diameter, colour, material
+		// Buttons: type, diameter, colour, material. Each value knows its categories: with categories ticked only
+		// theirs are shown (scopeNotionFilters).
 		(facets.buttons || []).forEach(function (group) {
 			var chosen = f.buttons[group.key] || [];
 			html +=
-				'<details class="aimp-filter-group"' + open + '><summary>' + esc(group.label) +
+				'<details class="aimp-filter-group" data-notion-group' + open + '><summary>' + esc(group.label) +
 				(chosen.length ? ' <span class="aimp-shop-count">' + chosen.length + '</span>' : '') + '</summary><ul class="aimp-filter-options">';
 			group.options.forEach(function (option) {
 				html +=
-					'<li><label class="aimp-filter-option">' +
+					'<li data-cats="' + esc((option.cats || []).join(',')) + '"><label class="aimp-filter-option">' +
 					'<input type="checkbox" data-role="button-filter" data-key="' + esc(group.key) + '" value="' + esc(option.key) + '"' +
 					(chosen.indexOf(String(option.key)) !== -1 ? ' checked' : '') + '> <span>' + esc(option.label) + '</span></label></li>';
 			});
@@ -435,11 +437,11 @@
 				'</div></details>';
 		}
 
-		// Attributes (colour, material, …): open the first few and any that is in use.
-		(design.f_noattrs ? [] : (facets.attributes || [])).forEach(function (attr, index) {
+		// Attributes (colour, material, …)
+		(design.f_noattrs ? [] : (facets.attributes || [])).forEach(function (attr) {
 			var chosen = f.attrs[attr.taxonomy] || [];
 			html +=
-				'<details class="aimp-filter-group"' + ((index < 3 && !design.f_closed) || chosen.length ? ' open' : '') + '><summary>' + esc(attr.label) +
+				'<details class="aimp-filter-group"' + open + '><summary>' + esc(attr.label) +
 				(chosen.length ? ' <span class="aimp-shop-count">' + chosen.length + '</span>' : '') + '</summary><ul class="aimp-filter-options">';
 			attr.terms.forEach(function (term) {
 				html +=
@@ -462,6 +464,51 @@
 
 		this.filtersEl.innerHTML = html;
 		this.bindFilters();
+		return this.scopeNotionFilters();
+	};
+
+	// Haberdashery filters (type, colour, …): with categories ticked, only the values that occur in them. A group
+	// without values is hidden; a ticked value that is hidden is unticked. True when a filter changed.
+	Shop.prototype.scopeNotionFilters = function () {
+		var f = this.state.filters;
+		var chosen = f.category.map(String);
+		var changed = false;
+		this.filtersEl.querySelectorAll('[data-notion-group]').forEach(function (group) {
+			var shown = 0;
+			group.querySelectorAll('li[data-cats]').forEach(function (li) {
+				var cats = li.getAttribute('data-cats').split(',');
+				var fits = !chosen.length || chosen.some(function (id) {
+					return cats.indexOf(id) !== -1;
+				});
+				li.hidden = !fits;
+				if (fits) {
+					shown++;
+					return;
+				}
+				var input = li.querySelector('input');
+				if (input && input.checked) {
+					input.checked = false;
+					var key = input.getAttribute('data-key');
+					f.buttons[key] = (f.buttons[key] || []).filter(function (value) {
+						return value !== input.value;
+					});
+					if (!f.buttons[key].length) {
+						delete f.buttons[key];
+					}
+					changed = true;
+				}
+			});
+			group.hidden = !shown;
+			var key = group.querySelector('input[data-key]');
+			var badge = group.querySelector('summary .aimp-shop-count');
+			var count = key && f.buttons[key.getAttribute('data-key')] ? f.buttons[key.getAttribute('data-key')].length : 0;
+			if (badge && !count) {
+				badge.remove();
+			} else if (badge) {
+				badge.textContent = count;
+			}
+		});
+		return changed;
 	};
 
 	Shop.prototype.bindFilters = function () {
@@ -503,6 +550,7 @@
 				if (input.checked && value) {
 					f.category.push(value);
 				}
+				self.scopeNotionFilters();
 				changed();
 			});
 		});
@@ -810,7 +858,11 @@
 				s.page = data.page;
 				if (data.facets) {
 					s.facets = data.facets;
-					self.renderFilters();
+					// A haberdashery value from the address that doesn't occur in the ticked categories: without it.
+					if (self.renderFilters()) {
+						self.load(false);
+						return;
+					}
 				}
 				if (s.selected) {
 					// Fresh copy (language, stock) when the product is still on this page.

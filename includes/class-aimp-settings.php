@@ -29,6 +29,7 @@ class AIMP_Settings {
 			'elastic_cat' => __( 'Elastic category', 'atelier-irisee-master-plugin' ),
 			'ribbon_cat'  => __( 'Ribbons & cords category', 'atelier-irisee-master-plugin' ),
 			'bias_cat'    => __( 'Bias tape category', 'atelier-irisee-master-plugin' ),
+			'thread_cat'  => __( 'Sewing thread category', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -57,6 +58,7 @@ class AIMP_Settings {
 			'elastic_cat'     => 0,
 			'ribbon_cat'      => 0,
 			'bias_cat'        => 0,
+			'thread_cat'      => 0,
 			'per_page'        => 9,
 			'fabric_per_page' => 16,
 			'favorites_page'  => 0,
@@ -94,6 +96,7 @@ class AIMP_Settings {
 			'overview_img_hab_elastic'     => 0,
 			'overview_img_hab_ribbon'      => 0,
 			'overview_img_hab_bias'        => 0,
+			'overview_img_hab_thread'      => 0,
 			'hero_image'                => 0,
 			'hero_image_phone'          => 0,
 			'hero_logo'                 => 0,

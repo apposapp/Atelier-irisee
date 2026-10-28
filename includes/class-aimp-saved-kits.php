@@ -78,6 +78,12 @@ class AIMP_Saved_Kits {
 			'notions'   => $notions,
 			// "I have my own interfacing" (the interfacing step).
 			'own_interfacing' => 1 === self::int_param( 'own_interfacing' ) ? 1 : 0,
+			// The matching dog bandana, with its thread and band.
+			'bandana'   => array(
+				'on'     => 1 === self::int_param( 'bandana' ) ? 1 : 0,
+				'thread' => self::int_param( 'bandana_thread' ),
+				'band'   => self::int_param( 'bandana_band' ),
+			),
 			'date'      => time(),
 		);
 		$user_id = get_current_user_id();
@@ -173,6 +179,7 @@ class AIMP_Saved_Kits {
 				'lining'  => $lining,
 				'notions' => (object) $notions,
 				'own_interfacing' => ! empty( $kit['own_interfacing'] ),
+				'bandana' => isset( $kit['bandana'] ) && is_array( $kit['bandana'] ) ? array_map( 'absint', $kit['bandana'] ) : null,
 				'message' => $missing ? __( 'Some items of this kit are no longer available. Please choose them again.', 'atelier-irisee-master-plugin' ) : '',
 			)
 		);

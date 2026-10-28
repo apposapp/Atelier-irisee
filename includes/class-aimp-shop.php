@@ -299,7 +299,7 @@ class AIMP_Shop {
 	 * @return array
 	 */
 	public static function design() {
-		$keys = array( 'brand', 'sort_default', 'no_sort_name', 'no_sort_price', 'no_sort_newest', 'f_nosearch', 'f_nocat', 'f_noprice', 'f_noattrs', 'f_nostock', 'f_closed', 'f_hidden', 'paging', 'noquick', 'b_new', 'b_sale', 'b_low', 'cat_banner', 'cat_text' );
+		$keys = array( 'brand', 'sort_default', 'no_sort_name', 'no_sort_price', 'no_sort_newest', 'f_nosearch', 'f_nocat', 'f_noprice', 'f_noattrs', 'f_nostock', 'f_hidden', 'paging', 'noquick', 'b_new', 'b_sale', 'b_low', 'cat_banner', 'cat_text' );
 		$out  = array();
 		foreach ( $keys as $key ) {
 			$value = class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'shop', $key ) : null;
@@ -827,7 +827,7 @@ class AIMP_Shop {
 		$image = (int) get_term_meta( $term->term_id, 'thumbnail_id', true );
 		return array(
 			'id'    => (int) $term->term_id,
-			'name'  => $term->name,
+			'name'  => wp_specialchars_decode( $term->name, ENT_QUOTES ),
 			'depth' => $depth,
 			'image' => $image ? (string) wp_get_attachment_image_url( $image, 'large' ) : '',
 			'desc'  => trim( wp_strip_all_tags( term_description( $term ) ) ),
@@ -887,7 +887,7 @@ class AIMP_Shop {
 					function ( $term ) {
 						return array(
 							'slug' => $term->slug,
-							'name' => $term->name,
+							'name' => wp_specialchars_decode( $term->name, ENT_QUOTES ),
 						);
 					},
 					array_values( $terms )
@@ -1011,10 +1011,22 @@ class AIMP_Shop {
 			return array();
 		}
 		$found = array();
+		// The categories (with their parents) of the products that have each value: the filter only shows the
+		// values of the ticked categories.
+		$cats = array();
 		foreach ( $ids as $id ) {
 			$product = wc_get_product( $id );
-			foreach ( $product ? self::notion_values( $product ) : array() as $key => $value ) {
+			$values  = $product ? self::notion_values( $product ) : array();
+			if ( ! $values ) {
+				continue;
+			}
+			$own = array();
+			foreach ( wc_get_product_cat_ids( $id ) as $cat ) {
+				$own = array_merge( $own, array( (int) $cat ), array_map( 'intval', get_ancestors( $cat, 'product_cat', 'taxonomy' ) ) );
+			}
+			foreach ( $values as $key => $value ) {
 				$found[ $key ][ $value[0] ] = $value;
+				$cats[ $key ][ $value[0] ] = array_merge( isset( $cats[ $key ][ $value[0] ] ) ? $cats[ $key ][ $value[0] ] : array(), $own );
 			}
 		}
 		$facets = array();
@@ -1033,10 +1045,11 @@ class AIMP_Shop {
 				'key'     => $key,
 				'label'   => $label,
 				'options' => array_map(
-					function ( $option ) {
+					function ( $option ) use ( $cats, $key ) {
 						return array(
 							'key'   => (string) $option[0],
 							'label' => $option[1],
+							'cats'  => array_values( array_unique( $cats[ $key ][ $option[0] ] ) ),
 						);
 					},
 					$options

@@ -2,7 +2,8 @@
  * Atelier Irisee pattern configurator.
  *
  * Steps: pattern & size -> fabric -> lining -> interfacing -> haberdashery (buttons, zips, ribbons, bias tape) -> summary
- * -> add to cart. Lining and interfacing only when the size needs them; both follow the chosen fabric.
+ * -> add to cart. Lining and interfacing only when the size needs them; both follow the chosen fabric. The summary
+ * offers a matching dog bandana (its pattern, extra of the fabric, a thread and a band; Settings → Dog bandana).
  * Pattern and fabric steps show a grid on the left and the details of the selection on the right.
  * All rules (allowed fabrics, quantities, stock) are enforced again on the server.
  */
@@ -411,15 +412,25 @@
 		s.liningCategories = null;
 		// The interfacing step: "I have my own interfacing" (its card choice is s.notions.interfacing).
 		s.ownInterfacing = false;
+		this.resetBandana();
 		s.notions = {};
 		NOTIONS.forEach(function (n) {
 			s.notions[n.type] = { page: 1, data: null, selected: null, image: 0 };
 		});
 	};
 
+	// The matching dog bandana (summary): the offer follows the size and the fabric.
+	Configurator.prototype.resetBandana = function () {
+		var s = this.state;
+		s.bandana = { on: false, thread: null, band: null };
+		s.bandanaOffer = null;
+		s.bandanaKey = '';
+	};
+
 	// Another fabric: its lining and interfacing choices no longer apply (they follow the fabric).
 	Configurator.prototype.fabricChanged = function () {
 		var s = this.state;
+		this.resetBandana();
 		s.liningPage = 1;
 		s.linings = null;
 		s.lining = null;
@@ -1148,7 +1159,7 @@
 		panel.querySelectorAll('[data-size]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				var id = parseInt(btn.getAttribute('data-size'), 10);
-				self.selectSize(id);
+				self.selectSize(id, true);
 				var again = panel.querySelector('[data-size="' + id + '"]');
 				if (again) {
 					try {
@@ -1170,8 +1181,9 @@
 		}
 	};
 
-	// Used by the size buttons in the details panel and the rows of the size chart.
-	Configurator.prototype.selectSize = function (id) {
+	// Used by the size buttons in the details panel (toSizes: the sizes then slide to the top of the screen, so
+	// the measurements and the size chart under them are in view) and the rows of the size chart.
+	Configurator.prototype.selectSize = function (id, toSizes) {
 		var s = this.state;
 		var chosen = s.sizesData ? findById(s.sizesData.sizes, id) : null;
 		if (!chosen || !chosen.available || (s.size && s.size.id === id)) {
@@ -1214,6 +1226,34 @@
 				window.requestAnimationFrame(release);
 			}
 		}
+		if (toSizes) {
+			this.scrollToSizes(sheetBody);
+		}
+	};
+
+	// The size buttons at the top of the screen (under the header), or of the sheet on phones and tablets.
+	Configurator.prototype.scrollToSizes = function (sheetBody) {
+		var panel = this.findPanel('size-panel');
+		var sizes = panel ? panel.querySelector('.aimp-sizes') : null;
+		if (!sizes) {
+			return;
+		}
+		var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		var behavior = reduce ? 'auto' : 'smooth';
+		var gap = 12;
+		if (sheetBody) {
+			var top = sizes.getBoundingClientRect().top - sheetBody.getBoundingClientRect().top + sheetBody.scrollTop - gap;
+			sheetBody.scrollTo({ top: Math.max(0, top), behavior: behavior });
+			return;
+		}
+		// Computers with the details beside the patterns: that panel already follows the page (sticky).
+		var side = sizes.closest('.aimp-split-side');
+		if (side && window.getComputedStyle(side).position === 'sticky') {
+			return;
+		}
+		var header = document.querySelector('.aimp-header');
+		var offset = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+		window.scrollTo({ top: Math.max(0, sizes.getBoundingClientRect().top + window.pageYOffset - offset - gap), behavior: behavior });
 	};
 
 	// Size chart in its own box under the patterns and details, so it stays in place when a size is chosen.
@@ -1881,8 +1921,143 @@
 				});
 			}
 		});
+		return lines.concat(this.bandanaLines());
+	};
+
+	// The bandana's lines when it is added: the pattern, the extra fabric, and the chosen thread and band.
+	Configurator.prototype.bandanaLines = function () {
+		var s = this.state;
+		var offer = s.bandanaOffer;
+		if (!s.bandana.on || !offer || !offer.available || !s.fabric) {
+			return [];
+		}
+		var lines = [
+			{ name: offer.pattern.name, detail: t.bandanaFor, qty: 1, price: offer.pattern.price },
+			{ name: s.fabric.name, detail: t.bandanaFor + ' · ' + offer.fabric_text, qty: offer.fabric_units, price: offer.fabric_price }
+		];
+		[s.bandana.thread, s.bandana.band].forEach(function (card) {
+			if (card) {
+				lines.push({ name: card.name, detail: t.bandanaFor + (card.qty_text ? ' · ' + card.qty_text : ''), qty: card.qty, price: card.price });
+			}
+		});
 		return lines;
 	};
+
+	// The offer for this kit, asked once per size, fabric and language; then the summary is drawn again.
+	Configurator.prototype.loadBandana = function () {
+		var self = this;
+		var s = this.state;
+		if (!cfg.bandana || !s.size || s.size.fabric_units <= 0 || !s.fabric) {
+			return;
+		}
+		var key = s.size.id + '-' + s.fabric.id + '-' + lang;
+		if (s.bandanaKey === key) {
+			return;
+		}
+		s.bandanaKey = key;
+		request('bandana', { variation: s.size.id, fabric: s.fabric.id })
+			.then(function (offer) {
+				if (s.bandanaKey !== key) {
+					return;
+				}
+				s.bandanaOffer = offer;
+				// A saved kit: its choices again, when they can still be bought.
+				var keep = s.bandanaRestore;
+				s.bandanaRestore = null;
+				if (keep && keep.on && offer.available) {
+					s.bandana.on = true;
+					s.bandana.thread = findById(offer.threads, keep.thread) || null;
+					s.bandana.band = findById(offer.bands, keep.band) || null;
+				}
+				if (s.step === 'summary' && !s.added && offer.available) {
+					self.redrawSummary();
+				}
+			})
+			.catch(function () {
+				s.bandanaKey = '';
+			});
+	};
+
+	// The summary again, without moving the page.
+	Configurator.prototype.redrawSummary = function () {
+		var y = window.pageYOffset;
+		this.renderSummaryStep();
+		window.scrollTo(window.pageXOffset, y);
+	};
+
+	// "A matching dog bandana?": a switch, and when it is on a thread and a band to choose (or none).
+	Configurator.prototype.bandanaHtml = function (discount) {
+		var s = this.state;
+		var offer = s.bandanaOffer;
+		if (!offer || !offer.available || s.added) {
+			return '';
+		}
+		// The price with the pattern and the fabric (and what is chosen), with the kit discount.
+		var on = s.bandana.on;
+		s.bandana.on = true;
+		var sum = 0;
+		this.bandanaLines().forEach(function (line) {
+			sum += line.price * line.qty;
+		});
+		s.bandana.on = on;
+		var html =
+			'<section class="aimp-bandana-offer' + (on ? ' is-on' : '') + '">' +
+			'<div class="aimp-bandana-offer-head">' +
+			(offer.pattern.image ? '<img src="' + esc(offer.pattern.image) + '" alt="" loading="lazy">' : '') +
+			'<div><h4>' + esc(t.bandanaTitle) + '</h4><p>' + esc(fmt(t.bandanaText, offer.fabric_text)) +
+			(offer.guide_url ? ' <a href="' + esc(offer.guide_url) + '" target="_blank" rel="noopener">' + esc(t.bandanaGuide) + '</a>' : '') + '</p>' +
+			'<label class="aimp-bandana-switch"><input type="checkbox" data-role="bandana"' + (on ? ' checked' : '') + '> <span>' + esc(t.bandanaAdd) + '</span> <strong>+ ' + esc(money(sum * (100 - discount) / 100)) + '</strong></label>' +
+			'</div></div>';
+		if (on) {
+			var pick = function (key, title, cards) {
+				if (!cards || !cards.length) {
+					return '';
+				}
+				var chosen = s.bandana[key];
+				var out = '<div class="aimp-bandana-pick" role="group" aria-label="' + esc(title) + '"><p class="aimp-bandana-pick-title">' + esc(title) + '</p><div class="aimp-bandana-choices">' +
+					'<button type="button" class="aimp-bandana-choice aimp-bandana-choice--none" data-pick="' + key + '" data-id="0" aria-pressed="' + (chosen ? 'false' : 'true') + '">' + esc(t.bandanaNone) + '</button>';
+				cards.forEach(function (card) {
+					var active = chosen && chosen.id === card.id;
+					out += '<button type="button" class="aimp-bandana-choice" data-pick="' + key + '" data-id="' + esc(card.id) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' +
+						'<img src="' + esc(card.image) + '" alt="' + esc(card.image_alt || '') + '" loading="lazy"><span class="aimp-bandana-choice-name">' + esc(card.name) + '</span>' +
+						'<span class="aimp-bandana-choice-price">' + esc(money(card.price * card.qty)) + '</span></button>';
+				});
+				return out + '</div></div>';
+			};
+			html += pick('thread', t.bandanaThread, offer.threads) + pick('band', fmt(t.bandanaBand, offer.band_text), offer.bands);
+		}
+		return html + '</section>';
+	};
+
+	Configurator.prototype.bindBandana = function () {
+		var self = this;
+		var s = this.state;
+		var box = this.body.querySelector('.aimp-bandana-offer');
+		if (!box) {
+			return;
+		}
+		box.querySelector('[data-role="bandana"]').addEventListener('change', function (e) {
+			s.bandana.on = e.target.checked;
+			self.redrawSummary();
+		});
+		box.querySelectorAll('[data-pick]').forEach(function (button) {
+			button.addEventListener('click', function () {
+				var key = button.getAttribute('data-pick');
+				var list = key === 'thread' ? s.bandanaOffer.threads : s.bandanaOffer.bands;
+				s.bandana[key] = findById(list, parseInt(button.getAttribute('data-id'), 10)) || null;
+				self.redrawSummary();
+				var again = self.body.querySelector('[data-pick="' + key + '"][data-id="' + button.getAttribute('data-id') + '"]');
+				if (again) {
+					try {
+						again.focus({ preventScroll: true });
+					} catch (err) {
+						again.focus();
+					}
+				}
+			});
+		});
+	};
+
 
 	Configurator.prototype.renderSummaryStep = function () {
 		var self = this;
@@ -1917,6 +2092,7 @@
 			html += '<tr class="aimp-summary-discount"><th colspan="2">' + esc(fmt(t.kitDiscount, discount)) + '</th><td>−' + esc(money(total * discount / 100)) + '</td></tr>';
 		}
 		html += '<tr><th colspan="2">' + esc(t.total) + '</th><td class="aimp-summary-price">' + priceHtml(total) + '</td></tr></tfoot></table></div>';
+		html += this.bandanaHtml(discount);
 		if (s.size.lining_units > 0 && !s.lining) {
 			html += '<p class="aimp-help aimp-summary-note">' + esc(t.noLiningNote) + '</p>';
 		}
@@ -1945,6 +2121,8 @@
 		this.body.querySelector('[data-action="save"]').addEventListener('click', function () {
 			self.saveKit(this);
 		});
+		this.bindBandana();
+		this.loadBandana();
 	};
 
 	// "Save this kit": to the customer's account, listed on the favorites page. Guests are asked to log in.
@@ -1962,6 +2140,7 @@
 			lining: s.size.lining_units > 0 && s.lining ? s.lining.id : 0,
 			own_interfacing: s.ownInterfacing ? 1 : 0
 		};
+		this.bandanaParams(params);
 		NOTIONS.forEach(function (n) {
 			var selected = s.notions[n.type].selected;
 			params[n.role] = n.qty(s.size) > 0 && selected ? selected.id : 0;
@@ -1972,7 +2151,7 @@
 			.then(function (data) {
 				button.hidden = true;
 				box.innerHTML =
-					'<div class="aimp-notice aimp-notice--success"><p>' + esc(data.message) +
+					'<div class="aimp-notice aimp-notice--success aimp-notice--saved' + (design.cz_nosparkle ? '' : ' is-sparked') + '" role="status"><p>' + esc(data.message) +
 					(data.url ? ' <a href="' + esc(data.url) + '">' + esc(t.viewFavorites) + '</a>' : '') + '</p></div>';
 			})
 			.catch(function (err) {
@@ -1980,6 +2159,14 @@
 				button.textContent = t.saveKit;
 				this.showError(box, err);
 			}.bind(this));
+	};
+
+	Configurator.prototype.bandanaParams = function (params) {
+		var b = this.state.bandana;
+		var on = b.on && this.bandanaLines().length > 0;
+		params.bandana = on ? 1 : 0;
+		params.bandana_thread = on && b.thread ? b.thread.id : 0;
+		params.bandana_band = on && b.band ? b.band.id : 0;
 	};
 
 	// "Continue" on a saved kit (favorites page) links here with ?aimp_kit=ID: open it with every choice made.
@@ -2006,6 +2193,8 @@
 					s.notions[n.type].selected = (data.notions && data.notions[n.type]) || null;
 				});
 				s.ownInterfacing = !!data.own_interfacing && !s.notions.interfacing.selected;
+				// The bandana's choices come back once its offer is loaded (summary).
+				s.bandanaRestore = data.bandana || null;
 				// The first step that still needs a choice, otherwise the overview.
 				var step = 'summary';
 				if (s.size.fabric_units > 0 && !s.fabric) {
@@ -2050,6 +2239,7 @@
 			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0,
 			lining: s.size.lining_units > 0 && s.lining ? s.lining.id : 0
 		};
+		this.bandanaParams(params);
 		// One parameter per haberdashery role: button, zip, ribbon, bias.
 		NOTIONS.forEach(function (n) {
 			var selected = s.notions[n.type].selected;

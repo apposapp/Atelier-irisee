@@ -869,6 +869,211 @@
 	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
+/* Summary: "A matching dog bandana?" with a switch; when it is on, a thread and a band to choose. */
+.aimp-configurator .aimp-bandana-offer {
+	margin-top: var(--aimp-gap);
+	padding: 1rem 1.25rem;
+	border: 5px double var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+}
+
+.aimp-configurator .aimp-bandana-offer.is-on {
+	background: color-mix(in srgb, var(--aimp-gold) 9%, #fff);
+}
+
+.aimp-configurator .aimp-bandana-offer-head {
+	display: flex;
+	gap: 1rem;
+	align-items: flex-start;
+}
+
+.aimp-configurator .aimp-bandana-offer-head img {
+	flex: none;
+	width: 84px;
+	height: 84px;
+	border-radius: 50%;
+	object-fit: cover;
+}
+
+.aimp-configurator .aimp-bandana-offer h4 {
+	margin: 0 0 0.3rem;
+	padding: 0;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.aimp-configurator .aimp-bandana-offer p {
+	margin: 0 0 0.6rem;
+}
+
+.aimp-configurator .aimp-bandana-switch {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	align-items: center;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.aimp-configurator .aimp-bandana-switch input {
+	width: 1.15rem;
+	height: 1.15rem;
+	margin: 0;
+	accent-color: var(--aimp-gold);
+}
+
+.aimp-configurator .aimp-bandana-switch strong {
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+}
+
+.aimp-configurator .aimp-bandana-pick {
+	margin-top: 1rem;
+}
+
+.aimp-configurator .aimp-bandana-pick-title {
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font-size: 0.85em;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.aimp-configurator .aimp-bandana-choices {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+	gap: 0.6rem;
+}
+
+.aimp-configurator .aimp-bandana-choice {
+	display: grid;
+	gap: 0.25rem;
+	align-content: start;
+	justify-items: center;
+	min-width: 0;
+	padding: 0.5rem;
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
+	border-radius: var(--aimp-panel-radius);
+	background: #fff;
+	color: inherit;
+	font: inherit;
+	font-size: 0.85em;
+	line-height: 1.3;
+	text-align: center;
+	cursor: pointer;
+}
+
+.aimp-configurator .aimp-bandana-choice img {
+	width: 100%;
+	aspect-ratio: 1;
+	border-radius: calc(var(--aimp-panel-radius) / 2);
+	object-fit: cover;
+}
+
+.aimp-configurator .aimp-bandana-choice--none {
+	align-content: center;
+	font-weight: 700;
+}
+
+.aimp-configurator .aimp-bandana-choice[aria-pressed="true"] {
+	border: 3px double var(--aimp-gold);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--aimp-gold) 35%, transparent);
+}
+
+.aimp-configurator .aimp-bandana-choice-name {
+	overflow-wrap: anywhere;
+}
+
+.aimp-configurator .aimp-bandana-choice-price {
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font-weight: 700;
+}
+
+/* "Kit saved": gold, and it sparkles once when it appears (the button of the kit steps bar, kit-steps.css). */
+.aimp-configurator .aimp-notice--saved {
+	position: relative;
+	isolation: isolate;
+	background: var(--aimp-gold);
+	border-color: var(--aimp-gold);
+	color: #fff;
+}
+
+.aimp-configurator .aimp-notice--saved a {
+	color: #fff;
+	text-decoration: underline;
+}
+
+.aimp-configurator .aimp-notice--saved::before,
+.aimp-configurator .aimp-notice--saved::after {
+	position: absolute;
+	inset: -26px;
+	z-index: -1;
+	opacity: 0;
+	pointer-events: none;
+	content: "";
+}
+
+/* Little gold stars all around. */
+.aimp-configurator .aimp-notice--saved::before {
+	background:
+		radial-gradient(circle, var(--aimp-gold) 0 3.5px, transparent 4px) 3% 22% / 18px 18px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 2.5px, transparent 3px) 20% 0% / 14px 14px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 3px, transparent 3.5px) 46% 2% / 16px 16px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 3.5px, transparent 4px) 76% 0% / 18px 18px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 2.5px, transparent 3px) 98% 26% / 14px 14px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 3px, transparent 3.5px) 100% 66% / 16px 16px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 3.5px, transparent 4px) 86% 98% / 18px 18px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 2.5px, transparent 3px) 58% 100% / 14px 14px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 3px, transparent 3.5px) 30% 98% / 16px 16px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 3.5px, transparent 4px) 8% 92% / 18px 18px no-repeat,
+		radial-gradient(circle, var(--aimp-gold) 0 2.5px, transparent 3px) 0% 58% / 14px 14px no-repeat;
+}
+
+/* A soft gold glow. */
+.aimp-configurator .aimp-notice--saved::after {
+	inset: -4px;
+	border-radius: inherit;
+	box-shadow: 0 0 0 0 color-mix(in srgb, var(--aimp-gold) 55%, transparent);
+}
+
+.aimp-configurator .aimp-notice--saved.is-sparked {
+	animation: cz-pop 1s ease-out;
+}
+
+.aimp-configurator .aimp-notice--saved.is-sparked::before {
+	animation: cz-sparks 1.9s cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+
+.aimp-configurator .aimp-notice--saved.is-sparked::after {
+	animation: cz-glow 1.9s cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+
+@keyframes cz-pop {
+	0% { transform: scale(0.96); }
+	30% { transform: scale(1.04); }
+	100% { transform: scale(1); }
+}
+
+@keyframes cz-sparks {
+	0% { opacity: 0; transform: scale(0.7) rotate(0deg); }
+	15%, 35% { opacity: 1; }
+	100% { opacity: 0; transform: scale(1.2) rotate(6deg); }
+}
+
+@keyframes cz-glow {
+	0% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--aimp-gold) 65%, transparent); }
+	35% { opacity: 1; }
+	100% { opacity: 0; box-shadow: 0 0 0 22px color-mix(in srgb, var(--aimp-gold) 0%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-configurator .aimp-notice--saved.is-sparked,
+	.aimp-configurator .aimp-notice--saved.is-sparked::before,
+	.aimp-configurator .aimp-notice--saved.is-sparked::after {
+		animation: none;
+	}
+}
+
 .aimp-notice .aimp-actions {
 	justify-content: flex-start;
 }

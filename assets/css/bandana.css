@@ -1,0 +1,366 @@
+/* [atelier_irisee_bandana]: the dog bandana guide. On the shared block styles (home-blocks.css): the titles between
+   gold double lines, the round double-line buttons, the site's gold and brown. */
+
+.aimp-bandana > * {
+	max-width: 980px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.aimp-bandana p {
+	margin: 0 0 1em;
+}
+
+/* ------------------------------------------------------------------ head */
+.aimp-bandana-head {
+	text-align: center;
+}
+
+.aimp-bandana-head .aimp-block-title {
+	margin-bottom: 1rem;
+	font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+}
+
+.aimp-bandana-intro {
+	max-width: 62ch;
+	margin: 0 auto 1.75rem !important;
+	font-size: 16px;
+}
+
+/* Level, time, sizes, seam allowance: small framed tiles. */
+.aimp-bandana-facts {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.75rem;
+	margin: 0 0 2rem;
+}
+
+.aimp-bandana-facts li {
+	display: grid;
+	gap: 0.2rem;
+	padding: 0.7rem 0.5rem;
+	border: 5px double var(--hb-gold);
+	border-radius: var(--hb-radius);
+	text-align: center;
+}
+
+.aimp-bandana-facts span {
+	color: var(--hb-gold-text);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+/* Contents: round links to the parts. */
+.aimp-bandana-nav ul {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.5rem;
+	margin: 0 auto 2.5rem;
+}
+
+.aimp-bandana-nav a {
+	display: inline-block;
+	padding: 0.35rem 0.9rem;
+	border: 1px var(--hb-line, solid) var(--hb-gold);
+	border-radius: 100px;
+	color: var(--hb-brown);
+	font-size: 13px;
+	text-decoration: none;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-bandana-nav a:hover,
+.aimp-bandana-nav a:focus-visible {
+	background: var(--hb-tint);
+}
+
+/* ------------------------------------------------------------------ parts */
+.aimp-bandana-part {
+	margin-top: clamp(2rem, 5vw, 3.5rem);
+	scroll-margin-top: calc(var(--aimp-header-offset, 0px) + 1.5rem);
+}
+
+.aimp-bandana-fig {
+	margin: 0 auto 1.5rem;
+}
+
+.aimp-bandana-fig svg {
+	display: block;
+	width: 100%;
+	max-width: 520px;
+	height: auto;
+	margin: 0 auto;
+}
+
+.aimp-bandana-fig--wide svg {
+	max-width: 760px;
+}
+
+/* A small gold sparkle instead of a list dot: "irisée". */
+.aimp-bandana-list {
+	display: grid;
+	gap: 0.5rem;
+	margin: 0 0 1.5rem;
+}
+
+.aimp-bandana-list li {
+	position: relative;
+	padding-left: 1.6rem;
+}
+
+.aimp-bandana-list li::before {
+	position: absolute;
+	top: 0.15em;
+	left: 0.1rem;
+	color: var(--hb-gold);
+	content: "\2726";
+}
+
+.aimp-bandana-list--locked li {
+	opacity: 0.75;
+}
+
+/* Steps: a gold double ring with the number, the text, and its drawing beside it. */
+.aimp-bandana-steps {
+	display: grid;
+	gap: 1.5rem;
+	margin: 0 0 1.5rem;
+	padding: 0;
+	list-style: none;
+	counter-reset: aimp-step;
+}
+
+.aimp-bandana-step {
+	display: grid;
+	grid-template-columns: 2.6rem minmax(0, 1fr) minmax(0, 0.9fr);
+	gap: 1rem;
+	align-items: start;
+	list-style: none !important;
+	counter-increment: aimp-step;
+}
+
+.aimp-bandana-step::before {
+	display: grid;
+	place-items: center;
+	width: 2.6rem;
+	height: 2.6rem;
+	border: 4px double var(--hb-gold);
+	border-radius: 50%;
+	color: var(--hb-gold-text);
+	font-weight: 700;
+	content: counter(aimp-step);
+}
+
+.aimp-bandana-step:not(:has(.aimp-bandana-fig)) {
+	grid-template-columns: 2.6rem minmax(0, 1fr);
+}
+
+.aimp-bandana-step h3 {
+	margin: 0.35rem 0 0.3rem;
+	padding: 0;
+	color: var(--hb-gold-text);
+	font-size: 15px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.aimp-bandana-step p {
+	margin: 0.35rem 0 0;
+}
+
+.aimp-bandana-step .aimp-bandana-fig {
+	margin: 0;
+}
+
+/* The size chart: a table on computers, a card per size on phones. */
+.aimp-bandana-table-wrap {
+	overflow-x: auto;
+	margin: 0 0 0.75rem;
+	border: 1px var(--hb-line, solid) var(--hb-gold);
+	border-radius: var(--hb-radius);
+}
+
+.aimp-bandana-table {
+	width: 100%;
+	margin: 0 !important;
+	border: 0 !important;
+	border-collapse: collapse;
+	font-variant-numeric: tabular-nums;
+}
+
+.aimp-bandana-table th,
+.aimp-bandana-table td {
+	padding: 0.6rem 0.8rem !important;
+	border: 0 !important;
+	border-bottom: 1px solid color-mix(in srgb, var(--hb-gold) 35%, transparent) !important;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.aimp-bandana-table thead th {
+	background: var(--hb-tint);
+	color: var(--hb-gold-text);
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.aimp-bandana-table tbody tr:last-child > * {
+	border-bottom: 0 !important;
+}
+
+.aimp-bandana-note {
+	color: var(--hb-gold-text);
+	font-size: 13px;
+}
+
+.aimp-bandana-tip {
+	padding: 0.9rem 1.1rem;
+	border: 1px var(--hb-line, solid) var(--hb-gold);
+	border-radius: var(--hb-radius);
+	background: var(--hb-tint);
+}
+
+.aimp-bandana-tip strong {
+	margin-right: 0.35rem;
+	color: var(--hb-gold-text);
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.aimp-bandana-terms {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem 2rem;
+	margin: 0 0 1.5rem;
+}
+
+.aimp-bandana-terms dt {
+	color: var(--hb-gold-text);
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.aimp-bandana-terms dd {
+	margin: 0.2rem 0 0;
+}
+
+/* ------------------------------------------------------------------ downloads and the buy box */
+.aimp-bandana-downloads,
+.aimp-bandana-locked {
+	margin-top: 2rem;
+	padding: clamp(1.25rem, 3vw, 2rem);
+	border: 5px double var(--hb-gold);
+	border-radius: var(--hb-radius);
+	background: var(--hb-tint);
+	text-align: center;
+}
+
+.aimp-bandana-downloads-title {
+	margin: 0 0 0.5rem;
+	color: var(--hb-gold-text);
+	font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.aimp-bandana-fields {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.75rem 1rem;
+	margin: 1rem 0;
+}
+
+.aimp-bandana-field {
+	display: grid;
+	gap: 0.25rem;
+	min-width: 0;
+	text-align: left;
+}
+
+.aimp-bandana-field span {
+	color: var(--hb-gold-text);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.aimp-bandana-field select {
+	max-width: 100%;
+	padding: 0.5rem 2rem 0.5rem 0.8rem;
+	border: 1px var(--hb-line, solid) var(--hb-gold);
+	border-radius: 100px;
+	background-color: #fff;
+	color: var(--hb-brown);
+	font: inherit;
+}
+
+.aimp-bandana-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.75rem;
+	margin: 0;
+}
+
+.aimp-bandana .aimp-block-button--gold {
+	border-color: var(--hb-gold);
+	background: var(--hb-gold);
+	color: #fff;
+}
+
+.aimp-bandana .aimp-block-button--gold:hover,
+.aimp-bandana .aimp-block-button--gold:focus-visible {
+	background: #fff;
+	color: var(--hb-brown);
+}
+
+.aimp-bandana-locked .aimp-bandana-list {
+	justify-content: center;
+	text-align: left;
+}
+
+.aimp-bandana-price {
+	color: var(--hb-gold-text);
+	font-size: 1.4rem;
+	font-weight: 700;
+}
+
+/* ------------------------------------------------------------------ order page */
+.aimp-bandana-order {
+	margin: 1.5rem 0;
+	padding: 1rem 1.25rem;
+	border: 5px double var(--aimp-site-gold, #b38f4f);
+	border-radius: 24px;
+}
+
+/* ------------------------------------------------------------------ phones */
+@media (max-width: 700px) {
+	.aimp-bandana-facts {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.aimp-bandana-step,
+	.aimp-bandana-step:not(:has(.aimp-bandana-fig)) {
+		grid-template-columns: 2.6rem minmax(0, 1fr);
+	}
+
+	.aimp-bandana-step .aimp-bandana-fig {
+		grid-column: 1 / -1;
+	}
+
+	.aimp-bandana-terms {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-bandana-field,
+	.aimp-bandana-field select {
+		width: 100%;
+	}
+}

@@ -32,6 +32,33 @@ class AIMP_Checkout {
 		add_action( 'woocommerce_thankyou', array( __CLASS__, 'thankyou_bottom' ), 30 );
 		// Design studio (Checkout): no order notes field.
 		add_filter( 'woocommerce_enable_order_notes_field', array( __CLASS__, 'order_notes' ), 20 );
+		// WooCommerce's text about personal data (checkout and registration) in the visitor's language.
+		add_filter( 'woocommerce_get_privacy_policy_text', array( __CLASS__, 'privacy_text' ), 20, 2 );
+	}
+
+	/**
+	 * WooCommerce's own English texts (the settings' defaults, stored in English) become ours, in the visitor's
+	 * language; a text the shop wrote itself stays as it is.
+	 *
+	 * @param string $text Text, with [privacy_policy] for the link.
+	 * @param string $type checkout or registration.
+	 * @return string
+	 */
+	public static function privacy_text( $text, $type ) {
+		$defaults = array(
+			'checkout'     => 'Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our [privacy_policy].',
+			'registration' => 'Your personal data will be used to support your experience throughout this website, to manage access to your account, and for other purposes described in our [privacy_policy].',
+		);
+		if ( ! isset( $defaults[ $type ] ) || trim( (string) $text ) !== $defaults[ $type ] ) {
+			return $text;
+		}
+		$text = 'registration' === $type
+			? __( 'Your personal data is used to manage your account, to support your experience on this website and for other purposes described in our [privacy_policy].', 'atelier-irisee-master-plugin' )
+			: __( 'Your personal data is used to process your order, to support your experience on this website and for other purposes described in our [privacy_policy].', 'atelier-irisee-master-plugin' );
+		// The link ourselves: WooCommerce's own link text is English too.
+		$url  = get_privacy_policy_url();
+		$link = $url ? '<a href="' . esc_url( $url ) . '" class="woocommerce-privacy-policy-link" target="_blank">' . esc_html__( 'privacy policy', 'atelier-irisee-master-plugin' ) . '</a>' : esc_html__( 'privacy policy', 'atelier-irisee-master-plugin' );
+		return str_replace( '[privacy_policy]', $link, $text );
 	}
 
 	/**

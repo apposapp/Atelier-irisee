@@ -66,6 +66,12 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/login/class-aimp-login.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/giftcards/class-aimp-giftcards.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-account.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-pdf.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-pdf-font.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-bandana.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-bandana-draw.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-bandana-docs.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-bandana-page.php';
 
 		AIMP_Settings::init();
 		AIMP_Notions::init();
@@ -113,6 +119,7 @@ class AIMP_Plugin {
 		AIMP_Login::init();
 		AIMP_Giftcards::init();
 		AIMP_Account::init();
+		AIMP_Bandana::init();
 	}
 
 	public static function missing_woocommerce_notice() {

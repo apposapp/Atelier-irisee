@@ -58,9 +58,11 @@ class AIMP_Cart {
 	 * @param int   $variation_id Size variation ID.
 	 * @param int   $fabric_id    Fabric product ID.
 	 * @param array $notions      Chosen haberdashery: notion type (buttons, zips, ribbons, bias) => product ID (0 = none).
+	 * @param int   $lining_id    Lining fabric (0 = none).
+	 * @param array $extras       The matching dog bandana: [ bandana => 0|1, thread => ID, band => ID ].
 	 * @return true|WP_Error WP_Error carries one message per problem.
 	 */
-	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0 ) {
+	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0, $extras = array() ) {
 		$errors = new WP_Error();
 		$req    = AIMP_Catalog::get_requirements( $variation_id );
 		if ( ! $req ) {
@@ -137,6 +139,9 @@ class AIMP_Cart {
 			}
 			$lines[] = $line;
 		}
+
+		// The matching dog bandana: its pattern, extra of the kit's fabric, and a thread and band if chosen.
+		$lines = array_merge( $lines, AIMP_Bandana_Page::cart_lines( $req, isset( $fabric ) ? $fabric : null, $extras, $errors ) );
 
 		// Stock for every line, counting what is already in the cart.
 		foreach ( $lines as $line ) {
@@ -547,6 +552,9 @@ class AIMP_Cart {
 	 * @return string
 	 */
 	private static function use_label( $meta ) {
+		if ( isset( $meta['use'] ) && 'bandana' === $meta['use'] ) {
+			return __( 'For the dog bandana', 'atelier-irisee-master-plugin' );
+		}
 		if ( isset( $meta['use'] ) && 'volume' === $meta['use'] ) {
 			return __( 'Volume interfacing', 'atelier-irisee-master-plugin' );
 		}

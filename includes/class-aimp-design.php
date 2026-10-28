@@ -532,7 +532,6 @@ class AIMP_Design {
 				'f_noprice'      => 'bool',
 				'f_noattrs'      => 'bool',
 				'f_nostock'      => 'bool',
-				'f_closed'       => 'bool',
 				'f_hidden'       => 'bool',
 				'paging'         => array( 'select', array( '', 'more', 'infinite' ) ),
 				'noquick'        => 'bool',
@@ -3950,7 +3949,6 @@ class AIMP_Design {
 		self::check_box( 'f_noprice', __( 'No price filter', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'f_noattrs', __( 'No colour/material filters', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'f_nostock', __( 'No "in stock only" filter', 'atelier-irisee-master-plugin' ) );
-		self::check_box( 'f_closed', __( 'Every filter starts folded', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'f_hidden', __( 'The filter column starts closed on computers', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="aimp-ds-sub">' . esc_html__( 'More products', 'atelier-irisee-master-plugin' ) . '</p>';
 		self::choice(

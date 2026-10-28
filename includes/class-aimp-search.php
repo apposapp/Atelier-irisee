@@ -214,7 +214,7 @@ class AIMP_Search {
 			$url = AIMP_Shop::category_url( $term );
 			if ( $url && count( $list ) < 3 ) {
 				$list[] = array(
-					'name'  => $term->name,
+					'name'  => wp_specialchars_decode( $term->name, ENT_QUOTES ),
 					'count' => (int) $term->count,
 					'url'   => $url,
 				);
