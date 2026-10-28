@@ -596,7 +596,6 @@ return array(
 	'Gift card emailed' => 'Carte cadeau envoyée par e-mail',
 	'Gift card product' => 'Produit carte cadeau',
 	'Gift card removed.' => 'Carte cadeau retirée.',
-	'Gift card settings' => 'Réglages des cartes cadeaux',
 	'Gift card to send by post: %s' => 'Carte cadeau à envoyer par la poste : %s',
 	'Gift card value' => 'Valeur de la carte cadeau',
 	'Gift cards' => 'Cartes cadeaux',
@@ -1858,7 +1857,6 @@ return array(
 	'Seconds per text on phones (0 = standard)' => 'Secondes par texte sur téléphone (0 = standard)',
 	'Show on' => 'Afficher sur',
 	'Slides: more pictures that take turns (up to 6)' => 'Diaporama : d\'autres photos qui alternent (jusqu\'à 6)',
-	'Social media icons (from the footer settings)' => 'Icônes des réseaux sociaux (des réglages du pied de page)',
 	'Stays the same size while scrolling' => 'Garde la même taille pendant le défilement',
 	'Strength' => 'Intensité',
 	'Tabs' => 'Onglets',
@@ -2614,12 +2612,10 @@ return array(
 	'Sewing kits (whole)' => 'Kits de couture (entier)',
 	'Shows your newest Instagram posts with [atelier_irisee_instagram] (its look and texts: Design studio → Instagram).' => 'Affiche vos dernières publications Instagram avec [atelier_irisee_instagram] (apparence et textes : Design studio → Instagram).',
 	'Social media' => 'Réseaux sociaux',
-	'The addresses are those of Settings → Footer. The footer always shows the icons; choose where else they appear.' => 'Les adresses sont celles de Réglages → Pied de page. Le pied de page affiche toujours les icônes ; choisissez où elles apparaissent aussi.',
 	'The card designs side by side' => 'Les designs de carte côte à côte',
 	'The picture above fills the back (A6 landscape, 148 × 105 mm), without anything on it. Use a picture of at least 1748 × 1240 pixels.' => 'L\'image ci-dessus remplit le verso (A6 paysage, 148 × 105 mm), sans rien dessus. Utilisez une image d\'au moins 1748 × 1240 pixels.',
 	'The plugin renews the token by itself every 30 days.' => 'Le plugin renouvelle le jeton lui-même tous les 30 jours.',
 	'Under "Generate access tokens": add your Instagram account, log in to Instagram and allow access.' => 'Sous « Generate access tokens » : ajoutez votre compte Instagram, connectez-vous à Instagram et autorisez l\'accès.',
-	'Under the side menu: Side menu → "Social media icons". Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"].' => 'Sous le menu latéral : Menu latéral → « Icônes des réseaux sociaux ». Ailleurs : [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"].',
 
 	// 3.50.1
 	'January' => 'janvier',
@@ -2650,4 +2646,11 @@ return array(
 	// 3.50.4
 	'Thickness of the double borders (both sides)' => 'Épaisseur des doubles bordures (deux côtés)',
 	'Standard 26 px, about 2 mm on the printed card (the card is 1748 px wide).' => 'Standard 26 px, environ 2 mm sur la carte imprimée (la carte fait 1748 px de large).',
+
+	// 3.51.0: settings tabs
+	'All gift cards' => 'Toutes les cartes cadeaux',
+	'Also show the icons' => 'Afficher aussi les icônes',
+	'The social media icons under the menu: Atelier Irisee → Settings → Social media.' => 'Les icônes des réseaux sociaux sous le menu : Atelier Irisee → Réglages → Réseaux sociaux.',
+	'Under the side menu' => 'Sous le menu latéral',
+	'Your social media addresses. The footer always shows the icons; choose where else they appear. Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"]. Fields left empty are not shown.' => 'Vos adresses sur les réseaux sociaux. Le pied de page affiche toujours les icônes ; choisissez où elles apparaissent aussi. Ailleurs : [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"]. Les champs vides ne sont pas affichés.',
 );

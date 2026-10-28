@@ -100,7 +100,6 @@ class AIMP_Design {
 			'header-menu-bar' => array( $header, __( '"Menu" bar', 'atelier-irisee-master-plugin' ), '.aimp-header-bar' ),
 			'info-bar'        => array( $header, __( 'Gold info bar', 'atelier-irisee-master-plugin' ), '.aimp-info-bar' ),
 			'side-menu'       => array( $header, __( 'Side menu', 'atelier-irisee-master-plugin' ), '.aimp-side-menu' ),
-			'socials'         => array( $header, __( 'Social media icons', 'atelier-irisee-master-plugin' ), '.aimp-socials' ),
 			'tabbar'          => array( $header, __( 'Phone tab bar', 'atelier-irisee-master-plugin' ), '.aimp-tabbar' ),
 			'header-lang'     => array( $header, __( 'Language switch', 'atelier-irisee-master-plugin' ), '.aimp-header-lang' ),
 			'header-search'   => array( $header, __( 'Search', 'atelier-irisee-master-plugin' ), '.aimp-header-search' ),
@@ -202,7 +201,6 @@ class AIMP_Design {
 			'header-icons'    => array( 'icons_opts' ),
 			'header-menu-bar' => array( 'menubar_opts' ),
 			'side-menu'       => array( 'side_opts' ),
-			'socials'         => array( 'so_opts' ),
 			'info-bar'        => array( 'info_opts' ),
 			'tabbar'          => array( 'tabbar_opts' ),
 			'header-lang'     => array( 'lang_opts' ),
@@ -437,13 +435,6 @@ class AIMP_Design {
 			),
 			'icons_opts'  => self::icon_fields(),
 			'menubar_opts' => array( 'mb_align' => array( 'select', array( '', 'center', 'right' ) ) ),
-			'so_opts'     => array(
-				'so_header' => 'bool',
-				'so_info'   => 'bool',
-				'so_float'  => array( 'select', array( '', 'left', 'right' ) ),
-				'so_style'  => array( 'select', array( '', 'round', 'filled' ) ),
-				'so_size'   => array( 0, 48, 0 ),
-			),
 			'side_opts'   => array(
 				'sm_width'    => array( 0, 640, 0 ),
 				'sm_bg'       => 'color',
@@ -454,7 +445,6 @@ class AIMP_Design {
 				'sm_fabrics'  => 'bool',
 				'sm_patterns' => 'bool',
 				'sm_contact'  => 'longtext',
-				'sm_socials'  => 'bool',
 				'sm_img'      => 'image',
 			),
 			'info_opts'   => array(
@@ -1290,7 +1280,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'side_opts', 'so_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'gp_opts', 'ig_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look' );
+		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'gp_opts', 'ig_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look' );
 	}
 
 	/**
@@ -3710,7 +3700,7 @@ class AIMP_Design {
 		echo '<p class="aimp-ds-sub">' . esc_html__( 'Under the menu', 'atelier-irisee-master-plugin' ) . '</p>';
 		self::picture_field( 'sm_img', __( 'A picture', 'atelier-irisee-master-plugin' ) );
 		$field( 'sm_contact', __( 'Contact details', 'atelier-irisee-master-plugin' ), 'longtext' );
-		self::check_box( 'sm_socials', __( 'Social media icons (from the footer settings)', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The social media icons under the menu: Atelier Irisee → Settings → Social media.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		$group( 'info_opts', __( 'Gold info bar', 'atelier-irisee-master-plugin' ) );
@@ -4424,32 +4414,6 @@ class AIMP_Design {
 		$group( 'fq_opts', __( 'Questions block', 'atelier-irisee-master-plugin' ) );
 		self::number( 'fq_count', __( 'Questions shown (0 = standard, 4)', 'atelier-irisee-master-plugin' ), 0, 12, '' );
 		$field( 'fq_url', __( 'The button goes to (standard: the page with the contact form)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
-		echo '</fieldset>';
-
-		$group( 'so_opts', __( 'Social media icons', 'atelier-irisee-master-plugin' ) );
-		echo '<p class="description">' . esc_html__( 'The addresses are those of Settings → Footer. The footer always shows the icons; choose where else they appear.', 'atelier-irisee-master-plugin' ) . '</p>';
-		self::check_box( 'so_header', __( 'In the header, next to the shortcuts (computers)', 'atelier-irisee-master-plugin' ) );
-		self::check_box( 'so_info', __( 'At the end of the gold info bar', 'atelier-irisee-master-plugin' ) );
-		self::choice(
-			'so_float',
-			__( 'A strip at the side of the screen', 'atelier-irisee-master-plugin' ),
-			array(
-				''      => __( 'No', 'atelier-irisee-master-plugin' ),
-				'left'  => __( 'On the left', 'atelier-irisee-master-plugin' ),
-				'right' => __( 'On the right', 'atelier-irisee-master-plugin' ),
-			)
-		);
-		self::choice(
-			'so_style',
-			__( 'Style', 'atelier-irisee-master-plugin' ),
-			array(
-				''       => __( 'Gold line icons (standard)', 'atelier-irisee-master-plugin' ),
-				'round'  => __( 'Round gold buttons', 'atelier-irisee-master-plugin' ),
-				'filled' => __( 'Round, filled gold', 'atelier-irisee-master-plugin' ),
-			)
-		);
-		self::number( 'so_size', __( 'Icon size (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 48, 'px' );
-		echo '<p class="description">' . esc_html__( 'Under the side menu: Side menu → "Social media icons". Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"].', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		$group( 'ig_opts', __( 'Instagram', 'atelier-irisee-master-plugin' ) );

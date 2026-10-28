@@ -35,7 +35,7 @@ $aimp_d = function ( $part, $key, $default = null ) {
 		</div>
 
 		<nav class="aimp-header-icons" aria-label="<?php esc_attr_e( 'Shortcuts', 'atelier-irisee-master-plugin' ); ?>">
-			<?php if ( $aimp_d( 'socials', 'so_header' ) && class_exists( 'AIMP_Footer' ) ) : ?>
+			<?php if ( class_exists( 'AIMP_Footer' ) && AIMP_Footer::social_opt( 'so_header' ) ) : ?>
 				<?php echo AIMP_Footer::socials_html( 'header' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in socials_html(). ?>
 			<?php endif; ?>
 			<button type="button" class="aimp-header-link aimp-header-search-toggle" data-aimp-search-toggle aria-expanded="false" aria-controls="aimp-header-search">
@@ -126,7 +126,7 @@ $aimp_d = function ( $part, $key, $default = null ) {
 					<li><span class="aimp-info-bar-mark" aria-hidden="true">✦</span><?php if ( '' !== $aimp_link ) : ?><a href="<?php echo esc_url( $aimp_link ); ?>"><?php echo esc_html( $aimp_info ); ?></a><?php else : ?><?php echo esc_html( $aimp_info ); ?><?php endif; ?></li>
 				<?php endforeach; ?>
 			</ul>
-			<?php if ( $aimp_d( 'socials', 'so_info' ) && class_exists( 'AIMP_Footer' ) ) : ?>
+			<?php if ( class_exists( 'AIMP_Footer' ) && AIMP_Footer::social_opt( 'so_info' ) ) : ?>
 				<?php echo AIMP_Footer::socials_html( 'info' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in socials_html(). ?>
 			<?php endif; ?>
 		</div>
@@ -193,17 +193,10 @@ $aimp_d = function ( $part, $key, $default = null ) {
 			<p class="aimp-side-menu-empty"><?php esc_html_e( 'Add a menu under Appearance → Menus and assign it to "Atelier Irisee side menu".', 'atelier-irisee-master-plugin' ); ?></p>
 		<?php endif; ?>
 		<?php
-		// Design studio (Side menu): a picture, contact details and the social media icons under the menu.
+		// Design studio (Side menu): a picture and contact details under the menu; Settings → Social media: the icons.
 		$aimp_side_img     = (int) $aimp_d( 'side-menu', 'sm_img', 0 );
 		$aimp_side_contact = (string) $aimp_d( 'side-menu', 'sm_contact', '' );
-		$aimp_side_socials = $aimp_d( 'side-menu', 'sm_socials' ) && class_exists( 'AIMP_Footer' ) ? array_filter(
-			array(
-				'facebook'  => (string) AIMP_Footer::get( 'facebook' ),
-				'instagram' => (string) AIMP_Footer::get( 'instagram' ),
-				'tiktok'    => (string) AIMP_Footer::get( 'tiktok' ),
-				'pinterest' => (string) AIMP_Footer::get( 'pinterest' ),
-			)
-		) : array();
+		$aimp_side_socials = class_exists( 'AIMP_Footer' ) && AIMP_Footer::social_opt( 'so_side' ) ? AIMP_Footer::socials() : array();
 		?>
 		<?php if ( $aimp_side_img || '' !== $aimp_side_contact || $aimp_side_socials ) : ?>
 			<div class="aimp-side-menu-extra">
@@ -225,8 +218,8 @@ $aimp_d = function ( $part, $key, $default = null ) {
 	</nav>
 </header>
 <?php
-// Design studio (Social media icons): a strip of icons at the side of the screen; on phones a small tab opens it.
-$aimp_float       = (string) $aimp_d( 'socials', 'so_float', '' );
+// Settings → Social media: a strip of icons at the side of the screen; on phones a small tab opens it.
+$aimp_float       = class_exists( 'AIMP_Footer' ) ? (string) AIMP_Footer::social_opt( 'so_float' ) : '';
 $aimp_float_icons = in_array( $aimp_float, array( 'left', 'right' ), true ) && class_exists( 'AIMP_Footer' ) ? AIMP_Footer::socials_html( 'float' ) : '';
 ?>
 <?php if ( '' !== $aimp_float_icons ) : ?>

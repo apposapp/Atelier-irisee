@@ -461,10 +461,11 @@ class AIMP_Shop {
 	/**
 	 * The overview: one row of cards that link to the shop sections.
 	 *
-	 * @param bool $topbar With the language choice above it (not on the home page block).
+	 * @param bool  $topbar With the language choice above it (not on the home page block).
+	 * @param array $skip   Sections left out (the home page block has no gift card tile).
 	 * @return string Empty when no section has a page yet.
 	 */
-	public static function overview_html( $topbar = true ) {
+	public static function overview_html( $topbar = true, $skip = array() ) {
 		$cards = '';
 		$hero  = '';
 		// Design studio (Overview cards): which section is the large card, and a line under each name.
@@ -472,7 +473,7 @@ class AIMP_Shop {
 		$hero_key = '' === $hero_key ? 'configurator' : $hero_key;
 		foreach ( self::overview_sections() as $key => $section ) {
 			list( $label, $link_id, $setting, $cat_keys ) = $section;
-			if ( ! $link_id ) {
+			if ( ! $link_id || in_array( $key, $skip, true ) ) {
 				continue;
 			}
 			$line = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'overview', 'ov_sub_' . $key, '' ) : '';

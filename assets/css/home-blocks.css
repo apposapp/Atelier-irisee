@@ -320,6 +320,17 @@
 	margin: 0;
 }
 
+/* Without the gift card tile, three small tiles are left next to the large one: the last is two wide, so no gap. */
+.aimp-home-cats .aimp-overview-grid.has-hero > .aimp-overview-card:nth-child(even):last-child {
+	grid-column: span 2;
+}
+
+@container aimp (max-width: 900px) {
+	.aimp-home-cats .aimp-overview-grid.has-hero > .aimp-overview-card:nth-child(even):last-child .aimp-card-image {
+		aspect-ratio: 16 / 10;
+	}
+}
+
 /* ------------------------------------------------------------------ reviews */
 .aimp-reviews-average {
 	display: flex;

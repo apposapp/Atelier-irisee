@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.50.4
+Stable tag: 3.51.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.51.0 =
+* Settings: a new "Social media" tab with the addresses (moved from Footer) and where the icons show (header, gold info bar, under the side menu, a strip at the side), their style and size. These left the Design studio; the choices made there carry over.
+* Settings: a new "Gift cards" tab with all gift card settings (product, logo, designs, amounts and options), with buttons to all gift cards and "Add gift card". The old WooCommerce → Gift card settings address leads there.
+* Home page: the "Shop by category" block no longer shows the gift card tile; the last tile is two wide, so no gap is left.
 
 = 3.50.4 =
 * Gift cards: the thickness of the double borders can be set per design (both sides; standard 26 px, about 2 mm on the printed card).

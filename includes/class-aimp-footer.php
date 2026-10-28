@@ -36,6 +36,7 @@ class AIMP_Footer {
 		add_action( 'after_setup_theme', array( __CLASS__, 'register_menus' ), 20 );
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
+		add_action( 'admin_init', array( __CLASS__, 'migrate_socials' ), 5 );
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_shortcode( 'atelier_irisee_socials', array( __CLASS__, 'socials_shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'socials_assets' ), 30 );
@@ -94,6 +95,12 @@ class AIMP_Footer {
 			'instagram'       => '',
 			'tiktok'          => '',
 			'pinterest'       => '',
+			'so_header'       => 0,
+			'so_info'         => 0,
+			'so_side'         => 0,
+			'so_float'        => '',
+			'so_style'        => '',
+			'so_size'         => 0,
 			'newsletter_text' => '',
 			'payment_logos'   => '',
 			'copyright'       => '',
@@ -125,13 +132,14 @@ class AIMP_Footer {
 			)
 		);
 		add_settings_section( 'aimp_footer', __( 'Footer', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'section_intro' ), AIMP_Settings::PAGE );
+		add_settings_section( 'aimp_socials', __( 'Social media', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'socials_intro' ), AIMP_Settings::PAGE );
 		foreach ( self::fields() as $key => $field ) {
 			add_settings_field(
 				'aimp_footer_' . $key,
 				$field[0],
 				array( __CLASS__, 'render_field' ),
 				AIMP_Settings::PAGE,
-				'aimp_footer',
+				isset( $field[2] ) ? $field[2] : 'aimp_footer',
 				array(
 					'key'       => $key,
 					'type'      => $field[1],
@@ -153,14 +161,107 @@ class AIMP_Footer {
 			'address'         => array( __( 'Address', 'atelier-irisee-master-plugin' ), 'textarea' ),
 			'phone'           => array( __( 'Phone', 'atelier-irisee-master-plugin' ), 'text' ),
 			'email'           => array( __( 'Email', 'atelier-irisee-master-plugin' ), 'email' ),
-			'facebook'        => array( 'Facebook', 'url' ),
-			'instagram'       => array( 'Instagram', 'url' ),
-			'tiktok'          => array( 'TikTok', 'url' ),
-			'pinterest'       => array( 'Pinterest', 'url' ),
+			'facebook'        => array( 'Facebook', 'url', 'aimp_socials' ),
+			'instagram'       => array( 'Instagram', 'url', 'aimp_socials' ),
+			'tiktok'          => array( 'TikTok', 'url', 'aimp_socials' ),
+			'pinterest'       => array( 'Pinterest', 'url', 'aimp_socials' ),
+			'so_places'       => array( __( 'Also show the icons', 'atelier-irisee-master-plugin' ), 'places', 'aimp_socials' ),
+			'so_float'        => array( __( 'A strip at the side of the screen', 'atelier-irisee-master-plugin' ), 'select', 'aimp_socials' ),
+			'so_style'        => array( __( 'Style', 'atelier-irisee-master-plugin' ), 'select', 'aimp_socials' ),
+			'so_size'         => array( __( 'Icon size (0 = standard)', 'atelier-irisee-master-plugin' ), 'number', 'aimp_socials' ),
 			'newsletter_text' => array( __( 'Newsletter text', 'atelier-irisee-master-plugin' ), 'textarea' ),
 			'payment_logos'   => array( __( 'Payment logos', 'atelier-irisee-master-plugin' ), 'images' ),
 			'copyright'       => array( __( 'Copyright line', 'atelier-irisee-master-plugin' ), 'text' ),
 		);
+	}
+
+	/**
+	 * The places of the social media icons, besides the footer: key => label.
+	 *
+	 * @return array
+	 */
+	private static function social_places() {
+		return array(
+			'so_header' => __( 'In the header, next to the shortcuts (computers)', 'atelier-irisee-master-plugin' ),
+			'so_info'   => __( 'At the end of the gold info bar', 'atelier-irisee-master-plugin' ),
+			'so_side'   => __( 'Under the side menu', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * The choices of a social media list: value => label.
+	 *
+	 * @param string $key so_float or so_style.
+	 * @return array
+	 */
+	private static function social_choices( $key ) {
+		if ( 'so_float' === $key ) {
+			return array(
+				''      => __( 'No', 'atelier-irisee-master-plugin' ),
+				'left'  => __( 'On the left', 'atelier-irisee-master-plugin' ),
+				'right' => __( 'On the right', 'atelier-irisee-master-plugin' ),
+			);
+		}
+		return array(
+			''       => __( 'Gold line icons (standard)', 'atelier-irisee-master-plugin' ),
+			'round'  => __( 'Round gold buttons', 'atelier-irisee-master-plugin' ),
+			'filled' => __( 'Round, filled gold', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * Where and how the social media icons show (Settings → Social media).
+	 *
+	 * @param string $key so_header, so_info, so_side, so_float, so_style or so_size.
+	 * @return mixed
+	 */
+	public static function social_opt( $key ) {
+		$options = (array) get_option( self::OPTION, array() );
+		if ( array_key_exists( $key, $options ) ) {
+			return $options[ $key ];
+		}
+		return self::studio_social( $key );
+	}
+
+	/**
+	 * Until 3.51 these were Design studio choices (Social media icons, and Side menu → Social media icons).
+	 *
+	 * @param string $key Setting.
+	 * @return mixed
+	 */
+	private static function studio_social( $key ) {
+		$defaults = self::defaults();
+		if ( ! class_exists( 'AIMP_Design' ) ) {
+			return $defaults[ $key ];
+		}
+		return 'so_side' === $key ? (int) (bool) AIMP_Design::opt( 'side-menu', 'sm_socials', 0 ) : AIMP_Design::opt( 'socials', $key, $defaults[ $key ] );
+	}
+
+	/**
+	 * Once: the studio's choices go into the settings, so publishing the studio later cannot lose them.
+	 */
+	public static function migrate_socials() {
+		$options = get_option( self::OPTION, array() );
+		if ( ! is_array( $options ) || array_key_exists( 'so_style', $options ) ) {
+			return;
+		}
+		foreach ( array( 'so_header', 'so_info', 'so_side', 'so_float', 'so_style', 'so_size' ) as $key ) {
+			$options[ $key ] = self::studio_social( $key );
+		}
+		$options['so_header'] = (int) (bool) $options['so_header'];
+		$options['so_info']   = (int) (bool) $options['so_info'];
+		$options['so_float']  = in_array( $options['so_float'], array( 'left', 'right' ), true ) ? $options['so_float'] : '';
+		$options['so_style']  = in_array( $options['so_style'], array( 'round', 'filled' ), true ) ? $options['so_style'] : '';
+		$options['so_size']   = max( 0, min( 48, (int) $options['so_size'] ) );
+		$removed              = remove_filter( 'sanitize_option_' . self::OPTION, array( __CLASS__, 'sanitize' ) );
+		update_option( self::OPTION, $options );
+		if ( $removed ) {
+			add_filter( 'sanitize_option_' . self::OPTION, array( __CLASS__, 'sanitize' ) );
+		}
+	}
+
+	public static function socials_intro() {
+		echo '<p>' . esc_html__( 'Your social media addresses. The footer always shows the icons; choose where else they appear. Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"]. Fields left empty are not shown.', 'atelier-irisee-master-plugin' ) . '</p>';
 	}
 
 	public static function section_intro() {
@@ -188,6 +289,26 @@ class AIMP_Footer {
 				break;
 			case 'textarea':
 				printf( '<textarea id="%1$s" name="%2$s" rows="3" class="large-text">%3$s</textarea>', esc_attr( $id ), esc_attr( $name ), esc_textarea( $value ) );
+				break;
+			case 'places':
+				foreach ( self::social_places() as $place => $label ) {
+					printf(
+						'<label><input type="checkbox" name="%1$s" value="1" %2$s> %3$s</label><br>',
+						esc_attr( self::OPTION . '[' . $place . ']' ),
+						checked( 1, (int) self::social_opt( $place ), false ),
+						esc_html( $label )
+					);
+				}
+				break;
+			case 'select':
+				echo '<select id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '">';
+				foreach ( self::social_choices( $key ) as $choice => $label ) {
+					echo '<option value="' . esc_attr( $choice ) . '"' . selected( (string) self::social_opt( $key ), (string) $choice, false ) . '>' . esc_html( $label ) . '</option>';
+				}
+				echo '</select>';
+				break;
+			case 'number':
+				printf( '<input type="number" id="%1$s" name="%2$s" value="%3$s" min="0" max="48" step="1" class="small-text"> px', esc_attr( $id ), esc_attr( $name ), esc_attr( (int) self::social_opt( $key ) ) );
 				break;
 			case 'images':
 				$ids = array_filter( array_map( 'absint', explode( ',', (string) $value ) ) );
@@ -241,6 +362,17 @@ class AIMP_Footer {
 					break;
 				case 'images':
 					$clean[ $key ] = implode( ',', array_filter( array_map( 'absint', explode( ',', (string) $value ) ) ) );
+					break;
+				case 'places':
+					foreach ( array_keys( self::social_places() ) as $place ) {
+						$clean[ $place ] = empty( $input[ $place ] ) ? 0 : 1;
+					}
+					break;
+				case 'select':
+					$clean[ $key ] = array_key_exists( (string) $value, self::social_choices( $key ) ) ? (string) $value : '';
+					break;
+				case 'number':
+					$clean[ $key ] = max( 0, min( 48, (int) $value ) );
 					break;
 				default:
 					$clean[ $key ] = sanitize_text_field( $value );
@@ -360,7 +492,7 @@ class AIMP_Footer {
 	}
 
 	/**
-	 * The social media icons for a place on the site (Design studio → Social media icons: the style and size).
+	 * The social media icons for a place on the site (Settings → Social media: the style and size).
 	 *
 	 * @param string $context header, info, float or shortcode.
 	 * @param string $style   '' (the studio's), line, round or filled.
@@ -371,12 +503,9 @@ class AIMP_Footer {
 		if ( ! $socials ) {
 			return '';
 		}
-		$opt   = function ( $key, $default = '' ) {
-			return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'socials', $key, $default ) : $default;
-		};
-		$style = in_array( $style, array( 'line', 'round', 'filled' ), true ) ? $style : (string) $opt( 'so_style', '' );
+		$style = in_array( $style, array( 'line', 'round', 'filled' ), true ) ? $style : (string) self::social_opt( 'so_style' );
 		$style = in_array( $style, array( 'round', 'filled' ), true ) ? $style : 'line';
-		$size  = (int) $opt( 'so_size', 0 );
+		$size  = (int) self::social_opt( 'so_size' );
 		$html  = '';
 		foreach ( $socials as $network => $url ) {
 			$html .= '<li><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener" aria-label="' . esc_attr( ucfirst( $network ) ) . '">' . self::social_icon( $network ) . '</a></li>';
@@ -387,7 +516,7 @@ class AIMP_Footer {
 	public static function socials_assets() {
 		wp_enqueue_style( 'aimp-socials', AIMP_PLUGIN_URL . 'assets/css/socials.css', array(), AIMP_VERSION );
 		// The floating strip opens and closes on phones.
-		if ( class_exists( 'AIMP_Design' ) && '' !== (string) AIMP_Design::opt( 'socials', 'so_float', '' ) ) {
+		if ( '' !== (string) self::social_opt( 'so_float' ) ) {
 			wp_add_inline_script( 'aimp-header', "document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-aimp-socials-toggle]');if(t){var b=t.closest('.aimp-socials-float');b.classList.toggle('is-open');t.setAttribute('aria-expanded',b.classList.contains('is-open')?'true':'false');}});" );
 		}
 	}

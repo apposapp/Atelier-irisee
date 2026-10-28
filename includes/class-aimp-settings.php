@@ -1005,17 +1005,32 @@ class AIMP_Settings {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
 		}
+		$own = self::own_tabs();
+		$nav = array();
+		foreach ( self::tab_sections() as $id => $section ) {
+			$nav[ $id ] = $section['title'];
+			foreach ( $own as $own_id => $tab ) {
+				if ( isset( $tab['after'] ) && $tab['after'] === $id ) {
+					$nav[ $own_id ] = $tab['title'];
+				}
+			}
+		}
+		foreach ( $own as $own_id => $tab ) {
+			if ( ! isset( $nav[ $own_id ] ) ) {
+				$nav[ $own_id ] = $tab['title'];
+			}
+		}
 		?>
 		<div class="wrap aimp-settings">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+			<nav class="nav-tab-wrapper aimp-settings-tabs">
+				<?php foreach ( $nav as $id => $title ) : ?>
+					<a href="#tab-<?php echo esc_attr( $id ); ?>" class="nav-tab" data-aimp-tab="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $title ); ?></a>
+				<?php endforeach; ?>
+			</nav>
 			<?php // One form with a tab per section, so saving one tab never clears the settings of another. ?>
-			<form action="options.php" method="post">
+			<form action="options.php" method="post" class="aimp-settings-main">
 				<?php settings_fields( 'aimp_settings_group' ); ?>
-				<nav class="nav-tab-wrapper aimp-settings-tabs">
-					<?php foreach ( self::tab_sections() as $id => $section ) : ?>
-						<a href="#tab-<?php echo esc_attr( $id ); ?>" class="nav-tab" data-aimp-tab="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $section['title'] ); ?></a>
-					<?php endforeach; ?>
-				</nav>
 				<?php foreach ( self::tab_sections() as $id => $section ) : ?>
 					<div class="aimp-settings-panel" id="tab-<?php echo esc_attr( $id ); ?>" data-aimp-panel="<?php echo esc_attr( $id ); ?>">
 						<?php
@@ -1028,10 +1043,30 @@ class AIMP_Settings {
 						?>
 					</div>
 				<?php endforeach; ?>
-				<?php submit_button( __( 'Save settings', 'atelier-irisee-master-plugin' ) ); ?>
+				<div class="aimp-settings-save"><?php submit_button( __( 'Save settings', 'atelier-irisee-master-plugin' ) ); ?></div>
 			</form>
+			<?php // Tabs with their own forms (Gift cards), outside the main form: forms cannot be nested. ?>
+			<?php foreach ( $own as $id => $tab ) : ?>
+				<div class="aimp-settings-panel" id="tab-<?php echo esc_attr( $id ); ?>" data-aimp-panel="<?php echo esc_attr( $id ); ?>" data-aimp-own-form>
+					<?php call_user_func( $tab['callback'] ); ?>
+				</div>
+			<?php endforeach; ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Tabs that save with their own forms: ID => [ title, callback, after (the tab they follow) ].
+	 *
+	 * @return array
+	 */
+	private static function own_tabs() {
+		return array_filter(
+			(array) apply_filters( 'aimp_settings_own_tabs', array() ),
+			function ( $tab ) {
+				return is_array( $tab ) && isset( $tab['title'], $tab['callback'] ) && is_callable( $tab['callback'] );
+			}
+		);
 	}
 
 	/**
@@ -1042,7 +1077,7 @@ class AIMP_Settings {
 	private static function tab_sections() {
 		global $wp_settings_sections;
 		$registered = isset( $wp_settings_sections[ self::PAGE ] ) ? (array) $wp_settings_sections[ self::PAGE ] : array();
-		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_notion_options', 'aimp_ideal_icons', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_site', 'aimp_home', 'aimp_kit_steps', 'aimp_images', 'aimp_ai_looks', 'aimp_footer', 'aimp_mosaic', 'aimp_admin_menu' );
+		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_notion_options', 'aimp_ideal_icons', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_site', 'aimp_home', 'aimp_kit_steps', 'aimp_images', 'aimp_ai_looks', 'aimp_footer', 'aimp_socials', 'aimp_mosaic', 'aimp_admin_menu' );
 		$sections   = array();
 		foreach ( $order as $id ) {
 			if ( isset( $registered[ $id ] ) ) {

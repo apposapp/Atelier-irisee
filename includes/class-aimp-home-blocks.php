@@ -101,12 +101,12 @@ class AIMP_Home_Blocks {
 
 	/**
 	 * The overview tiles of the All products page (Design studio → Overview cards: the large tile, the order, the
-	 * columns), with a title.
+	 * columns), with a title. Without the gift card tile: gift cards have their own menu item and promo block.
 	 *
 	 * @return string
 	 */
 	public static function categories() {
-		$grid = AIMP_Shop::overview_html( false );
+		$grid = AIMP_Shop::overview_html( false, array( 'giftcards' ) );
 		if ( '' === $grid ) {
 			return '';
 		}

@@ -75,7 +75,7 @@ jQuery(function ($) {
 	if (!$tabs.length) {
 		return;
 	}
-	var $form = $tabs.closest('form');
+	var $form = $('form.aimp-settings-main');
 
 	function show(id) {
 		if (!$('[data-aimp-panel="' + id + '"]').length) {
@@ -85,6 +85,8 @@ jQuery(function ($) {
 		$tabs.filter('[data-aimp-tab="' + id + '"]').addClass('nav-tab-active').attr('aria-selected', 'true');
 		$('[data-aimp-panel]').prop('hidden', true);
 		$('[data-aimp-panel="' + id + '"]').prop('hidden', false);
+		// A tab with its own forms (Gift cards) has its own save button.
+		$('.aimp-settings-save').prop('hidden', $('[data-aimp-panel="' + id + '"]').is('[data-aimp-own-form]'));
 		// After saving, WordPress returns to the page in _wp_http_referer: add the tab to it.
 		var $referer = $form.find('input[name="_wp_http_referer"]');
 		$referer.val(String($referer.val() || '').split('#')[0] + '#tab-' + id);

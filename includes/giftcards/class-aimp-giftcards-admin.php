@@ -18,6 +18,9 @@ class AIMP_Giftcards_Admin {
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 62 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
+		// The settings are a tab of Atelier Irisee → Settings since 3.51; the old address leads there.
+		add_filter( 'aimp_settings_own_tabs', array( __CLASS__, 'settings_tab' ) );
+		add_action( 'admin_init', array( __CLASS__, 'old_page' ) );
 
 		$type = AIMP_Giftcards::POST_TYPE;
 		add_filter( 'manage_' . $type . '_posts_columns', array( __CLASS__, 'columns' ) );
@@ -57,12 +60,43 @@ class AIMP_Giftcards_Admin {
 
 	public static function menu() {
 		add_submenu_page( 'woocommerce', __( 'Add gift card', 'atelier-irisee-master-plugin' ), __( 'Add gift card', 'atelier-irisee-master-plugin' ), 'manage_woocommerce', self::NEW_PAGE, array( __CLASS__, 'render_new' ) );
-		add_submenu_page( 'woocommerce', __( 'Gift card settings', 'atelier-irisee-master-plugin' ), __( 'Gift card settings', 'atelier-irisee-master-plugin' ), 'manage_woocommerce', self::SETTINGS_PAGE, array( __CLASS__, 'render_settings' ) );
+	}
+
+	/**
+	 * The address of the gift card settings: the Gift cards tab of Atelier Irisee → Settings.
+	 *
+	 * @return string
+	 */
+	public static function settings_url() {
+		return admin_url( 'admin.php?page=' . AIMP_Settings::PAGE . '#tab-aimp_giftcards' );
+	}
+
+	public static function old_page() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a redirect only.
+		if ( isset( $_GET['page'] ) && self::SETTINGS_PAGE === $_GET['page'] ) {
+			wp_safe_redirect( self::settings_url() );
+			exit;
+		}
+	}
+
+	/**
+	 * The Gift cards tab, with its own forms (designs with pictures and previews), after Social media.
+	 *
+	 * @param array $tabs Tab ID => [ title, callback, after ].
+	 * @return array
+	 */
+	public static function settings_tab( $tabs ) {
+		$tabs['aimp_giftcards'] = array(
+			'title'    => __( 'Gift cards', 'atelier-irisee-master-plugin' ),
+			'callback' => array( __CLASS__, 'render_settings' ),
+			'after'    => 'aimp_socials',
+		);
+		return $tabs;
 	}
 
 	public static function enqueue( $hook_suffix ) {
 		$screen = get_current_screen();
-		$ours   = false !== strpos( (string) $hook_suffix, self::SETTINGS_PAGE ) || false !== strpos( (string) $hook_suffix, self::NEW_PAGE ) || ( $screen && AIMP_Giftcards::POST_TYPE === $screen->post_type );
+		$ours   = AIMP_Settings::is_settings_screen( $hook_suffix ) || false !== strpos( (string) $hook_suffix, self::NEW_PAGE ) || ( $screen && AIMP_Giftcards::POST_TYPE === $screen->post_type );
 		if ( ! $ours ) {
 			return;
 		}
@@ -508,8 +542,11 @@ class AIMP_Giftcards_Admin {
 			return AIMP_Giftcards::opt( $key );
 		};
 		?>
-		<div class="wrap aimp-gc-settings">
-			<h1><?php esc_html_e( 'Gift card settings', 'atelier-irisee-master-plugin' ); ?></h1>
+		<div class="aimp-gc-settings">
+			<p>
+				<a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=' . AIMP_Giftcards::POST_TYPE ) ); ?>"><?php esc_html_e( 'All gift cards', 'atelier-irisee-master-plugin' ); ?></a>
+				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::NEW_PAGE ) ); ?>"><?php esc_html_e( 'Add gift card', 'atelier-irisee-master-plugin' ); ?></a>
+			</p>
 
 			<h2><?php esc_html_e( 'Gift card product', 'atelier-irisee-master-plugin' ); ?></h2>
 			<?php if ( $product ) : ?>
@@ -765,6 +802,6 @@ class AIMP_Giftcards_Admin {
 		);
 		// phpcs:enable
 		update_option( AIMP_Giftcards::OPTION, $options );
-		self::back( admin_url( 'admin.php?page=' . self::SETTINGS_PAGE ), 'saved' );
+		self::back( self::settings_url(), 'saved' );
 	}
 }

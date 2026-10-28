@@ -596,7 +596,6 @@ return array(
 	'Gift card emailed' => 'Cadeaubon gemaild',
 	'Gift card product' => 'Cadeaubonproduct',
 	'Gift card removed.' => 'Cadeaubon verwijderd.',
-	'Gift card settings' => 'Instellingen cadeaubonnen',
 	'Gift card to send by post: %s' => 'Cadeaubon om per post te versturen: %s',
 	'Gift card value' => 'Waarde cadeaubon',
 	'Gift cards' => 'Cadeaubonnen',
@@ -1858,7 +1857,6 @@ return array(
 	'Seconds per text on phones (0 = standard)' => 'Seconden per tekst op gsm\'s (0 = standaard)',
 	'Show on' => 'Tonen op',
 	'Slides: more pictures that take turns (up to 6)' => 'Slides: meer foto\'s die elkaar afwisselen (tot 6)',
-	'Social media icons (from the footer settings)' => 'Iconen sociale media (uit de instellingen van de voettekst)',
 	'Stays the same size while scrolling' => 'Blijft even groot tijdens het scrollen',
 	'Strength' => 'Sterkte',
 	'Tabs' => 'Tabbladen',
@@ -2614,12 +2612,10 @@ return array(
 	'Sewing kits (whole)' => 'Naaipakketten (geheel)',
 	'Shows your newest Instagram posts with [atelier_irisee_instagram] (its look and texts: Design studio → Instagram).' => 'Toont je nieuwste Instagramberichten met [atelier_irisee_instagram] (opmaak en teksten: Design studio → Instagram).',
 	'Social media' => 'Sociale media',
-	'The addresses are those of Settings → Footer. The footer always shows the icons; choose where else they appear.' => 'De adressen zijn die van Instellingen → Footer. De footer toont de iconen altijd; kies waar ze nog verschijnen.',
 	'The card designs side by side' => 'De kaartontwerpen naast elkaar',
 	'The picture above fills the back (A6 landscape, 148 × 105 mm), without anything on it. Use a picture of at least 1748 × 1240 pixels.' => 'De foto hierboven vult de achterkant (A6 liggend, 148 × 105 mm), zonder iets erop. Gebruik een foto van minstens 1748 × 1240 pixels.',
 	'The plugin renews the token by itself every 30 days.' => 'De plugin vernieuwt de token zelf elke 30 dagen.',
 	'Under "Generate access tokens": add your Instagram account, log in to Instagram and allow access.' => 'Onder "Generate access tokens": voeg je Instagram-account toe, log in bij Instagram en geef toegang.',
-	'Under the side menu: Side menu → "Social media icons". Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"].' => 'Onder het zijmenu: Zijmenu → "Sociale media-iconen". Overal elders: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"].',
 
 	// 3.50.1
 	'January' => 'januari',
@@ -2650,4 +2646,11 @@ return array(
 	// 3.50.4
 	'Thickness of the double borders (both sides)' => 'Dikte van de dubbele randen (beide kanten)',
 	'Standard 26 px, about 2 mm on the printed card (the card is 1748 px wide).' => 'Standaard 26 px, ongeveer 2 mm op de gedrukte kaart (de kaart is 1748 px breed).',
+
+	// 3.51.0: settings tabs
+	'All gift cards' => 'Alle cadeaubonnen',
+	'Also show the icons' => 'Toon de iconen ook',
+	'The social media icons under the menu: Atelier Irisee → Settings → Social media.' => 'De sociale-media-iconen onder het menu: Atelier Irisee → Instellingen → Sociale media.',
+	'Under the side menu' => 'Onder het zijmenu',
+	'Your social media addresses. The footer always shows the icons; choose where else they appear. Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"]. Fields left empty are not shown.' => 'Je adressen op sociale media. De footer toont de iconen altijd; kies waar ze nog verschijnen. Ergens anders: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"]. Lege velden worden niet getoond.',
 );
