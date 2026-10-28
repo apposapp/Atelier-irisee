@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.53.1
+Stable tag: 3.54.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,6 +29,16 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 
 == Changelog ==
 
+= 3.54.0 =
+* Dog bandana guide: A hero photo with a cream arch, the facts as gold seals, round contents links with icons, and a "Your bandana in six steps" bar that is sewn and sparkles like the kit steps bar.
+* Dog bandana guide: Photo cards for the three styles, flat-lay photos next to icon lists for the materials and tools, "Choose / Avoid" boxes for the fabric, a dog that grows from XS to XL above the size chart, and icon tiles for care and safety.
+* Dog bandana guide: Every step as a card: its photo, the exact line drawing as a detail, numbered sub-steps, and "Check", "Note" and "Common mistake" notes. The drawings draw themselves as you scroll (not with reduced motion).
+* Dog bandana guide: Visitors who did not buy the pattern see a blurred peek at the step photos.
+* Written for a first-time sewer: new parts "Before you start" and "Getting your machine ready", every sewing step explained action by action, ten problems with their fix and fifteen sewing terms. In Dutch, English and French.
+* Pictures (Atelier Irisee → Dog bandana → Pictures): about 20 styled photos, generated with the Google Gemini key of the AI pictures, in the colours of the site and the logo, with your dog from the home page hero as the example. Generate one, "Generate all missing", choose your own picture or change the prompt. Without a picture the line drawing is shown.
+* The PDF guide gets the same look: the hero photo on the cover with the logo in the ribbon circle, photos per part and per step, icons, the steps bar, and a pink-to-purple line under the gold one. The template PDF is unchanged.
+* The PDFs now show the same logo as the site header (it showed the WordPress site logo, a needle). A "Logo for the PDF" setting can choose another one.
+* The logo's pink and purple are accents of the guide (settings "Logo colours").
 = 3.53.1 =
 * Dog bandana: a switch under Atelier Irisee → Dog bandana turns the whole feature on or off, site-wide. When it is off, the guide page shows nothing, the PDFs cannot be downloaded, orders get no guide link, and the customizer does not offer the bandana. The other settings are kept.
 

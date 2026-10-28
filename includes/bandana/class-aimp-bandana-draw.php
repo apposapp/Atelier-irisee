@@ -25,6 +25,9 @@ class AIMP_Bandana_Draw {
 			'gold_text' => 'var(--aimp-site-gold-text,#8a6a33)',
 			'tint'      => 'color-mix(in srgb,var(--aimp-site-gold,#b38f4f) 9%,#fff)',
 			'light'     => 'color-mix(in srgb,var(--aimp-site-gold,#b38f4f) 45%,#fff)',
+			'pink'      => 'var(--bd-pink,#e2bfc9)',
+			'purple'    => 'var(--bd-purple,#79416d)',
+			'blush'     => 'color-mix(in srgb,var(--bd-pink,#e2bfc9) 30%,#fff)',
 		);
 		return isset( $colors[ $key ] ) ? $colors[ $key ] : 'none';
 	}
@@ -51,6 +54,98 @@ class AIMP_Bandana_Draw {
 			$out .= self::svg_shape( $s );
 		}
 		return $out . '</svg>';
+	}
+
+	/**
+	 * A small icon (AIMP_Bandana::icon()) as SVG; its lines keep their width at every size (bandana.css).
+	 *
+	 * @param string $name Icon.
+	 * @return string
+	 */
+	public static function icon_svg( $name ) {
+		$out = '<svg class="aimp-bandana-icon" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">';
+		foreach ( AIMP_Bandana::icon( $name )[2] as $s ) {
+			$out .= self::svg_shape( $s );
+		}
+		return $out . '</svg>';
+	}
+
+	/**
+	 * The points of the logo's ribbon circle: a ring that waves in and out (unit circle, $n points).
+	 *
+	 * @param float $phase Where the waves start.
+	 * @param int   $n     Points.
+	 * @return array
+	 */
+	public static function ribbon_points( $phase, $n = 120 ) {
+		$points = array();
+		for ( $i = 0; $i <= $n; $i++ ) {
+			$a        = 2 * M_PI * $i / $n;
+			$r        = 1 + 0.045 * sin( 5 * $a + $phase ) + 0.02 * sin( 3 * $a - $phase );
+			$points[] = array( cos( $a ) * $r, sin( $a ) * $r );
+		}
+		return $points;
+	}
+
+	/**
+	 * The logo's ribbon circle as SVG: a wide ribbon from gold to pink and purple, and a thin gold line crossing it.
+	 *
+	 * @param string $class Class.
+	 * @return string
+	 */
+	public static function ribbon_svg( $class = 'aimp-bandana-ribbon' ) {
+		$id   = function_exists( 'wp_unique_id' ) ? wp_unique_id( 'aimp-bd-ribbon-' ) : 'aimp-bd-ribbon-' . wp_rand();
+		$path = function ( $phase ) {
+			$d = '';
+			foreach ( self::ribbon_points( $phase ) as $i => $p ) {
+				$d .= ( $i ? 'L' : 'M' ) . self::n( 50 + $p[0] * 44 ) . ' ' . self::n( 50 + $p[1] * 44 );
+			}
+			return $d . 'Z';
+		};
+		return '<svg class="' . esc_attr( $class ) . '" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' .
+			'<defs><linearGradient id="' . esc_attr( $id ) . '" x1="0" y1="0" x2="1" y2="1">' .
+			'<stop offset="0" stop-color="var(--hb-gold,#b38f4f)"/><stop offset=".45" stop-color="var(--bd-pink,#e2bfc9)"/>' .
+			'<stop offset=".8" stop-color="var(--bd-purple,#79416d)" stop-opacity=".55"/><stop offset="1" stop-color="var(--hb-gold,#b38f4f)"/></linearGradient></defs>' .
+			'<path class="aimp-bandana-ribbon-band" d="' . $path( 0 ) . '" fill="none" stroke="url(#' . esc_attr( $id ) . ')" stroke-width="3.2" stroke-linejoin="round"/>' .
+			'<path class="aimp-bandana-ribbon-line" d="' . $path( 2.2 ) . '" fill="none" stroke="var(--hb-gold,#b38f4f)" stroke-width=".5"/>' .
+			'</svg>';
+	}
+
+	/**
+	 * The logo's ribbon circle in a PDF: short pieces whose colour runs from gold to pink, purple and back.
+	 *
+	 * @param AIMP_Pdf $pdf     PDF.
+	 * @param float    $cx      Centre (mm).
+	 * @param float    $cy      Centre (mm).
+	 * @param float    $rx      Radius across (mm).
+	 * @param float    $ry      Radius down (mm).
+	 * @param array    $palette Colours (AIMP_Bandana::palette()).
+	 * @param float    $width   Width of the ribbon (mm).
+	 */
+	public static function ribbon_pdf( $pdf, $cx, $cy, $rx, $ry, $palette, $width = 1.4 ) {
+		$stops  = array( $palette['gold'], $palette['pink'], $palette['blush'], $palette['purple'], $palette['pink'], $palette['gold'] );
+		$rgb    = function ( $hex ) {
+			$hex = ltrim( $hex, '#' );
+			return array( hexdec( substr( $hex, 0, 2 ) ), hexdec( substr( $hex, 2, 2 ) ), hexdec( substr( $hex, 4, 2 ) ) );
+		};
+		$points = self::ribbon_points( 0 );
+		$n      = count( $points ) - 1;
+		for ( $i = 0; $i < $n; $i++ ) {
+			$t     = $i / $n * ( count( $stops ) - 1 );
+			$k     = min( count( $stops ) - 2, (int) floor( $t ) );
+			$a     = $rgb( $stops[ $k ] );
+			$b     = $rgb( $stops[ $k + 1 ] );
+			$f     = $t - $k;
+			$color = array( $a[0] + ( $b[0] - $a[0] ) * $f, $a[1] + ( $b[1] - $a[1] ) * $f, $a[2] + ( $b[2] - $a[2] ) * $f );
+			$pdf->stroke( $color, $width );
+			$pdf->line( $cx + $points[ $i ][0] * $rx, $cy + $points[ $i ][1] * $ry, $cx + $points[ $i + 1 ][0] * $rx, $cy + $points[ $i + 1 ][1] * $ry );
+		}
+		$segments = array();
+		foreach ( self::ribbon_points( 2.2 ) as $i => $p ) {
+			$segments[] = array( $i ? 'L' : 'M', $cx + $p[0] * $rx, $cy + $p[1] * $ry );
+		}
+		$pdf->stroke( $palette['gold'], 0.25 );
+		$pdf->path( $segments );
 	}
 
 	private static function stroke_css( $stroke, $width, $dashes, $fill ) {

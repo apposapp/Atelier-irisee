@@ -127,6 +127,47 @@ class AIMP_Pdf {
 	}
 
 	/**
+	 * A JPEG as it is (DCTDecode: no GD needed, and the file stays small).
+	 *
+	 * @param string $bytes JPEG file contents.
+	 * @return string Picture key, or '' when it is not a JPEG this writer can use.
+	 */
+	public function add_jpeg( $bytes ) {
+		$bytes = (string) $bytes;
+		$len   = strlen( $bytes );
+		if ( $len < 4 || "\xFF\xD8" !== substr( $bytes, 0, 2 ) ) {
+			return '';
+		}
+		// Find the frame header (SOF0–SOF15, not DHT/JPG/DAC) for the size and the number of colour channels.
+		$i = 2;
+		while ( $i + 9 < $len ) {
+			if ( "\xFF" !== $bytes[ $i ] ) {
+				$i++;
+				continue;
+			}
+			$marker = ord( $bytes[ $i + 1 ] );
+			if ( 0xD8 === $marker || 0x01 === $marker || ( $marker >= 0xD0 && $marker <= 0xD7 ) || 0xFF === $marker ) {
+				$i += 0xFF === $marker ? 1 : 2;
+				continue;
+			}
+			$size = ( ord( $bytes[ $i + 2 ] ) << 8 ) + ord( $bytes[ $i + 3 ] );
+			if ( $marker >= 0xC0 && $marker <= 0xCF && ! in_array( $marker, array( 0xC4, 0xC8, 0xCC ), true ) ) {
+				$h     = ( ord( $bytes[ $i + 5 ] ) << 8 ) + ord( $bytes[ $i + 6 ] );
+				$w     = ( ord( $bytes[ $i + 7 ] ) << 8 ) + ord( $bytes[ $i + 8 ] );
+				$comps = ord( $bytes[ $i + 9 ] );
+				if ( ! $w || ! $h || ! in_array( $comps, array( 1, 3 ), true ) ) {
+					return '';
+				}
+				$key                  = 'Im' . ( count( $this->images ) + 1 );
+				$this->images[ $key ] = array( $w, $h, $bytes, '', 3 === $comps ? 'DeviceRGB' : 'DeviceGray' );
+				return $key;
+			}
+			$i += 2 + $size;
+		}
+		return '';
+	}
+
+	/**
 	 * Width / height of a picture.
 	 *
 	 * @param string $key Key.
@@ -406,6 +447,30 @@ class AIMP_Pdf {
 		$this->out( 'q ' . $this->x( $x ) . ' ' . $this->y( $y + $h ) . ' ' . self::n( $w * self::K ) . ' ' . self::n( $h * self::K ) . ' re W n' );
 	}
 
+	/**
+	 * Draw only inside a rectangle with rounded corners until restore().
+	 */
+	public function clip_round( $x, $y, $w, $h, $r ) {
+		$this->out( 'q' );
+		$r = min( $r, $w / 2, $h / 2 );
+		$c = $r * 0.5523;
+		$this->path(
+			array(
+				array( 'M', $x + $r, $y ),
+				array( 'L', $x + $w - $r, $y ),
+				array( 'C', $x + $w - $r + $c, $y, $x + $w, $y + $r - $c, $x + $w, $y + $r ),
+				array( 'L', $x + $w, $y + $h - $r ),
+				array( 'C', $x + $w, $y + $h - $r + $c, $x + $w - $r + $c, $y + $h, $x + $w - $r, $y + $h ),
+				array( 'L', $x + $r, $y + $h ),
+				array( 'C', $x + $r - $c, $y + $h, $x, $y + $h - $r + $c, $x, $y + $h - $r ),
+				array( 'L', $x, $y + $r ),
+				array( 'C', $x, $y + $r - $c, $x + $r - $c, $y, $x + $r, $y ),
+				array( 'Z' ),
+			),
+			'W n'
+		);
+	}
+
 	public function restore() {
 		$this->out( 'Q' );
 	}
@@ -460,7 +525,8 @@ class AIMP_Pdf {
 			if ( '' !== $image[3] ) {
 				$mask = ' /SMask ' . $add( $stream( '/Type /XObject /Subtype /Image /Width ' . $image[0] . ' /Height ' . $image[1] . ' /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode', $image[3] ) ) . ' 0 R';
 			}
-			$image_refs[ $key ] = $add( $stream( '/Type /XObject /Subtype /Image /Width ' . $image[0] . ' /Height ' . $image[1] . ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode' . $mask, $image[2] ) );
+			$jpeg               = isset( $image[4] );
+			$image_refs[ $key ] = $add( $stream( '/Type /XObject /Subtype /Image /Width ' . $image[0] . ' /Height ' . $image[1] . ' /ColorSpace /' . ( $jpeg ? $image[4] : 'DeviceRGB' ) . ' /BitsPerComponent 8 /Filter /' . ( $jpeg ? 'DCTDecode' : 'FlateDecode' ) . $mask, $image[2] ) );
 		}
 
 		$resources = '<< /Font <<';

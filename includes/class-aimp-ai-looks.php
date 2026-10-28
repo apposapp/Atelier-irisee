@@ -973,6 +973,65 @@ class AIMP_AI_Looks {
 	}
 
 	/**
+	 * A picture made with the saved Google Gemini key, for other parts of the plugin (the dog bandana guide).
+	 *
+	 * @param string $prompt What the picture shows.
+	 * @param array  $images Reference pictures: [ bytes, mime type, what it is ].
+	 * @param string $aspect Aspect ratio, e.g. '16:9', '4:5', '1:1'.
+	 * @return array|WP_Error [ 'image' => bytes, 'mime' => type ].
+	 */
+	public static function generate_picture( $prompt, $images = array(), $aspect = '1:1' ) {
+		$api_key = self::api_key( 'gemini' );
+		if ( '' === $api_key ) {
+			return new WP_Error( 'aimp_ai', __( 'No Google Gemini key: save one under Settings → AI pictures.', 'atelier-irisee-master-plugin' ) );
+		}
+		$parts = array( array( 'text' => $prompt ) );
+		foreach ( $images as $i => $image ) {
+			$parts[] = array( 'text' => 'Image ' . ( $i + 1 ) . ' – ' . $image[2] . ':' );
+			$parts[] = array(
+				'inline_data' => array(
+					'mime_type' => $image[1],
+					'data'      => base64_encode( $image[0] ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+				),
+			);
+		}
+		$response = wp_remote_post(
+			'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( (string) self::opt( 'model_gemini' ) ) . ':generateContent',
+			array(
+				'timeout' => 150,
+				'headers' => array(
+					'x-goog-api-key' => $api_key,
+					'Content-Type'   => 'application/json',
+				),
+				'body'    => wp_json_encode(
+					array(
+						'contents'         => array( array( 'parts' => $parts ) ),
+						'generationConfig' => array(
+							'responseModalities' => array( 'TEXT', 'IMAGE' ),
+							'imageConfig'        => array( 'aspectRatio' => $aspect ),
+						),
+					)
+				),
+			)
+		);
+		$json = is_wp_error( $response ) ? null : json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return self::http_error( $response, $json );
+		}
+		foreach ( isset( $json['candidates'][0]['content']['parts'] ) ? (array) $json['candidates'][0]['content']['parts'] : array() as $part ) {
+			$inline = isset( $part['inlineData'] ) ? $part['inlineData'] : ( isset( $part['inline_data'] ) ? $part['inline_data'] : null );
+			if ( $inline && ! empty( $inline['data'] ) ) {
+				return array(
+					'image' => base64_decode( $inline['data'] ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+					'mime'  => isset( $inline['mimeType'] ) ? $inline['mimeType'] : ( isset( $inline['mime_type'] ) ? $inline['mime_type'] : 'image/png' ),
+				);
+			}
+		}
+		$reason = isset( $json['candidates'][0]['finishReason'] ) ? $json['candidates'][0]['finishReason'] : ( isset( $json['promptFeedback']['blockReason'] ) ? $json['promptFeedback']['blockReason'] : '' );
+		return new WP_Error( 'aimp_ai', trim( 'No picture in the answer. ' . $reason ) );
+	}
+
+	/**
 	 * OpenAI (images/edits with all pictures; the answer has the picture).
 	 */
 	private static function openai( $api_key, $model, $prompt, $images ) {

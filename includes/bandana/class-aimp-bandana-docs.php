@@ -1,7 +1,9 @@
 <?php
 /**
- * The bandana's two PDFs, in the site's look (its colours, its logo, its font when the font file can be embedded):
- *  - the guide: a cover, then every part of AIMP_Bandana::guide() with its drawings;
+ * The bandana's two PDFs, in the site's look (its colours, its logo, its font when the font file can be embedded,
+ * the logo's ribbon circle in gold, pink and purple):
+ *  - the guide: a cover with the hero photo, then every part of AIMP_Bandana::guide() with its photos, icons and
+ *    drawings;
  *  - the template: an overview (with the 5 × 5 cm test square and the order of the sheets), then the pattern piece at
  *    its real size over A4 sheets that are taped together.
  *
@@ -38,8 +40,15 @@ class AIMP_Bandana_Docs {
 	/** @var string Logo picture key, or ''. */
 	private $logo = '';
 
+	/** @var array Picture slot => key ('' = none). */
+	private $photos = array();
+
 	/** @var float Where the next block starts (mm). */
 	private $y = self::TOP;
+
+	/** @var float Left and right of the column the blocks are written in (mm). */
+	private $l = self::LEFT;
+	private $r = self::RIGHT;
 
 	/** @var string Running title in the page head. */
 	private $running = '';
@@ -52,7 +61,7 @@ class AIMP_Bandana_Docs {
 	}
 
 	/* ------------------------------------------------------------------
-	 * The site's font and logo
+	 * The site's font and logo, the photos
 	 * ------------------------------------------------------------------ */
 
 	/**
@@ -95,33 +104,44 @@ class AIMP_Bandana_Docs {
 	}
 
 	/**
-	 * The site logo (the email logo of the Design studio, Divi's logo or the site logo).
+	 * The site logo: the same as the site header (AIMP_Bandana_Pictures::logo_file()).
 	 */
 	private function setup_logo() {
-		$ids = array();
-		if ( class_exists( 'AIMP_Design' ) ) {
-			$ids[] = absint( AIMP_Design::opt( 'emails', 'em_logo', 0 ) );
-		}
-		$ids[] = (int) get_theme_mod( 'custom_logo' );
-		$file  = '';
-		foreach ( array_filter( $ids ) as $id ) {
-			$file = (string) get_attached_file( $id );
-			if ( '' !== $file ) {
-				break;
-			}
-		}
-		if ( '' === $file && function_exists( 'et_get_option' ) ) {
-			$url  = (string) et_get_option( 'divi_logo' );
-			$id   = $url ? attachment_url_to_postid( $url ) : 0;
-			$file = $id ? (string) get_attached_file( $id ) : '';
-			if ( '' === $file && $url ) {
-				$uploads = wp_get_upload_dir();
-				if ( 0 === strpos( $url, $uploads['baseurl'] ) ) {
-					$file = $uploads['basedir'] . substr( $url, strlen( $uploads['baseurl'] ) );
-				}
-			}
-		}
+		$file       = AIMP_Bandana_Pictures::logo_file();
 		$this->logo = '' !== $file ? $this->pdf->add_image( $file ) : '';
+	}
+
+	/**
+	 * A guide picture's key in the PDF ('' = none), added once.
+	 *
+	 * @param string $slot Slot.
+	 * @return string
+	 */
+	private function photo( $slot ) {
+		if ( '' === $slot ) {
+			return '';
+		}
+		if ( ! isset( $this->photos[ $slot ] ) ) {
+			$jpeg                  = AIMP_Bandana_Pictures::jpeg( $slot );
+			$this->photos[ $slot ] = '' !== $jpeg ? $this->pdf->add_jpeg( $jpeg ) : '';
+		}
+		return $this->photos[ $slot ];
+	}
+
+	/**
+	 * A picture filling a box with rounded corners (cut to fit, centred).
+	 */
+	private function cover_image( $key, $x, $y, $w, $h, $r = 4 ) {
+		$ratio = $this->pdf->image_ratio( $key );
+		$dw    = $w;
+		$dh    = $w / $ratio;
+		if ( $dh < $h ) {
+			$dh = $h;
+			$dw = $h * $ratio;
+		}
+		$this->pdf->clip_round( $x, $y, $w, $h, $r );
+		$this->pdf->image( $key, $x + ( $w - $dw ) / 2, $y + ( $h - $dh ) / 2, $dw, $dh );
+		$this->pdf->restore();
 	}
 
 	/* ------------------------------------------------------------------
@@ -135,18 +155,59 @@ class AIMP_Bandana_Docs {
 	}
 
 	/**
-	 * The page head (logo, running title, gold double line) and foot (the site, page number added at the end).
+	 * A thin line from pink to purple (the logo's ribbon).
+	 */
+	private function iris_line( $x1, $x2, $y, $width = 0.35 ) {
+		$a    = $this->rgb( $this->c['pink'] );
+		$b    = $this->rgb( $this->c['purple'] );
+		$step = ( $x2 - $x1 ) / 40;
+		for ( $i = 0; $i < 40; $i++ ) {
+			$f = $i / 39;
+			$this->pdf->stroke( array( $a[0] + ( $b[0] - $a[0] ) * $f, $a[1] + ( $b[1] - $a[1] ) * $f, $a[2] + ( $b[2] - $a[2] ) * $f ), $width );
+			$this->pdf->line( $x1 + $i * $step, $y, $x1 + ( $i + 1 ) * $step, $y );
+		}
+	}
+
+	private function rgb( $hex ) {
+		$hex = ltrim( $hex, '#' );
+		return array( hexdec( substr( $hex, 0, 2 ) ), hexdec( substr( $hex, 2, 2 ) ), hexdec( substr( $hex, 4, 2 ) ) );
+	}
+
+	/**
+	 * An icon of AIMP_Bandana::icon(), $size mm wide, top left at x, y.
+	 */
+	private function icon( $name, $x, $y, $size ) {
+		AIMP_Bandana_Draw::pdf( $this->pdf, AIMP_Bandana::icon( $name )[2], $x, $y, $size / 12, $this->c, array( $this->f['body'], $this->f['bold'] ) );
+	}
+
+	/**
+	 * An icon in a gold ring.
+	 */
+	private function ring_icon( $name, $cx, $cy, $r, $double = false ) {
+		$this->pdf->fill( '#ffffff' );
+		$this->pdf->stroke( $this->c['gold'], 0.3 );
+		$this->pdf->circle( $cx, $cy, $r, 'B' );
+		if ( $double ) {
+			$this->pdf->circle( $cx, $cy, $r - 0.8 );
+		}
+		$this->icon( $name, $cx - $r * 0.62, $cy - $r * 0.62, $r * 1.24 );
+	}
+
+	/**
+	 * The page head (logo, running title, gold double line, the logo's pink and purple) and foot (the site, page
+	 * number added at the end).
 	 */
 	private function page_frame() {
 		if ( '' !== $this->logo ) {
-			$h = 10;
-			$w = min( 46, $h * $this->pdf->image_ratio( $this->logo ) );
-			$this->pdf->image( $this->logo, self::LEFT, 8, $w, $w / $this->pdf->image_ratio( $this->logo ) );
+			$h = 12;
+			$w = $h * $this->pdf->image_ratio( $this->logo );
+			$this->pdf->image( $this->logo, self::LEFT, 6.5, $w, $h );
 		} else {
 			$this->pdf->text( self::LEFT, 15, get_bloginfo( 'name' ), $this->f['head'], 10, $this->c['gold_text'], 'left', 0.12 );
 		}
 		$this->pdf->text( self::RIGHT, 15, self::upper( $this->running ), $this->f['head'], 8, $this->c['gold_text'], 'right', 0.14 );
-		$this->double_line( self::LEFT, self::RIGHT, 20.5 );
+		$this->double_line( self::LEFT + 16, self::RIGHT, 20.5 );
+		$this->iris_line( self::LEFT + 16, self::RIGHT, 22.6, 0.3 );
 		$this->pdf->stroke( $this->c['gold'], 0.3 );
 		$this->pdf->line( self::LEFT, 283, self::RIGHT, 283 );
 		$this->pdf->text( self::LEFT, 288, wp_parse_url( home_url(), PHP_URL_HOST ), $this->f['body'], 7.5, $this->c['gold_text'] );
@@ -183,14 +244,21 @@ class AIMP_Bandana_Docs {
 	}
 
 	/**
-	 * A title between gold double lines, like the site's block titles.
+	 * A title between gold double lines, like the site's block titles; with an icon, in a small ribbon circle above.
 	 */
-	private function title( $s ) {
-		$this->need( 45 );
+	private function title( $s, $icon = '' ) {
+		// The title never stays alone at the bottom of a page: room for the first block after it too.
+		$this->need( '' !== $icon ? 105 : 45 );
+		$mid = ( self::LEFT + self::RIGHT ) / 2;
+		if ( '' !== $icon ) {
+			$this->y += 9;
+			AIMP_Bandana_Draw::ribbon_pdf( $this->pdf, $mid, $this->y, 8.6, 8.6, $this->c, 0.9 );
+			$this->ring_icon( $icon, $mid, $this->y, 6, true );
+			$this->y += 11;
+		}
 		$size = 15;
 		$text = self::upper( $s );
 		$w    = $this->pdf->width( $text, $this->f['head'], $size, 0.06 );
-		$mid  = ( self::LEFT + self::RIGHT ) / 2;
 		$this->y += 6;
 		$this->pdf->text( $mid, $this->y, $text, $this->f['head'], $size, $this->c['gold_text'], 'center', 0.06 );
 		$this->double_line( self::LEFT, $mid - $w / 2 - 5, $this->y - 2.3, 0.35 );
@@ -199,10 +267,11 @@ class AIMP_Bandana_Docs {
 	}
 
 	/**
-	 * A paragraph (it may run onto the next page).
+	 * A paragraph in the current column (it may run onto the next page).
 	 */
-	private function paragraph( $s, $x = self::LEFT, $width = 0, $size = 10, $font = '', $color = '' ) {
-		$width = $width ? $width : self::RIGHT - $x;
+	private function paragraph( $s, $x = null, $width = 0, $size = 10, $font = '', $color = '' ) {
+		$x     = null === $x ? $this->l : $x;
+		$width = $width ? $width : $this->r - $x;
 		$font  = $font ? $font : $this->f['body'];
 		$color = $color ? $color : $this->c['brown'];
 		$lead  = $size * 0.52;
@@ -215,6 +284,21 @@ class AIMP_Bandana_Docs {
 	}
 
 	/**
+	 * Lines of a text at a fixed place (no page break), returns the height used.
+	 */
+	private function lines( $s, $x, $y, $width, $size = 10, $font = '', $color = '' ) {
+		$font  = $font ? $font : $this->f['body'];
+		$color = $color ? $color : $this->c['brown'];
+		$lead  = $size * 0.52;
+		$h     = 0;
+		foreach ( $this->pdf->wrap( $s, $font, $size, $width ) as $line ) {
+			$h += $lead;
+			$this->pdf->text( $x, $y + $h - 1.2, $line, $font, $size, $color );
+		}
+		return $h;
+	}
+
+	/**
 	 * Height of a wrapped text.
 	 */
 	private function text_height( $s, $width, $size = 10, $font = '' ) {
@@ -224,9 +308,9 @@ class AIMP_Bandana_Docs {
 	/**
 	 * The little gold sparkle of the site's lists.
 	 */
-	private function sparkle( $x, $y, $r = 1.5 ) {
+	private function sparkle( $x, $y, $r = 1.5, $color = '' ) {
 		$k = $r * 0.28;
-		$this->pdf->fill( $this->c['gold'] );
+		$this->pdf->fill( $color ? $color : $this->c['gold'] );
 		$this->pdf->path(
 			array(
 				array( 'M', $x, $y - $r ),
@@ -241,7 +325,7 @@ class AIMP_Bandana_Docs {
 	}
 
 	/**
-	 * A drawing centred, at most $max mm wide.
+	 * A drawing centred in the column, at most $max mm wide.
 	 */
 	private function figure( $name, $max = 120 ) {
 		$fig = AIMP_Bandana::figure( $name );
@@ -249,15 +333,60 @@ class AIMP_Bandana_Docs {
 			return;
 		}
 		list( $w, $h, $shapes ) = $fig;
-		$scale                  = min( $max / ( $w + 4 ), 1.6 );
+		$scale                  = min( $max / ( $w + 4 ), 1.6, ( $this->r - $this->l ) / ( $w + 4 ) );
 		$height                 = ( $h + 8 ) * $scale;
 		$this->need( $height + 4 );
-		$x = ( self::LEFT + self::RIGHT ) / 2 - ( $w + 4 ) * $scale / 2;
+		$x = ( $this->l + $this->r ) / 2 - ( $w + 4 ) * $scale / 2;
 		AIMP_Bandana_Draw::pdf( $this->pdf, $shapes, $x + 2 * $scale, $this->y + 6 * $scale, $scale, $this->c, array( $this->f['body'], $this->f['bold'] ) );
 		$this->y += $height + 4;
 	}
 
+	/**
+	 * A drawing fitted in a box (top left x, y; w × h), in a gold-tinted frame.
+	 */
+	private function figure_box( $name, $x, $y, $w, $h ) {
+		$this->pdf->fill( $this->c['tint'] );
+		$this->pdf->stroke( $this->c['gold'], 0.3 );
+		$this->pdf->round_rect( $x, $y, $w, $h, 4, 'B' );
+		$fig = AIMP_Bandana::figure( $name );
+		if ( ! $fig ) {
+			return;
+		}
+		list( $fw, $fh, $shapes ) = $fig;
+		$scale                    = min( ( $w - 6 ) / ( $fw + 4 ), ( $h - 6 ) / ( $fh + 8 ) );
+		$dx                       = $x + ( $w - ( $fw + 4 ) * $scale ) / 2 + 2 * $scale;
+		$dy                       = $y + ( $h - ( $fh + 8 ) * $scale ) / 2 + 6 * $scale;
+		AIMP_Bandana_Draw::pdf( $this->pdf, $shapes, $dx, $dy, $scale, $this->c, array( $this->f['body'], $this->f['bold'] ) );
+	}
+
+	/**
+	 * A part's blocks; a photo stands next to the list or text after it, as on the page.
+	 */
+	private function blocks( $blocks ) {
+		$count = count( $blocks );
+		for ( $i = 0; $i < $count; $i++ ) {
+			$b = $blocks[ $i ];
+			if ( 'photo' === $b[0] && $i + 1 < $count && in_array( $blocks[ $i + 1 ][0], array( 'items', 'dodont', 'p' ), true ) && '' !== $this->photo( $b[1] ) ) {
+				$key = $this->photo( $b[1] );
+				$w   = 76;
+				$h   = min( 95, $w / $this->pdf->image_ratio( $key ) );
+				$this->need( $h + 4 );
+				$top = $this->y;
+				$this->cover_image( $key, self::LEFT, $top, $w, $h, 5 );
+				AIMP_Bandana_Draw::ribbon_pdf( $this->pdf, self::LEFT + $w - 4, $top + 4, 9, 9, $this->c, 0.8 );
+				$this->l = self::LEFT + $w + 8;
+				$this->block( $blocks[ $i + 1 ] );
+				$this->l = self::LEFT;
+				$this->y = max( $this->y, $top + $h + 6 );
+				$i++;
+				continue;
+			}
+			$this->block( $b );
+		}
+	}
+
 	private function block( $b ) {
+		$width = $this->r - $this->l;
 		switch ( $b[0] ) {
 			case 'p':
 				$this->paragraph( $b[1] );
@@ -266,35 +395,142 @@ class AIMP_Bandana_Docs {
 			case 'list':
 				foreach ( $b[1] as $item ) {
 					$this->need( 6 );
-					$this->sparkle( self::LEFT + 2, $this->y + 3.4 );
-					$this->paragraph( $item, self::LEFT + 7 );
+					$this->sparkle( $this->l + 2, $this->y + 3.4 );
+					$this->paragraph( $item, $this->l + 7 );
 					$this->y -= 1.2;
 				}
 				$this->y += 2;
+				break;
+
+			case 'items':
+				foreach ( $b[1] as $item ) {
+					$h = max( 10, $this->text_height( $item[1], $width - 13, 9.5 ) + 2 );
+					$this->need( $h + 2 );
+					$this->ring_icon( $item[0], $this->l + 4.5, $this->y + 4.5, 4.5 );
+					$this->lines( $item[1], $this->l + 13, $this->y + max( 0.6, ( 9 - $this->text_height( $item[1], $width - 13, 9.5 ) ) / 2 ), $width - 13, 9.5 );
+					$this->y += $h + 1.5;
+				}
+				$this->y += 2;
+				break;
+
+			case 'photo':
+				$key = $this->photo( $b[1] );
+				if ( '' !== $key ) {
+					// A banner over the column's width.
+					$h = min( 72, $width / $this->pdf->image_ratio( $key ) );
+					$this->need( $h + 6 );
+					$this->cover_image( $key, $this->l, $this->y, $width, $h, 5 );
+					AIMP_Bandana_Draw::ribbon_pdf( $this->pdf, $this->r - 12, $this->y + 12, 8, 8, $this->c, 0.9 );
+					$this->y += $h + 6;
+				} elseif ( '' !== $b[3] ) {
+					$this->figure( $b[3] );
+				}
+				break;
+
+			case 'journey':
+				$count = count( $b[1] );
+				$step  = $width / $count;
+				$this->need( 34 );
+				$cy = $this->y + 10;
+				$this->pdf->stroke( $this->c['gold'], 0.5, array( 1.4, 1.2 ) );
+				$segments = array( array( 'M', $this->l + $step / 2, $cy ) );
+				for ( $i = 1; $i < $count; $i++ ) {
+					$x0         = $this->l + $step * ( $i - 0.5 );
+					$segments[] = array( 'C', $x0 + $step * 0.35, $cy + ( $i % 2 ? -6 : 6 ), $x0 + $step * 0.65, $cy + ( $i % 2 ? -6 : 6 ), $x0 + $step, $cy );
+				}
+				$this->pdf->path( $segments );
+				foreach ( $b[1] as $i => $item ) {
+					$cx = $this->l + $step * ( $i + 0.5 );
+					$this->ring_icon( $item[0], $cx, $cy, 8, true );
+					$this->pdf->fill( $this->c['gold'] );
+					$this->pdf->circle( $cx + 6.6, $cy - 6.6, 2.6, 'f' );
+					$this->pdf->text( $cx + 6.6, $cy - 5.5, (string) ( $i + 1 ), $this->f['bold'], 8, '#ffffff', 'center' );
+					$this->lines( self::upper( $item[1] ), $cx - $step / 2 + 1, $cy + 10, $step - 2, 7.5, $this->f['bold'], $this->c['gold_text'] );
+				}
+				foreach ( array( array( $this->r - 2, $this->y + 1, 2.2 ), array( $this->l + 2, $this->y + 1.5, 1.6 ) ) as $spark ) {
+					$this->sparkle( $spark[0], $spark[1], $spark[2], $this->c['purple'] );
+				}
+				$this->y += 34;
+				break;
+
+			case 'cards':
+				$count = count( $b[1] );
+				$gap   = 6;
+				$w     = ( $width - $gap * ( $count - 1 ) ) / $count;
+				$ph    = $w * 1.1;
+				$th    = 0;
+				foreach ( $b[1] as $card ) {
+					$th = max( $th, $this->text_height( $card[3], $w - 6, 8.5 ) );
+				}
+				$h = $ph + 14 + $th;
+				$this->need( $h + 4 );
+				foreach ( $b[1] as $i => $card ) {
+					$x = $this->l + $i * ( $w + $gap );
+					$this->pdf->stroke( $this->c['gold'], 0.3 );
+					$this->pdf->round_rect( $x, $this->y, $w, $h, 5 );
+					$key = $this->photo( $card[0] );
+					if ( '' !== $key ) {
+						$this->cover_image( $key, $x, $this->y, $w, $ph, 5 );
+					} else {
+						$this->figure_box( $card[1], $x, $this->y, $w, $ph );
+					}
+					$this->pdf->text( $x + $w / 2, $this->y + $ph + 6.5, self::upper( $card[2] ), $this->f['bold'], 9, $this->c['gold_text'], 'center', 0.06 );
+					$this->lines( $card[3], $x + 3, $this->y + $ph + 9, $w - 6, 8.5 );
+				}
+				$this->y += $h + 6;
+				break;
+
+			case 'dodont':
+				$cols = array(
+					array( $b[1], 'tick', __( 'Choose', 'atelier-irisee-master-plugin' ), $this->c['tint'], $this->c['gold_text'] ),
+					array( $b[2], 'warn', __( 'Avoid', 'atelier-irisee-master-plugin' ), $this->c['blush'], $this->c['purple'] ),
+				);
+				foreach ( $cols as $col ) {
+					$h = 11;
+					foreach ( $col[0] as $item ) {
+						$h += $this->text_height( $item, $width - 12, 9 ) + 1.2;
+					}
+					$this->need( $h + 3 );
+					$this->pdf->fill( $col[3] );
+					$this->pdf->round_rect( $this->l, $this->y, $width, $h, 4, 'f' );
+					$this->icon( $col[1], $this->l + 3, $this->y + 2.5, 5 );
+					$this->pdf->text( $this->l + 10, $this->y + 6.4, self::upper( $col[2] ), $this->f['bold'], 8.5, $col[4], 'left', 0.1 );
+					$y = $this->y + 9.5;
+					foreach ( $col[0] as $item ) {
+						$this->sparkle( $this->l + 6, $y + 2.3, 1.1, $col[4] );
+						$y += $this->lines( $item, $this->l + 10, $y, $width - 12, 9 ) + 1.2;
+					}
+					$this->y += $h + 3;
+				}
+				$this->y += 2;
+				break;
+
+			case 'sizes':
+				$sizes = AIMP_Bandana::sizes();
+				$gap   = 4;
+				$w     = ( $width - $gap * 4 ) / 5;
+				$this->need( 44 );
+				$n = 0;
+				foreach ( $sizes as $key => $s ) {
+					$x = $this->l + $n * ( $w + $gap );
+					$this->pdf->stroke( $this->c['gold'], 0.3 );
+					$this->pdf->round_rect( $x, $this->y, $w, 42, 4 );
+					$d = 9 + 2.4 * $n++;
+					$this->icon( 'dog', $x + ( $w - $d ) / 2, $this->y + 20 - $d, $d );
+					$this->pdf->text( $x + $w / 2, $this->y + 27, $s[0], $this->f['head'], 12, $this->c['gold_text'], 'center' );
+					/* translators: 1: from, 2: to (cm) */
+					$this->pdf->text( $x + $w / 2, $this->y + 32.5, sprintf( __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ), $s[1], $s[2] ), $this->f['body'], 8, $this->c['brown'], 'center' );
+					/* translators: %s: centimetres */
+					$this->pdf->text( $x + $w / 2, $this->y + 37, sprintf( __( 'Fabric: %s cm', 'atelier-irisee-master-plugin' ), AIMP_Bandana::fabric_need( $key ) ), $this->f['body'], 7, $this->c['gold_text'], 'center' );
+				}
+				$this->y += 48;
 				break;
 
 			case 'steps':
 				$n = 0;
 				foreach ( $b[1] as $step ) {
 					$n++;
-					$title = '' !== $step[0] ? self::upper( $step[0] ) : '';
-					$this->need( 12 + $this->text_height( $step[1], self::RIGHT - self::LEFT - 12 ) * 0.4 );
-					// A gold ring with the number.
-					$this->pdf->stroke( $this->c['gold'], 0.35 );
-					$this->pdf->circle( self::LEFT + 4, $this->y + 4.2, 4 );
-					$this->pdf->circle( self::LEFT + 4, $this->y + 4.2, 3.2 );
-					$this->pdf->text( self::LEFT + 4, $this->y + 5.6, (string) $n, $this->f['head'], 10, $this->c['gold_text'], 'center' );
-					if ( '' !== $title ) {
-						$this->pdf->text( self::LEFT + 12, $this->y + 5.4, $title, $this->f['bold'], 10, $this->c['gold_text'], 'left', 0.06 );
-						$this->y += 6.5;
-					} else {
-						$this->y += 0.6;
-					}
-					$this->paragraph( $step[1], self::LEFT + 12 );
-					if ( '' !== $step[2] ) {
-						$this->figure( $step[2], 100 );
-					}
-					$this->y += 1;
+					$this->step( $step, $n );
 				}
 				break;
 
@@ -305,7 +541,6 @@ class AIMP_Bandana_Docs {
 			case 'table':
 				$head  = $b[1];
 				$rows  = $b[2];
-				$width = self::RIGHT - self::LEFT;
 				$cols  = count( $head );
 				// The first columns narrow, the measurements wider.
 				$ws = array( 0.09, 0.15 );
@@ -317,39 +552,40 @@ class AIMP_Bandana_Docs {
 				$this->need( $row_h * ( count( $rows ) + 1 ) + 10 );
 				$this->pdf->fill( $this->c['tint'] );
 				$this->pdf->stroke( $this->c['gold'], 0.3 );
-				$this->pdf->rect( self::LEFT, $this->y, $width, $row_h, 'B' );
-				$x = self::LEFT;
+				$this->pdf->rect( $this->l, $this->y, $width, $row_h, 'B' );
+				$x = $this->l;
 				foreach ( $head as $i => $cell ) {
 					$this->pdf->text( $x + 2, $this->y + 4.7, self::upper( $cell ), $this->f['bold'], 7.5, $this->c['gold_text'], 'left', 0.04 );
 					$x += $ws[ $i ] * $width;
 				}
 				$this->y += $row_h;
 				foreach ( $rows as $row ) {
-					$x = self::LEFT;
+					$x = $this->l;
 					foreach ( $row as $i => $cell ) {
 						$this->pdf->text( $x + 2, $this->y + 4.7, $cell, 0 === $i ? $this->f['bold'] : $this->f['body'], 8.5, $this->c['brown'] );
 						$x += $ws[ $i ] * $width;
 					}
 					$this->y += $row_h;
 					$this->pdf->stroke( $this->c['light'], 0.25 );
-					$this->pdf->line( self::LEFT, $this->y, self::RIGHT, $this->y );
+					$this->pdf->line( $this->l, $this->y, $this->r, $this->y );
 				}
 				$this->y += 2;
 				if ( ! empty( $b[3] ) ) {
-					$this->paragraph( $b[3], self::LEFT, 0, 8, '', $this->c['gold_text'] );
+					$this->paragraph( $b[3], $this->l, 0, 8, '', $this->c['gold_text'] );
 				}
 				break;
 
 			case 'facts':
 				$count = count( $b[1] );
 				$gap   = 4;
-				$w     = ( self::RIGHT - self::LEFT - $gap * ( $count - 1 ) ) / $count;
+				$w     = ( $width - $gap * ( $count - 1 ) ) / $count;
 				$this->need( 20 );
 				foreach ( $b[1] as $i => $fact ) {
-					$x = self::LEFT + $i * ( $w + $gap );
+					$x = $this->l + $i * ( $w + $gap );
+					$this->pdf->fill( '#ffffff' );
 					$this->pdf->stroke( $this->c['gold'], 0.3 );
-					$this->pdf->round_rect( $x, $this->y, $w, 16, 4 );
-					$this->pdf->round_rect( $x + 0.9, $this->y + 0.9, $w - 1.8, 14.2, 3.2 );
+					$this->pdf->round_rect( $x, $this->y, $w, 16, 8, 'B' );
+					$this->pdf->round_rect( $x + 0.9, $this->y + 0.9, $w - 1.8, 14.2, 7.2 );
 					$this->pdf->text( $x + $w / 2, $this->y + 6.2, self::upper( $fact[0] ), $this->f['bold'], 6.5, $this->c['gold_text'], 'center', 0.12 );
 					$this->pdf->text( $x + $w / 2, $this->y + 11.6, $fact[1], $this->f['bold'], 9.5, $this->c['brown'], 'center' );
 				}
@@ -357,28 +593,127 @@ class AIMP_Bandana_Docs {
 				break;
 
 			case 'tip':
-				$h = $this->text_height( $b[1], self::RIGHT - self::LEFT - 12, 9.5 ) + 12;
+				$h = $this->text_height( $b[1], $width - 18, 9.5 ) + 12;
 				$this->need( $h );
 				$this->pdf->fill( $this->c['tint'] );
 				$this->pdf->stroke( $this->c['gold'], 0.3 );
-				$this->pdf->round_rect( self::LEFT, $this->y, self::RIGHT - self::LEFT, $h, 5, 'B' );
-				$this->sparkle( self::LEFT + 6, $this->y + 6, 2 );
-				$this->pdf->text( self::LEFT + 10, $this->y + 7.2, self::upper( __( 'Tip', 'atelier-irisee-master-plugin' ) ), $this->f['bold'], 8, $this->c['gold_text'], 'left', 0.12 );
-				$top     = $this->y;
-				$this->y = $top + 8;
-				$this->paragraph( $b[1], self::LEFT + 6, self::RIGHT - self::LEFT - 12, 9.5 );
-				$this->y = $top + $h + 4;
+				$this->pdf->round_rect( $this->l, $this->y, $width, $h, 5, 'B' );
+				$this->icon( 'bulb', $this->l + 3.5, $this->y + 3.2, 6.5 );
+				$this->pdf->text( $this->l + 12, $this->y + 7.2, self::upper( __( 'Tip', 'atelier-irisee-master-plugin' ) ), $this->f['bold'], 8, $this->c['gold_text'], 'left', 0.12 );
+				$this->lines( $b[1], $this->l + 12, $this->y + 8.5, $width - 18, 9.5 );
+				$this->y += $h + 4;
 				break;
 
 			case 'terms':
 				foreach ( $b[1] as $term ) {
 					$this->need( 12 );
-					$this->pdf->text( self::LEFT, $this->y + 4.6, self::upper( $term[0] ), $this->f['bold'], 9, $this->c['gold_text'], 'left', 0.06 );
+					$this->sparkle( $this->l + 1.5, $this->y + 3.4, 1.3 );
+					$this->pdf->text( $this->l + 5, $this->y + 4.6, self::upper( $term[0] ), $this->f['bold'], 9, $this->c['gold_text'], 'left', 0.06 );
 					$this->y += 5.4;
-					$this->paragraph( $term[1] );
+					$this->paragraph( $term[1], $this->l + 5 );
 				}
 				break;
 		}
+	}
+
+	/**
+	 * One step: its photo or drawing on the left, the number, title, why, sub-steps and notes on the right. Without a
+	 * picture or drawing, the text uses the whole width.
+	 *
+	 * @param array $step [ title, text, drawing, extra ].
+	 * @param int   $n    Number.
+	 */
+	private function step( $step, $n ) {
+		$extra = isset( $step[3] ) ? $step[3] : array();
+		$key   = $this->photo( isset( $extra['slot'] ) ? $extra['slot'] : '' );
+		$media = '' !== $key || '' !== $step[2];
+		$mw    = $media ? 62 : 0;
+		$x     = $this->l + ( $media ? $mw + 8 : 0 );
+		$w     = $this->r - $x;
+		$mh    = '' !== $key ? min( 70, $mw / $this->pdf->image_ratio( $key ) ) : ( $media ? 46 : 0 );
+
+		$body = $this->step_body( $step, $extra, $n, $x, 0, $w, false );
+		$this->need( max( $mh, $body ) + 6 );
+		$top = $this->y;
+		if ( '' !== $key ) {
+			$this->cover_image( $key, $this->l, $top, $mw, $mh, 5 );
+			if ( '' !== $step[2] ) {
+				$this->figure_box( $step[2], $this->l + $mw - 30, $top + $mh - 20, 28, 18 );
+			}
+		} elseif ( $media ) {
+			$this->figure_box( $step[2], $this->l, $top, $mw, $mh );
+		}
+		$this->step_body( $step, $extra, $n, $x, $top, $w, true );
+		$this->y = $top + max( $mh, $body ) + 7;
+	}
+
+	/**
+	 * Draws (or only measures) a step's text block; returns its height.
+	 */
+	private function step_body( $step, $extra, $n, $x, $top, $w, $draw ) {
+		$y  = $top;
+		$tx = $x + 11;
+		$tw = $w - 11;
+		if ( $draw ) {
+			$this->pdf->fill( '#ffffff' );
+			$this->pdf->stroke( $this->c['gold'], 0.35 );
+			$this->pdf->circle( $x + 4.2, $y + 4.2, 4.2, 'B' );
+			$this->pdf->circle( $x + 4.2, $y + 4.2, 3.4 );
+			$this->pdf->text( $x + 4.2, $y + 5.6, (string) $n, $this->f['head'], 10, $this->c['gold_text'], 'center' );
+		}
+		if ( '' !== $step[0] ) {
+			if ( $draw ) {
+				$this->pdf->text( $tx, $y + 5.6, self::upper( $step[0] ), $this->f['bold'], 10, $this->c['gold_text'], 'left', 0.06 );
+				if ( ! empty( $extra['time'] ) ) {
+					$tw0 = $this->pdf->width( self::upper( $step[0] ), $this->f['bold'], 10, 0.06 );
+					$this->icon( 'clock', $tx + $tw0 + 3, $y + 2, 4.4 );
+					$this->pdf->text( $tx + $tw0 + 8.6, $y + 5.4, $extra['time'], $this->f['body'], 8, $this->c['gold_text'] );
+				}
+			}
+			$y += 8.5;
+		} else {
+			$y += 1;
+		}
+		$measure = function ( $s, $x0, $width, $size = 9.5, $font = '', $color = '' ) use ( &$y, $draw ) {
+			$y += $draw ? $this->lines( $s, $x0, $y, $width, $size, $font, $color ) : $this->text_height( $s, $width, $size, $font );
+		};
+		if ( ! empty( $extra['why'] ) ) {
+			$measure( $extra['why'], $tx, $tw, 9.5, '', $this->c['gold_text'] );
+			$y += 1.8;
+		}
+		if ( ! empty( $extra['do'] ) ) {
+			foreach ( $extra['do'] as $i => $line ) {
+				if ( $draw ) {
+					$this->pdf->text( $tx, $y + 3.7, ( $i + 1 ) . '.', $this->f['bold'], 9, $this->c['gold_text'] );
+				}
+				$measure( $line, $tx + 5, $tw - 5 );
+				$y += 1.4;
+			}
+		} else {
+			$measure( $step[1], $tx, $tw );
+		}
+		$y += 1.2;
+		$chips = array(
+			'note'    => array( 'bulb', __( 'Note', 'atelier-irisee-master-plugin' ), $this->c['tint'], $this->c['gold_text'] ),
+			'check'   => array( 'tick', __( 'Check', 'atelier-irisee-master-plugin' ), $this->c['tint'], $this->c['gold_text'] ),
+			'mistake' => array( 'warn', __( 'Common mistake', 'atelier-irisee-master-plugin' ), $this->c['blush'], $this->c['purple'] ),
+		);
+		foreach ( $chips as $k => $chip ) {
+			if ( empty( $extra[ $k ] ) ) {
+				continue;
+			}
+			$label = self::upper( $chip[1] );
+			$h     = $this->text_height( $extra[ $k ], $tw - 10, 8.5 ) + 7.4;
+			if ( $draw ) {
+				$this->pdf->fill( $chip[2] );
+				$this->pdf->round_rect( $tx, $y, $tw, $h, 3, 'f' );
+				$this->icon( $chip[0], $tx + 2, $y + 1.8, 5 );
+				$this->pdf->text( $tx + 8.5, $y + 5, $label, $this->f['bold'], 7, $chip[3], 'left', 0.1 );
+				$this->lines( $extra[ $k ], $tx + 8.5, $y + 5.6, $tw - 10, 8.5 );
+			}
+			$y += $h + 1.8;
+		}
+		return $y - $top;
 	}
 
 	/* ------------------------------------------------------------------
@@ -397,10 +732,8 @@ class AIMP_Bandana_Docs {
 			if ( 'intro' === $part[0] ) {
 				continue;
 			}
-			$doc->title( $part[1] );
-			foreach ( $part[3] as $block ) {
-				$doc->block( $block );
-			}
+			$doc->title( $part[1], $part[4] );
+			$doc->blocks( $part[3] );
 			$doc->y += 4;
 		}
 		$doc->numbers();
@@ -408,24 +741,35 @@ class AIMP_Bandana_Docs {
 	}
 
 	/**
-	 * The cover: a double gold frame, the logo, the title, the three styles and the facts.
+	 * The cover: the hero photo (or the three styles), the logo in the ribbon circle, the title and the facts.
 	 */
 	private function cover() {
 		$this->pdf->add_page();
+		$mid  = 105;
+		$hero = $this->photo( 'hero' );
 		$this->pdf->stroke( $this->c['gold'], 0.5 );
 		$this->pdf->round_rect( 10, 10, 190, 277, 8 );
 		$this->pdf->round_rect( 11.6, 11.6, 186.8, 273.8, 6.8 );
-		$mid = 105;
-		$y   = 34;
-		if ( '' !== $this->logo ) {
-			$w = min( 80, 30 * $this->pdf->image_ratio( $this->logo ) );
-			$h = $w / $this->pdf->image_ratio( $this->logo );
-			$this->pdf->image( $this->logo, $mid - $w / 2, $y, $w, $h );
-			$y += $h + 18;
+		if ( '' !== $hero ) {
+			$this->cover_image( $hero, 15, 15, 180, 128, 6 );
+			$y = 143;
 		} else {
-			$this->pdf->text( $mid, $y + 10, self::upper( get_bloginfo( 'name' ) ), $this->f['head'], 18, $this->c['gold_text'], 'center', 0.1 );
-			$y += 30;
+			$y = 62;
 		}
+		// The logo in a white disc with the ribbon circle around it.
+		$r = 24;
+		$this->pdf->fill( '#ffffff' );
+		$this->pdf->stroke( $this->c['gold'], 0.4 );
+		$this->pdf->circle( $mid, $y, $r, 'B' );
+		AIMP_Bandana_Draw::ribbon_pdf( $this->pdf, $mid, $y, $r + 3, $r + 3, $this->c, 1.8 );
+		if ( '' !== $this->logo ) {
+			$lw = 2 * $r * 0.86;
+			$lh = $lw / $this->pdf->image_ratio( $this->logo );
+			$this->pdf->image( $this->logo, $mid - $lw / 2, $y - $lh / 2, $lw, $lh );
+		} else {
+			$this->pdf->text( $mid, $y + 2, self::upper( get_bloginfo( 'name' ) ), $this->f['head'], 11, $this->c['gold_text'], 'center', 0.1 );
+		}
+		$y += $r + 14;
 		$this->pdf->text( $mid, $y, self::upper( __( 'Sewing pattern and guide', 'atelier-irisee-master-plugin' ) ), $this->f['bold'], 9, $this->c['gold_text'], 'center', 0.2 );
 		$y += 14;
 		$title = self::upper( __( 'Dog bandana', 'atelier-irisee-master-plugin' ) );
@@ -433,13 +777,23 @@ class AIMP_Bandana_Docs {
 		$w = $this->pdf->width( $title, $this->f['head'], 30, 0.05 );
 		$this->double_line( 24, $mid - $w / 2 - 6, $y - 4, 0.4 );
 		$this->double_line( $mid + $w / 2 + 6, 186, $y - 4, 0.4 );
-		$this->y = $y + 12;
+		$this->iris_line( 24, $mid - $w / 2 - 6, $y - 1.6 );
+		$this->iris_line( $mid + $w / 2 + 6, 186, $y - 1.6 );
+		$this->y = $y + 8;
 		$intro   = AIMP_Bandana::guide()[0][3];
-		$this->paragraph( $intro[0][1], 30, 150, 11 );
-		$this->y += 4;
-		$this->figure( 'styles', 150 );
-		$this->y = max( $this->y + 6, 236 );
+		$this->l = 30;
+		$this->r = 180;
+		$this->paragraph( $intro[0][1], 30, 150, 10.5 );
+		if ( '' === $hero ) {
+			$this->y += 4;
+			$this->figure( 'styles', 150 );
+		}
+		$this->y = max( $this->y + 4, 248 );
+		$this->l = 24;
+		$this->r = 186;
 		$this->block( $intro[1] );
+		$this->l = self::LEFT;
+		$this->r = self::RIGHT;
 	}
 
 	/* ------------------------------------------------------------------

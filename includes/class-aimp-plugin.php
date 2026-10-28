@@ -72,6 +72,7 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-bandana-draw.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-bandana-docs.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-bandana-page.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/bandana/class-aimp-bandana-pictures.php';
 
 		AIMP_Settings::init();
 		AIMP_Notions::init();

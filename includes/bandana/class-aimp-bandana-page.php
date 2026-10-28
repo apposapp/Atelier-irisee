@@ -40,6 +40,7 @@ class AIMP_Bandana_Page {
 			AIMP_Home_Blocks::register_assets();
 		}
 		wp_register_style( 'aimp-bandana', AIMP_PLUGIN_URL . 'assets/css/bandana.css', array( 'aimp-home-blocks' ), AIMP_VERSION );
+		wp_register_script( 'aimp-bandana', AIMP_PLUGIN_URL . 'assets/js/bandana.js', array(), AIMP_VERSION, true );
 		if ( AIMP_Blocks::page_has( array( self::TAG ) ) ) {
 			wp_enqueue_style( 'aimp-bandana' );
 		}
@@ -48,6 +49,12 @@ class AIMP_Bandana_Page {
 	/* ------------------------------------------------------------------
 	 * The page
 	 * ------------------------------------------------------------------ */
+
+	/** @var string[] The parts this visitor sees (for the links of the steps bar). */
+	private static $visible = array();
+
+	/** @var string The part being drawn. */
+	private static $part = '';
 
 	/**
 	 * @param array|string $atts Attributes (none).
@@ -63,6 +70,7 @@ class AIMP_Bandana_Page {
 		}
 		wp_enqueue_style( 'aimp-bandana' );
 		wp_enqueue_script( 'aimp-home-blocks' );
+		wp_enqueue_script( 'aimp-bandana' );
 
 		$full  = AIMP_Bandana::can_view();
 		$parts = AIMP_Bandana::guide();
@@ -70,39 +78,115 @@ class AIMP_Bandana_Page {
 		if ( $full ) {
 			self::no_cache();
 		}
-		$intro = $parts[0][3];
+		self::$visible = array();
+		foreach ( $parts as $part ) {
+			if ( $part[2] || $full ) {
+				self::$visible[] = $part[0];
+			}
+		}
 
-		$html  = '<section class="aimp-home-block aimp-bandana">';
-		$html .= '<header class="aimp-bandana-head"><p class="aimp-maker-kicker">' . esc_html__( 'Sewing pattern and guide', 'atelier-irisee-master-plugin' ) . '</p>' .
-			'<h1 class="aimp-block-title aimp-bandana-title"><span>' . esc_html__( 'Dog bandana', 'atelier-irisee-master-plugin' ) . '</span></h1>' .
-			'<p class="aimp-bandana-intro">' . esc_html( $intro[0][1] ) . '</p>' . self::block_html( $intro[1] ) . '</header>';
+		$colors = AIMP_Bandana::palette();
+		$sparks = class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'kit-steps', 'ks_nosparkle', 0 ) ? ' data-sparkle="0"' : '';
+		$html   = '<section class="aimp-home-block aimp-bandana" style="--bd-pink:' . esc_attr( $colors['pink'] ) . ';--bd-purple:' . esc_attr( $colors['purple'] ) . '"' . $sparks . '>';
+		$html  .= self::hero_html( $parts[0][3], $full );
 
+		$nav    = '';
+		$locked = array();
+		$body   = '';
+		foreach ( array_slice( $parts, 1 ) as $part ) {
+			if ( ! $part[2] && ! $full ) {
+				$locked[] = $part;
+				continue;
+			}
+			self::$part = $part[0];
+			$nav       .= '<li><a href="#aimp-bandana-' . esc_attr( $part[0] ) . '">' . AIMP_Bandana_Draw::icon_svg( $part[4] ) . '<span>' . esc_html( $part[1] ) . '</span></a></li>';
+			$body      .= '<section class="aimp-bandana-part aimp-bandana-part--' . esc_attr( $part[0] ) . '" id="aimp-bandana-' . esc_attr( $part[0] ) . '">' .
+				'<header class="aimp-bandana-part-head"><span class="aimp-bandana-part-icon">' . AIMP_Bandana_Draw::icon_svg( $part[4] ) . '</span>' .
+				'<h2 class="aimp-block-title"><span>' . esc_html( $part[1] ) . '</span></h2></header>' . self::blocks_html( $part[3] ) . '</section>';
+		}
+		if ( $locked ) {
+			$nav .= '<li><a href="#aimp-bandana-locked">' . AIMP_Bandana_Draw::icon_svg( 'book' ) . '<span>' . esc_html__( 'The whole pattern', 'atelier-irisee-master-plugin' ) . '</span></a></li>';
+		}
+		$html .= '<nav class="aimp-bandana-nav" aria-label="' . esc_attr__( 'Contents', 'atelier-irisee-master-plugin' ) . '"><ul>' . $nav . '</ul></nav>';
 		if ( $full ) {
 			$html .= self::downloads_html();
 		}
-
-		$locked = array();
-		$nav    = '';
-		foreach ( array_slice( $parts, 1 ) as $part ) {
-			if ( ! $part[2] && ! $full ) {
-				$locked[] = $part[1];
-				continue;
-			}
-			$nav  .= '<li><a href="#aimp-bandana-' . esc_attr( $part[0] ) . '">' . esc_html( $part[1] ) . '</a></li>';
-			$html .= '<section class="aimp-bandana-part aimp-bandana-part--' . esc_attr( $part[0] ) . '" id="aimp-bandana-' . esc_attr( $part[0] ) . '">' .
-				'<h2 class="aimp-block-title"><span>' . esc_html( $part[1] ) . '</span></h2>';
-			foreach ( $part[3] as $block ) {
-				$html .= self::block_html( $block );
-			}
-			$html .= '</section>';
-		}
+		$html .= $body;
 		if ( $locked ) {
 			$html .= self::locked_html( $locked );
 		}
-		$html .= '</section>';
+		return $html . '</section>';
+	}
 
-		// The table of contents after the head.
-		return preg_replace( '#</header>#', '</header><nav class="aimp-bandana-nav" aria-label="' . esc_attr__( 'Contents', 'atelier-irisee-master-plugin' ) . '"><ul>' . $nav . '</ul></nav>', $html, 1 );
+	/**
+	 * The head: the hero photo with a cream panel (kicker, title, introduction, the facts as seals and the button).
+	 *
+	 * @param array $intro The intro part's blocks.
+	 * @param bool  $full  The visitor sees the whole guide.
+	 * @return string
+	 */
+	private static function hero_html( $intro, $full ) {
+		$photo   = AIMP_Bandana_Pictures::img( 'hero', 'full', '(max-width: 980px) 100vw, 980px', false );
+		$product = $full ? null : AIMP_Bandana::product();
+		$facts   = '';
+		foreach ( $intro[1][1] as $fact ) {
+			$facts .= '<li><span>' . esc_html( $fact[0] ) . '</span><strong>' . esc_html( $fact[1] ) . '</strong></li>';
+		}
+		$button = '';
+		if ( $full ) {
+			$button = '<a class="aimp-block-button aimp-block-button--gold" href="#aimp-bandana-downloads">' . esc_html__( 'Download the pattern', 'atelier-irisee-master-plugin' ) . '</a>';
+		} elseif ( $product ) {
+			$button = '<a class="aimp-block-button aimp-block-button--gold" href="#aimp-bandana-locked">' . esc_html__( 'Buy the pattern', 'atelier-irisee-master-plugin' ) . '</a>';
+		}
+		return '<header class="aimp-bandana-hero' . ( '' !== $photo ? ' has-photo' : '' ) . '">' .
+			( '' !== $photo ? '<div class="aimp-bandana-hero-photo">' . $photo . '</div>' : '' ) .
+			'<div class="aimp-bandana-hero-panel">' . AIMP_Bandana_Draw::ribbon_svg( 'aimp-bandana-ribbon aimp-bandana-hero-ribbon' ) .
+			'<p class="aimp-maker-kicker">' . esc_html__( 'Sewing pattern and guide', 'atelier-irisee-master-plugin' ) . '</p>' .
+			'<h1 class="aimp-block-title aimp-bandana-title"><span>' . esc_html__( 'Dog bandana', 'atelier-irisee-master-plugin' ) . '</span></h1>' .
+			'<p class="aimp-bandana-intro">' . esc_html( $intro[0][1] ) . '</p>' .
+			'<ul class="aimp-bandana-facts">' . $facts . '</ul>' .
+			( '' !== $button ? '<p class="aimp-bandana-buttons">' . $button . '</p>' : '' ) .
+			'</div></header>';
+	}
+
+	/**
+	 * A part's blocks; a photo stands next to the block after it (a list, the do's and don'ts or a text).
+	 *
+	 * @param array $blocks Blocks.
+	 * @return string
+	 */
+	private static function blocks_html( $blocks ) {
+		$html  = '';
+		$count = count( $blocks );
+		for ( $i = 0; $i < $count; $i++ ) {
+			$b = $blocks[ $i ];
+			if ( 'photo' === $b[0] && $i + 1 < $count && in_array( $blocks[ $i + 1 ][0], array( 'items', 'dodont', 'p' ), true ) ) {
+				$photo = self::block_html( $b );
+				$next  = self::block_html( $blocks[ $i + 1 ] );
+				$html .= '' !== $photo ? '<div class="aimp-bandana-split">' . $photo . '<div class="aimp-bandana-split-text">' . $next . '</div></div>' : $next;
+				$i++;
+				continue;
+			}
+			$html .= self::block_html( $b );
+		}
+		return $html;
+	}
+
+	/**
+	 * A picture of the guide, or its line drawing when there is no picture yet.
+	 *
+	 * @param string $slot    Picture slot.
+	 * @param string $drawing Drawing ('' = none).
+	 * @param string $class   Extra class.
+	 * @return string
+	 */
+	private static function media( $slot, $drawing, $class = '' ) {
+		$img = '' !== $slot ? AIMP_Bandana_Pictures::img( $slot, 'large', '(max-width: 700px) 100vw, 480px' ) : '';
+		if ( '' !== $img ) {
+			return '<figure class="aimp-bandana-photo ' . esc_attr( $class ) . '">' . $img .
+				( '' !== $drawing ? '<span class="aimp-bandana-detail">' . AIMP_Bandana_Draw::svg( AIMP_Bandana::figure( $drawing ) ) . '</span>' : '' ) . '</figure>';
+		}
+		return '' !== $drawing ? '<figure class="aimp-bandana-fig aimp-bandana-drawing ' . esc_attr( $class ) . '">' . AIMP_Bandana_Draw::svg( AIMP_Bandana::figure( $drawing ) ) . '</figure>' : '';
 	}
 
 	/**
@@ -117,12 +201,82 @@ class AIMP_Bandana_Page {
 				return '<p>' . esc_html( $b[1] ) . '</p>';
 			case 'list':
 				return '<ul class="aimp-bandana-list"><li>' . implode( '</li><li>', array_map( 'esc_html', $b[1] ) ) . '</li></ul>';
+			case 'items':
+				$html = '<ul class="aimp-bandana-items">';
+				foreach ( $b[1] as $item ) {
+					$html .= '<li><span class="aimp-bandana-item-icon">' . AIMP_Bandana_Draw::icon_svg( $item[0] ) . '</span><span>' . esc_html( $item[1] ) . '</span></li>';
+				}
+				return $html . '</ul>';
+			case 'photo':
+				$img = AIMP_Bandana_Pictures::img( $b[1], 'large', '(max-width: 700px) 100vw, 480px' );
+				if ( '' === $img ) {
+					return '' !== $b[3] ? self::media( '', $b[3], 'aimp-bandana-photo--wide' ) : '';
+				}
+				return '<figure class="aimp-bandana-photo aimp-bandana-photo--wide">' . $img . AIMP_Bandana_Draw::ribbon_svg( 'aimp-bandana-ribbon aimp-bandana-photo-ribbon' ) .
+					( '' !== $b[3] ? '<span class="aimp-bandana-detail">' . AIMP_Bandana_Draw::svg( AIMP_Bandana::figure( $b[3] ) ) . '</span>' : '' ) .
+					( '' !== $b[2] ? '<figcaption>' . esc_html( $b[2] ) . '</figcaption>' : '' ) . '</figure>';
+			case 'journey':
+				$html = '<div class="aimp-bandana-journey" data-bd-anim><svg class="aimp-bandana-journey-seam" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true" focusable="false">' .
+					'<path class="bd-seam-guide" d="M0 30 C 100 0, 150 0, 250 30 S 400 60, 500 30 S 650 0, 750 30 S 900 60, 1000 30"/>' .
+					'<path class="bd-seam-sewn" d="M0 30 C 100 0, 150 0, 250 30 S 400 60, 500 30 S 650 0, 750 30 S 900 60, 1000 30"/></svg><ol>';
+				foreach ( $b[1] as $i => $step ) {
+					$target = in_array( $step[2], self::$visible, true ) ? '#aimp-bandana-' . $step[2] : '#aimp-bandana-locked';
+					$html  .= '<li style="--i:' . (int) $i . '"><a href="' . esc_attr( $target ) . '"><span class="aimp-bandana-seal">' . ( $i + 1 ) . '</span>' .
+						'<span class="aimp-bandana-journey-icon">' . AIMP_Bandana_Draw::icon_svg( $step[0] ) . '</span><span class="aimp-bandana-journey-title">' . esc_html( $step[1] ) . '</span></a></li>';
+				}
+				return $html . '</ol><span class="bd-spark" aria-hidden="true"></span><span class="bd-spark bd-spark--2" aria-hidden="true"></span></div>';
+			case 'cards':
+				$html = '<div class="aimp-bandana-cards">';
+				foreach ( $b[1] as $card ) {
+					$html .= '<article class="aimp-bandana-card">' . self::media( $card[0], $card[1], 'aimp-bandana-card-media' ) .
+						'<h3>' . esc_html( $card[2] ) . '</h3><p>' . esc_html( $card[3] ) . '</p></article>';
+				}
+				return $html . '</div>';
+			case 'dodont':
+				$list = function ( $items, $icon, $class, $title ) {
+					$html = '<div class="aimp-bandana-dodont-col ' . $class . '"><h3>' . AIMP_Bandana_Draw::icon_svg( $icon ) . esc_html( $title ) . '</h3><ul>';
+					foreach ( $items as $item ) {
+						$html .= '<li>' . esc_html( $item ) . '</li>';
+					}
+					return $html . '</ul></div>';
+				};
+				return '<div class="aimp-bandana-dodont">' . $list( $b[1], 'tick', 'is-do', __( 'Choose', 'atelier-irisee-master-plugin' ) ) . $list( $b[2], 'warn', 'is-avoid', __( 'Avoid', 'atelier-irisee-master-plugin' ) ) . '</div>';
+			case 'sizes':
+				$html  = '<ul class="aimp-bandana-sizes">';
+				$sizes = AIMP_Bandana::sizes();
+				$n     = 0;
+				foreach ( $sizes as $key => $s ) {
+					/* translators: 1: from, 2: to (cm) */
+					$neck  = sprintf( __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ), $s[1], $s[2] );
+					$html .= '<li style="--s:' . esc_attr( (string) ( 0.6 + 0.12 * $n++ ) ) . '"><span class="aimp-bandana-size-dog">' . AIMP_Bandana_Draw::icon_svg( 'dog' ) . '</span>' .
+						'<strong>' . esc_html( $s[0] ) . '</strong><span>' . esc_html__( 'Neck', 'atelier-irisee-master-plugin' ) . ' ' . esc_html( $neck ) . '</span>' .
+						/* translators: %s: centimetres */
+						'<span>' . esc_html( sprintf( __( 'Fabric: %s cm', 'atelier-irisee-master-plugin' ), AIMP_Bandana::fabric_need( $key ) ) ) . '</span></li>';
+				}
+				return $html . '</ul>';
 			case 'steps':
 				$html = '<ol class="aimp-bandana-steps">';
 				foreach ( $b[1] as $step ) {
-					$html .= '<li class="aimp-bandana-step"><div class="aimp-bandana-step-text">' .
-						( '' !== $step[0] ? '<h3>' . esc_html( $step[0] ) . '</h3>' : '' ) . '<p>' . esc_html( $step[1] ) . '</p></div>' .
-						( '' !== $step[2] ? '<figure class="aimp-bandana-fig">' . AIMP_Bandana_Draw::svg( AIMP_Bandana::figure( $step[2] ) ) . '</figure>' : '' ) . '</li>';
+					$extra = isset( $step[3] ) ? $step[3] : array();
+					$media = self::media( isset( $extra['slot'] ) ? $extra['slot'] : '', $step[2], 'aimp-bandana-step-media' );
+					$body  = '' !== $step[0] ? '<h3>' . esc_html( $step[0] ) . '</h3>' : '';
+					if ( ! empty( $extra['time'] ) ) {
+						$body .= '<p class="aimp-bandana-chip is-time">' . AIMP_Bandana_Draw::icon_svg( 'clock' ) . esc_html( $extra['time'] ) . '</p>';
+					}
+					if ( ! empty( $extra['why'] ) ) {
+						$body .= '<p class="aimp-bandana-why">' . esc_html( $extra['why'] ) . '</p>';
+					}
+					if ( ! empty( $extra['do'] ) ) {
+						$body .= '<ol class="aimp-bandana-substeps"><li>' . implode( '</li><li>', array_map( 'esc_html', $extra['do'] ) ) . '</li></ol>';
+					} else {
+						$body .= '<p>' . esc_html( $step[1] ) . '</p>';
+					}
+					foreach ( array( 'note' => array( 'bulb', __( 'Note', 'atelier-irisee-master-plugin' ) ), 'check' => array( 'tick', __( 'Check', 'atelier-irisee-master-plugin' ) ), 'mistake' => array( 'warn', __( 'Common mistake', 'atelier-irisee-master-plugin' ) ) ) as $key => $chip ) {
+						if ( ! empty( $extra[ $key ] ) ) {
+							$body .= '<p class="aimp-bandana-chip is-' . $key . '">' . AIMP_Bandana_Draw::icon_svg( $chip[0] ) . '<span><strong>' . esc_html( $chip[1] ) . '</strong> ' . esc_html( $extra[ $key ] ) . '</span></p>';
+						}
+					}
+					$html .= '<li class="aimp-bandana-step' . ( '' !== $media ? ' has-media' : '' ) . '" data-bd-anim>' . $media . '<div class="aimp-bandana-step-body">' . $body . '</div></li>';
 				}
 				return $html . '</ol>';
 			case 'figure':
@@ -149,8 +303,16 @@ class AIMP_Bandana_Page {
 				}
 				return $html . '</ul>';
 			case 'tip':
-				return '<p class="aimp-bandana-tip"><strong>' . esc_html__( 'Tip', 'atelier-irisee-master-plugin' ) . '</strong> ' . esc_html( $b[1] ) . '</p>';
+				return '<p class="aimp-bandana-tip">' . AIMP_Bandana_Draw::icon_svg( 'bulb' ) . '<span><strong>' . esc_html__( 'Tip', 'atelier-irisee-master-plugin' ) . '</strong> ' . esc_html( $b[1] ) . '</span></p>';
 			case 'terms':
+				// The problems and the sewing terms fold open one by one; the words to know first are cards.
+				if ( in_array( self::$part, array( 'help', 'terms' ), true ) ) {
+					$html = '<div class="aimp-bandana-accordion">';
+					foreach ( $b[1] as $term ) {
+						$html .= '<details><summary>' . esc_html( $term[0] ) . '</summary><p>' . esc_html( $term[1] ) . '</p></details>';
+					}
+					return $html . '</div>';
+				}
 				$html = '<dl class="aimp-bandana-terms">';
 				foreach ( $b[1] as $term ) {
 					$html .= '<div><dt>' . esc_html( $term[0] ) . '</dt><dd>' . esc_html( $term[1] ) . '</dd></div>';
@@ -189,7 +351,7 @@ class AIMP_Bandana_Page {
 			$langs[ $code ] = $info['name'];
 		}
 		$action = self::page_url();
-		return '<section class="aimp-bandana-downloads" id="aimp-bandana-downloads">' .
+		return '<section class="aimp-bandana-downloads" id="aimp-bandana-downloads">' . AIMP_Bandana_Draw::ribbon_svg( 'aimp-bandana-ribbon aimp-bandana-box-ribbon' ) .
 			'<h2 class="aimp-bandana-downloads-title">' . esc_html__( 'Your pattern', 'atelier-irisee-master-plugin' ) . '</h2>' .
 			'<p>' . esc_html__( 'Download the guide and the template to print on A4 paper. Choose your style and size; "All sizes" puts every size on one template.', 'atelier-irisee-master-plugin' ) . '</p>' .
 			'<form class="aimp-bandana-form" method="get" action="' . esc_url( $action ) . '">' . $hidden .
@@ -198,8 +360,8 @@ class AIMP_Bandana_Page {
 			$select( 'size', __( 'Size', 'atelier-irisee-master-plugin' ), $sizes, 'm' ) .
 			$select( 'pdf_lang', __( 'Language', 'atelier-irisee-master-plugin' ), $langs, AIMP_I18n::current() ) .
 			'</div><div class="aimp-bandana-buttons">' .
-			'<button type="submit" class="aimp-block-button aimp-block-button--gold" name="aimp_bandana_pdf" value="template">' . esc_html__( 'Download template (PDF)', 'atelier-irisee-master-plugin' ) . '</button>' .
-			'<button type="submit" class="aimp-block-button" name="aimp_bandana_pdf" value="guide">' . esc_html__( 'Download guide (PDF)', 'atelier-irisee-master-plugin' ) . '</button>' .
+			'<button type="submit" class="aimp-block-button aimp-block-button--gold" name="aimp_bandana_pdf" value="template">' . AIMP_Bandana_Draw::icon_svg( 'paper' ) . esc_html__( 'Download template (PDF)', 'atelier-irisee-master-plugin' ) . '</button>' .
+			'<button type="submit" class="aimp-block-button" name="aimp_bandana_pdf" value="guide">' . AIMP_Bandana_Draw::icon_svg( 'book' ) . esc_html__( 'Download guide (PDF)', 'atelier-irisee-master-plugin' ) . '</button>' .
 			'</div></form></section>';
 	}
 
@@ -212,16 +374,34 @@ class AIMP_Bandana_Page {
 	}
 
 	/**
-	 * Visitors who did not buy the pattern: what else is inside, and the buy button.
+	 * Visitors who did not buy the pattern: a peek at the steps, what else is inside, and the buy button.
 	 *
-	 * @param string[] $titles Parts they cannot see yet.
+	 * @param array $parts Parts they cannot see yet.
 	 * @return string
 	 */
-	private static function locked_html( $titles ) {
+	private static function locked_html( $parts ) {
 		$product = AIMP_Bandana::product();
-		$html    = '<section class="aimp-bandana-locked"><h2 class="aimp-block-title"><span>' . esc_html__( 'The whole pattern', 'atelier-irisee-master-plugin' ) . '</span></h2>' .
+		$peek    = '';
+		$titles  = '';
+		foreach ( $parts as $part ) {
+			$titles .= '<li>' . AIMP_Bandana_Draw::icon_svg( $part[4] ) . '<span>' . esc_html( $part[1] ) . '</span></li>';
+			foreach ( $part[3] as $block ) {
+				if ( 'steps' !== $block[0] ) {
+					continue;
+				}
+				foreach ( $block[1] as $step ) {
+					$slot = isset( $step[3]['slot'] ) ? $step[3]['slot'] : '';
+					if ( '' !== $slot && substr_count( $peek, '<img' ) < 4 ) {
+						$peek .= AIMP_Bandana_Pictures::img( $slot, 'medium', '200px' );
+					}
+				}
+			}
+		}
+		$html = '<section class="aimp-bandana-locked" id="aimp-bandana-locked">' .
+			( '' !== $peek ? '<div class="aimp-bandana-peek" aria-hidden="true">' . $peek . '<span class="aimp-bandana-peek-lock">' . AIMP_Bandana_Draw::icon_svg( 'book' ) . '</span></div>' : '' ) .
+			'<h2 class="aimp-block-title"><span>' . esc_html__( 'The whole pattern', 'atelier-irisee-master-plugin' ) . '</span></h2>' .
 			'<p>' . esc_html__( 'The step-by-step guide and the printable template (real size, on A4 sheets) come with the dog bandana pattern, in Dutch, English and French.', 'atelier-irisee-master-plugin' ) . '</p>' .
-			'<ul class="aimp-bandana-list aimp-bandana-list--locked"><li>' . implode( '</li><li>', array_map( 'esc_html', $titles ) ) . '</li></ul>';
+			'<ul class="aimp-bandana-locked-list">' . $titles . '</ul>';
 		if ( $product ) {
 			$html .= '<p class="aimp-bandana-price">' . wp_kses_post( $product->get_price_html() ) . '</p>' .
 				'<p class="aimp-bandana-buttons"><a class="aimp-block-button aimp-block-button--gold" href="' . esc_url( add_query_arg( 'add-to-cart', $product->get_id(), wc_get_cart_url() ) ) . '" rel="nofollow">' . esc_html__( 'Buy the pattern', 'atelier-irisee-master-plugin' ) . '</a></p>';
@@ -346,6 +526,25 @@ class AIMP_Bandana_Page {
 		if ( AIMP_Settings::is_settings_screen( $hook_suffix ) ) {
 			wp_enqueue_script( 'wc-enhanced-select' );
 			wp_enqueue_style( 'woocommerce_admin_styles' );
+			wp_enqueue_media();
+			wp_enqueue_script( 'aimp-bandana-admin', AIMP_PLUGIN_URL . 'assets/js/bandana-admin.js', array( 'jquery' ), AIMP_VERSION, true );
+			wp_localize_script(
+				'aimp-bandana-admin',
+				'aimpBandanaAdmin',
+				array(
+					'busy'     => __( 'Generating… this takes up to a minute.', 'atelier-irisee-master-plugin' ),
+					'failed'   => __( 'That did not work. Try again.', 'atelier-irisee-master-plugin' ),
+					'choose'   => __( 'Choose a picture', 'atelier-irisee-master-plugin' ),
+					'logo'     => __( 'Logo for the PDF', 'atelier-irisee-master-plugin' ),
+					/* translators: %d: number of pictures */
+					'confirm'  => __( 'Generate %d pictures with Google Gemini? Each picture is one request on your key.', 'atelier-irisee-master-plugin' ),
+					/* translators: 1: picture, 2: of how many */
+					'progress' => __( 'Picture %1$d of %2$d…', 'atelier-irisee-master-plugin' ),
+					'ready'    => __( 'All pictures are made.', 'atelier-irisee-master-plugin' ),
+					'stopped'  => __( 'Stopped: see the picture with the error.', 'atelier-irisee-master-plugin' ),
+					'none'     => __( 'Every picture is already there.', 'atelier-irisee-master-plugin' ),
+				)
+			);
 		}
 	}
 
@@ -415,10 +614,31 @@ class AIMP_Bandana_Page {
 						<p class="description"><?php esc_html_e( 'Threads come from the sewing thread category (Product categories); ribbons from the ribbons & cords and bias tape categories.', 'atelier-irisee-master-plugin' ); ?></p>
 					</td>
 				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Logo for the PDF', 'atelier-irisee-master-plugin' ); ?></th>
+					<td>
+						<?php $logo = AIMP_Bandana_Pictures::logo_setting(); ?>
+						<input type="hidden" id="aimp-bandana-logo" name="logo" value="<?php echo esc_attr( (string) $logo ); ?>">
+						<span id="aimp-bandana-logo-preview" style="display:inline-block;max-width:80px;vertical-align:middle"><?php echo $logo ? wp_get_attachment_image( $logo, 'thumbnail', false, array( 'alt' => '', 'style' => 'max-width:80px;height:auto' ) ) : ''; ?></span>
+						<button type="button" class="button" id="aimp-bandana-logo-choose"><?php esc_html_e( 'Choose', 'atelier-irisee-master-plugin' ); ?></button>
+						<button type="button" class="button-link" id="aimp-bandana-logo-clear"><?php esc_html_e( 'Use the site logo', 'atelier-irisee-master-plugin' ); ?></button>
+						<p class="description"><?php esc_html_e( 'Empty: the logo of the site header (Divi), then the hero logo, the email logo and the WordPress site logo. Use a PNG or JPG.', 'atelier-irisee-master-plugin' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Logo colours', 'atelier-irisee-master-plugin' ); ?></th>
+					<td>
+						<?php list( $pink, $purple ) = AIMP_Bandana_Pictures::colors(); ?>
+						<label><input type="color" name="pink" value="<?php echo esc_attr( $pink ); ?>"> <?php esc_html_e( 'Pink', 'atelier-irisee-master-plugin' ); ?></label>
+						<label style="margin-left:1em"><input type="color" name="purple" value="<?php echo esc_attr( $purple ); ?>"> <?php esc_html_e( 'Purple', 'atelier-irisee-master-plugin' ); ?></label>
+						<p class="description"><?php esc_html_e( 'The accents of the guide page, the PDF guide and the generated pictures (the ribbon circle of the logo). Gold and brown stay the main colours.', 'atelier-irisee-master-plugin' ); ?></p>
+					</td>
+				</tr>
 			</table>
 			<?php submit_button(); ?>
 		</form>
 		<?php
+		AIMP_Bandana_Pictures::render_admin();
 	}
 
 	public static function save_settings() {
@@ -446,6 +666,11 @@ class AIMP_Bandana_Page {
 				'band_cm'    => $int( 'band_cm', 10, 500 ),
 			),
 			false
+		);
+		AIMP_Bandana_Pictures::save_look(
+			isset( $_POST['logo'] ) ? absint( $_POST['logo'] ) : 0,
+			isset( $_POST['pink'] ) ? sanitize_text_field( wp_unslash( $_POST['pink'] ) ) : '',
+			isset( $_POST['purple'] ) ? sanitize_text_field( wp_unslash( $_POST['purple'] ) ) : ''
 		);
 		// phpcs:enable
 		AIMP_Shop::flush_cache();
