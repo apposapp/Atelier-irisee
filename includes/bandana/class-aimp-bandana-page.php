@@ -54,6 +54,10 @@ class AIMP_Bandana_Page {
 	 * @return string
 	 */
 	public static function shortcode( $atts ) {
+		// Switched off: the page shows nothing of the bandana.
+		if ( ! AIMP_Bandana::enabled() ) {
+			return '';
+		}
 		if ( ! wp_style_is( 'aimp-bandana', 'registered' ) ) {
 			self::register_assets();
 		}
@@ -247,7 +251,7 @@ class AIMP_Bandana_Page {
 		$size  = isset( $_GET['size'] ) ? sanitize_key( wp_unslash( $_GET['size'] ) ) : 'm';
 		$lang  = isset( $_GET['pdf_lang'] ) ? sanitize_key( wp_unslash( $_GET['pdf_lang'] ) ) : '';
 		// phpcs:enable
-		if ( ! in_array( $what, array( 'guide', 'template' ), true ) ) {
+		if ( ! in_array( $what, array( 'guide', 'template' ), true ) || ! AIMP_Bandana::enabled() ) {
 			return;
 		}
 		self::no_cache();
@@ -364,6 +368,13 @@ class AIMP_Bandana_Page {
 			<p><?php esc_html_e( 'The dog bandana guide: a page with the shortcode [atelier_irisee_bandana]. Visitors see the introduction and the size chart; customers who bought the bandana pattern see the whole guide and download the guide and the template as PDF.', 'atelier-irisee-master-plugin' ); ?></p>
 			<table class="form-table" role="presentation">
 				<tr>
+					<th scope="row"><?php esc_html_e( 'Dog bandana', 'atelier-irisee-master-plugin' ); ?></th>
+					<td>
+						<label><input type="checkbox" name="enabled" value="1" <?php checked( $o( 'enabled' ) ); ?>> <?php esc_html_e( 'Switch the dog bandana on, site-wide', 'atelier-irisee-master-plugin' ); ?></label>
+						<p class="description"><?php esc_html_e( 'Off: the guide page shows nothing, the PDFs cannot be downloaded, orders get no guide link and the customizer does not offer the bandana. The settings below are kept.', 'atelier-irisee-master-plugin' ); ?></p>
+					</td>
+				</tr>
+				<tr>
 					<th scope="row"><label for="aimp_bandana_product"><?php esc_html_e( 'Bandana pattern product', 'atelier-irisee-master-plugin' ); ?></label></th>
 					<td>
 						<select id="aimp_bandana_product" name="product" class="wc-product-search" style="width:min(100%,28rem)" data-placeholder="<?php esc_attr_e( 'Search for a product…', 'atelier-irisee-master-plugin' ); ?>" data-action="woocommerce_json_search_products" data-allow_clear="true">
@@ -424,6 +435,7 @@ class AIMP_Bandana_Page {
 		update_option(
 			AIMP_Bandana::OPTION,
 			array(
+				'enabled'    => empty( $_POST['enabled'] ) ? 0 : 1,
 				'product'    => $product && wc_get_product( $product ) ? $product : 0,
 				'page'       => $page && 'page' === get_post_type( $page ) ? $page : 0,
 				'addon'      => empty( $_POST['addon'] ) ? 0 : 1,

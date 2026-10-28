@@ -44,6 +44,8 @@ class AIMP_Bandana {
 	 */
 	public static function defaults() {
 		return array(
+			// The whole dog bandana feature: the guide page, its PDFs, the order links and the customizer question.
+			'enabled'    => 1,
 			// The bandana pattern product (the PDF is sold through it) and the page with the guide.
 			'product'    => 0,
 			'page'       => 0,
@@ -67,12 +69,21 @@ class AIMP_Bandana {
 	}
 
 	/**
-	 * The bandana pattern product when it can be bought.
+	 * Whether the dog bandana is switched on (Settings → Dog bandana).
+	 *
+	 * @return bool
+	 */
+	public static function enabled() {
+		return (bool) self::opt( 'enabled' );
+	}
+
+	/**
+	 * The bandana pattern product when it can be bought (and the bandana is switched on).
 	 *
 	 * @return WC_Product|null
 	 */
 	public static function product() {
-		$product = self::opt( 'product' ) ? wc_get_product( self::opt( 'product' ) ) : null;
+		$product = self::enabled() && self::opt( 'product' ) ? wc_get_product( self::opt( 'product' ) ) : null;
 		return $product && 'publish' === $product->get_status() && $product->is_purchasable() && $product->is_type( 'simple' ) ? $product : null;
 	}
 
@@ -115,7 +126,7 @@ class AIMP_Bandana {
 	 */
 	public static function order_has_pattern( $order ) {
 		$product = self::opt( 'product' );
-		if ( ! $product || ! $order || ! $order->is_paid() ) {
+		if ( ! self::enabled() || ! $product || ! $order || ! $order->is_paid() ) {
 			return false;
 		}
 		foreach ( $order->get_items() as $item ) {

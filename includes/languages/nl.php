@@ -2840,4 +2840,8 @@ return array(
 	'dog-bandana-guide' => 'hondenbandana-handleiding',
 	'dog-bandana-template' => 'hondenbandana-patroon',
 	'spool(s)' => 'klos(sen)',
+
+	// 3.53.1: dog bandana switch
+	'Switch the dog bandana on, site-wide' => 'De hondenbandana inschakelen, op de hele site',
+	'Off: the guide page shows nothing, the PDFs cannot be downloaded, orders get no guide link and the customizer does not offer the bandana. The settings below are kept.' => 'Uit: de pagina met de handleiding toont niets, de pdf\'s kunnen niet gedownload worden, bestellingen krijgen geen link naar de handleiding en de samensteller biedt de bandana niet aan. De instellingen hieronder blijven bewaard.',
 );

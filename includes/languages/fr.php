@@ -2840,4 +2840,8 @@ return array(
 	'dog-bandana-guide' => 'bandana-chien-guide',
 	'dog-bandana-template' => 'bandana-chien-patron',
 	'spool(s)' => 'bobine(s)',
+
+	// 3.53.1: dog bandana switch
+	'Switch the dog bandana on, site-wide' => 'Activer le bandana pour chien sur tout le site',
+	'Off: the guide page shows nothing, the PDFs cannot be downloaded, orders get no guide link and the customizer does not offer the bandana. The settings below are kept.' => 'Désactivé : la page du guide n\'affiche rien, les PDF ne peuvent pas être téléchargés, les commandes ne reçoivent pas de lien vers le guide et le configurateur ne propose pas le bandana. Les réglages ci-dessous sont conservés.',
 );

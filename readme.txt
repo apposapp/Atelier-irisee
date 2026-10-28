@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.53.0
+Stable tag: 3.53.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.53.1 =
+* Dog bandana: a switch under Atelier Irisee → Dog bandana turns the whole feature on or off, site-wide. When it is off, the guide page shows nothing, the PDFs cannot be downloaded, orders get no guide link, and the customizer does not offer the bandana. The other settings are kept.
 
 = 3.53.0 =
 * Dog bandana: [atelier_irisee_bandana] is a guide page for a reversible dog bandana in five sizes (XS–XL), with three styles: tie-on, over the collar and with a snap. Visitors see the introduction, the styles, the materials, the tools and the size chart. Buyers of the bandana pattern also see the step-by-step guide and can download the guide and the template as PDF, in Dutch, English or French, in the site's colours, logo and font.
