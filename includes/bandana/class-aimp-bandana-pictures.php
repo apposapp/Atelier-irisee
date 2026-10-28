@@ -98,7 +98,7 @@ class AIMP_Bandana_Pictures {
 	public static function slots() {
 		$fabric = 'the bandana fabric (a soft woven cotton in cream with a small floral print in antique gold, pearl pink and plum)';
 		return array(
-			'hero'         => array( __( 'The dog wearing its bandana', 'atelier-irisee-master-plugin' ), '16:9', true, 'The mascot dog sits happily on a sunny wooden floor in a light, cosy room, wearing a tie-on triangle dog bandana made of ' . $fabric . ', knotted at the back of its neck. Keep the left third of the picture calm and light.' ),
+			'hero'         => array( __( 'The dog wearing its bandana', 'atelier-irisee-master-plugin' ), '16:9', true, 'The mascot dog sits happily on a sunny wooden floor in a light, cosy room, wearing a tie-on triangle dog bandana made of ' . $fabric . ', knotted at the back of its neck. The dog stands a little to the right of the centre, with calm, light space around it.' ),
 			'style_tie'    => array( __( 'Tie-on bandana', 'atelier-irisee-master-plugin' ), '4:5', true, 'Portrait of the mascot dog wearing a tie-on triangle bandana made of ' . $fabric . ', with the long ties knotted in a small bow at the side of the neck. Plain light cream background.' ),
 			'style_collar' => array( __( 'Over-the-collar bandana', 'atelier-irisee-master-plugin' ), '4:5', true, 'Portrait of the mascot dog wearing an over-the-collar bandana: a triangle bandana made of ' . $fabric . ' with a channel along its top edge, the dog\'s own collar threaded through the channel so the bandana hangs neatly from the collar. Plain light cream background.' ),
 			'style_snap'   => array( __( 'Bandana with a snap', 'atelier-irisee-master-plugin' ), '4:5', true, 'Portrait of the mascot dog wearing a triangle bandana made of ' . $fabric . ' whose short ends close at the back of the neck with a small round plastic snap in plum. Plain light cream background.' ),
@@ -130,7 +130,7 @@ class AIMP_Bandana_Pictures {
 	public static function style_prompt() {
 		list( $pink, $purple ) = self::colors();
 		$colors                = AIMP_Bandana::palette();
-		return 'A styled lifestyle photograph for a premium sewing pattern booklet of the sewing atelier "Atelier Irisée". Bright, soft natural daylight, airy and warm. ' .
+		return 'One single continuous photograph (no panels, no split screen, no collage): a styled lifestyle photograph for a premium sewing pattern booklet of the sewing atelier "Atelier Irisée". Bright, soft natural daylight, airy and warm. ' .
 			'Colours: cream and ivory, warm antique gold (' . $colors['gold'] . '), warm brown wood (' . $colors['brown'] . '), with soft pearl pink (' . $pink . ') and plum purple (' . $purple . ') accents. ' .
 			'Somewhere in the scene, without hiding the subject, a satin ribbon in iridescent pearl pink with a thin gold edge forms a loose loop or circle, like the brand\'s logo. ' .
 			'Light linen and pale wood textures, shallow depth of field, sewing-magazine quality, photorealistic. No text, no letters, no numbers, no logos, no watermarks.';

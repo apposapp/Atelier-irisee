@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.54.0
+Stable tag: 3.54.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.54.1 =
+* Dog bandana pictures: every prompt asks for one single photo (the first hero came out as two panels side by side).
 
 = 3.54.0 =
 * Dog bandana guide: A hero photo with a cream arch, the facts as gold seals, round contents links with icons, and a "Your bandana in six steps" bar that is sewn and sparkles like the kit steps bar.
