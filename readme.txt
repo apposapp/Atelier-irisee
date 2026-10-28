@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.51.0
+Stable tag: 3.51.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.51.1 =
+* Home page: the reviews block is 80 % wide on computers, like New products, Maak kennis and the questions.
+* Home page: the gift card promo picture is bigger and sits closer to the text.
+* Page headers: every page title has the same place again. The titles once dragged to a spot in the Design studio (Naaipatronen and Stoffen) go back to the standard place, and titles can no longer be dragged per page.
 
 = 3.51.0 =
 * Settings: a new "Social media" tab with the addresses (moved from Footer) and where the icons show (header, gold info bar, under the side menu, a strip at the side), their style and size. These left the Design studio; the choices made there carry over.

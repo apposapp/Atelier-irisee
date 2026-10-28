@@ -526,28 +526,13 @@
 		if (!el) {
 			return;
 		}
-		drag = { x: e.clientX, y: e.clientY, started: false };
-		// The title of a page header (with the title over the picture): dragged to a place in the header.
-		var text = el.closest('.aimp-page-header.is-text .aimp-page-header-text') || (el.matches('.aimp-page-header.is-text') ? el.querySelector('.aimp-page-header-text') : null);
-		if (text) {
-			var hr = text.closest('.aimp-page-header').getBoundingClientRect();
-			var tr = text.getBoundingClientRect();
-			drag.title = { el: text, header: hr, l: tr.left, t: tr.top, w: tr.width, h: tr.height };
+		// The page header and its title are not dragged: the title has the same place on every page (3.51.1).
+		if (el.closest('.aimp-page-header')) {
+			return;
 		}
+		drag = { x: e.clientX, y: e.clientY, started: false };
 		e.preventDefault();
 	}, true);
-	// The title's place in % of the room it has in its header: 0 = against the left (top) side, 100 = against the
-	// right (bottom) side. So the whole title always stays inside the header, however wide it is.
-	function titlePlace(dx, dy) {
-		var t = drag.title;
-		var roomX = t.header.width - t.w;
-		var roomY = t.header.height - t.h;
-		var tx = roomX > 0 ? Math.max(0, Math.min(100, (t.l + dx - t.header.left) / roomX * 100)) : 50;
-		var ty = roomY > 0 ? Math.max(0, Math.min(100, (t.t + dy - t.header.top) / roomY * 100)) : 50;
-		// Shown at once on the page; the studio's CSS takes over after the drag.
-		t.el.style.cssText = 'position:absolute;left:' + tx + '%;top:' + ty + '%;transform:translate(-' + tx + '%,-' + ty + '%);margin:0;max-width:90%';
-		return { tx: tx, ty: ty };
-	}
 	document.addEventListener('mousemove', function (e) {
 		if (!drag) {
 			return;
@@ -557,12 +542,6 @@
 		if (!drag.started && Math.abs(dx) + Math.abs(dy) < 4) {
 			return;
 		}
-		if (drag.title) {
-			var place = titlePlace(dx, dy);
-			send({ type: 'aimp-design-drag', phase: drag.started ? 'move' : 'start', tx: place.tx, ty: place.ty });
-			drag.started = true;
-			return;
-		}
 		if (!drag.started) {
 			drag.started = true;
 			send({ type: 'aimp-design-drag', phase: 'start', dx: 0, dy: 0 });
@@ -570,16 +549,7 @@
 		send({ type: 'aimp-design-drag', phase: 'move', dx: dx, dy: dy });
 	}, true);
 	document.addEventListener('mouseup', function (e) {
-		if (drag && drag.started && drag.title) {
-			var end = titlePlace(e.clientX - drag.x, e.clientY - drag.y);
-			send({ type: 'aimp-design-drag', phase: 'end', tx: end.tx, ty: end.ty });
-			// The studio's CSS places it from now on (a moment later): the inline place goes then.
-			var titleEl = drag.title.el;
-			window.setTimeout(function () {
-				titleEl.style.cssText = '';
-			}, 1500);
-			dragged = true;
-		} else if (drag && drag.started) {
+		if (drag && drag.started) {
 			send({ type: 'aimp-design-drag', phase: 'end', dx: e.clientX - drag.x, dy: e.clientY - drag.y });
 			// The click that ends a drag does not select something else.
 			dragged = true;

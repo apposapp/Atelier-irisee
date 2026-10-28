@@ -49,6 +49,7 @@ class AIMP_Design {
 	public static function init() {
 		// After the main Atelier Irisee item (AIMP_Settings::add_menu(), priority 60).
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 61 );
+		add_action( 'admin_init', array( __CLASS__, 'clear_title_places' ) );
 		// The studio uses the whole screen: no notices of WordPress or other plugins above it.
 		add_action( 'in_admin_header', array( __CLASS__, 'quiet_screen' ), 1000 );
 		// The studio's screen: room for the panel and the preview (admin-design.css hides the WordPress menu).
@@ -237,7 +238,7 @@ class AIMP_Design {
 		}
 		// The page header: the picture or video per page, the shared look, spacing.
 		if ( isset( $elements['page-header'] ) ) {
-			$elements['page-header']['controls'] = array( 'ph_page', 'ph_pos', 'ph_look', 'ph_style', 'space', 'hide', 'anim' );
+			$elements['page-header']['controls'] = array( 'ph_page', 'ph_look', 'ph_style', 'space', 'hide', 'anim' );
 		}
 		// The product page as a whole (phase 6): the order of its blocks, the pictures, the buy bar, the information.
 		if ( isset( $elements['product-page'] ) ) {
@@ -753,7 +754,6 @@ class AIMP_Design {
 			// The page header: per page (ph_{page}_…) and the look of all of them.
 			'ph_page'     => self::page_header_fields(),
 			// Where the title stands in the header, per page (dragged in the preview; CSS only, no reload).
-			'ph_pos'      => self::page_header_positions(),
 			'ph_look'     => array(
 				'ph_where'      => array( 'select', array( '', 'manual' ) ),
 				'ph_noproducts' => 'bool',
@@ -1087,20 +1087,6 @@ class AIMP_Design {
 				$fields[ $p . 'title' ] = 'text';
 			}
 			$fields[ $p . 'sub' ]    = 'text';
-		}
-		return $fields;
-	}
-
-	/**
-	 * The title's place in the page header per page (and for product pages and the other pages): % of the header.
-	 *
-	 * @return array
-	 */
-	private static function page_header_positions() {
-		$fields = array();
-		foreach ( array_merge( array_keys( class_exists( 'AIMP_Page_Header' ) ? AIMP_Page_Header::pages() : array() ), array( 'product', 'other' ) ) as $id ) {
-			$fields[ 'ph_' . $id . '_tx' ] = array( 0, 100, -1 );
-			$fields[ 'ph_' . $id . '_ty' ] = array( 0, 100, -1 );
 		}
 		return $fields;
 	}
@@ -1855,6 +1841,37 @@ class AIMP_Design {
 		return is_array( $data['draft_texts'] ) ? $data['draft_texts'] : self::live_texts();
 	}
 
+	/**
+	 * Once (3.51.1): the titles dragged to a place per page (ph_<page>_tx / _ty, from 3.48) leave the published look
+	 * and the draft, so every page title has the same place. Nothing else changes.
+	 */
+	public static function clear_title_places() {
+		if ( get_option( 'aimp_ph_places_cleared' ) ) {
+			return;
+		}
+		$data    = self::data();
+		$changes = array();
+		foreach ( array( 'live', 'draft' ) as $key ) {
+			if ( ! is_array( $data[ $key ] ) || ! isset( $data[ $key ]['page-header'] ) || ! is_array( $data[ $key ]['page-header'] ) ) {
+				continue;
+			}
+			$row = $data[ $key ]['page-header'];
+			foreach ( array_keys( $row ) as $name ) {
+				if ( preg_match( '/^ph_(\d+|product|other)_t[xy]$/', $name ) ) {
+					unset( $row[ $name ] );
+				}
+			}
+			if ( $row !== $data[ $key ]['page-header'] ) {
+				$changes[ $key ]                = $data[ $key ];
+				$changes[ $key ]['page-header'] = $row;
+			}
+		}
+		if ( $changes ) {
+			self::store( $changes );
+		}
+		update_option( 'aimp_ph_places_cleared', 1, false );
+	}
+
 	private static function store( $changes ) {
 		update_option( self::OPTION, array_merge( self::data(), $changes ), true );
 	}
@@ -2531,23 +2548,6 @@ class AIMP_Design {
 		}
 		if ( '' !== $ph_vars ) {
 			$css .= 'html body .aimp-page-header.aimp-page-header{' . $ph_vars . '}';
-		}
-		// The title's place, per page (dragged in the preview): % of the room around it, so it always stays inside.
-		$ph_row = isset( $styles['page-header'] ) && is_array( $styles['page-header'] ) ? $styles['page-header'] : array();
-		foreach ( $ph_row as $key => $value ) {
-			if ( ! preg_match( '/^ph_(\d+|product|other)_tx$/', $key, $m ) ) {
-				continue;
-			}
-			$ty    = isset( $ph_row[ 'ph_' . $m[1] . '_ty' ] ) ? (int) $ph_row[ 'ph_' . $m[1] . '_ty' ] : 50;
-			$scope = ctype_digit( $m[1] ) ? 'body.page-id-' . $m[1] : ( 'product' === $m[1] ? 'body.single-product' : 'body:not(.page):not(.single-product)' );
-			$css  .= 'html ' . $scope . ' .aimp-page-header.is-text .aimp-page-header-text{position:absolute!important;left:' . (int) $value . '%!important;top:' . $ty . '%!important;transform:translate(-' . (int) $value . '%,-' . $ty . '%)!important;margin:0!important;max-width:90%!important}';
-		}
-		foreach ( $ph_row as $key => $value ) {
-			// Only "up / down" chosen: the left / right stays in the middle.
-			if ( preg_match( '/^ph_(\d+|product|other)_ty$/', $key, $m ) && ! isset( $ph_row[ 'ph_' . $m[1] . '_tx' ] ) ) {
-				$scope = ctype_digit( $m[1] ) ? 'body.page-id-' . $m[1] : ( 'product' === $m[1] ? 'body.single-product' : 'body:not(.page):not(.single-product)' );
-				$css  .= 'html ' . $scope . ' .aimp-page-header.is-text .aimp-page-header-text{position:absolute!important;left:50%!important;top:' . (int) $value . '%!important;transform:translate(-50%,-' . (int) $value . '%)!important;margin:0!important;max-width:90%!important}';
-			}
 		}
 		$ph_dir = (string) $get( 'page-header', 'ph_tint_dir' );
 		if ( 'bottom' === $ph_dir ) {

@@ -821,7 +821,7 @@
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 	align-items: center;
-	gap: clamp(1.5rem, 5vw, 4.5rem);
+	gap: clamp(1.5rem, 3vw, 2.5rem);
 }
 
 .aimp-home-giftcards.has-no-picture {
@@ -830,15 +830,16 @@
 	text-align: center;
 }
 
+/* The picture fills its half and sits against the text (phones: above the text, in the middle). */
 .aimp-gp-media {
 	display: flex;
-	justify-content: center;
+	justify-content: flex-end;
 	padding: 1rem;
 }
 
 .aimp-gp-card {
 	display: block;
-	width: min(100%, 34rem);
+	width: min(100%, 44rem);
 	height: auto;
 	aspect-ratio: var(--aimp-gc-ratio, 148 / 105);
 	object-fit: cover;
@@ -985,6 +986,10 @@
 		margin-left: auto;
 	}
 
+	.aimp-gp-media {
+		justify-content: center;
+	}
+
 	.aimp-gp-amounts {
 		justify-content: center;
 	}
@@ -1070,6 +1075,7 @@
 @media (min-width: 1025px) {
 	.aimp-home-block.aimp-home-new,
 	.aimp-home-block.aimp-home-maker,
+	.aimp-home-block.aimp-home-reviews,
 	.aimp-home-block.aimp-home-faq {
 		padding-right: 10vw;
 		padding-left: 10vw;

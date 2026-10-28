@@ -888,28 +888,7 @@
 		change(p + 'x', clamp(from.x + dx));
 		change(p + 'y', clamp(from.y + dy));
 	}
-	// A setting of another part than the chosen one (e.g. the page header while its title is chosen).
-	function changeOn(part, key, value) {
-		var was = current;
-		current = part;
-		change(key, value);
-		current = was;
-		markGroups();
-	}
 	function onDrag(data) {
-		// The title of a page header: dragged to a place in the header (% of it), kept per page.
-		if (data.tx !== undefined && data.ty !== undefined) {
-			if (data.phase !== 'start') {
-				lastSnap = Date.now();
-			}
-			var base = 'ph_' + (framePostId || 'other') + '_';
-			changeOn('page-header', base + 'tx', Math.max(0, Math.min(100, Math.round(data.tx))));
-			changeOn('page-header', base + 'ty', Math.max(0, Math.min(100, Math.round(data.ty))));
-			if (data.phase === 'end') {
-				showEdit();
-			}
-			return;
-		}
 		if (!canMove()) {
 			return;
 		}
