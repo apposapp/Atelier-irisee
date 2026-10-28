@@ -129,6 +129,9 @@ class AIMP_Fabric_Fields {
 								<br><span class="description"><?php esc_html_e( 'It then also shows under Lining in the shop and in the lining step of the customizer: the same product, price and stock.', 'atelier-irisee-master-plugin' ); ?></span>
 							</p>
 						<?php endif; ?>
+						<?php if ( 'specs' === $group ) : ?>
+							<?php self::render_fits( $product ); ?>
+						<?php endif; ?>
 						<?php foreach ( $fields as $subject => $field ) : ?>
 							<p>
 								<label for="<?php echo esc_attr( 'aimp_' . $group . '_' . $subject ); ?>"><?php echo esc_html( $field[1] ); ?></label>
@@ -144,6 +147,83 @@ class AIMP_Fabric_Fields {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Lining and interfacing for this fabric: the lining fabrics that fit it (the customizer's lining step shows
+	 * only these), and a normal and a volume interfacing (the customizer's interfacing step).
+	 *
+	 * @param WC_Product|false $product Fabric.
+	 */
+	private static function render_fits( $product ) {
+		$id       = $product ? $product->get_id() : 0;
+		$fit      = $product ? (array) $product->get_meta( AIMP_Catalog::META_FIT_LININGS ) : array();
+		$fit      = array_map( 'absint', $fit );
+		$linings  = self::lining_choices( $id );
+		$interfac = self::interfacing_choices();
+		?>
+		<div class="aimp-fabric-fits">
+			<p>
+				<label for="aimp_fit_linings"><strong><?php esc_html_e( 'Linings that fit this fabric', 'atelier-irisee-master-plugin' ); ?></strong></label>
+				<select id="aimp_fit_linings" class="wc-enhanced-select" multiple="multiple" style="width:100%" name="aimp_fabric[fit_linings][]" data-placeholder="<?php esc_attr_e( 'Every lining fabric', 'atelier-irisee-master-plugin' ); ?>">
+					<?php foreach ( $linings as $lining_id => $name ) : ?>
+						<option value="<?php echo (int) $lining_id; ?>"<?php selected( in_array( (int) $lining_id, $fit, true ) ); ?>><?php echo esc_html( $name ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<span class="description"><?php echo esc_html( $linings ? __( 'The lining step of the customizer offers only these with this fabric. None chosen: every lining fabric is offered.', 'atelier-irisee-master-plugin' ) : __( 'Tick "This fabric can also be used as lining" on your lining fabrics first.', 'atelier-irisee-master-plugin' ) ); ?></span>
+			</p>
+			<?php
+			foreach ( array(
+				'interfacing_normal' => array( AIMP_Catalog::META_INTERFACING, __( 'Normal interfacing', 'atelier-irisee-master-plugin' ) ),
+				'interfacing_volume' => array( AIMP_Catalog::META_INTERFACING_VOL, __( 'Volume interfacing', 'atelier-irisee-master-plugin' ) ),
+			) as $key => $slot ) :
+				$current = $product ? absint( $product->get_meta( $slot[0] ) ) : 0;
+				?>
+				<p>
+					<label for="<?php echo esc_attr( 'aimp_' . $key ); ?>"><strong><?php echo esc_html( $slot[1] ); ?></strong></label>
+					<select id="<?php echo esc_attr( 'aimp_' . $key ); ?>" class="wc-enhanced-select" style="width:100%" name="<?php echo esc_attr( 'aimp_fabric[' . $key . ']' ); ?>">
+						<option value="0"><?php esc_html_e( '— None —', 'atelier-irisee-master-plugin' ); ?></option>
+						<?php foreach ( $interfac as $choice_id => $name ) : ?>
+							<option value="<?php echo (int) $choice_id; ?>"<?php selected( $current, $choice_id ); ?>><?php echo esc_html( $name ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+			<?php endforeach; ?>
+			<p class="description"><?php esc_html_e( 'In the customizer the customer chooses between these (or their own interfacing) when the pattern needs interfacing. Both empty: the customer picks from all interfacings that fit the pattern.', 'atelier-irisee-master-plugin' ); ?></p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * The lining fabrics, except this fabric: ID => name.
+	 *
+	 * @param int $exclude This fabric.
+	 * @return array
+	 */
+	private static function lining_choices( $exclude ) {
+		$choices = array();
+		foreach ( self::products_in( AIMP_Settings::get( 'fabric_cat' ) ) as $id => $name ) {
+			if ( $id !== (int) $exclude && 'yes' === get_post_meta( $id, AIMP_Catalog::META_LINING, true ) ) {
+				$choices[ $id ] = $name;
+			}
+		}
+		return $choices;
+	}
+
+	/**
+	 * The interfacings (not the shoulder pads): ID => name.
+	 *
+	 * @return array
+	 */
+	private static function interfacing_choices() {
+		$choices = array();
+		foreach ( self::products_in( AIMP_Settings::get( 'interfacing_cat' ) ) as $id => $name ) {
+			$item = wc_get_product( $id );
+			if ( $item && 'shoulder_pad' !== AIMP_Notions::type_of( $item, 'interfacing' ) ) {
+				$choices[ $id ] = $name;
+			}
+		}
+		return $choices;
 	}
 
 	/**
@@ -284,6 +364,22 @@ class AIMP_Fabric_Fields {
 		$product->delete_meta_data( AIMP_Catalog::META_INSPIRATION );
 		$set( AIMP_Catalog::META_ORDER_INFO, isset( $input['order_info'] ) ? wp_kses_post( $input['order_info'] ) : '' );
 		$set( AIMP_Catalog::META_LINING, empty( $input['lining'] ) ? '' : 'yes' );
+		// Lining and interfacing for this fabric: only ids from the lists shown.
+		$fit = array_values( array_intersect( array_map( 'absint', isset( $input['fit_linings'] ) ? (array) $input['fit_linings'] : array() ), array_keys( self::lining_choices( $product->get_id() ) ) ) );
+		if ( $fit ) {
+			$product->update_meta_data( AIMP_Catalog::META_FIT_LININGS, $fit );
+		} else {
+			$product->delete_meta_data( AIMP_Catalog::META_FIT_LININGS );
+		}
+		$interfacings = self::interfacing_choices();
+		foreach ( array( 'interfacing_normal' => AIMP_Catalog::META_INTERFACING, 'interfacing_volume' => AIMP_Catalog::META_INTERFACING_VOL ) as $key => $meta ) {
+			$choice = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : 0;
+			if ( $choice && isset( $interfacings[ $choice ] ) ) {
+				$product->update_meta_data( $meta, $choice );
+			} else {
+				$product->delete_meta_data( $meta );
+			}
+		}
 
 		foreach ( AIMP_Catalog::fabric_text_fields() as $fields ) {
 			foreach ( $fields as $subject => $field ) {

@@ -2653,4 +2653,23 @@ return array(
 	'The social media icons under the menu: Atelier Irisee → Settings → Social media.' => 'De sociale-media-iconen onder het menu: Atelier Irisee → Instellingen → Sociale media.',
 	'Under the side menu' => 'Onder het zijmenu',
 	'Your social media addresses. The footer always shows the icons; choose where else they appear. Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"]. Fields left empty are not shown.' => 'Je adressen op sociale media. De footer toont de iconen altijd; kies waar ze nog verschijnen. Ergens anders: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"]. Lege velden worden niet getoond.',
+
+	// 3.52.0: lining and interfacing
+	'Interfacing choice' => 'Versteviging',
+	'Choose an interfacing, or "I have my own interfacing", to continue.' => 'Kies een versteviging, of "Ik heb zelf versteviging", om verder te gaan.',
+	'Choose your interfacing' => 'Kies je versteviging',
+	'Every lining fabric' => 'Alle voeringstoffen',
+	'I have my own interfacing' => 'Ik heb zelf versteviging',
+	'In the customizer the customer chooses between these (or their own interfacing) when the pattern needs interfacing. Both empty: the customer picks from all interfacings that fit the pattern.' => 'In de naaipakket-samensteller kiest de klant hiertussen (of eigen versteviging) als het patroon versteviging nodig heeft. Beide leeg: de klant kiest uit alle verstevigingen die bij het patroon passen.',
+	'Interfacing: you use your own.' => 'Versteviging: je gebruikt je eigen.',
+	'Linings that fit this fabric' => 'Voeringen die bij deze stof passen',
+	'Normal interfacing' => 'Gewone versteviging',
+	'The customer chooses it in its own step, from the linings that fit the chosen fabric (Fabric data → Lining and interfacing).' => 'De klant kiest ze in een eigen stap, uit de voeringen die bij de gekozen stof passen (bij de stof: Voering en versteviging).',
+	'The lining step of the customizer offers only these with this fabric. None chosen: every lining fabric is offered.' => 'De voeringstap van de samensteller toont bij deze stof alleen deze. Niets gekozen: alle voeringstoffen worden getoond.',
+	'This pattern needs interfacing. Choose one, or tell us you have your own.' => 'Dit patroon heeft versteviging nodig. Kies er een, of laat weten dat je zelf versteviging hebt.',
+	'This pattern needs lining' => 'Dit patroon heeft voering nodig',
+	'This pattern needs lining to be finished. Add one to your kit, unless you have lining fabric at home.' => 'Dit patroon heeft voering nodig om af te werken. Voeg er een toe aan je pakket, tenzij je thuis al voeringstof hebt.',
+	'Tick "This fabric can also be used as lining" on your lining fabrics first.' => 'Vink eerst "Deze stof kan ook als voering gebruikt worden" aan bij je voeringstoffen.',
+	'Volume interfacing' => 'Volumeversteviging',
+	'Without lining: this pattern needs lining to be finished.' => 'Zonder voering: dit patroon heeft voering nodig om af te werken.',
 );

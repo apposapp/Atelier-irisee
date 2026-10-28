@@ -2653,4 +2653,23 @@ return array(
 	'The social media icons under the menu: Atelier Irisee → Settings → Social media.' => 'Les icônes des réseaux sociaux sous le menu : Atelier Irisee → Réglages → Réseaux sociaux.',
 	'Under the side menu' => 'Sous le menu latéral',
 	'Your social media addresses. The footer always shows the icons; choose where else they appear. Anywhere else: [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"]. Fields left empty are not shown.' => 'Vos adresses sur les réseaux sociaux. Le pied de page affiche toujours les icônes ; choisissez où elles apparaissent aussi. Ailleurs : [atelier_irisee_socials title="Volg ons | Suivez-nous | Follow us"]. Les champs vides ne sont pas affichés.',
+
+	// 3.52.0: lining and interfacing
+	'Interfacing choice' => 'Entoilage',
+	'Choose an interfacing, or "I have my own interfacing", to continue.' => 'Choisissez un entoilage, ou « J\'ai mon propre entoilage », pour continuer.',
+	'Choose your interfacing' => 'Choisissez votre entoilage',
+	'Every lining fabric' => 'Tous les tissus de doublure',
+	'I have my own interfacing' => 'J\'ai mon propre entoilage',
+	'In the customizer the customer chooses between these (or their own interfacing) when the pattern needs interfacing. Both empty: the customer picks from all interfacings that fit the pattern.' => 'Dans le configurateur, le client choisit entre ceux-ci (ou son propre entoilage) quand le patron demande de l\'entoilage. Les deux vides : le client choisit parmi tous les entoilages qui conviennent au patron.',
+	'Interfacing: you use your own.' => 'Entoilage : vous utilisez le vôtre.',
+	'Linings that fit this fabric' => 'Doublures qui conviennent à ce tissu',
+	'Normal interfacing' => 'Entoilage normal',
+	'The customer chooses it in its own step, from the linings that fit the chosen fabric (Fabric data → Lining and interfacing).' => 'Le client la choisit dans une étape à part, parmi les doublures qui conviennent au tissu choisi (sur le tissu : Doublure et entoilage).',
+	'The lining step of the customizer offers only these with this fabric. None chosen: every lining fabric is offered.' => 'L\'étape doublure du configurateur ne propose que celles-ci avec ce tissu. Aucune choisie : tous les tissus de doublure sont proposés.',
+	'This pattern needs interfacing. Choose one, or tell us you have your own.' => 'Ce patron demande de l\'entoilage. Choisissez-en un, ou indiquez que vous avez le vôtre.',
+	'This pattern needs lining' => 'Ce patron demande une doublure',
+	'This pattern needs lining to be finished. Add one to your kit, unless you have lining fabric at home.' => 'Ce patron demande une doublure pour être terminé. Ajoutez-en une à votre kit, sauf si vous avez déjà du tissu de doublure.',
+	'Tick "This fabric can also be used as lining" on your lining fabrics first.' => 'Cochez d\'abord « Ce tissu peut aussi servir de doublure » sur vos tissus de doublure.',
+	'Volume interfacing' => 'Entoilage volume',
+	'Without lining: this pattern needs lining to be finished.' => 'Sans doublure : ce patron demande une doublure pour être terminé.',
 );

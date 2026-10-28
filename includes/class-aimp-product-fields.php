@@ -38,6 +38,10 @@ class AIMP_Product_Fields {
 		}
 		wp_enqueue_style( 'aimp-admin', AIMP_PLUGIN_URL . 'assets/css/admin.css', array(), AIMP_VERSION );
 		wp_enqueue_script( 'aimp-admin', AIMP_PLUGIN_URL . 'assets/js/admin.js', array( 'jquery' ), AIMP_VERSION, true );
+		// Fabric data → Lining and interfacing: searchable lists (WooCommerce's own, usually loaded here already).
+		if ( wp_script_is( 'wc-enhanced-select', 'registered' ) ) {
+			wp_enqueue_script( 'wc-enhanced-select' );
+		}
 	}
 
 	/**
@@ -223,6 +227,10 @@ class AIMP_Product_Fields {
 				$off[ $material ] = true;
 			}
 		}
+		$switched = $ruled + array( 'lining' => true );
+		if ( ! self::shown_lining( $pattern, $design )['on'] ) {
+			$off['lining'] = true;
+		}
 		$input = function ( $name, $label, $unit, $current ) use ( $loop, $off ) {
 			$id = 'aimp_' . $name . '_' . $loop;
 			printf(
@@ -276,7 +284,7 @@ class AIMP_Product_Fields {
 						</div>
 					<?php endif; ?>
 				<?php endforeach; ?>
-				<input type="hidden" class="aimp-notion-on" name="<?php echo esc_attr( 'aimp_notion_on[' . $loop . ']' ); ?>" value="<?php echo esc_attr( implode( ',', array_keys( array_diff_key( $ruled, $off ) ) ) ); ?>">
+				<input type="hidden" class="aimp-notion-on" name="<?php echo esc_attr( 'aimp_notion_on[' . $loop . ']' ); ?>" value="<?php echo esc_attr( implode( ',', array_keys( array_diff_key( $switched, $off ) ) ) ); ?>">
 				<fieldset class="aimp-material-group aimp-measurement-group has-types">
 					<legend><?php esc_html_e( 'Body measurements', 'atelier-irisee-master-plugin' ); ?></legend>
 					<?php
@@ -325,6 +333,10 @@ class AIMP_Product_Fields {
 			if ( null === $on_list ? ! $state['on'] : ! in_array( $material, $on_list, true ) ) {
 				$off[ $material ] = true;
 			}
+		}
+		// The lining switch works the same way.
+		if ( null === $on_list ? ! self::shown_lining( $parent, self::size_design( $parent, $variation->get_id() ) )['on'] : ! in_array( 'lining', $on_list, true ) ) {
+			$off['lining'] = true;
 		}
 		foreach ( $fields as $name => $field ) {
 			$value = isset( $off[ $name ] ) ? '' : $get( $name );
@@ -643,6 +655,27 @@ class AIMP_Product_Fields {
 	 * @param string          $design  Design slug ('' = the whole pattern).
 	 * @return array
 	 */
+	/**
+	 * The lining switch as the editor shows it: never saved, it is on when a size has a lining length.
+	 *
+	 * @param WC_Product|null $product Pattern.
+	 * @param string          $design  Design slug.
+	 * @return array [ on, amount ]
+	 */
+	private static function shown_lining( $product, $design = '' ) {
+		$rule = AIMP_Notions::lining_rule( $product ? $product->get_id() : 0, $design );
+		if ( ! $rule['saved'] ) {
+			$rule['on'] = false;
+			foreach ( $product ? $product->get_children() : array() as $child_id ) {
+				if ( ( '' === $design || AIMP_Catalog::variation_design( $child_id ) === $design ) && (float) get_post_meta( $child_id, AIMP_Catalog::META_LINING_CM, true ) > 0 ) {
+					$rule['on'] = true;
+					break;
+				}
+			}
+		}
+		return $rule;
+	}
+
 	private static function shown_rules( $product, $design = '' ) {
 		$id     = $product ? $product->get_id() : 0;
 		$rules  = AIMP_Notions::pattern_rules( $id, $design );
@@ -741,6 +774,22 @@ class AIMP_Product_Fields {
 				?>
 			</h4>
 			<p class="description"><?php esc_html_e( 'Switch on what this pattern needs, with the diameter or width that fits (empty = any size), and the number or length for all sizes. A size can still have its own number or length on the Variations tab. Zips: only zips of exactly that length are offered. Ribbons and cords: all of them are offered.', 'atelier-irisee-master-plugin' ); ?></p>
+			<?php $lining = self::shown_lining( $product, $design ); ?>
+			<fieldset class="aimp-notion-rule-group" data-kind="lining">
+				<legend><?php esc_html_e( 'Lining', 'atelier-irisee-master-plugin' ); ?></legend>
+				<div class="aimp-notion-rule<?php echo $lining['on'] ? ' is-on' : ''; ?>" data-material="lining" data-label="<?php esc_attr_e( 'Lining', 'atelier-irisee-master-plugin' ); ?>">
+					<label class="aimp-notion-rule-switch">
+						<input type="checkbox" class="aimp-notion-rule-toggle" name="<?php echo esc_attr( $prefix . '[lining][on]' ); ?>" value="1"<?php checked( $lining['on'] ); ?>>
+						<?php esc_html_e( 'This pattern needs lining', 'atelier-irisee-master-plugin' ); ?>
+					</label>
+					<label class="aimp-notion-rule-amount">
+						<?php esc_html_e( 'Length (all sizes)', 'atelier-irisee-master-plugin' ); ?>
+						<input type="number" class="small-text" min="0" step="0.5" name="<?php echo esc_attr( $prefix . '[lining][amount]' ); ?>" value="<?php echo esc_attr( (string) $lining['amount'] ); ?>">
+						<?php esc_html_e( 'cm', 'atelier-irisee-master-plugin' ); ?>
+					</label>
+				</div>
+				<p class="description"><?php esc_html_e( 'The customer chooses it in its own step, from the linings that fit the chosen fabric (Fabric data → Lining and interfacing).', 'atelier-irisee-master-plugin' ); ?></p>
+			</fieldset>
 			<?php foreach ( AIMP_Notions::kinds() as $kind => $kind_info ) : ?>
 				<fieldset class="aimp-notion-rule-group" data-kind="<?php echo esc_attr( $kind ); ?>">
 					<legend><?php echo esc_html( $kind_info['name'] ); ?></legend>
@@ -834,6 +883,11 @@ class AIMP_Product_Fields {
 				'amount' => '' !== $amount && 'cm' !== $fields[ $info[2] ]['unit'] ? (string) max( 1, (int) round( (float) $amount ) ) : $amount,
 			);
 		}
+		$lining          = isset( $input['lining'] ) && is_array( $input['lining'] ) ? $input['lining'] : array();
+		$clean['lining'] = array(
+			'on'     => ! empty( $lining['on'] ),
+			'amount' => isset( $lining['amount'] ) ? $number( $lining['amount'] ) : '',
+		);
 		return $clean;
 	}
 
@@ -846,8 +900,9 @@ class AIMP_Product_Fields {
 	 */
 	private static function clear_off_amounts( $product, $clean, $design ) {
 		$fields = AIMP_Catalog::material_fields();
-		foreach ( AIMP_Notions::rules() as $rule => $info ) {
-			if ( $clean[ $rule ]['on'] ) {
+		$rules  = AIMP_Notions::rules() + array( 'lining' => array( '', '', 'lining' ) );
+		foreach ( $rules as $rule => $info ) {
+			if ( ! isset( $clean[ $rule ] ) || $clean[ $rule ]['on'] ) {
 				continue;
 			}
 			foreach ( $product->get_children() as $child_id ) {

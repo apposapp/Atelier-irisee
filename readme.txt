@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.51.1
+Stable tag: 3.52.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,7 +14,7 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 
 * Patterns are variable products with one variation per size.
 * Each size stores how much fabric it needs (in units of 10 cm), which fabric categories are allowed, how many buttons and zips it needs, the zip length, and the bust, waist and height measurements.
-* The `[atelier_irisee_configurator]` shortcode guides the customer through four steps: pattern and size, then fabric, then buttons and zips, then a summary.
+* The `[atelier_irisee_configurator]` shortcode guides the customer through the steps: pattern and size, fabric, lining and interfacing (when the pattern needs them, following the chosen fabric), haberdashery, and a summary.
 * Everything is added to the cart in one go. Stock is checked first, quantities are locked to the chosen size, and the lines stay linked, so removing one removes the whole set.
 * Compatible with HPOS (High-Performance Order Storage) and the Cart and Checkout blocks.
 * Updates are delivered automatically from GitHub releases.
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.52.0 =
+* Patterns: on the Atelier Irisee tab (Haberdashery) a "This pattern needs lining" switch with a length for all sizes, like the buttons; a size can still have its own length. Patterns saved before keep their lining lengths.
+* Fabrics: a new part "Linings that fit this fabric" (from the fabrics ticked as lining; none chosen = every lining fabric), and a normal and a volume interfacing.
+* Customizer: the lining step shows only the linings that fit the chosen fabric, with a note that the pattern needs lining to be finished (it stays optional).
+* Customizer: a new interfacing step after the lining step: the fabric's normal and/or volume interfacing, or "I have my own interfacing". A fabric without interfacing set: the interfacings that fit the pattern. Interfacing left the haberdashery step.
+* Cart and orders: the fabric's interfacing is marked "Used as: Normal interfacing / Volume interfacing". Saved kits remember "I have my own interfacing".
 
 = 3.51.1 =
 * Home page: the reviews block is 80 % wide on computers, like New products, Maak kennis and the questions.

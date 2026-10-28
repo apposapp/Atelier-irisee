@@ -96,7 +96,7 @@ class AIMP_Cart {
 		// Lining: optional (many people use their own); if chosen, a fabric that can be used as lining. It comes
 		// from the same product and stock as that fabric (the stock check below counts both together).
 		if ( $req['lining_units'] > 0 && $lining_id ) {
-			$lining = AIMP_Catalog::get_allowed_lining( $lining_id );
+			$lining = AIMP_Catalog::get_allowed_lining( $lining_id, $fabric_id );
 			if ( ! $lining ) {
 				$errors->add( 'aimp_lining', __( 'This fabric cannot be used as lining.', 'atelier-irisee-master-plugin' ) );
 			} else {
@@ -120,16 +120,22 @@ class AIMP_Cart {
 			if ( ! $id ) {
 				continue;
 			}
-			$product = AIMP_Catalog::get_allowed_notion( $id, $type, $req );
+			$product = AIMP_Catalog::get_allowed_notion( $id, $type, $req, $fabric_id );
 			if ( ! $product ) {
 				$errors->add( 'aimp_' . $role, isset( $not_allowed[ $type ] ) ? $not_allowed[ $type ] : ( 'zip' === $info['kind'] ? __( 'This zip cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ) : __( 'This item cannot be used with this pattern size.', 'atelier-irisee-master-plugin' ) ) );
 				continue;
 			}
-			$lines[] = array(
+			$line = array(
 				'product' => $product,
 				'qty'     => AIMP_Catalog::pack_qty( $product, AIMP_Catalog::notion_count( $type, $req ) ),
 				'role'    => $role,
 			);
+			// The fabric's own interfacing: normal or volume (shown in the cart and the order).
+			$slot = 'interfacing' === $type ? array_search( $product->get_id(), AIMP_Catalog::fabric_interfacings( $fabric_id ), true ) : false;
+			if ( false !== $slot ) {
+				$line['use'] = $slot;
+			}
+			$lines[] = $line;
 		}
 
 		// Stock for every line, counting what is already in the cart.
@@ -156,6 +162,9 @@ class AIMP_Cart {
 					'label' => $label,
 				),
 			);
+			if ( isset( $line['use'] ) ) {
+				$data[ self::KEY ]['use'] = $line['use'];
+			}
 			try {
 				if ( $product->is_type( 'variation' ) ) {
 					$key = WC()->cart->add_to_cart( $product->get_parent_id(), $line['qty'], $product->get_id(), $product->get_variation_attributes(), $data );
@@ -479,10 +488,10 @@ class AIMP_Cart {
 				'key'   => __( 'For', 'atelier-irisee-master-plugin' ),
 				'value' => $meta['label'],
 			);
-			if ( 'lining' === $meta['role'] ) {
+			if ( 'lining' === $meta['role'] || ! empty( $meta['use'] ) ) {
 				$item_data[] = array(
 					'key'   => __( 'Used as', 'atelier-irisee-master-plugin' ),
-					'value' => __( 'Lining', 'atelier-irisee-master-plugin' ),
+					'value' => self::use_label( $meta ),
 				);
 			}
 			if ( AIMP_Catalog::sold_per_10cm( $cart_item['data'] ) ) {
@@ -520,8 +529,8 @@ class AIMP_Cart {
 			sprintf( '%s (#%s)', $meta['label'], strtoupper( substr( str_replace( '-', '', $meta['group'] ), 0, 6 ) ) ),
 			true
 		);
-		if ( 'lining' === $meta['role'] ) {
-			$item->add_meta_data( 'aimp_use', __( 'Lining', 'atelier-irisee-master-plugin' ), true );
+		if ( 'lining' === $meta['role'] || ! empty( $meta['use'] ) ) {
+			$item->add_meta_data( 'aimp_use', self::use_label( $meta ), true );
 		}
 		if ( isset( $values['data'] ) && AIMP_Catalog::sold_per_10cm( $values['data'] ) ) {
 			$item->add_meta_data( 'aimp_length', AIMP_Catalog::fabric_text( (int) $meta['qty'] ), true );
@@ -529,6 +538,22 @@ class AIMP_Cart {
 		if ( self::kit_discount() ) {
 			$item->add_meta_data( __( 'Sewing project kit discount', 'atelier-irisee-master-plugin' ), self::kit_discount() . '%', true );
 		}
+	}
+
+	/**
+	 * What a kit line is used as: lining, or the fabric's normal or volume interfacing.
+	 *
+	 * @param array $meta Kit data of the line.
+	 * @return string
+	 */
+	private static function use_label( $meta ) {
+		if ( isset( $meta['use'] ) && 'volume' === $meta['use'] ) {
+			return __( 'Volume interfacing', 'atelier-irisee-master-plugin' );
+		}
+		if ( isset( $meta['use'] ) && 'normal' === $meta['use'] ) {
+			return __( 'Normal interfacing', 'atelier-irisee-master-plugin' );
+		}
+		return __( 'Lining', 'atelier-irisee-master-plugin' );
 	}
 
 	public static function order_meta_label( $display_key, $meta ) {

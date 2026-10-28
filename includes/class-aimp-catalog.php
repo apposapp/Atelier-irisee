@@ -38,6 +38,10 @@ class AIMP_Catalog {
 	/** On a size: the lining it needs in cm. On a fabric: "yes" when it can also be used as lining. */
 	const META_LINING_CM       = '_aimp_lining_cm';
 	const META_LINING          = '_aimp_lining';
+	/** On a fabric: the lining fabrics that fit it (empty = every lining fabric), and its normal and volume interfacing. */
+	const META_FIT_LININGS     = '_aimp_fit_linings';
+	const META_INTERFACING     = '_aimp_interfacing_normal';
+	const META_INTERFACING_VOL = '_aimp_interfacing_volume';
 	const META_RECOMMENDED     = '_aimp_recommended_pattern';
 
 
@@ -969,6 +973,13 @@ class AIMP_Catalog {
 				$materials[ $info[2] ] = (float) $notion_rules[ $rule ]['amount'];
 			}
 		}
+		// Lining: switched on or off on the pattern like the haberdashery, with a length for every size without its own.
+		$lining_rule = AIMP_Notions::lining_rule( $pattern->get_id(), self::designs( $pattern ) ? self::variation_design( $variation ) : '' );
+		if ( ! $lining_rule['on'] ) {
+			$materials['lining'] = 0;
+		} elseif ( $materials['lining'] <= 0 && '' !== $lining_rule['amount'] ) {
+			$materials['lining'] = (float) $lining_rule['amount'];
+		}
 		$fabric_units = $materials['fabric'] > 0 ? (int) ceil( $materials['fabric'] / self::FABRIC_UNIT_CM ) : 0;
 		$lining_units = $materials['lining'] > 0 ? (int) ceil( $materials['lining'] / self::FABRIC_UNIT_CM ) : 0;
 
@@ -1206,14 +1217,101 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * The lining product if it can be used as lining (every lining fabric fits every pattern).
+	 * The lining product if it can be used as lining: with a fabric that has fitting linings set, one of those;
+	 * otherwise every lining fabric.
 	 *
 	 * @param int $lining_id Product ID.
+	 * @param int $fabric_id The chosen fabric (0 = none).
 	 * @return WC_Product|null
 	 */
-	public static function get_allowed_lining( $lining_id ) {
+	public static function get_allowed_lining( $lining_id, $fabric_id = 0 ) {
 		$product = self::get_material( $lining_id, self::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
-		return $product && self::is_lining( $product ) ? $product : null;
+		if ( ! $product || ! self::is_lining( $product ) ) {
+			return null;
+		}
+		$fit = self::fit_linings( $fabric_id );
+		return ! $fit || in_array( $product->get_id(), $fit, true ) ? $product : null;
+	}
+
+	/**
+	 * The lining fabrics set as fitting on a fabric (Fabric data → Lining and interfacing), still lining fabrics.
+	 *
+	 * @param int $fabric_id Fabric.
+	 * @return int[] Empty: every lining fabric fits.
+	 */
+	public static function fit_linings( $fabric_id ) {
+		$ids = $fabric_id ? get_post_meta( absint( $fabric_id ), self::META_FIT_LININGS, true ) : array();
+		$ids = array_values( array_unique( array_filter( array_map( 'absint', is_array( $ids ) ? $ids : array() ) ) ) );
+		return array_values(
+			array_filter(
+				$ids,
+				function ( $id ) {
+					return 'publish' === get_post_status( $id ) && self::is_lining( $id );
+				}
+			)
+		);
+	}
+
+	/**
+	 * The normal and volume interfacing set on a fabric: slot => product ID, only interfacings that can be bought.
+	 *
+	 * @param int $fabric_id Fabric.
+	 * @return array [ 'normal' => id, 'volume' => id ], without the empty ones.
+	 */
+	public static function fabric_interfacings( $fabric_id ) {
+		$list = array();
+		if ( ! $fabric_id ) {
+			return $list;
+		}
+		foreach ( array( 'normal' => self::META_INTERFACING, 'volume' => self::META_INTERFACING_VOL ) as $slot => $meta ) {
+			$id      = absint( get_post_meta( absint( $fabric_id ), $meta, true ) );
+			$product = $id ? self::get_material( $id, self::category_tree( AIMP_Settings::get( 'interfacing_cat' ) ) ) : null;
+			if ( $product && 'shoulder_pad' !== AIMP_Notions::type_of( $product, 'interfacing' ) ) {
+				$list[ $slot ] = $product->get_id();
+			}
+		}
+		return $list;
+	}
+
+	/**
+	 * The interfacing step of the customizer: the fabric's normal and/or volume interfacing as cards ("fabric"), or,
+	 * when the fabric has none, the shop's interfacings that fit the pattern ("pick", as in the haberdashery step).
+	 *
+	 * @param int $variation_id Size.
+	 * @param int $fabric_id    Chosen fabric.
+	 * @param int $page         Page (pick).
+	 * @return array|null
+	 */
+	public static function get_interfacing_options( $variation_id, $fabric_id, $page ) {
+		$req = self::get_requirements( $variation_id );
+		if ( ! $req ) {
+			return null;
+		}
+		$need = self::notion_count( 'interfacing', $req );
+		$own  = $need > 0 ? self::fabric_interfacings( $fabric_id ) : array();
+		if ( ! $own ) {
+			$data = self::get_notions( $variation_id, 'interfacing', $page );
+			if ( is_array( $data ) ) {
+				$data['mode'] = 'pick';
+			}
+			return $data;
+		}
+		$labels = array(
+			'normal' => __( 'Normal interfacing', 'atelier-irisee-master-plugin' ),
+			'volume' => __( 'Volume interfacing', 'atelier-irisee-master-plugin' ),
+		);
+		$result = self::empty_page();
+		foreach ( $own as $slot => $id ) {
+			$card             = self::material_card( wc_get_product( $id ), $need );
+			$card['slot']     = $slot;
+			$card['subtitle'] = $labels[ $slot ] . ( '' !== (string) $card['subtitle'] ? ' · ' . $card['subtitle'] : '' );
+			$result['items'][] = $card;
+		}
+		$result['pages']    = 1;
+		$result['total']    = count( $result['items'] );
+		$result['per_page'] = $result['total'];
+		$result['mode']     = 'fabric';
+		return $result;
 	}
 
 	/**
@@ -1257,9 +1355,13 @@ class AIMP_Catalog {
 	 * @param array  $req        Requirements.
 	 * @return WC_Product|null
 	 */
-	public static function get_allowed_notion( $product_id, $type, $req ) {
+	public static function get_allowed_notion( $product_id, $type, $req, $fabric_id = 0 ) {
 		if ( 0 === self::notion_count( $type, $req ) ) {
 			return null;
+		}
+		// Interfacing: the fabric's own normal or volume interfacing always fits (it was chosen for this fabric).
+		if ( 'interfacing' === $type && in_array( absint( $product_id ), self::fabric_interfacings( $fabric_id ), true ) ) {
+			return wc_get_product( absint( $product_id ) );
 		}
 		$product = self::get_material( $product_id, self::category_tree( self::notion_category( $type ) ) );
 		if ( $product && '' !== self::zip_length( $type, $req ) && ! self::zip_length_matches( $product, self::zip_length( $type, $req ) ) ) {
@@ -1703,6 +1805,11 @@ class AIMP_Catalog {
 		$query_args                   = self::base_query_args( $cats, 'simple', $lining ? array( array( 'key' => self::META_LINING, 'value' => 'yes' ) ) : array() );
 		$query_args['posts_per_page'] = -1;
 		$query_args['no_found_rows']  = true;
+		// The lining step with a fabric that has fitting linings set: only those.
+		$fit = $lining && ! empty( $args['fabric'] ) ? self::fit_linings( $args['fabric'] ) : array();
+		if ( $fit ) {
+			$query_args['post__in'] = $fit;
+		}
 		if ( '' !== $args['search'] ) {
 			$query_args['s'] = $args['search'];
 		}

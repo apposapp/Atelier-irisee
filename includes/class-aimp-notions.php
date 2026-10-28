@@ -864,6 +864,49 @@ class AIMP_Notions {
 	 * @return array
 	 */
 	public static function pattern_rules( $pattern_id, $design = '' ) {
+		$saved = self::saved_rules( $pattern_id, $design );
+		$rules = array();
+		foreach ( array_keys( self::rules() ) as $key ) {
+			$row           = isset( $saved[ $key ] ) && is_array( $saved[ $key ] ) ? $saved[ $key ] : null;
+			$rules[ $key ] = array(
+				'on'     => null === $row ? ! self::is_extra( $key ) : ! empty( $row['on'] ),
+				'min'    => $row && isset( $row['min'] ) && '' !== (string) $row['min'] ? (float) $row['min'] : '',
+				'max'    => $row && isset( $row['max'] ) && '' !== (string) $row['max'] ? (float) $row['max'] : '',
+				'label'  => $row && isset( $row['label'] ) ? (string) $row['label'] : '',
+				'type'   => $row && isset( $row['type'] ) ? (string) $row['type'] : '',
+				'amount' => $row && isset( $row['amount'] ) && '' !== (string) $row['amount'] && (float) $row['amount'] > 0 ? (float) $row['amount'] : '',
+				'saved'  => null !== $row,
+			);
+		}
+		return $rules;
+	}
+
+	/**
+	 * The lining switch of a pattern (or design), stored with its haberdashery rules (key "lining"): [ on, amount,
+	 * saved ]. Never saved (patterns from before 3.52): on, so the lining lengths of the sizes keep counting.
+	 *
+	 * @param int    $pattern_id Pattern.
+	 * @param string $design     Design slug.
+	 * @return array
+	 */
+	public static function lining_rule( $pattern_id, $design = '' ) {
+		$saved = self::saved_rules( $pattern_id, $design );
+		$row   = isset( $saved['lining'] ) && is_array( $saved['lining'] ) ? $saved['lining'] : null;
+		return array(
+			'on'     => null === $row || ! empty( $row['on'] ),
+			'amount' => $row && isset( $row['amount'] ) && (float) $row['amount'] > 0 ? (float) $row['amount'] : '',
+			'saved'  => null !== $row,
+		);
+	}
+
+	/**
+	 * The stored rules of a pattern, or of one of its designs when it has its own.
+	 *
+	 * @param int    $pattern_id Pattern.
+	 * @param string $design     Design slug.
+	 * @return array
+	 */
+	private static function saved_rules( $pattern_id, $design = '' ) {
 		$saved = array();
 		if ( $pattern_id && '' !== $design ) {
 			$designs = AIMP_Catalog::design_data( $pattern_id );
@@ -880,20 +923,7 @@ class AIMP_Notions {
 			$old   = get_post_meta( $pattern_id, self::META_BUTTON_RULES, true );
 			$saved = is_array( $old ) ? $old : array();
 		}
-		$rules = array();
-		foreach ( array_keys( self::rules() ) as $key ) {
-			$row           = isset( $saved[ $key ] ) && is_array( $saved[ $key ] ) ? $saved[ $key ] : null;
-			$rules[ $key ] = array(
-				'on'     => null === $row ? ! self::is_extra( $key ) : ! empty( $row['on'] ),
-				'min'    => $row && isset( $row['min'] ) && '' !== (string) $row['min'] ? (float) $row['min'] : '',
-				'max'    => $row && isset( $row['max'] ) && '' !== (string) $row['max'] ? (float) $row['max'] : '',
-				'label'  => $row && isset( $row['label'] ) ? (string) $row['label'] : '',
-				'type'   => $row && isset( $row['type'] ) ? (string) $row['type'] : '',
-				'amount' => $row && isset( $row['amount'] ) && '' !== (string) $row['amount'] && (float) $row['amount'] > 0 ? (float) $row['amount'] : '',
-				'saved'  => null !== $row,
-			);
-		}
-		return $rules;
+		return $saved;
 	}
 
 	/**

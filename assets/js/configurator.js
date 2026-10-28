@@ -1,7 +1,8 @@
 /**
  * Atelier Irisee pattern configurator.
  *
- * Steps: pattern & size -> fabric -> haberdashery (buttons, zips, ribbons, bias tape) -> summary -> add to cart.
+ * Steps: pattern & size -> fabric -> lining -> interfacing -> haberdashery (buttons, zips, ribbons, bias tape) -> summary
+ * -> add to cart. Lining and interfacing only when the size needs them; both follow the chosen fabric.
  * Pattern and fabric steps show a grid on the left and the details of the selection on the right.
  * All rules (allowed fabrics, quantities, stock) are enforced again on the server.
  */
@@ -408,10 +409,26 @@
 		s.liningImage = 0;
 		s.liningFilters = defaultFabricFilters();
 		s.liningCategories = null;
+		// The interfacing step: "I have my own interfacing" (its card choice is s.notions.interfacing).
+		s.ownInterfacing = false;
 		s.notions = {};
 		NOTIONS.forEach(function (n) {
 			s.notions[n.type] = { page: 1, data: null, selected: null, image: 0 };
 		});
+	};
+
+	// Another fabric: its lining and interfacing choices no longer apply (they follow the fabric).
+	Configurator.prototype.fabricChanged = function () {
+		var s = this.state;
+		s.liningPage = 1;
+		s.linings = null;
+		s.lining = null;
+		s.liningImage = 0;
+		s.liningCategories = null;
+		s.ownInterfacing = false;
+		if (s.notions.interfacing) {
+			s.notions.interfacing = { page: 1, data: null, selected: null, image: 0 };
+		}
 	};
 
 	// Forget loaded haberdashery lists (new language or changed stock); choices are kept.
@@ -510,6 +527,10 @@
 		// Lining: when the chosen size needs it.
 		if (size && size.lining_units > 0) {
 			steps.push({ key: 'lining', label: t.stepLining });
+		}
+		// Interfacing: its own step, from the fabric's normal / volume interfacing (or the ones that fit the pattern).
+		if (this.needsInterfacing()) {
+			steps.push({ key: 'interfacing', label: t.stepInterfacing });
 		}
 		if (size ? this.notionTypes().length : NOTIONS.length) {
 			steps.push({ key: 'notions', label: t.stepNotions });
@@ -769,6 +790,9 @@
 			case 'lining':
 				this.matKind = this.state.step;
 				this.renderFabricStep();
+				break;
+			case 'interfacing':
+				this.renderInterfacingStep();
 				break;
 			case 'notions':
 				this.renderNotionsStep();
@@ -1276,6 +1300,9 @@
 		if (s.step !== 'lining' && s.step !== 'fabric' && s.lining && s.size.lining_units > 0) {
 			items.push({ image: s.lining.image, name: s.lining.name, detail: t.stepLining });
 		}
+		if (s.step === 'notions' && s.notions.interfacing && s.notions.interfacing.selected) {
+			items.push({ image: s.notions.interfacing.selected.image, name: s.notions.interfacing.selected.name, detail: t.stepInterfacing });
+		}
 		if (s.step === 'summary') {
 			NOTIONS.forEach(function (n) {
 				var selected = s.notions[n.type].selected;
@@ -1321,6 +1348,7 @@
 			introHtml(k) +
 			this.recapHtml() +
 			'<h3>' + esc(k === 'lining' ? t.chooseLining : t.chooseFabric) + '</h3>' +
+			(k === 'lining' ? '<div class="aimp-notice aimp-lining-note" role="note"><p>' + esc(t.liningNote) + '</p></div>' : '') +
 			'<div class="aimp-fabric-filterbar">' +
 			'<button type="button" class="aimp-button aimp-shop-toggle" data-action="toggle-filters" aria-controls="aimp-fabric-filters"></button>' +
 			'</div>' +
@@ -1489,7 +1517,9 @@
 			category: f.category.join(','),
 			search: f.search,
 			in_stock: f.inStock ? 1 : 0,
-			sort: f.sort
+			sort: f.sort,
+			// The lining step: only the linings that fit the chosen fabric.
+			fabric: k === 'lining' && s.fabric ? s.fabric.id : 0
 		};
 	};
 
@@ -1545,6 +1575,9 @@
 			priceSuffix: t.per10cm,
 			onSelect: function (item) {
 				if (!s[k] || s[k].id !== item.id) {
+					if (k === 'fabric' && s.fabric) {
+						self.fabricChanged();
+					}
 					s[k] = item;
 					s[k + 'Image'] = 0;
 				}
@@ -1598,10 +1631,70 @@
 			return [];
 		}
 		return NOTIONS.filter(function (n) {
-			return n.qty(size) > 0;
+			// Interfacing has its own step.
+			return n.type !== 'interfacing' && n.qty(size) > 0;
 		}).map(function (n) {
 			return n.type;
 		});
+	};
+
+	Configurator.prototype.needsInterfacing = function () {
+		var info = notionInfo('interfacing');
+		return !!(info && this.state.size && info.qty(this.state.size) > 0);
+	};
+
+	/* ---------------------------------------------------------------
+	 * Interfacing: the fabric's normal and/or volume interfacing, or (a fabric without) the ones that fit the
+	 * pattern; or "I have my own interfacing".
+	 * ------------------------------------------------------------- */
+
+	Configurator.prototype.renderInterfacingStep = function () {
+		var self = this;
+		var s = this.state;
+		var info = notionInfo('interfacing');
+		this.body.innerHTML =
+			'<div class="aimp-step aimp-step--notions aimp-step--interfacing">' + introHtml('interfacing') + this.recapHtml() +
+			'<section class="aimp-notion-section">' +
+			'<h3>' + esc(t.chooseInterfacing) + '</h3>' +
+			'<p class="aimp-help">' + esc(t.interfacingHint) + ' ' + esc(info.willAdd(s.size)) + '</p>' +
+			'<div class="aimp-split">' +
+			'<div class="aimp-split-main" data-role="notions-interfacing"></div>' +
+			'<aside class="aimp-split-side" data-role="notion-panel-interfacing"></aside>' +
+			'</div>' +
+			'<p><button type="button" class="aimp-button aimp-button--ghost aimp-own-interfacing" data-action="own-interfacing" aria-pressed="false">' + esc(t.ownInterfacing) + '</button></p>' +
+			'</section>' +
+			'<div data-role="messages"></div>' +
+			'<div class="aimp-actions">' +
+			'<button type="button" class="aimp-button aimp-button--ghost" data-action="back">' + esc(t.back) + '</button>' +
+			'<button type="button" class="aimp-button" data-action="continue">' + esc(t.continue) + '</button>' +
+			'</div></div>';
+
+		this.body.querySelector('[data-action="back"]').addEventListener('click', function () {
+			self.prev();
+		});
+		this.body.querySelector('[data-action="own-interfacing"]').addEventListener('click', function () {
+			s.ownInterfacing = !s.ownInterfacing;
+			if (s.ownInterfacing) {
+				s.notions.interfacing.selected = null;
+				self.closeSheet();
+			}
+			self.renderNotionGrid('interfacing');
+		});
+		this.body.querySelector('[data-action="continue"]').addEventListener('click', function () {
+			var data = s.notions.interfacing.data;
+			var nothing = data && !(data.items || []).some(function (item) {
+				return item.available;
+			});
+			if (s.notions.interfacing.selected || s.ownInterfacing || nothing) {
+				self.next();
+				return;
+			}
+			self.body.querySelector('[data-role="messages"]').innerHTML = '<div class="aimp-notice" role="alert"><p>' + esc(t.chooseInterfacingFirst) + '</p></div>';
+		});
+		this.renderNotionGrid('interfacing');
+		if (!s.notions.interfacing.data) {
+			this.loadNotions('interfacing');
+		}
 	};
 
 	Configurator.prototype.renderNotionsStep = function () {
@@ -1655,14 +1748,17 @@
 		var reqLang = lang;
 		bucket.data = null;
 		this.renderNotionGrid(type);
-		fetchOnce('notions', { variation: sizeId, type: type, page: page })
+		var pending = type === 'interfacing' ?
+			fetchOnce('interfacing', { variation: sizeId, fabric: s.fabric ? s.fabric.id : 0, page: page }) :
+			fetchOnce('notions', { variation: sizeId, type: type, page: page });
+		pending
 			.then(function (data) {
 				if (!s.size || s.size.id !== sizeId || s.notions[type].page !== page || lang !== reqLang) {
 					return;
 				}
 				s.notions[type].data = data;
 				s.notions[type].selected = rebind(s.notions[type].selected, data.items);
-				if (s.step === 'notions') {
+				if (s.step === 'notions' || s.step === 'interfacing') {
 					self.renderNotionGrid(type);
 				}
 			})
@@ -1683,6 +1779,11 @@
 		if (!container) {
 			return;
 		}
+		var own = type === 'interfacing' ? this.body.querySelector('[data-action="own-interfacing"]') : null;
+		if (own) {
+			own.setAttribute('aria-pressed', s.ownInterfacing ? 'true' : 'false');
+			own.classList.toggle('aimp-button--ghost', !s.ownInterfacing);
+		}
 		this.renderGrid(container, bucket.data, {
 			selectedId: bucket.selected ? bucket.selected.id : null,
 			emptyText: t.noNotions,
@@ -1698,6 +1799,9 @@
 					return;
 				}
 				bucket.selected = bucket.selected && bucket.selected.id === item.id ? null : item;
+				if (bucket.selected && type === 'interfacing') {
+					s.ownInterfacing = false;
+				}
 				self.renderNotionGrid(type);
 				if (bucket.selected) {
 					self.showPanel(panel);
@@ -1737,6 +1841,9 @@
 				choose.addEventListener('click', function () {
 					bucket.selected = chosen ? null : shown;
 					bucket.preview = null;
+					if (bucket.selected && type === 'interfacing') {
+						s.ownInterfacing = false;
+					}
 					self.closeSheet();
 					self.renderNotionGrid(type);
 				});
@@ -1760,9 +1867,14 @@
 		NOTIONS.forEach(function (n) {
 			var selected = s.notions[n.type].selected;
 			if (n.qty(s.size) > 0 && selected) {
+				var detail = selected.qty_text ? selected.qty_text + (selected.set_note ? ' · ' + selected.set_note : '') : (n.unitLabel === 'pricePerUnit' ? n.need(s.size) : '');
+				// The fabric's own interfacing: normal or volume.
+				if (selected.slot) {
+					detail = t[selected.slot === 'volume' ? 'volumeInterfacing' : 'normalInterfacing'] + (detail ? ' · ' + detail : '');
+				}
 				lines.push({
 					name: selected.name,
-					detail: selected.qty_text ? selected.qty_text + (selected.set_note ? ' · ' + selected.set_note : '') : (n.unitLabel === 'pricePerUnit' ? n.need(s.size) : ''),
+					detail: detail,
 					// Sets: the card's own quantity (whole sets).
 					qty: selected.qty || n.qty(s.size),
 					price: selected.price
@@ -1805,6 +1917,12 @@
 			html += '<tr class="aimp-summary-discount"><th colspan="2">' + esc(fmt(t.kitDiscount, discount)) + '</th><td>−' + esc(money(total * discount / 100)) + '</td></tr>';
 		}
 		html += '<tr><th colspan="2">' + esc(t.total) + '</th><td class="aimp-summary-price">' + priceHtml(total) + '</td></tr></tfoot></table></div>';
+		if (s.size.lining_units > 0 && !s.lining) {
+			html += '<p class="aimp-help aimp-summary-note">' + esc(t.noLiningNote) + '</p>';
+		}
+		if (this.needsInterfacing() && s.ownInterfacing) {
+			html += '<p class="aimp-help aimp-summary-note">' + esc(t.ownInterfacingNote) + '</p>';
+		}
 		html += '<p class="aimp-help">' + esc(t.lockedNote) + '</p>';
 		if (design.cz_note) {
 			html += '<p class="aimp-help aimp-cz-note">' + esc(localText(design.cz_note)) + '</p>';
@@ -1841,7 +1959,8 @@
 			nonce: cfg.nonce,
 			variation: s.size.id,
 			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0,
-			lining: s.size.lining_units > 0 && s.lining ? s.lining.id : 0
+			lining: s.size.lining_units > 0 && s.lining ? s.lining.id : 0,
+			own_interfacing: s.ownInterfacing ? 1 : 0
 		};
 		NOTIONS.forEach(function (n) {
 			var selected = s.notions[n.type].selected;
@@ -1886,10 +2005,13 @@
 				NOTIONS.forEach(function (n) {
 					s.notions[n.type].selected = (data.notions && data.notions[n.type]) || null;
 				});
+				s.ownInterfacing = !!data.own_interfacing && !s.notions.interfacing.selected;
 				// The first step that still needs a choice, otherwise the overview.
 				var step = 'summary';
 				if (s.size.fabric_units > 0 && !s.fabric) {
 					step = 'fabric';
+				} else if (self.needsInterfacing() && !s.notions.interfacing.selected && !s.ownInterfacing) {
+					step = 'interfacing';
 				} else if (self.notionTypes().some(function (type) {
 					return !s.notions[type].selected;
 				})) {

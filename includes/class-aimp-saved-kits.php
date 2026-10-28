@@ -76,6 +76,8 @@ class AIMP_Saved_Kits {
 			'fabric'    => self::int_param( 'fabric' ),
 			'lining'    => self::int_param( 'lining' ),
 			'notions'   => $notions,
+			// "I have my own interfacing" (the interfacing step).
+			'own_interfacing' => 1 === self::int_param( 'own_interfacing' ) ? 1 : 0,
 			'date'      => time(),
 		);
 		$user_id = get_current_user_id();
@@ -138,7 +140,7 @@ class AIMP_Saved_Kits {
 		// The lining (optional): only when it is still a lining fabric with enough stock.
 		$lining = null;
 		if ( $req['lining_units'] > 0 && ! empty( $kit['lining'] ) ) {
-			$product = AIMP_Catalog::get_allowed_lining( $kit['lining'] );
+			$product = AIMP_Catalog::get_allowed_lining( $kit['lining'], $kit['fabric'] );
 			$card    = $product ? AIMP_Catalog::material_card( $product, $req['lining_units'] ) : null;
 			if ( $card && $card['available'] ) {
 				$lining = $card;
@@ -170,6 +172,7 @@ class AIMP_Saved_Kits {
 				'fabric'  => $fabric,
 				'lining'  => $lining,
 				'notions' => (object) $notions,
+				'own_interfacing' => ! empty( $kit['own_interfacing'] ),
 				'message' => $missing ? __( 'Some items of this kit are no longer available. Please choose them again.', 'atelier-irisee-master-plugin' ) : '',
 			)
 		);

@@ -17,7 +17,7 @@ class AIMP_Ajax {
 	const NONCE = 'aimp_configurator';
 
 	public static function init() {
-		foreach ( array( 'patterns', 'sizes', 'fabrics', 'linings', 'notions', 'add_to_cart' ) as $action ) {
+		foreach ( array( 'patterns', 'sizes', 'fabrics', 'linings', 'interfacing', 'notions', 'add_to_cart' ) as $action ) {
 			add_action( 'wc_ajax_aimp_' . $action, array( __CLASS__, $action ) );
 		}
 	}
@@ -102,6 +102,8 @@ class AIMP_Ajax {
 				'search'   => isset( $_POST['search'] ) ? substr( sanitize_text_field( wp_unslash( $_POST['search'] ) ), 0, 100 ) : '',
 				'in_stock' => 1 === self::int_param( 'in_stock' ),
 				'sort'     => isset( $_POST['sort'] ) ? sanitize_key( wp_unslash( $_POST['sort'] ) ) : 'recommended',
+				// The lining step: the chosen fabric (its fitting linings).
+				'fabric'   => self::int_param( 'fabric' ),
 			),
 			true === $lining
 		);
@@ -111,9 +113,18 @@ class AIMP_Ajax {
 		wp_send_json_success( $data );
 	}
 
-	// The lining step: every fabric that can also be used as lining.
+	// The lining step: the fabrics that can also be used as lining (those that fit the chosen fabric).
 	public static function linings() {
 		self::fabrics( true );
+	}
+
+	// The interfacing step: the chosen fabric's normal / volume interfacing, or the ones that fit the pattern.
+	public static function interfacing() {
+		$data = AIMP_Catalog::get_interfacing_options( self::int_param( 'variation' ), self::int_param( 'fabric' ), max( 1, self::int_param( 'page' ) ) );
+		if ( null === $data ) {
+			self::not_found();
+		}
+		wp_send_json_success( $data );
 	}
 
 	public static function notions() {
