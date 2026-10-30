@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.54.1
+Stable tag: 3.55.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.55.0 =
+* Product screen: the Product data box and the Atelier Irisee workspace always show, open and in the main column, for every user. Their Screen Options checkboxes are gone, so nobody can hide them by accident any more.
 
 = 3.54.1 =
 * Dog bandana pictures: every prompt asks for one single photo (the first hero came out as two panels side by side).

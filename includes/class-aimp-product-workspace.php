@@ -19,6 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class AIMP_Product_Workspace {
 
 	/**
+	 * Boxes the product screen needs: per-user Screen Options could hide, fold or move them away for one user only.
+	 */
+	const ALWAYS_SHOWN = array( 'aimp-workspace', 'woocommerce-product-data', 'postexcerpt', 'postdivrich' );
+
+	/**
 	 * Product kinds with their own menu items and workspace: kind => category setting. Fabric, pattern and every
 	 * haberdashery kind (AIMP_Notions::kinds()).
 	 *
@@ -55,6 +60,74 @@ class AIMP_Product_Workspace {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 60 );
 		add_filter( 'submenu_file', array( __CLASS__, 'current_submenu' ) );
 		add_action( 'save_post_product', array( __CLASS__, 'prepare_new' ), 10, 3 );
+		// Everyone sees the Product data box and the workspace, whatever their own Screen Options say.
+		add_filter( 'hidden_meta_boxes', array( __CLASS__, 'never_hidden' ), 10, 2 );
+		add_filter( 'get_user_option_closedpostboxes_product', array( __CLASS__, 'never_closed' ) );
+		add_filter( 'get_user_option_meta-box-order_product', array( __CLASS__, 'main_column' ) );
+		add_action( 'admin_head', array( __CLASS__, 'screen_options_css' ) );
+	}
+
+	/**
+	 * @param string[]  $hidden Hidden box ids.
+	 * @param WP_Screen $screen Screen.
+	 * @return string[]
+	 */
+	public static function never_hidden( $hidden, $screen ) {
+		if ( ! $screen || 'product' !== $screen->id || ! is_array( $hidden ) ) {
+			return $hidden;
+		}
+		return array_values( array_diff( $hidden, self::ALWAYS_SHOWN ) );
+	}
+
+	/**
+	 * @param mixed $closed Folded box ids.
+	 * @return mixed
+	 */
+	public static function never_closed( $closed ) {
+		return is_array( $closed ) ? array_values( array_diff( $closed, self::ALWAYS_SHOWN ) ) : $closed;
+	}
+
+	/**
+	 * A box dragged to the side or to the bottom goes back to the top of the main column.
+	 *
+	 * @param mixed $order Column => comma-separated box ids.
+	 * @return mixed
+	 */
+	public static function main_column( $order ) {
+		if ( ! is_array( $order ) ) {
+			return $order;
+		}
+		$main  = array( 'aimp-workspace', 'woocommerce-product-data' );
+		$moved = array();
+		foreach ( $order as $column => $ids ) {
+			$list = array_filter( explode( ',', (string) $ids ) );
+			if ( 'normal' !== $column && array_intersect( $list, $main ) ) {
+				$moved            = array_merge( $moved, array_intersect( $list, $main ) );
+				$order[ $column ] = implode( ',', array_diff( $list, $main ) );
+			}
+		}
+		if ( $moved ) {
+			$normal          = array_filter( explode( ',', isset( $order['normal'] ) ? (string) $order['normal'] : '' ) );
+			$order['normal'] = implode( ',', array_merge( array_values( array_intersect( $main, $moved ) ), array_values( array_diff( $normal, $moved ) ) ) );
+		}
+		return $order;
+	}
+
+	/**
+	 * Screen Options on the product screen: no checkbox for the boxes that always show.
+	 */
+	public static function screen_options_css() {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || 'product' !== $screen->id ) {
+			return;
+		}
+		$labels = array_map(
+			function ( $id ) {
+				return '.metabox-prefs label[for="' . $id . '-hide"]';
+			},
+			self::ALWAYS_SHOWN
+		);
+		echo '<style>' . implode( ',', $labels ) . '{display:none}</style>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed ids.
 	}
 
 	public static function editor_expand( $expand, $post_type ) {
