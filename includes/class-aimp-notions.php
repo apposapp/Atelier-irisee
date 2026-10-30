@@ -907,10 +907,61 @@ class AIMP_Notions {
 				'label'  => $row && isset( $row['label'] ) ? (string) $row['label'] : '',
 				'type'   => $row && isset( $row['type'] ) ? (string) $row['type'] : '',
 				'amount' => $row && isset( $row['amount'] ) && '' !== (string) $row['amount'] && (float) $row['amount'] > 0 ? (float) $row['amount'] : '',
+				// Finish choice: '' (always needed), or option 'a' / 'b' of which the customer chooses one.
+				'finish' => $row && isset( $row['finish'] ) && in_array( $row['finish'], array( 'a', 'b' ), true ) ? $row['finish'] : '',
 				'saved'  => null !== $row,
 			);
 		}
 		return $rules;
+	}
+
+	/**
+	 * The finish choice of a pattern (or design): the customer takes option a or b (e.g. buttons or a cord).
+	 * [ 'a' => [ name, rules[] ], 'b' => … ], or [] when the pattern has no choice (both options need a rule).
+	 *
+	 * @param int    $pattern_id Pattern.
+	 * @param string $design     Design slug.
+	 * @return array
+	 */
+	public static function finish_options( $pattern_id, $design = '' ) {
+		$names   = self::finish_names( $pattern_id, $design );
+		$fields  = AIMP_Catalog::material_fields();
+		$all     = self::rules();
+		$options = array( 'a' => array(), 'b' => array() );
+		foreach ( self::pattern_rules( $pattern_id, $design ) as $key => $rule ) {
+			if ( $rule['on'] && '' !== $rule['finish'] ) {
+				$options[ $rule['finish'] ][ $key ] = $fields[ $all[ $key ][2] ]['label'] . ( '' !== $rule['label'] ? ' – ' . $rule['label'] : '' );
+			}
+		}
+		if ( ! $options['a'] || ! $options['b'] ) {
+			return array();
+		}
+		$result = array();
+		foreach ( $options as $option => $rules ) {
+			$name              = isset( $names[ $option ] ) ? trim( (string) $names[ $option ] ) : '';
+			$result[ $option ] = array(
+				// Without its own name: what it needs ("Cord", "Buttons + Ribbon").
+				'name'  => '' !== $name ? $name : implode( ' + ', $rules ),
+				'rules' => array_keys( $rules ),
+			);
+		}
+		return $result;
+	}
+
+	/**
+	 * The own names of the finish options, as saved: [ a => name, b => name ] ('' = named after its items).
+	 *
+	 * @param int    $pattern_id Pattern.
+	 * @param string $design     Design slug.
+	 * @return array
+	 */
+	public static function finish_names( $pattern_id, $design = '' ) {
+		$saved = self::saved_rules( $pattern_id, $design );
+		$names = isset( $saved['finish'] ) && is_array( $saved['finish'] ) ? $saved['finish'] : array();
+		return array(
+			'a' => isset( $names['a'] ) ? (string) $names['a'] : '',
+			'b' => isset( $names['b'] ) ? (string) $names['b'] : '',
+		);
 	}
 
 	/**

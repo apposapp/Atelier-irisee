@@ -177,7 +177,8 @@ class AIMP_Product_Page {
 	 */
 	/**
 	 * Pattern page "Accessories" and size table: one group per design (or one group), each
-	 * [ name, accessories: [ [ icon, name, facts: [ [ icon, label, value ] ] ] ], columns: [ label ], rows: [ [ size, cells… ] ] ].
+	 * [ name, accessories: [ [ icon, name, facts: [ [ icon, label, value ] ] ] ], finish: [ [ name, items: [ accessory… ] ] ],
+	 * columns: [ label ], rows: [ [ size, cells… ] ] ].
 	 * Only filled-in materials and measurements are listed.
 	 *
 	 * @param WC_Product $pattern Pattern.
@@ -217,6 +218,20 @@ class AIMP_Product_Page {
 				'diameter' => __( 'Diameter', 'atelier-irisee-master-plugin' ),
 				'width'    => __( 'Width', 'atelier-irisee-master-plugin' ),
 			);
+			// Finish choice (buttons or a cord, …): material => option; those items are listed per option.
+			$finish_of = array();
+			foreach ( $reqs[0]['finish_options'] as $option => $info ) {
+				foreach ( $info['rules'] as $rule ) {
+					$finish_of[ AIMP_Notions::rules()[ $rule ][2] ] = $option;
+				}
+			}
+			$finish = array();
+			foreach ( $reqs[0]['finish_options'] as $option => $info ) {
+				$finish[ $option ] = array(
+					'name'  => $info['name'],
+					'items' => array(),
+				);
+			}
 			// Accessories: every material any size needs, with an icon and its facts (amount or length, then diameter or width).
 			$accessories = array();
 			foreach ( $fields as $key => $field ) {
@@ -246,11 +261,23 @@ class AIMP_Product_Page {
 				if ( isset( $ranges[ $key ] ) ) {
 					$facts[] = array( 'icon' => self::fabric_icon( $ranges[ $key ][0] ), 'label' => $fact_labels[ $ranges[ $key ][0] ], 'value' => $ranges[ $key ][1] );
 				}
-				$accessories[] = array(
+				$item = array(
 					'icon'  => self::fabric_icon( self::material_icon( $key ) ),
 					'name'  => AIMP_Catalog::material_label( $key, $reqs[0] ),
 					'facts' => $facts,
 				);
+				if ( isset( $finish_of[ $key ] ) ) {
+					$finish[ $finish_of[ $key ] ]['items'][] = $item;
+				} else {
+					$accessories[] = $item;
+				}
+			}
+			// A choice only when both options need something; otherwise their items are simply listed.
+			if ( count( array_filter( array_column( $finish, 'items' ) ) ) < 2 ) {
+				foreach ( $finish as $option ) {
+					$accessories = array_merge( $accessories, $option['items'] );
+				}
+				$finish = array();
 			}
 			// Table: the measurements filled in for at least one size, then the fabric.
 			$used = array();
@@ -285,6 +312,7 @@ class AIMP_Product_Page {
 			$groups[] = array(
 				'name'        => isset( $names[ $slug ] ) ? $names[ $slug ] : '',
 				'accessories' => $accessories,
+				'finish'      => array_values( $finish ),
 				'columns'     => array_merge( array( __( 'Size', 'atelier-irisee-master-plugin' ) ), array_values( $used ), array( __( 'Fabric', 'atelier-irisee-master-plugin' ) ), $lining ? array( __( 'Lining', 'atelier-irisee-master-plugin' ) ) : array() ),
 				'rows'        => $rows,
 			);
@@ -1168,6 +1196,20 @@ class AIMP_Product_Page {
 		}
 		$link = get_term_link( $terms[0] );
 		return is_wp_error( $link ) ? '' : $link;
+	}
+
+	/**
+	 * One item of the pattern page's accessories: its icon and name, then its labelled facts.
+	 *
+	 * @param array $item [ icon, name, facts: [ [ icon, label, value ] ] ] from size_table().
+	 * @return string
+	 */
+	public static function accessory_html( $item ) {
+		$facts = '';
+		foreach ( $item['facts'] as $fact ) {
+			$facts .= '<div><dt>' . $fact['icon'] . esc_html( $fact['label'] ) . '</dt><dd>' . esc_html( $fact['value'] ) . '</dd></div>';
+		}
+		return '<li class="aimp-accessory"><span class="aimp-accessory-name">' . $item['icon'] . esc_html( $item['name'] ) . '</span><dl class="aimp-accessory-facts">' . $facts . '</dl></li>';
 	}
 
 	/**

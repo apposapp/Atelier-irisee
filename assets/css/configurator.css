@@ -566,6 +566,26 @@
 	border-color: #fff;
 }
 
+
+/* Finish choice (buttons or a cord, …): two cards with "or" between them. */
+.aimp-configurator .aimp-finish-choices {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.6rem 0.9rem;
+}
+
+.aimp-configurator .aimp-card.aimp-card--finish {
+	flex: 1 1 14rem;
+	max-width: 24rem;
+	padding: 0.8rem 1.4rem;
+}
+
+.aimp-configurator .aimp-finish-or {
+	font-style: italic;
+	opacity: 0.8;
+}
+
 /* "(optional)" after a step title and in the step indicator. */
 .aimp-configurator .aimp-optional,
 .aimp-configurator .aimp-step-optional {

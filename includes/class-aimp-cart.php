@@ -62,23 +62,34 @@ class AIMP_Cart {
 	 * @param array $extras       The matching dog bandana: [ bandana => 0|1, thread => ID, band => ID ].
 	 * @return true|WP_Error WP_Error carries one message per problem.
 	 */
-	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0, $extras = array() ) {
+	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0, $extras = array(), $finish = '' ) {
 		$errors = new WP_Error();
 		$req    = AIMP_Catalog::get_requirements( $variation_id );
 		if ( ! $req ) {
 			$errors->add( 'aimp_pattern', __( 'This pattern size is not available.', 'atelier-irisee-master-plugin' ) );
 			return $errors;
 		}
+		// A pattern with a finish choice (buttons or a cord, …): one of its options, and only that option's items.
+		$finish_name = '';
+		if ( $req['finish_options'] ) {
+			if ( ! isset( $req['finish_options'][ $finish ] ) ) {
+				$errors->add( 'aimp_finish', __( 'Choose a finish.', 'atelier-irisee-master-plugin' ) );
+				return $errors;
+			}
+			$req['finish'] = $finish;
+			$finish_name   = $req['finish_options'][ $finish ]['name'];
+		}
 
 		$label   = AIMP_Catalog::kit_label( $req );
 		$lines   = array();
 		$pending = array();
 
-		// Pattern (size).
+		// Pattern (size), with the chosen finish.
 		$lines[] = array(
 			'product' => $req['variation'],
 			'qty'     => 1,
 			'role'    => 'pattern',
+			'finish'  => $finish_name,
 		);
 
 		// Fabric: required when the size needs fabric. Quantities always come from the size, never the browser.
@@ -119,7 +130,8 @@ class AIMP_Cart {
 		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
 			$role = $info['role'];
 			$id   = isset( $notions[ $type ] ) ? absint( $notions[ $type ] ) : 0;
-			if ( ! $id ) {
+			// Not needed (also: the other finish option).
+			if ( ! $id || AIMP_Catalog::notion_count( $type, $req ) <= 0 ) {
 				continue;
 			}
 			$product = AIMP_Catalog::get_allowed_notion( $id, $type, $req, $fabric_id );
@@ -169,6 +181,9 @@ class AIMP_Cart {
 			);
 			if ( isset( $line['use'] ) ) {
 				$data[ self::KEY ]['use'] = $line['use'];
+			}
+			if ( ! empty( $line['finish'] ) ) {
+				$data[ self::KEY ]['finish'] = $line['finish'];
 			}
 			try {
 				if ( $product->is_type( 'variation' ) ) {
@@ -488,6 +503,12 @@ class AIMP_Cart {
 				'key'   => __( 'Configured set', 'atelier-irisee-master-plugin' ),
 				'value' => $parts ? implode( ', ', $parts ) : __( 'Pattern only', 'atelier-irisee-master-plugin' ),
 			);
+			if ( ! empty( $meta['finish'] ) ) {
+				$item_data[] = array(
+					'key'   => __( 'Finish', 'atelier-irisee-master-plugin' ),
+					'value' => $meta['finish'],
+				);
+			}
 		} else {
 			$item_data[] = array(
 				'key'   => __( 'For', 'atelier-irisee-master-plugin' ),
@@ -537,6 +558,9 @@ class AIMP_Cart {
 		if ( 'lining' === $meta['role'] || ! empty( $meta['use'] ) ) {
 			$item->add_meta_data( 'aimp_use', self::use_label( $meta ), true );
 		}
+		if ( ! empty( $meta['finish'] ) ) {
+			$item->add_meta_data( 'aimp_finish', $meta['finish'], true );
+		}
 		if ( isset( $values['data'] ) && AIMP_Catalog::sold_per_10cm( $values['data'] ) ) {
 			$item->add_meta_data( 'aimp_length', AIMP_Catalog::fabric_text( (int) $meta['qty'] ), true );
 		}
@@ -573,6 +597,9 @@ class AIMP_Cart {
 		}
 		if ( 'aimp_use' === $meta->key ) {
 			return __( 'Used as', 'atelier-irisee-master-plugin' );
+		}
+		if ( 'aimp_finish' === $meta->key ) {
+			return __( 'Finish', 'atelier-irisee-master-plugin' );
 		}
 		return $display_key;
 	}

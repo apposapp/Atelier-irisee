@@ -113,6 +113,15 @@
 		};
 	});
 
+	// The finish option ('a' / 'b') a haberdashery type belongs to for a size, or '' (always needed).
+	function finishOf(size, type) {
+		var finish = size && size.finish;
+		if (!finish || !finish.a || !finish.b) {
+			return '';
+		}
+		return finish.a.types.indexOf(type) !== -1 ? 'a' : (finish.b.types.indexOf(type) !== -1 ? 'b' : '');
+	}
+
 	function notionInfo(type) {
 		return NOTIONS.filter(function (n) {
 			return n.type === type;
@@ -420,6 +429,8 @@
 		// "I already have my own lining / interfacing / …" (the cards of those steps); own: per haberdashery type.
 		s.ownLining = false;
 		s.ownInterfacing = false;
+		// The finish the customer chose ('a' / 'b'), for patterns that can be finished in two ways (size.finish).
+		s.finish = '';
 		this.resetBandana();
 		s.notions = {};
 		NOTIONS.forEach(function (n) {
@@ -552,7 +563,7 @@
 		if (this.needsInterfacing()) {
 			steps.push({ key: 'interfacing', label: t.stepInterfacing, optional: true });
 		}
-		if (size ? this.notionTypes().length : NOTIONS.length) {
+		if (size ? this.notionTypes().length || this.hasFinish() : NOTIONS.length) {
 			steps.push({ key: 'notions', label: t.stepNotions, optional: true });
 		}
 		steps.push({ key: 'summary', label: t.stepSummary });
@@ -1070,7 +1081,8 @@
 			if (n.qty(size) > 0) {
 				// A named button group ("Buttons – Cuffs") by its own name.
 				var own = size.notions && size.notions[n.type] ? size.notions[n.type].name : '';
-				rows.push(card(n.type, own || t[n.label], n.need(size)));
+				var option = finishOf(size, n.type);
+				rows.push(card(n.type, (own || t[n.label]) + (option ? ' (' + fmt(t.finishLabel, size.finish[option].name) + ')' : ''), n.need(size)));
 			}
 		});
 		// Also needed, not in the kit (elastic, cord, …): only the filled-in ones.
@@ -1748,15 +1760,45 @@
 		return own || t[notionInfo(type).label] || '';
 	};
 
+	// Whether the chosen size can be finished in two ways (size.finish: { a: { name, types }, b: … }).
+	Configurator.prototype.hasFinish = function () {
+		var size = this.state.size;
+		return !!(size && size.finish && size.finish.a && size.finish.b);
+	};
+
+	// A finish chosen: the other option's choices are dropped, and the step shows the items of this one.
+	Configurator.prototype.chooseFinish = function (option) {
+		var s = this.state;
+		if (!this.hasFinish() || !s.size.finish[option]) {
+			return;
+		}
+		s.finish = option;
+		Object.keys(s.size.finish).forEach(function (other) {
+			if (other !== option) {
+				s.size.finish[other].types.forEach(function (type) {
+					if (s.notions[type]) {
+						s.notions[type].selected = null;
+						s.notions[type].preview = null;
+						s.notions[type].own = false;
+					}
+				});
+			}
+		});
+		this.closeSheet();
+		this.renderNotionsStep();
+	};
+
 	// The haberdashery types the chosen size needs.
 	Configurator.prototype.notionTypes = function () {
 		var size = this.state.size;
 		if (!size) {
 			return [];
 		}
+		var s = this.state;
 		return NOTIONS.filter(function (n) {
-			// Interfacing has its own step.
-			return n.type !== 'interfacing' && n.qty(size) > 0;
+			// Interfacing has its own step; a finish option's items only when that finish is chosen.
+			var option = finishOf(size, n.type);
+			return n.type !== 'interfacing' && n.qty(size) > 0 && (!option || option === s.finish);
 		}).map(function (n) {
 			return n.type;
 		});
@@ -1819,6 +1861,31 @@
 		var s = this.state;
 		var html = '<div class="aimp-step aimp-step--notions">' + introHtml('notions') + this.recapHtml();
 
+		// Patterns that can be finished in two ways (buttons or a cord, …): the customer chooses first; only the
+		// items of that finish follow.
+		if (this.hasFinish()) {
+			html +=
+				'<section class="aimp-notion-section aimp-finish-section">' +
+				'<h3>' + esc(t.chooseFinish) + '</h3>' +
+				'<p class="aimp-help">' + esc(t.finishHint) + '</p>' +
+				'<div class="aimp-finish-choices">' +
+				['a', 'b'].map(function (option) {
+					var info = s.size.finish[option];
+					var on = s.finish === option;
+					var needs = info.types.filter(function (type) {
+						return notionInfo(type) && notionInfo(type).qty(s.size) > 0;
+					}).map(function (type) {
+						return self.notionName(type) + ': ' + notionInfo(type).need(s.size);
+					}).join(' · ');
+					return '<button type="button" class="aimp-card aimp-card--own aimp-card--finish' + (on ? ' is-selected' : '') + '" data-finish="' + option + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+						'<span class="aimp-card-name">' + esc(info.name) + (needs ? '<small class="aimp-card-sub">' + esc(needs) + '</small>' : '') + '</span>' +
+						(on ? '<span class="aimp-badge aimp-badge--selected">' + esc(t.selected) + '</span>' : '') +
+						'</button>';
+				}).join('<span class="aimp-finish-or">' + esc(t.or) + '</span>') +
+				'</div>' +
+				'</section>';
+		}
+
 		this.notionTypes().forEach(function (type) {
 			var info = notionInfo(type);
 			// A button group the pattern named ("Cuffs"): its name after the title.
@@ -1836,6 +1903,7 @@
 		});
 
 		html +=
+			'<div data-role="messages"></div>' +
 			'<div class="aimp-actions">' +
 			'<button type="button" class="aimp-button aimp-button--ghost" data-action="back">' + esc(t.back) + '</button>' +
 			'<button type="button" class="aimp-button" data-action="continue">' + esc(t.continue) + '</button>' +
@@ -1846,7 +1914,16 @@
 			self.prev();
 		});
 		this.body.querySelector('[data-action="continue"]').addEventListener('click', function () {
+			if (self.hasFinish() && !s.finish) {
+				self.body.querySelector('[data-role="messages"]').innerHTML = '<div class="aimp-notice" role="alert"><p>' + esc(t.chooseFinishFirst) + '</p></div>';
+				return;
+			}
 			self.next();
+		});
+		this.body.querySelectorAll('[data-finish]').forEach(function (button) {
+			button.addEventListener('click', function () {
+				self.chooseFinish(button.getAttribute('data-finish'));
+			});
 		});
 
 		this.notionTypes().forEach(function (type) {
@@ -1981,7 +2058,8 @@
 		}
 		NOTIONS.forEach(function (n) {
 			var selected = s.notions[n.type].selected;
-			if (n.qty(s.size) > 0 && selected) {
+			var option = finishOf(s.size, n.type);
+			if (n.qty(s.size) > 0 && selected && (!option || option === s.finish)) {
 				var detail = selected.qty_text ? selected.qty_text + (selected.set_note ? ' · ' + selected.set_note : '') : (n.unitLabel === 'pricePerUnit' ? n.need(s.size) : '');
 				// The fabric's own interfacing: normal or volume.
 				if (selected.slot) {
@@ -2174,6 +2252,9 @@
 		if (this.needsInterfacing() && s.ownInterfacing) {
 			html += '<p class="aimp-help aimp-summary-note">' + esc(t.ownInterfacingNote) + '</p>';
 		}
+		if (this.hasFinish() && s.finish) {
+			html += '<p class="aimp-help aimp-summary-note">' + esc(fmt(t.finishLabel, s.size.finish[s.finish].name)) + '</p>';
+		}
 		this.notionTypes().forEach(function (type) {
 			if (s.notions[type].own && !s.notions[type].selected) {
 				html += '<p class="aimp-help aimp-summary-note">' + esc(fmt(t.ownNotionNote, this.notionName(type))) + '</p>';
@@ -2220,6 +2301,7 @@
 			lining: s.size.lining_units > 0 && s.lining ? s.lining.id : 0,
 			own_interfacing: s.ownInterfacing ? 1 : 0,
 			own_lining: s.ownLining && !s.lining ? 1 : 0,
+			finish: this.hasFinish() ? s.finish : '',
 			own_notions: this.notionTypes().filter(function (type) {
 				return s.notions[type].own && !s.notions[type].selected;
 			}).join(',')
@@ -2278,6 +2360,7 @@
 				});
 				s.ownInterfacing = !!data.own_interfacing && !s.notions.interfacing.selected;
 				s.ownLining = !!data.own_lining && !s.lining;
+				s.finish = self.hasFinish() && s.size.finish[data.finish] ? data.finish : '';
 				(data.own_notions || []).forEach(function (type) {
 					if (s.notions[type] && !s.notions[type].selected) {
 						s.notions[type].own = true;
@@ -2291,7 +2374,7 @@
 					step = 'fabric';
 				} else if (self.needsInterfacing() && !s.notions.interfacing.selected && !s.ownInterfacing) {
 					step = 'interfacing';
-				} else if (self.notionTypes().some(function (type) {
+				} else if ((self.hasFinish() && !s.finish) || self.notionTypes().some(function (type) {
 					return !s.notions[type].selected && !s.notions[type].own;
 				})) {
 					step = 'notions';
@@ -2330,10 +2413,12 @@
 			lining: s.size.lining_units > 0 && s.lining ? s.lining.id : 0
 		};
 		this.bandanaParams(params);
+		params.finish = this.hasFinish() ? s.finish : '';
 		// One parameter per haberdashery role: button, zip, ribbon, bias.
 		NOTIONS.forEach(function (n) {
 			var selected = s.notions[n.type].selected;
-			params[n.role] = n.qty(s.size) > 0 && selected ? selected.id : 0;
+			var option = finishOf(s.size, n.type);
+			params[n.role] = n.qty(s.size) > 0 && selected && (!option || option === s.finish) ? selected.id : 0;
 		});
 
 		secureRequest('add_to_cart', params)

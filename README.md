@@ -176,6 +176,8 @@ Six kinds of haberdashery, described in one registry (`AIMP_Notions::kinds()`): 
 
 **Patterns:** `_aimp_notion_rules` = `[ rule => [ on, min, max ] ]` for the rules of `AIMP_Notions::rules()` (button, jeans_button, press_stud, the four zip types, elastic, bias, ribbon, cord, interfacing). Off = no amount field on the sizes, amounts cleared, and `get_requirements()` sets the amount to 0. A rule that was never saved counts as on with any size (3.6 `_aimp_button_rules` is still read).
 
+**Finish choice (3.57):** a rule can have `finish` = `a` or `b` (else always needed), and the rules hold `finish => [ a => name, b => name ]`. `AIMP_Notions::finish_options()` returns both options only when each has a switched-on rule. The configurator shows "Choose your finish" (`size.finish`), sends `finish`, and `AIMP_Cart::add_group()` requires it and sets `$req['finish']`, so `AIMP_Catalog::notion_count()` returns 0 for the other option. The chosen name is stored on the pattern line (`aimp_finish`) and in saved kits.
+
 **Configurator:** one step per rule (`AIMP_Catalog::notion_types()`), in the kind's category, with `AIMP_Notions::meta_query()` (type and range); the cart checks `AIMP_Notions::fits()`. Zips also match the exact length. Cards carry `qty`, `qty_text`, `price_suffix` and the set/roll notice `set_note`.
 
 **Shop filters:** `aimp_htype`, `aimp_hcol`, `aimp_hdia`, `aimp_hwid`, `aimp_hlen`, `aimp_hmat` in the address (`m_*` in the request), see `AIMP_Shop::notion_filters()`; 3.6 links (`aimp_b*`) still work.

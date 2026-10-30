@@ -875,12 +875,44 @@ class AIMP_Product_Fields {
 								<input type="number" class="small-text" min="0" step="<?php echo $is_cm ? '0.5' : '1'; ?>" name="<?php echo esc_attr( $base . '[amount]' ); ?>" value="<?php echo esc_attr( (string) $rule['amount'] ); ?>">
 								<?php echo esc_html( $is_cm ? __( 'cm', 'atelier-irisee-master-plugin' ) : __( 'pcs', 'atelier-irisee-master-plugin' ) ); ?>
 							</label>
+							<label class="aimp-notion-rule-finish">
+								<?php esc_html_e( 'Finish', 'atelier-irisee-master-plugin' ); ?>
+								<select name="<?php echo esc_attr( $base . '[finish]' ); ?>">
+									<option value=""><?php esc_html_e( 'Always needed', 'atelier-irisee-master-plugin' ); ?></option>
+									<option value="a"<?php selected( $rule['finish'], 'a' ); ?>><?php esc_html_e( 'Finish option A', 'atelier-irisee-master-plugin' ); ?></option>
+									<option value="b"<?php selected( $rule['finish'], 'b' ); ?>><?php esc_html_e( 'Finish option B', 'atelier-irisee-master-plugin' ); ?></option>
+								</select>
+							</label>
 						</div>
 					<?php endforeach; ?>
 				</fieldset>
 			<?php endforeach; ?>
+			<?php $finish_names = self::finish_names( $product, $design ); ?>
+			<fieldset class="aimp-notion-rule-group aimp-finish-names">
+				<legend><?php esc_html_e( 'Finish choice', 'atelier-irisee-master-plugin' ); ?></legend>
+				<p class="description"><?php esc_html_e( 'Only for patterns the customer can finish in two ways, e.g. with buttons or with a cord: set "Finish" of those items to option A or B, and the customer chooses one of the two. Items that are always needed (also buttons or cords that are not part of the choice) stay on "Always needed". Both options need at least one item that is switched on.', 'atelier-irisee-master-plugin' ); ?></p>
+				<?php foreach ( array( 'a' => __( 'Name of option A', 'atelier-irisee-master-plugin' ), 'b' => __( 'Name of option B', 'atelier-irisee-master-plugin' ) ) as $option => $option_label ) : ?>
+					<label class="aimp-notion-rule-name">
+						<?php echo esc_html( $option_label ); ?>
+						<input type="text" class="short" name="<?php echo esc_attr( $prefix . '[finish][' . $option . ']' ); ?>" value="<?php echo esc_attr( $finish_names[ $option ] ); ?>" placeholder="<?php echo esc_attr( 'a' === $option ? __( 'e.g. Button closure', 'atelier-irisee-master-plugin' ) : __( 'e.g. Tie closure', 'atelier-irisee-master-plugin' ) ); ?>">
+					</label>
+				<?php endforeach; ?>
+				<p class="description"><?php esc_html_e( 'Empty: the option is named after its items.', 'atelier-irisee-master-plugin' ); ?></p>
+			</fieldset>
 		</div>
 		<?php
+	}
+
+	/**
+	 * The saved names of the finish options of a pattern (or design): [ a => name, b => name ].
+	 *
+	 * @param WC_Product|null $product Pattern.
+	 * @param string          $design  Design slug.
+	 * @return array
+	 */
+	private static function finish_names( $product, $design ) {
+		// Only own names are shown in the fields, not the automatic ones.
+		return AIMP_Notions::finish_names( $product ? $product->get_id() : 0, $design );
 	}
 
 	/**
@@ -909,8 +941,26 @@ class AIMP_Product_Fields {
 				'type'   => AIMP_Notions::is_extra( $rule ) && isset( $button_types[ $type ] ) ? $type : '',
 				// Pieces are whole numbers; lengths in cm.
 				'amount' => '' !== $amount && 'cm' !== $fields[ $info[2] ]['unit'] ? (string) max( 1, (int) round( (float) $amount ) ) : $amount,
+				'finish' => isset( $row['finish'] ) && in_array( $row['finish'], array( 'a', 'b' ), true ) ? $row['finish'] : '',
 			);
 		}
+		// Finish choice: only when both options have an item that is switched on; otherwise every item is "always needed".
+		$used = array();
+		foreach ( $clean as $row ) {
+			if ( $row['on'] && '' !== $row['finish'] ) {
+				$used[ $row['finish'] ] = true;
+			}
+		}
+		if ( count( $used ) < 2 ) {
+			foreach ( $clean as $rule => $row ) {
+				$clean[ $rule ]['finish'] = '';
+			}
+		}
+		$names           = isset( $input['finish'] ) && is_array( $input['finish'] ) ? $input['finish'] : array();
+		$clean['finish'] = array(
+			'a' => isset( $names['a'] ) ? sanitize_text_field( $names['a'] ) : '',
+			'b' => isset( $names['b'] ) ? sanitize_text_field( $names['b'] ) : '',
+		);
 		$lining          = isset( $input['lining'] ) && is_array( $input['lining'] ) ? $input['lining'] : array();
 		$clean['lining'] = array(
 			'on'     => ! empty( $lining['on'] ),

@@ -1165,6 +1165,42 @@ html:has(.aimp-product-reviews) {
 	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 }
 
+
+/* Finish choice: the two options in a gold-edged box, with "or" between them. */
+.aimp-configurator .aimp-finish-block {
+	margin-top: 0.9rem;
+	padding: 0.7rem 0.9rem;
+	border: 1px var(--aimp-site-line, solid) var(--aimp-gold, #b38f4f);
+	border-radius: var(--aimp-radius, 6px);
+}
+
+.aimp-configurator .aimp-finish-block :is(.aimp-finish-title, .aimp-finish-name, .aimp-finish-or) {
+	margin: 0;
+}
+
+.aimp-configurator .aimp-finish-title {
+	font-size: 0.8em;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+}
+
+.aimp-configurator .aimp-finish-name {
+	margin-top: 0.4rem;
+	font-weight: 600;
+}
+
+.aimp-configurator .aimp-finish-or {
+	margin: 0.2rem 0;
+	font-style: italic;
+	text-align: center;
+	opacity: 0.8;
+}
+
+.aimp-configurator .aimp-finish-option .aimp-accessory:last-child {
+	border-bottom: 0;
+}
+
 /* A fine line between the accessories and the size chart: beside it, or above it when they stack. */
 .aimp-pattern-needs-row > .aimp-pattern-sizes {
 	padding-left: calc(var(--aimp-gap) * 1.5);

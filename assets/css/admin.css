@@ -1167,7 +1167,8 @@ table.aimp-design-fabrics {
 /* Haberdashery: a group name and type (buttons), and the number or length for all sizes. */
 .aimp-notion-rule-name,
 .aimp-notion-rule-type,
-.aimp-notion-rule-amount {
+.aimp-notion-rule-amount,
+.aimp-notion-rule-finish {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -1183,13 +1184,20 @@ table.aimp-design-fabrics {
 	width: 5em;
 }
 
+.woocommerce_options_panel .aimp-notion-rule-finish select,
 .woocommerce_options_panel .aimp-notion-rule-type select {
 	float: none;
 	width: auto;
 }
 
-.aimp-notion-rule:not(.is-on) :is(.aimp-notion-rule-name, .aimp-notion-rule-type, .aimp-notion-rule-amount) {
+.aimp-notion-rule:not(.is-on) :is(.aimp-notion-rule-name, .aimp-notion-rule-type, .aimp-notion-rule-amount, .aimp-notion-rule-finish) {
 	opacity: 0.45;
+}
+
+/* Finish choice: the names of option A and B, under each other. */
+.aimp-finish-names .aimp-notion-rule-name {
+	display: flex;
+	margin: 4px 0;
 }
 
 /* A pattern with designs: one block per design. */

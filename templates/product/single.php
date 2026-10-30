@@ -475,19 +475,37 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 				<div class="aimp-pattern-needs-row">
 					<div class="aimp-pattern-accessories">
 						<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Accessories', 'atelier-irisee-master-plugin' ); ?></h4>
-						<?php if ( $aimp_group['accessories'] ) : ?>
-							<ul class="aimp-accessories">
-								<?php foreach ( $aimp_group['accessories'] as $aimp_item ) : ?>
-									<li class="aimp-accessory">
-										<span class="aimp-accessory-name"><?php echo $aimp_item['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><?php echo esc_html( $aimp_item['name'] ); ?></span>
-										<dl class="aimp-accessory-facts">
-											<?php foreach ( $aimp_item['facts'] as $aimp_fact ) : ?>
-												<div><dt><?php echo $aimp_fact['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><?php echo esc_html( $aimp_fact['label'] ); ?></dt><dd><?php echo esc_html( $aimp_fact['value'] ); ?></dd></div>
-											<?php endforeach; ?>
-										</dl>
-									</li>
-								<?php endforeach; ?>
-							</ul>
+						<?php if ( $aimp_group['accessories'] || $aimp_group['finish'] ) : ?>
+							<?php if ( $aimp_group['accessories'] ) : ?>
+								<ul class="aimp-accessories">
+									<?php
+									foreach ( $aimp_group['accessories'] as $aimp_item ) {
+										echo AIMP_Product_Page::accessory_html( $aimp_item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in accessory_html().
+									}
+									?>
+								</ul>
+							<?php endif; ?>
+							<?php if ( $aimp_group['finish'] ) : ?>
+								<?php // Patterns that can be finished in two ways: the customer chooses one in the configurator. ?>
+								<div class="aimp-finish-block">
+									<p class="aimp-finish-title"><?php esc_html_e( 'Finish: your choice', 'atelier-irisee-master-plugin' ); ?></p>
+									<?php foreach ( $aimp_group['finish'] as $aimp_index => $aimp_option ) : ?>
+										<?php if ( $aimp_index > 0 ) : ?>
+											<p class="aimp-finish-or"><?php esc_html_e( 'or', 'atelier-irisee-master-plugin' ); ?></p>
+										<?php endif; ?>
+										<div class="aimp-finish-option">
+											<p class="aimp-finish-name"><?php echo esc_html( $aimp_option['name'] ); ?></p>
+											<ul class="aimp-accessories">
+												<?php
+												foreach ( $aimp_option['items'] as $aimp_item ) {
+													echo AIMP_Product_Page::accessory_html( $aimp_item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in accessory_html().
+												}
+												?>
+											</ul>
+										</div>
+									<?php endforeach; ?>
+								</div>
+							<?php endif; ?>
 						<?php else : ?>
 							<p><?php esc_html_e( 'No accessories needed.', 'atelier-irisee-master-plugin' ); ?></p>
 						<?php endif; ?>

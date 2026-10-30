@@ -161,7 +161,8 @@ class AIMP_Ajax {
 				'bandana' => self::int_param( 'bandana' ),
 				'thread'  => self::int_param( 'bandana_thread' ),
 				'band'    => self::int_param( 'bandana_band' ),
-			)
+			),
+			isset( $_POST['finish'] ) ? sanitize_key( wp_unslash( $_POST['finish'] ) ) : '' // phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked above.
 		);
 
 		// WooCommerce may have queued its own notices while adding; we report errors in the configurator instead.

@@ -116,6 +116,12 @@ class AIMP_Shortcode {
 			'ownNotionNote'   => __( '%s: you use your own.', 'atelier-irisee-master-plugin' ),
 			'ownSub'          => __( 'Nothing is added to your kit', 'atelier-irisee-master-plugin' ),
 			'optional'        => __( '(optional)', 'atelier-irisee-master-plugin' ),
+			'chooseFinish'    => __( 'Choose your finish', 'atelier-irisee-master-plugin' ),
+			'finishHint'      => __( 'This pattern can be finished in two ways. Choose one: only what that finish needs is offered below.', 'atelier-irisee-master-plugin' ),
+			'chooseFinishFirst' => __( 'Choose a finish to continue.', 'atelier-irisee-master-plugin' ),
+			/* translators: %s: finish, e.g. "Tie closure" */
+			'finishLabel'     => __( 'Finish: %s', 'atelier-irisee-master-plugin' ),
+			'or'              => __( 'or', 'atelier-irisee-master-plugin' ),
 			'noLinings'       => __( 'No lining fabrics are available at the moment.', 'atelier-irisee-master-plugin' ),
 			'liningNeeded'    => __( 'Lining', 'atelier-irisee-master-plugin' ),
 			'selectLiningHint' => __( 'Select a lining to see its pictures and details.', 'atelier-irisee-master-plugin' ),

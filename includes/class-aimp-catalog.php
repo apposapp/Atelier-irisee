@@ -1001,6 +1001,8 @@ class AIMP_Catalog {
 		} elseif ( $materials['lining'] <= 0 && '' !== $lining_rule['amount'] ) {
 			$materials['lining'] = (float) $lining_rule['amount'];
 		}
+		// Finish choice (buttons or a cord, …): the customer takes one option; AIMP_Cart::add_group() sets $req['finish'].
+		$finish_options = AIMP_Notions::finish_options( $pattern->get_id(), self::designs( $pattern ) ? self::variation_design( $variation ) : '' );
 		$fabric_units = $materials['fabric'] > 0 ? (int) ceil( $materials['fabric'] / self::FABRIC_UNIT_CM ) : 0;
 		$lining_units = $materials['lining'] > 0 ? (int) ceil( $materials['lining'] / self::FABRIC_UNIT_CM ) : 0;
 
@@ -1016,6 +1018,7 @@ class AIMP_Catalog {
 			'lining_units' => $lining_units,
 			'lining_cm'    => (float) $materials['lining'],
 			'notion_rules' => $notion_rules,
+			'finish_options' => $finish_options,
 			'button_count' => (int) $materials['buttons'],
 			'ribbon_length' => absint( $variation->get_meta( self::META_RIBBON_LENGTH ) ),
 			'bias_length'  => absint( $variation->get_meta( self::META_BIAS_LENGTH ) ),
@@ -1172,6 +1175,7 @@ class AIMP_Catalog {
 				'lining_units' => $req['lining_units'],
 				'lining_text'  => $req['lining_units'] > 0 ? self::fabric_need_text( array( 'fabric_cm' => $req['lining_cm'], 'fabric_units' => $req['lining_units'] ) ) : '',
 				'notions'      => (object) self::size_notions( $req ),
+				'finish'       => (object) self::finish_for_sizes( $req ),
 				'extras'       => self::size_extras( $req ),
 				'ribbon_qty'   => $req['ribbon_qty'],
 				'ribbon_text'  => self::length_text( $req['ribbon_length'] ),
@@ -1630,7 +1634,46 @@ class AIMP_Catalog {
 	 */
 	public static function notion_count( $type, $req ) {
 		// Only what can be bought: the type needs a product category.
-		return self::notion_category( $type ) ? self::notion_need( $type, $req ) : 0;
+		if ( ! self::notion_category( $type ) ) {
+			return 0;
+		}
+		// A finish choice was made: the other option's items are not needed. Without a choice (the configurator's
+		// size data) every option counts, so each can be shown.
+		if ( ! empty( $req['finish'] ) && ! empty( $req['finish_options'] ) ) {
+			$types = self::notion_types();
+			foreach ( $req['finish_options'] as $option => $info ) {
+				if ( $option !== $req['finish'] && in_array( $types[ $type ]['rule'], $info['rules'], true ) ) {
+					return 0;
+				}
+			}
+		}
+		return self::notion_need( $type, $req );
+	}
+
+	/**
+	 * The finish options of a size for the configurator: [ a => [ name, types[] ], b => … ] (types: notion_types() keys).
+	 *
+	 * @param array $req Requirements.
+	 * @return array
+	 */
+	public static function finish_for_sizes( $req ) {
+		$result = array();
+		if ( empty( $req['finish_options'] ) ) {
+			return $result;
+		}
+		foreach ( $req['finish_options'] as $option => $info ) {
+			$types = array();
+			foreach ( self::notion_types() as $type => $type_info ) {
+				if ( in_array( $type_info['rule'], $info['rules'], true ) ) {
+					$types[] = $type;
+				}
+			}
+			$result[ $option ] = array(
+				'name'  => $info['name'],
+				'types' => $types,
+			);
+		}
+		return $result;
 	}
 
 	/**

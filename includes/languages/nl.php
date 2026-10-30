@@ -3047,4 +3047,23 @@ return array(
 	'diameter %s' => 'diameter %s',
 	'from' => 'van',
 	'width %s' => 'breedte %s',
+
+	// 3.57: finish choice
+	'Always needed' => 'Altijd nodig',
+	'Choose a finish to continue.' => 'Kies een afwerking om verder te gaan.',
+	'Choose a finish.' => 'Kies een afwerking.',
+	'Choose your finish' => 'Kies je afwerking',
+	'Empty: the option is named after its items.' => 'Leeg: de optie krijgt de naam van wat ze nodig heeft.',
+	'Finish choice' => 'Keuze van afwerking',
+	'Finish option A' => 'Afwerking optie A',
+	'Finish option B' => 'Afwerking optie B',
+	'Finish: %s' => 'Afwerking: %s',
+	'Finish: your choice' => 'Afwerking: naar keuze',
+	'Name of option A' => 'Naam van optie A',
+	'Name of option B' => 'Naam van optie B',
+	'Only for patterns the customer can finish in two ways, e.g. with buttons or with a cord: set "Finish" of those items to option A or B, and the customer chooses one of the two. Items that are always needed (also buttons or cords that are not part of the choice) stay on "Always needed". Both options need at least one item that is switched on.' => 'Alleen voor patronen die de klant op twee manieren kan afwerken, bv. met knopen of met een koord: zet "Afwerking" van die items op optie A of B, en de klant kiest een van de twee. Items die altijd nodig zijn (ook knopen of koorden die geen deel van de keuze zijn) blijven op "Altijd nodig". Beide opties hebben minstens één ingeschakeld item nodig.',
+	'This pattern can be finished in two ways. Choose one: only what that finish needs is offered below.' => 'Dit patroon kan op twee manieren afgewerkt worden. Kies er een: hieronder krijg je alleen wat die afwerking nodig heeft.',
+	'e.g. Button closure' => 'bv. Knoopsluiting',
+	'e.g. Tie closure' => 'bv. Koordsluiting',
+	'or' => 'of',
 );

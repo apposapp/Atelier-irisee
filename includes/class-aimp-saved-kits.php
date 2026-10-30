@@ -91,6 +91,8 @@ class AIMP_Saved_Kits {
 			// "I already have my own lining" and the haberdashery types the customer has at home.
 			'own_lining'  => 1 === self::int_param( 'own_lining' ) ? 1 : 0,
 			'own_notions' => self::own_notions(),
+			// The finish chosen for a pattern that can be finished in two ways ('a' / 'b').
+			'finish'      => isset( $_POST['finish'] ) && in_array( $_POST['finish'], array( 'a', 'b' ), true ) ? sanitize_key( wp_unslash( $_POST['finish'] ) ) : '',
 			// The matching dog bandana, with its thread and band.
 			'bandana'   => array(
 				'on'     => 1 === self::int_param( 'bandana' ) ? 1 : 0,
@@ -194,6 +196,7 @@ class AIMP_Saved_Kits {
 				'own_interfacing' => ! empty( $kit['own_interfacing'] ),
 				'own_lining'      => ! empty( $kit['own_lining'] ),
 				'own_notions'     => isset( $kit['own_notions'] ) ? array_values( (array) $kit['own_notions'] ) : array(),
+				'finish'          => isset( $kit['finish'] ) ? (string) $kit['finish'] : '',
 				'bandana' => isset( $kit['bandana'] ) && is_array( $kit['bandana'] ) ? array_map( 'absint', $kit['bandana'] ) : null,
 				'message' => $missing ? __( 'Some items of this kit are no longer available. Please choose them again.', 'atelier-irisee-master-plugin' ) : '',
 			)

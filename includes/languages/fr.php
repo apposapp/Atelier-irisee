@@ -3047,4 +3047,23 @@ return array(
 	'diameter %s' => 'diamètre %s',
 	'from' => 'de',
 	'width %s' => 'largeur %s',
+
+	// 3.57: finish choice
+	'Always needed' => 'Toujours nécessaire',
+	'Choose a finish to continue.' => 'Choisissez une finition pour continuer.',
+	'Choose a finish.' => 'Choisissez une finition.',
+	'Choose your finish' => 'Choisissez votre finition',
+	'Empty: the option is named after its items.' => 'Vide : l\'option porte le nom de ce dont elle a besoin.',
+	'Finish choice' => 'Choix de finition',
+	'Finish option A' => 'Finition option A',
+	'Finish option B' => 'Finition option B',
+	'Finish: %s' => 'Finition : %s',
+	'Finish: your choice' => 'Finition : au choix',
+	'Name of option A' => 'Nom de l\'option A',
+	'Name of option B' => 'Nom de l\'option B',
+	'Only for patterns the customer can finish in two ways, e.g. with buttons or with a cord: set "Finish" of those items to option A or B, and the customer chooses one of the two. Items that are always needed (also buttons or cords that are not part of the choice) stay on "Always needed". Both options need at least one item that is switched on.' => 'Uniquement pour les patrons que le client peut finir de deux façons, p. ex. avec des boutons ou avec un cordon : réglez la « Finition » de ces articles sur l\'option A ou B, et le client choisit l\'une des deux. Les articles toujours nécessaires (aussi les boutons ou cordons qui ne font pas partie du choix) restent sur « Toujours nécessaire ». Chaque option a besoin d\'au moins un article activé.',
+	'This pattern can be finished in two ways. Choose one: only what that finish needs is offered below.' => 'Ce patron peut être fini de deux façons. Choisissez-en une : seul ce dont cette finition a besoin est proposé ci-dessous.',
+	'e.g. Button closure' => 'p. ex. Fermeture à boutons',
+	'e.g. Tie closure' => 'p. ex. Fermeture à nouer',
+	'or' => 'ou',
 );

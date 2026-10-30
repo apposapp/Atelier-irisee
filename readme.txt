@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.56.0
+Stable tag: 3.57.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.57.0 =
+* Finish choice: a pattern (or design) that can be finished in two ways, e.g. with buttons or with a cord, lets the customer choose. In the Haberdashery block, set "Finish" of those items to option A or B (other items stay "Always needed"), and optionally name the options.
+* Customizer: "Choose your finish" on the haberdashery step; only the items of the chosen finish are offered, added to the cart and saved in kits. The finish is shown on the pattern line in the cart and the order.
+* Pattern page: the two finishes are shown as "Finish: your choice", each with what it needs.
 
 = 3.56.0 =
 * Pattern page: the haberdashery next to the size chart is a clear list with an icon per item and labelled facts (amount, length, diameter, width), separated from the size chart by a fine gold line.
