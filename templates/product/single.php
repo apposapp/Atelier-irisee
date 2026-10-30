@@ -469,11 +469,12 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 		<?php // Patterns: the accessories (left) and the sizes with measurements and fabric (right), per design. ?>
 		<section class="aimp-product-section aimp-pattern-needs aimp-pp-sizes" data-pp-title="<?php esc_attr_e( 'Size chart', 'atelier-irisee-master-plugin' ); ?>">
 			<?php foreach ( $data['size_table'] as $aimp_group ) : ?>
-				<?php if ( '' !== $aimp_group['name'] ) : ?>
-					<h3 class="aimp-pattern-needs-design"><?php echo esc_html( $aimp_group['name'] ); ?></h3>
-				<?php endif; ?>
 				<div class="aimp-pattern-needs-row">
 					<div class="aimp-pattern-accessories">
+						<?php // A pack's design name, at the same height as the size chart's title. ?>
+						<?php if ( '' !== $aimp_group['name'] ) : ?>
+							<h3 class="aimp-pattern-needs-design"><?php echo esc_html( $aimp_group['name'] ); ?></h3>
+						<?php endif; ?>
 						<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Accessories', 'atelier-irisee-master-plugin' ); ?></h4>
 						<?php if ( $aimp_group['accessories'] || $aimp_group['finish'] ) : ?>
 							<?php if ( $aimp_group['accessories'] ) : ?>

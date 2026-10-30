@@ -1073,7 +1073,8 @@ html:has(.aimp-product-reviews) {
 
 /* Patterns: "Accessories" (about 40%) next to the size table with fabric (about 60%), per design. */
 .aimp-configurator .aimp-pattern-needs-design {
-	margin: 0 0 0.75rem;
+	margin: 0 0 0.6rem;
+	line-height: 1.2;
 }
 
 .aimp-pattern-needs-row {
@@ -1084,7 +1085,7 @@ html:has(.aimp-product-reviews) {
 }
 
 /* The next design of a pack: under a fine gold line. */
-.aimp-configurator .aimp-pattern-needs-row + .aimp-pattern-needs-design {
+.aimp-configurator .aimp-pattern-needs-row + .aimp-pattern-needs-row {
 	margin-top: calc(var(--aimp-gap) * 1.5);
 	padding-top: calc(var(--aimp-gap) * 1.5);
 	border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold, #b38f4f);
