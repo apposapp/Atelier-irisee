@@ -1099,7 +1099,9 @@ html:has(.aimp-product-reviews) {
 /* The accessories: the fabric specification tiles (gold icon, gold title, the facts under it), a bit smaller,
  * next to each other when there is room. */
 .aimp-configurator .aimp-pattern-accessories .aimp-washing-grid {
-	grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr));
+	/* As wide as the longest line needs (icon and padding included), the same for every tile. */
+	--aimp-tile-width: calc(var(--aimp-tile-chars, 14) * 0.52em + 3.4rem);
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--aimp-tile-width)), 1fr));
 	grid-auto-rows: 1fr;
 	gap: 0.5rem;
 }
@@ -1141,8 +1143,9 @@ html:has(.aimp-product-reviews) {
 }
 
 .aimp-configurator .aimp-finish-option {
+	--aimp-tile-width: calc(var(--aimp-tile-chars, 14) * 0.52em + 3.4rem);
 	display: flex;
-	flex: 1 1 10.5rem;
+	flex: 1 1 var(--aimp-tile-width);
 	flex-direction: column;
 	min-width: 0;
 }

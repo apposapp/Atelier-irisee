@@ -313,6 +313,10 @@ class AIMP_Product_Page {
 				'name'        => isset( $names[ $slug ] ) ? $names[ $slug ] : '',
 				'accessories' => $accessories,
 				'finish'      => array_values( $finish ),
+				// How wide the tiles must be for their text (CSS --aimp-tile-chars).
+				'tile_chars'  => self::tile_chars( array_merge( $accessories, ...array_values( array_map( function ( $option ) {
+					return $option['items'];
+				}, $finish ) ) ) ),
 				'columns'     => array_merge( array( __( 'Size', 'atelier-irisee-master-plugin' ) ), array_values( $used ), array( __( 'Fabric', 'atelier-irisee-master-plugin' ) ), $lining ? array( __( 'Lining', 'atelier-irisee-master-plugin' ) ) : array() ),
 				'rows'        => $rows,
 			);
@@ -1199,6 +1203,35 @@ class AIMP_Product_Page {
 	}
 
 	/**
+	 * A fact of an accessory tile on one line: "Width: 90 cm" with non-breaking spaces.
+	 *
+	 * @param array $fact [ icon, label, value ].
+	 * @return string
+	 */
+	private static function fact_text( $fact ) {
+		/* translators: 1: e.g. "Diameter", 2: e.g. "8–11 mm" */
+		return str_replace( ' ', "\u{a0}", sprintf( __( '%1$s: %2$s', 'atelier-irisee-master-plugin' ), $fact['label'], $fact['value'] ) );
+	}
+
+	/**
+	 * The width (in characters) the accessory tiles of a design need: their longest fact line, or a name up to
+	 * 24 characters (longer names wrap). All tiles of the design get that width, so they stay the same size.
+	 *
+	 * @param array $items Accessories (also those of the finish options).
+	 * @return int
+	 */
+	public static function tile_chars( $items ) {
+		$chars = 12;
+		foreach ( $items as $item ) {
+			$chars = max( $chars, min( 24, mb_strlen( $item['name'] ) ) );
+			foreach ( $item['facts'] as $fact ) {
+				$chars = max( $chars, mb_strlen( self::fact_text( $fact ) ) );
+			}
+		}
+		return $chars;
+	}
+
+	/**
 	 * One item of the pattern page's accessories, as a tile like the fabric specifications: the gold icon, the name
 	 * as its title, and each fact on its own line ("Amount: 8", "Diameter: 8–11 mm").
 	 *
@@ -1209,7 +1242,7 @@ class AIMP_Product_Page {
 		$facts = array();
 		foreach ( $item['facts'] as $fact ) {
 			/* translators: 1: e.g. "Diameter", 2: e.g. "8–11 mm" */
-			$facts[] = esc_html( sprintf( __( '%1$s: %2$s', 'atelier-irisee-master-plugin' ), $fact['label'], str_replace( ' ', "\u{a0}", $fact['value'] ) ) ); // "10 mm" stays on one line.
+			$facts[] = esc_html( self::fact_text( $fact ) );
 		}
 		return '<li class="aimp-washing-tile aimp-accessory">' . $item['icon'] . '<span><strong>' . esc_html( $item['name'] ) . '</strong>' . implode( '<br>', $facts ) . '</span></li>';
 	}
