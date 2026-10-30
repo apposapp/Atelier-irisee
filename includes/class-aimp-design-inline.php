@@ -163,11 +163,13 @@ class AIMP_Design_Inline {
 		return function_exists( 'mb_substr' ) ? mb_substr( $value, 0, 20000 ) : substr( $value, 0, 20000 );
 	}
 
+
 	/**
 	 * Publish: Dutch into the pages, French and English into the option (under the hash of the new Dutch wording).
+	 * A text that is not in its page itself is looked for in Divi's Theme Builder (header, body, footer) and Library.
 	 *
 	 * @param array $draft key => value (only divi: keys).
-	 * @return array Keys that could not be placed (the page changed meanwhile).
+	 * @return array Draft entries (key => value) that could not be placed; they stay in the draft.
 	 */
 	public static function publish( $draft ) {
 		$by_page = array();
@@ -178,23 +180,41 @@ class AIMP_Design_Inline {
 		}
 		$versions = (array) get_option( self::OPTION, array() );
 		$failed   = array();
+		// Contents to save: post ID => content (the page itself and any Divi layout a text was found in).
+		$contents = array();
 		foreach ( $by_page as $post_id => $texts ) {
 			$post = get_post( $post_id );
 			if ( ! $post ) {
 				continue;
 			}
-			$content = $post->post_content;
-			$changed = false;
 			foreach ( $texts as $hash => $langs ) {
 				$new_hash = $hash;
 				if ( isset( $langs['nl'] ) && '' !== trim( $langs['nl'] ) ) {
-					$placed = self::replace_in_content( $content, $hash, $langs['nl'] );
-					if ( null === $placed ) {
-						$failed[] = $post_id . ':' . $hash;
+					$placed = false;
+					foreach ( array_merge( array( $post_id ), self::layout_ids() ) as $id ) {
+						if ( ! isset( $contents[ $id ] ) ) {
+							$source = $id === $post_id ? $post : get_post( $id );
+							if ( ! $source ) {
+								continue;
+							}
+							$contents[ $id ] = array( $source->post_content, false );
+						}
+						$result = self::replace_in_content( $contents[ $id ][0], $hash, $langs['nl'] );
+						if ( null === $result ) {
+							continue;
+						}
+						if ( is_string( $result ) ) {
+							$contents[ $id ] = array( $result, true );
+							$placed          = true;
+						}
+						break;
+					}
+					if ( ! $placed ) {
+						foreach ( $langs as $lang => $value ) {
+							$failed[ 'divi:' . $post_id . ':' . $hash . '_' . $lang ] = $value;
+						}
 						continue;
 					}
-					$content  = $placed;
-					$changed  = true;
 					$new_hash = self::hash( $langs['nl'] );
 				}
 				$keep = isset( $versions[ $hash ] ) ? (array) $versions[ $hash ] : array();
@@ -209,12 +229,14 @@ class AIMP_Design_Inline {
 					$versions[ $new_hash ] = $keep;
 				}
 			}
-			if ( $changed ) {
+		}
+		foreach ( $contents as $id => $content ) {
+			if ( $content[1] ) {
 				wp_update_post(
 					wp_slash(
 						array(
-							'ID'           => $post_id,
-							'post_content' => $content,
+							'ID'           => $id,
+							'post_content' => $content[0],
 						)
 					)
 				);
@@ -225,12 +247,37 @@ class AIMP_Design_Inline {
 	}
 
 	/**
-	 * The page's content with one Divi text (found by its hash) replaced, or null when it is not there exactly once.
+	 * Divi's Theme Builder layouts (header, body, footer) and Library items: texts shown on a page can live there.
+	 *
+	 * @return int[]
+	 */
+	private static function layout_ids() {
+		static $ids = null;
+		if ( null === $ids ) {
+			$ids = array_map(
+				'absint',
+				get_posts(
+					array(
+						'post_type'      => array( 'et_header_layout', 'et_body_layout', 'et_footer_layout', 'et_pb_layout' ),
+						'post_status'    => array( 'publish', 'draft', 'private' ),
+						'posts_per_page' => 200,
+						'fields'         => 'ids',
+						'no_found_rows'  => true,
+					)
+				)
+			);
+		}
+		return $ids;
+	}
+
+	/**
+	 * The content with one Divi text (found by its hash) replaced; null when the text is not in it, false when it
+	 * cannot be placed safely (it is there more than once).
 	 *
 	 * @param string $content Page content.
 	 * @param string $hash    Hash of the old Dutch wording.
 	 * @param string $value   New Dutch wording.
-	 * @return string|null
+	 * @return string|false|null
 	 */
 	private static function replace_in_content( $content, $hash, $value ) {
 		$result = null;
@@ -241,24 +288,18 @@ class AIMP_Design_Inline {
 				}
 				if ( ! empty( $block['blockName'] ) && 0 === strpos( $block['blockName'], 'divi/' ) && ! empty( $block['attrs'] ) ) {
 					$attrs = $block['attrs'];
-					$found = false;
+					$old   = null;
 					self::walk(
 						$attrs,
-						function ( &$text ) use ( $hash, $value, &$found ) {
-							if ( ! $found && is_string( $text ) && self::hash( $text ) === $hash ) {
-								$text  = $value;
-								$found = true;
+						function ( &$text ) use ( $hash, $value, &$old ) {
+							if ( null === $old && is_string( $text ) && self::hash( $text ) === $hash ) {
+								$old  = $text;
+								$text = $value;
 							}
 						}
 					);
-					if ( $found ) {
-						$old = serialize_block_attributes( $block['attrs'] );
-						$new = serialize_block_attributes( $attrs );
-						if ( 1 === substr_count( $content, $old ) ) {
-							$result = str_replace( $old, $new, $content );
-						} else {
-							$result = false;
-						}
+					if ( null !== $old ) {
+						$result = self::swap( $content, $block['attrs'], $attrs, $old, $value );
 						return;
 					}
 				}
@@ -268,6 +309,43 @@ class AIMP_Design_Inline {
 			}
 		};
 		$visit( parse_blocks( $content ) );
-		return is_string( $result ) ? $result : null;
+		return $result;
+	}
+
+	/**
+	 * Swaps the old wording for the new one in the saved content: the module's whole settings when they are saved
+	 * exactly as WordPress writes them, otherwise the wording itself (as Divi may have written it) when it is there
+	 * exactly once.
+	 *
+	 * @param string $content   Content.
+	 * @param array  $old_attrs The module's settings.
+	 * @param array  $new_attrs The settings with the new wording.
+	 * @param string $old       Old wording.
+	 * @param string $new       New wording.
+	 * @return string|false
+	 */
+	private static function swap( $content, $old_attrs, $new_attrs, $old, $new ) {
+		$from = serialize_block_attributes( $old_attrs );
+		if ( 1 === substr_count( $content, $from ) ) {
+			return str_replace( $from, serialize_block_attributes( $new_attrs ), $content );
+		}
+		$styles = array(
+			function ( $text ) {
+				return substr( serialize_block_attributes( array( $text ) ), 1, -1 );
+			},
+			function ( $text ) {
+				return wp_json_encode( $text, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+			},
+			function ( $text ) {
+				return wp_json_encode( $text );
+			},
+		);
+		foreach ( $styles as $style ) {
+			$from = $style( $old );
+			if ( is_string( $from ) && 1 === substr_count( $content, $from ) ) {
+				return str_replace( $from, $style( $new ), $content );
+			}
+		}
+		return false;
 	}
 }

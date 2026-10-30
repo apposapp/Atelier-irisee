@@ -3099,7 +3099,6 @@ return array(
 	'Changed on the page. The other languages:' => 'Modifié sur la page. Les autres langues :',
 	'Edit texts on the page' => 'Modifier les textes sur la page',
 	'Keep the parts like %s or %1$s in the text.' => 'Gardez les parties comme %s ou %1$s dans le texte.',
-	'Some texts typed in Divi were changed in the page meanwhile and could not be published. Edit them again.' => 'Certains textes saisis dans Divi ont été modifiés entre-temps dans la page et n\'ont pas pu être publiés. Modifiez-les à nouveau.',
 	'Text on the page' => 'Texte sur la page',
 	'This text cannot be changed here (a product, a WooCommerce text or a text made of several parts). Click to select it instead.' => 'Ce texte ne peut pas être modifié ici (un produit, un texte WooCommerce ou un texte composé de plusieurs parties). Cliquez dessus pour le sélectionner.',
 	'Translate the Dutch into the other languages' => 'Traduire le néerlandais dans les autres langues',
@@ -3114,4 +3113,7 @@ return array(
 	'For fabrics with a width in this band, these sizes need this much more fabric than their own length. The width is read from the fabric\'s "Fabric width" (e.g. "135 cm"). The first row that fits counts. Empty sizes: from the smallest or up to the largest.' => 'Pour les tissus dont la largeur est dans cette fourchette, ces tailles ont besoin d\'autant de tissu en plus que leur propre longueur. La largeur est lue dans « Largeur du tissu » du tissu (p. ex. « 135 cm »). La première ligne qui convient compte. Tailles vides : à partir de la plus petite ou jusqu\'à la plus grande.',
 	'largest' => 'la plus grande',
 	'smallest' => 'la plus petite',
+
+	// 3.63.4: Divi texts kept in the draft
+	'Some texts typed in Divi could not be found in their page (or are in it more than once) and were not published. They stay in the draft.' => 'Certains textes saisis dans Divi n\'ont pas été trouvés dans leur page (ou y figurent plusieurs fois) et n\'ont pas été publiés. Ils restent dans le brouillon.',
 );

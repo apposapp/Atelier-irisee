@@ -2146,10 +2146,17 @@
 		});
 	}
 
-	twice(q('.aimp-ds-publish'), function () {
+	twice(q('.aimp-ds-publish'), function publish() {
 		window.clearTimeout(saveTimer);
 		showStatus(t.saving);
-		post('publish', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts) }).then(function (data) {
+		// A draft save still on its way would bring the old draft back after publishing: publish once it is done.
+		if (saving) {
+			saveAgain = false;
+			window.setTimeout(publish, 200);
+			return;
+		}
+		// The settings go along too: a change made just before (a text edited on the page) may not be saved yet.
+		post('publish', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts), settings: JSON.stringify(draftSettings) }).then(function (data) {
 			setState(data);
 			reloadPreview();
 			if (data && data.notice) {

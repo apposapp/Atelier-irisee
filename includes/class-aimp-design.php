@@ -1590,7 +1590,7 @@ class AIMP_Design {
 	 *
 	 * @return array
 	 */
-	/** Divi texts that could not be placed on Publish (their page changed meanwhile). */
+	/** Divi texts that could not be placed on Publish: draft key => value. */
 	private static $divi_failed = array();
 
 	public static function setting_texts() {
@@ -5007,8 +5007,9 @@ class AIMP_Design {
 				'draft'       => null,
 				'draft_texts' => null,
 				'live_time'   => time(),
-				'draft_time'  => 0,
-				'draft_settings' => array(),
+				// Divi texts that could not be placed stay in the draft, so the edit is not lost.
+				'draft_settings' => self::$divi_failed,
+				'draft_time'  => self::$divi_failed ? time() : 0,
 			)
 		);
 		// The browser icon of the whole site (WordPress's own site icon).
@@ -5020,7 +5021,7 @@ class AIMP_Design {
 		self::purge();
 		$state = self::state();
 		if ( self::$divi_failed ) {
-			$state['notice'] = __( 'Some texts typed in Divi were changed in the page meanwhile and could not be published. Edit them again.', 'atelier-irisee-master-plugin' );
+			$state['notice'] = __( 'Some texts typed in Divi could not be found in their page (or are in it more than once) and were not published. They stay in the draft.', 'atelier-irisee-master-plugin' );
 		}
 		wp_send_json_success( $state );
 	}

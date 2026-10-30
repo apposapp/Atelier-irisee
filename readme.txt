@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.63.3
+Stable tag: 3.63.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.63.4 =
+* Design studio, texts edited on the page: Publish right after an edit no longer loses it (the studio published before the edit was saved). Publish waits for a save that is still running.
+* Divi texts: found by their own wording when the module's settings are saved differently from WordPress's way (e.g. an empty setting), and also in Divi's Theme Builder header, body and footer and the Divi Library. A text that cannot be placed stays in the draft instead of being lost.
 
 = 3.63.3 =
 * Extra fabric for narrow fabrics: the size range also works for number sizes (34–40); before, a row counted for every size. A row with a size the pattern no longer has does not count.

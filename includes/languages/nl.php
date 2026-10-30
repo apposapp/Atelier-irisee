@@ -3099,7 +3099,6 @@ return array(
 	'Changed on the page. The other languages:' => 'Aangepast op de pagina. De andere talen:',
 	'Edit texts on the page' => 'Teksten op de pagina bewerken',
 	'Keep the parts like %s or %1$s in the text.' => 'Laat de stukjes zoals %s of %1$s in de tekst staan.',
-	'Some texts typed in Divi were changed in the page meanwhile and could not be published. Edit them again.' => 'Sommige teksten uit Divi zijn intussen in de pagina gewijzigd en konden niet gepubliceerd worden. Pas ze opnieuw aan.',
 	'Text on the page' => 'Tekst op de pagina',
 	'This text cannot be changed here (a product, a WooCommerce text or a text made of several parts). Click to select it instead.' => 'Deze tekst kan hier niet aangepast worden (een product, een WooCommerce-tekst of een tekst uit meerdere stukken). Klik hem aan om hem te selecteren.',
 	'Translate the Dutch into the other languages' => 'Vertaal het Nederlands naar de andere talen',
@@ -3114,4 +3113,7 @@ return array(
 	'For fabrics with a width in this band, these sizes need this much more fabric than their own length. The width is read from the fabric\'s "Fabric width" (e.g. "135 cm"). The first row that fits counts. Empty sizes: from the smallest or up to the largest.' => 'Voor stoffen met een breedte in deze marge hebben deze maten zoveel meer stof nodig dan hun eigen lengte. De breedte wordt gelezen uit "Stofbreedte" van de stof (bv. "135 cm"). De eerste rij die past telt. Lege maten: vanaf de kleinste of tot de grootste.',
 	'largest' => 'grootste',
 	'smallest' => 'kleinste',
+
+	// 3.63.4: Divi texts kept in the draft
+	'Some texts typed in Divi could not be found in their page (or are in it more than once) and were not published. They stay in the draft.' => 'Sommige teksten uit Divi werden niet in hun pagina gevonden (of staan er meer dan eens in) en zijn niet gepubliceerd. Ze blijven in het concept staan.',
 );
