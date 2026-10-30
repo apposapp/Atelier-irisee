@@ -921,7 +921,7 @@
 		});
 		if (missing.length) {
 			post('products', { ids: missing.join(',') }).then(function (res) {
-				var found = res && res.success ? res.data : [];
+				var found = Array.isArray(res) ? res : ((res && res.data) || []);
 				found.forEach(function (p) {
 					pickNames[p.id] = p;
 				});
@@ -974,7 +974,7 @@
 					return;
 				}
 				post('products', { term: term }).then(function (res) {
-					var found = res && res.success ? res.data : [];
+					var found = Array.isArray(res) ? res : ((res && res.data) || []);
 					results.innerHTML = found.map(function (p) {
 						pickNames[p.id] = p;
 						return '<li><button type="button" data-pick-id="' + p.id + '"><img src="' + escHtml(p.image) + '" alt="">' + escHtml(p.name) + '</button></li>';
