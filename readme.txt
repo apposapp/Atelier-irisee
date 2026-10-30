@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.63.2
+Stable tag: 3.63.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.63.3 =
+* Extra fabric for narrow fabrics: the size range also works for number sizes (34–40); before, a row counted for every size. A row with a size the pattern no longer has does not count.
+* Packs with designs: number sizes are sorted in their order again.
 
 = 3.63.2 =
 * Extra fabric for narrow fabrics: a fabric width typed as "142 m" is read as 142 cm.

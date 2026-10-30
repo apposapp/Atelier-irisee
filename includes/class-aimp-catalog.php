@@ -1077,15 +1077,19 @@ class AIMP_Catalog {
 		if ( $width <= 0 ) {
 			return 0;
 		}
-		$sizes    = array_keys( self::size_attribute( $pattern )['sizes'] );
+		// Sizes like "34" become number keys: compare them as text.
+		$sizes    = array_map( 'strval', array_keys( self::size_attribute( $pattern )['sizes'] ) );
 		$position = array_search( self::variation_size( $variation ), $sizes, true );
 		foreach ( $rows as $row ) {
 			if ( $width < $row['wmin'] || $width > $row['wmax'] ) {
 				continue;
 			}
-			// An empty or unknown size bound has no limit on that side.
+			// An empty size bound has no limit on that side; a size the pattern no longer has makes the row not count.
 			$from = '' !== $row['from'] ? array_search( $row['from'], $sizes, true ) : false;
 			$to   = '' !== $row['to'] ? array_search( $row['to'], $sizes, true ) : false;
+			if ( ( '' !== $row['from'] && false === $from ) || ( '' !== $row['to'] && false === $to ) ) {
+				continue;
+			}
 			if ( false !== $from && false !== $to && $from > $to ) {
 				list( $from, $to ) = array( $to, $from );
 			}

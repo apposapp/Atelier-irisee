@@ -58,7 +58,7 @@ class AIMP_Product_Fields {
 		}
 		$size       = AIMP_Catalog::size_attribute( $product );
 		$size_key   = $size['key'];
-		$size_order = array_keys( $size['sizes'] );
+		$size_order = array_map( 'strval', array_keys( $size['sizes'] ) );
 		$rows = array();
 		foreach ( $product->get_children() as $index => $child_id ) {
 			$variation = wc_get_product( $child_id );
