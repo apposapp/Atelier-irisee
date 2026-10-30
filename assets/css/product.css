@@ -1083,8 +1083,11 @@ html:has(.aimp-product-reviews) {
 	align-items: start;
 }
 
-.aimp-pattern-needs-row + .aimp-pattern-needs-design {
+/* The next design of a pack: under a fine gold line. */
+.aimp-configurator .aimp-pattern-needs-row + .aimp-pattern-needs-design {
 	margin-top: calc(var(--aimp-gap) * 1.5);
+	padding-top: calc(var(--aimp-gap) * 1.5);
+	border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold, #b38f4f);
 }
 
 .aimp-configurator .aimp-pattern-accessories h4,

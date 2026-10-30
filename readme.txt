@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.57.4
+Stable tag: 3.57.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.57.5 =
+* Pattern page: a fine gold line between the designs of a pack (e.g. puff sleeves and ruffle sleeves), above the next design's name.
 
 = 3.57.4 =
 * Pattern page: a fine vertical line with "or" between the two finish options, and every haberdashery tile has the same height, so titles and boxes line up.
