@@ -16,6 +16,97 @@ class AIMP_Fabric_Fields {
 		add_action( 'add_meta_boxes_product', array( __CLASS__, 'add_box' ) );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save' ) );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_recommendation' ) );
+		// Quick edit in the product list: "This fabric can also be used as lining".
+		add_action( 'manage_product_posts_custom_column', array( __CLASS__, 'quick_edit_data' ), 20, 2 );
+		add_action( 'woocommerce_product_quick_edit_end', array( __CLASS__, 'render_quick_edit' ) );
+		add_action( 'woocommerce_product_quick_edit_save', array( __CLASS__, 'save_quick_edit' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'quick_edit_script' ) );
+	}
+
+	/**
+	 * The current lining state of each row, read by the quick edit script (like WooCommerce's own inline data).
+	 *
+	 * @param string $column  Column key.
+	 * @param int    $post_id Product ID.
+	 */
+	public static function quick_edit_data( $column, $post_id ) {
+		if ( 'name' !== $column ) {
+			return;
+		}
+		$fabric = AIMP_Catalog::in_categories( $post_id, AIMP_Catalog::category_tree( AIMP_Settings::get( 'fabric_cat' ) ) );
+		printf(
+			'<div class="hidden" id="aimp_inline_%1$d" data-fabric="%2$d" data-lining="%3$d"></div>',
+			(int) $post_id,
+			$fabric ? 1 : 0,
+			'yes' === get_post_meta( $post_id, AIMP_Catalog::META_LINING, true ) ? 1 : 0
+		);
+	}
+
+	/**
+	 * The checkbox in the quick edit panel; the script shows it for fabrics only.
+	 */
+	public static function render_quick_edit() {
+		?>
+		<div class="inline-edit-group aimp-quick-lining" style="display:none">
+			<input type="hidden" name="aimp_quick_lining_shown" value="0">
+			<label class="alignleft">
+				<input type="checkbox" name="aimp_quick_lining" value="1">
+				<span class="checkbox-title"><?php esc_html_e( 'This fabric can also be used as lining', 'atelier-irisee-master-plugin' ); ?></span>
+			</label>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Runs inside WooCommerce's quick edit save (WordPress verified the inline-edit nonce). Only when the
+	 * checkbox was shown, so other products are never changed.
+	 *
+	 * @param WC_Product $product Product.
+	 */
+	public static function save_quick_edit( $product ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- verified by WordPress before this hook.
+		if ( empty( $_POST['aimp_quick_lining_shown'] ) ) {
+			return;
+		}
+		$lining = ! empty( $_POST['aimp_quick_lining'] );
+		// phpcs:enable
+		if ( $lining ) {
+			$product->update_meta_data( AIMP_Catalog::META_LINING, 'yes' );
+		} else {
+			$product->delete_meta_data( AIMP_Catalog::META_LINING );
+		}
+		$product->save();
+	}
+
+	/**
+	 * Fills the quick edit checkbox from the row's data when the panel opens.
+	 *
+	 * @param string $hook_suffix Admin page.
+	 */
+	public static function quick_edit_script( $hook_suffix ) {
+		global $typenow;
+		if ( 'edit.php' !== $hook_suffix || 'product' !== $typenow ) {
+			return;
+		}
+		wp_add_inline_script(
+			'inline-edit-post',
+			"jQuery(function ($) {
+				if (!window.inlineEditPost) {
+					return;
+				}
+				var edit = inlineEditPost.edit;
+				inlineEditPost.edit = function (id) {
+					edit.apply(this, arguments);
+					var postId = typeof id === 'object' ? this.getId(id) : id;
+					var data = $('#aimp_inline_' + postId);
+					var box = $('#edit-' + postId + ' .aimp-quick-lining');
+					var fabric = data.data('fabric') === 1;
+					box.toggle(fabric);
+					box.find('[name=\"aimp_quick_lining_shown\"]').val(fabric ? '1' : '0');
+					box.find('[name=\"aimp_quick_lining\"]').prop('checked', data.data('lining') === 1);
+				};
+			});"
+		);
 	}
 
 	public static function add_box() {
