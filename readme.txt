@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.59.1
+Stable tag: 3.59.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.59.2 =
+* Gift cards: the empty required fields are really marked red, the button really looks muted and the "Please fill in first" line is red, on its own line under the buttons (the product page's own field and text styles won before).
 
 = 3.59.1 =
 * Gift cards: the price and the amount chooser on one line, "Preview your card" and "Add to cart" under them.

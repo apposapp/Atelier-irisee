@@ -169,13 +169,15 @@
 	font: inherit;
 }
 
-/* Something needed is still empty: the button looks muted (a click says what), the fields are marked. */
-.aimp-add-to-cart.is-incomplete {
-	opacity: 0.55;
+/* Something needed is still empty: the button looks muted (a click says what), the fields are marked.
+   (#aimp-specificity never matches; it only outweighs the product page's own button and field rules;
+   the repeated classes outweigh its field and paragraph rules.) */
+.aimp-add-to-cart.is-incomplete:is(.aimp-add-to-cart, #aimp-specificity) {
+	opacity: 0.5;
 }
 
-.aimp-gc-field--error :is(input, textarea),
-.aimp-gc-field--error.aimp-stepper {
+.aimp-gc-field--error.aimp-gc-field--error:is(.aimp-gc-field, #aimp-specificity) :is(input[type], textarea),
+.aimp-gc-field--error.aimp-stepper:is(.aimp-stepper, #aimp-specificity) {
 	border-color: var(--aimp-site-error, #a3352b);
 	box-shadow: 0 0 0 1px var(--aimp-site-error, #a3352b);
 }
@@ -184,7 +186,7 @@
 	color: var(--aimp-site-error, #a3352b);
 }
 
-.aimp-gc-missing {
+.aimp-gc-missing.aimp-gc-missing.aimp-gc-missing:is(.aimp-gc-missing, #aimp-specificity) {
 	margin: 0.5rem 0 0;
 	color: var(--aimp-site-error, #a3352b);
 	font-weight: 600;

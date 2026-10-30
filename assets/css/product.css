@@ -452,6 +452,14 @@
 	margin: 0;
 }
 
+/* "Please fill in first: …" on its own line under the buttons. */
+.aimp-gc-actions .aimp-gc-missing {
+	grid-column: 1 / -1;
+	grid-row: 3;
+	margin: 0;
+	text-align: right;
+}
+
 /* Narrow: price and amount, then the two buttons under each other, full width. */
 @media (max-width: 480px) {
 	.aimp-gc-actions {
@@ -460,6 +468,11 @@
 			"price amount"
 			"cart cart"
 			"preview preview";
+	}
+
+	.aimp-gc-actions .aimp-gc-missing {
+		grid-row: 4;
+		text-align: left;
 	}
 
 	.aimp-gc-actions :is(.aimp-gc-preview-button, .aimp-add-to-cart) {
