@@ -840,13 +840,32 @@
 		max-width: 80%;
 		margin-right: auto;
 		margin-left: auto;
-		grid-template-columns: minmax(0, 30rem) minmax(0, 28rem);
+		grid-template-columns: minmax(0, 44rem) minmax(0, 36rem);
 		justify-content: center;
-		gap: clamp(1.25rem, 2.5vw, 2rem);
+		gap: clamp(1.5rem, 3vw, 3rem);
 	}
 
 	.aimp-home-giftcards:is(.is-banner, .is-amounts) .aimp-gp-media {
 		justify-content: center;
+	}
+
+	/* Large enough to read next to the big card. */
+	.aimp-home-giftcards:is(.is-banner, .is-amounts) .aimp-gp-kicker {
+		font-size: 15px;
+	}
+
+	.aimp-home-block.aimp-home-giftcards:is(.is-banner, .is-amounts) .aimp-gp-title {
+		font-size: clamp(2rem, 3.2vw, 3.2rem);
+	}
+
+	.aimp-home-giftcards:is(.is-banner, .is-amounts) .aimp-gp-text {
+		max-width: 50ch;
+		font-size: clamp(1.05rem, 1.2vw, 1.3rem);
+		line-height: 1.6;
+	}
+
+	.aimp-home-giftcards:is(.is-banner, .is-amounts) .aimp-gp-amount {
+		font-size: 1.25rem;
 	}
 }
 
