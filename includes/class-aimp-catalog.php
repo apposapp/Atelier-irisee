@@ -1113,7 +1113,7 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * A width text in cm (see fabric_width()). Metres: "m" after the number, or a number below 5 without unit.
+	 * A width text in cm (see fabric_width()). Metres: a number below 5 ("1,40 m", "1.4"); "142 m" is read as cm.
 	 *
 	 * @param string $text Width text.
 	 * @return int
@@ -1126,7 +1126,8 @@ class AIMP_Catalog {
 		$unit   = isset( $match[2] ) ? strtolower( $match[2] ) : '';
 		if ( 'mm' === $unit ) {
 			$number /= 10;
-		} elseif ( 'm' === $unit || ( '' === $unit && $number < 5 ) ) {
+		} elseif ( ( 'm' === $unit || '' === $unit ) && $number < 5 ) {
+			// Metres ("1,40 m"); a typo like "142 m" stays cm.
 			$number *= 100;
 		}
 		return (int) round( $number );
