@@ -143,8 +143,9 @@
 			var sides = preview.querySelector('.aimp-gc-preview-sides');
 			var msg = preview.querySelector('.aimp-gc-preview-msg');
 			button.addEventListener('click', function () {
-				var custom = form.querySelector('#aimp-gc-custom');
-				var amountChoice = checked('amount');
+				// The amount field of the form, or the ‹ › amount in the product page's buy bar.
+				var custom = form.querySelector('#aimp-gc-custom') || document.querySelector('input[name="aimp_gc[custom_amount]"]');
+				var amountChoice = checked('amount') || ((form.querySelector('input[name="aimp_gc[amount]"][type="hidden"]') || {}).value || '');
 				var field = function (id) {
 					var el = form.querySelector(id);
 					return el && !el.disabled ? el.value : '';

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.62.3
+Stable tag: 3.62.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.62.4 =
+* Gift card page: "Preview your card" shows the amount chosen with ‹ › (it showed the standard amount).
 
 = 3.62.3 =
 * Design studio → Mosaic: the product search per box shows its results (they were read the wrong way).
