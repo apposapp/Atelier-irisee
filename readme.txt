@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.60.3
+Stable tag: 3.61.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,15 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.61.0 =
+* Design studio → Mosaic: choose the product of each box (click a box in the preview, or choose it in the list); boxes without a choice follow the normal order. The mosaic is 80% wide on computers.
+* Meet the maker: the small round picture is a real picture now, so it can be changed (also with the studio's Picture options).
+* Design studio → Gift card promo: tilt of the card, and text left / picture right.
+* Design studio → Hero: how see-through the arch is.
+* Customizer summary: each product with its picture in the list; the repeated choices above it are gone.
+* Checkout: "(incl. VAT)" after every total; the step bar on phones shows all five numbers again (the current step was hidden since 3.60.0); "Ship to a different address" starts unticked.
+* Gift cards: the whole round logo is drawn (a cropped copy of the picture cut off its top and bottom).
 
 = 3.60.3 =
 * Cinzel (the theme's heading font) now comes from the plugin itself (WOFF2, 40 KB) instead of Google Fonts. Switch Divi's "Use Google Fonts" off afterwards.

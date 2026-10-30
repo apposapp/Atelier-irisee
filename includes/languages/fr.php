@@ -3081,4 +3081,18 @@ return array(
 	'Search products' => 'Rechercher des produits',
 	'The link may be old or contain a typo. Search for what you need, or continue below.' => 'Le lien est peut-être ancien ou contient une faute de frappe. Cherchez ce dont vous avez besoin, ou continuez ci-dessous.',
 	'This page does not exist (anymore)' => 'Cette page n\'existe pas (ou plus)',
+
+	// 3.61.0: studio mosaic boxes, hero arch, gift card promo, incl. VAT
+	'(incl. VAT)' => '(TVA incl.)',
+	'Arch: how solid the background is (100 = not see-through)' => 'Arche : opacité du fond (100 = pas transparent)',
+	'Automatic' => 'Automatique',
+	'Back to automatic' => 'Revenir à automatique',
+	'Choose a product' => 'Choisir un produit',
+	'Click a box in the preview, or choose one here. Boxes without a choice follow the order above.' => 'Cliquez sur une case dans l\'aperçu, ou choisissez-la ici. Les cases sans choix suivent l\'ordre ci-dessus.',
+	'Mosaic of' => 'Mosaïque de',
+	'Nothing found' => 'Rien trouvé',
+	'Product per box' => 'Produit par case',
+	'Search a product…' => 'Rechercher un produit…',
+	'Text on the left, picture on the right' => 'Texte à gauche, image à droite',
+	'Tilt of the card' => 'Inclinaison de la carte',
 );

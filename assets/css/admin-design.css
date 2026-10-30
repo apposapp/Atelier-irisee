@@ -1427,3 +1427,100 @@ body.aimp-ds-screen .aimp-ds {
 .aimp-ds-edit.is-searching .is-search-off + .aimp-ds-swatches {
 	display: none;
 }
+
+/* Mosaic: a product per box. */
+.aimp-ds-picks {
+	margin: 0.5rem 0 1rem;
+}
+
+.aimp-ds-picks-title {
+	margin: 0 0 0.2rem;
+	font-weight: 600;
+}
+
+.aimp-ds-picks-type {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0.4rem 0;
+}
+
+.aimp-ds-picks-boxes {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-ds-pick {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35rem 0.5rem;
+	margin: 0;
+	padding: 0.35rem 0.4rem;
+	border-bottom: 1px solid #e3e3e3;
+}
+
+.aimp-ds-pick.is-focus {
+	background: #fbf3e4;
+}
+
+.aimp-ds-pick-no {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.5rem;
+	height: 1.5rem;
+	border-radius: 50%;
+	background: #b38f4f;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.aimp-ds-pick img,
+.aimp-ds-pick-search img {
+	width: 28px;
+	height: 28px;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
+.aimp-ds-pick-name {
+	flex: 1 1 6rem;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.aimp-ds-pick-search {
+	flex: 1 1 100%;
+}
+
+.aimp-ds-pick-search input {
+	width: 100%;
+}
+
+.aimp-ds-pick-search ul {
+	max-height: 220px;
+	margin: 0.25rem 0 0;
+	padding: 0;
+	overflow-y: auto;
+	list-style: none;
+}
+
+.aimp-ds-pick-search button {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: 100%;
+	padding: 0.3rem;
+	border: 0;
+	background: none;
+	text-align: left;
+	cursor: pointer;
+}
+
+.aimp-ds-pick-search button:hover,
+.aimp-ds-pick-search button:focus-visible {
+	background: #f3ead8;
+}

@@ -721,8 +721,14 @@
 			// The page's own post (product, page) for "Edit this in WordPress"; not for cards of other products, the
 			// header, footer or shop lists (they are not this post's words).
 			var post = e.target.closest('.aimp-card, .aimp-header, .aimp-footer, .aimp-shop, .aimp-side-menu') ? null : (document.body.className.match(/(?:^|\s)(?:postid|page-id)-(\d+)/) || [])[1];
+			// A box of the mosaic: its number and the mosaic's kind, to choose its product in the studio.
+			var tile = e.target.closest('.aimp-mosaic-tile');
+			var tileNo = tile ? parseInt((tile.className.match(/aimp-mosaic-tile--(\d+)/) || [])[1], 10) || 0 : 0;
+			var grid = tile ? tile.closest('[data-mosaic-type]') : null;
 			send({
 				type: 'aimp-design-select',
+				tile: tileNo,
+				tileType: grid ? grid.getAttribute('data-mosaic-type') : '',
 				id: path[chosen].part,
 				path: path,
 				chosen: chosen,

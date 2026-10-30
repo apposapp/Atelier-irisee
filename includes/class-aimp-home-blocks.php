@@ -269,10 +269,11 @@ class AIMP_Home_Blocks {
 			$html .= '<div class="aimp-maker-media"><span class="aimp-maker-frame">' . $image . '</span>';
 			$url2  = $inset ? wp_get_attachment_image_url( $inset, 'medium' ) : '';
 			if ( $url2 ) {
-				// The round picture as a background: it keeps its own focal point and does not move with the large one.
+				// The round picture (e.g. the mascot): a picture in its own round frame, with its own focal point. A real
+				// <img>, so the Design studio's "Picture" control (replace, move, zoom) works on it too.
 				$ix    = (int) AIMP_Blocks::design( $part, 'mk_fx2', -1 );
 				$iy    = (int) AIMP_Blocks::design( $part, 'mk_fy2', -1 );
-				$html .= '<span class="aimp-maker-inset" style="background-image:url(\'' . esc_url( $url2 ) . '\');background-position:' . ( $ix >= 0 ? $ix : 50 ) . '% ' . ( $iy >= 0 ? $iy : 50 ) . '%" aria-hidden="true"></span>';
+				$html .= '<span class="aimp-maker-inset"><img class="aimp-maker-inset-image" src="' . esc_url( $url2 ) . '" alt="" loading="lazy" style="object-position:' . ( $ix >= 0 ? $ix : 50 ) . '% ' . ( $iy >= 0 ? $iy : 50 ) . '%"></span>';
 			}
 			$html .= '</div>';
 		}

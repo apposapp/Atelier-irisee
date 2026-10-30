@@ -702,6 +702,7 @@
 			input.placeholder = row[computerKey] !== undefined ? row[computerKey] : '';
 		});
 		sendSpacing();
+		renderPicks();
 		edit.querySelectorAll('[data-image]').forEach(function (box) {
 			var value = row[box.getAttribute('data-image')];
 			var img = box.querySelector('.aimp-ds-image-preview');
@@ -727,6 +728,170 @@
 			if (name) {
 				name.textContent = value ? (files[value] || '#' + value) : '';
 			}
+		});
+	}
+
+	/* ---------------------------------------------------------------
+	 * Mosaic: a product per box (mos_picks: {"all":{"1":123}, ...})
+	 * ------------------------------------------------------------- */
+	var picksFocus = null;
+	var picksType = 'all';
+	var pickNames = {};
+
+	function pickText(key, fallback) {
+		return (cfg.i18n && cfg.i18n[key]) || fallback;
+	}
+
+	function readPicks() {
+		var row = draft.mosaic || {};
+		try {
+			var value = row.mos_picks ? JSON.parse(row.mos_picks) : {};
+			return value && typeof value === 'object' ? value : {};
+		} catch (err) {
+			return {};
+		}
+	}
+
+	function writePicks(picks) {
+		Object.keys(picks).forEach(function (type) {
+			if (!Object.keys(picks[type]).length) {
+				delete picks[type];
+			}
+		});
+		change('mos_picks', Object.keys(picks).length ? JSON.stringify(picks) : '');
+		renderPicks();
+	}
+
+	function renderPicks() {
+		var box = edit.querySelector('[data-picks]');
+		if (!box || current !== 'mosaic') {
+			return;
+		}
+		if (picksFocus) {
+			picksType = picksFocus.type || 'all';
+		}
+		var picks = readPicks();
+		var mine = picks[picksType] || {};
+		var listEl = box.querySelector('.aimp-ds-picks-list');
+		var types = ['all', 'fabrics', 'patterns', 'haberdashery'];
+		var html = '<label class="aimp-ds-picks-type">' + escHtml(pickText('picksFor', 'Mosaic')) + ' <select data-picks-type>' +
+			types.map(function (type) {
+				return '<option value="' + type + '"' + (type === picksType ? ' selected' : '') + '>' + escHtml(pickText('picks_' + type, type)) + '</option>';
+			}).join('') + '</select></label><ol class="aimp-ds-picks-boxes">';
+		var missing = [];
+		for (var n = 1; n <= 10; n++) {
+			var id = mine[n];
+			if (id && !pickNames[id]) {
+				missing.push(id);
+			}
+			var info = id ? pickNames[id] : null;
+			html += '<li class="aimp-ds-pick' + (picksFocus && picksFocus.box === n ? ' is-focus' : '') + '" data-box="' + n + '">' +
+				'<span class="aimp-ds-pick-no">' + n + '</span>' +
+				(info ? '<img src="' + escHtml(info.image) + '" alt="">' : '') +
+				'<span class="aimp-ds-pick-name">' + escHtml(id ? (info ? info.name : '#' + id) : pickText('picksAuto', 'Automatic')) + '</span>' +
+				'<button type="button" class="button-link" data-pick-change>' + escHtml(pickText('picksChoose', 'Choose')) + '</button>' +
+				(id ? '<button type="button" class="button-link" data-pick-clear>' + escHtml(pickText('picksAutoBtn', 'Automatic')) + '</button>' : '') +
+				'</li>';
+		}
+		listEl.innerHTML = html + '</ol>';
+		listEl.querySelector('[data-picks-type]').addEventListener('change', function () {
+			picksType = this.value;
+			picksFocus = null;
+			renderPicks();
+		});
+		listEl.querySelectorAll('.aimp-ds-pick').forEach(function (li) {
+			var n = parseInt(li.getAttribute('data-box'), 10);
+			li.querySelector('[data-pick-change]').addEventListener('click', function () {
+				openPickSearch(li, n);
+			});
+			var clear = li.querySelector('[data-pick-clear]');
+			if (clear) {
+				clear.addEventListener('click', function () {
+					var all = readPicks();
+					if (all[picksType]) {
+						delete all[picksType][n];
+					}
+					writePicks(all);
+				});
+			}
+		});
+		if (missing.length) {
+			post('products', { ids: missing.join(',') }).then(function (res) {
+				var found = res && res.success ? res.data : [];
+				found.forEach(function (p) {
+					pickNames[p.id] = p;
+				});
+				if (found.length) {
+					renderPicks();
+				}
+			});
+		}
+		if (picksFocus) {
+			var focusLi = listEl.querySelector('.aimp-ds-pick.is-focus');
+			var group = box.closest('.aimp-ds-group');
+			if (group && !group.classList.contains('is-open')) {
+				edit.querySelectorAll('.aimp-ds-group.is-open').forEach(function (other) {
+					other.classList.remove('is-open');
+				});
+				group.classList.add('is-open');
+			}
+			if (focusLi) {
+				focusLi.scrollIntoView({ block: 'nearest' });
+				openPickSearch(focusLi, picksFocus.box);
+			}
+			picksFocus = null;
+		}
+	}
+
+	function escHtml(s) {
+		return String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, function (c) {
+			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+		});
+	}
+
+	function openPickSearch(li, n) {
+		if (li.querySelector('.aimp-ds-pick-search')) {
+			return;
+		}
+		var wrap = document.createElement('div');
+		wrap.className = 'aimp-ds-pick-search';
+		wrap.innerHTML = '<input type="search" placeholder="' + escHtml(pickText('picksSearch', 'Search a product')) + '"><ul></ul>';
+		li.appendChild(wrap);
+		var input = wrap.querySelector('input');
+		var results = wrap.querySelector('ul');
+		var timer = null;
+		input.focus();
+		input.addEventListener('input', function () {
+			clearTimeout(timer);
+			var term = input.value.trim();
+			timer = setTimeout(function () {
+				if (term.length < 2) {
+					results.innerHTML = '';
+					return;
+				}
+				post('products', { term: term }).then(function (res) {
+					var found = res && res.success ? res.data : [];
+					results.innerHTML = found.map(function (p) {
+						pickNames[p.id] = p;
+						return '<li><button type="button" data-pick-id="' + p.id + '"><img src="' + escHtml(p.image) + '" alt="">' + escHtml(p.name) + '</button></li>';
+					}).join('') || '<li class="aimp-ds-pick-none">' + escHtml(pickText('picksNone', 'Nothing found')) + '</li>';
+					results.querySelectorAll('[data-pick-id]').forEach(function (button) {
+						button.addEventListener('click', function () {
+							var all = readPicks();
+							var chosen = parseInt(button.getAttribute('data-pick-id'), 10);
+							all[picksType] = all[picksType] || {};
+							// The same product only once: it leaves the box it was in.
+							Object.keys(all[picksType]).forEach(function (other) {
+								if (parseInt(all[picksType][other], 10) === chosen) {
+									delete all[picksType][other];
+								}
+							});
+							all[picksType][n] = chosen;
+							writePicks(all);
+						});
+					});
+				});
+			}, 250);
 		});
 	}
 
@@ -2802,6 +2967,11 @@
 			// A shop part, else the clicked element itself as an own part.
 			var entry = lastPath[parseInt(e.data.chosen, 10) || 0];
 			var pickId = cfg.elements[e.data.id] ? e.data.id : (entry && entry.sel ? ownFor(entry) : '__text');
+			// A box of the mosaic: the mosaic, with that box's product choice open.
+			if (e.data.tile && cfg.elements.mosaic) {
+				pickId = 'mosaic';
+				picksFocus = { box: parseInt(e.data.tile, 10), type: e.data.tileType || 'all' };
+			}
 			select(pickId, false, e.data.text && e.data.text.original ? e.data.text : null, e.data.textMiss);
 			var item = list.querySelector('.is-current');
 			if (item) {

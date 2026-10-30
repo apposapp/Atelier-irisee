@@ -2055,12 +2055,12 @@
 
 	Configurator.prototype.summaryLines = function () {
 		var s = this.state;
-		var lines = [{ name: s.pattern.name + ' – ' + t.size + ' ' + s.size.label, qty: 1, price: s.size.price }];
+		var lines = [{ name: s.pattern.name + ' – ' + t.size + ' ' + s.size.label, qty: 1, price: s.size.price, image: s.pattern.image }];
 		if (s.size.fabric_units > 0 && s.fabric) {
-			lines.push({ name: s.fabric.name, detail: s.size.fabric_text, qty: s.size.fabric_units, price: s.fabric.price });
+			lines.push({ name: s.fabric.name, detail: s.size.fabric_text, qty: s.size.fabric_units, price: s.fabric.price, image: s.fabric.image });
 		}
 		if (s.size.lining_units > 0 && s.lining) {
-			lines.push({ name: s.lining.name, detail: t.stepLining + ' · ' + s.size.lining_text, qty: s.size.lining_units, price: s.lining.price });
+			lines.push({ name: s.lining.name, detail: t.stepLining + ' · ' + s.size.lining_text, qty: s.size.lining_units, price: s.lining.price, image: s.lining.image });
 		}
 		NOTIONS.forEach(function (n) {
 			var selected = s.notions[n.type].selected;
@@ -2076,7 +2076,8 @@
 					detail: detail,
 					// Sets: the card's own quantity (whole sets).
 					qty: selected.qty || n.qty(s.size),
-					price: selected.price
+					price: selected.price,
+					image: selected.image
 				});
 			}
 		});
@@ -2091,12 +2092,12 @@
 			return [];
 		}
 		var lines = [
-			{ name: offer.pattern.name, detail: t.bandanaFor, qty: 1, price: offer.pattern.price },
-			{ name: s.fabric.name, detail: t.bandanaFor + ' · ' + offer.fabric_text, qty: offer.fabric_units, price: offer.fabric_price }
+			{ name: offer.pattern.name, detail: t.bandanaFor, qty: 1, price: offer.pattern.price, image: offer.pattern.image },
+			{ name: s.fabric.name, detail: t.bandanaFor + ' · ' + offer.fabric_text, qty: offer.fabric_units, price: offer.fabric_price, image: s.fabric.image }
 		];
 		[s.bandana.thread, s.bandana.band].forEach(function (card) {
 			if (card) {
-				lines.push({ name: card.name, detail: t.bandanaFor + (card.qty_text ? ' · ' + card.qty_text : ''), qty: card.qty, price: card.price });
+				lines.push({ name: card.name, detail: t.bandanaFor + (card.qty_text ? ' · ' + card.qty_text : ''), qty: card.qty, price: card.price, image: card.image });
 			}
 		});
 		return lines;
@@ -2232,7 +2233,8 @@
 			return '<del>' + esc(money(amount)) + '</del> <ins>' + esc(money(amount * (100 - discount) / 100)) + '</ins>';
 		};
 
-		var html = '<div class="aimp-step aimp-step--summary">' + introHtml('summary') + this.recapHtml() + '<h3>' + esc(t.summaryTitle) + '</h3>';
+		// No recap of the choices here: the table below lists them, each with its picture.
+		var html = '<div class="aimp-step aimp-step--summary">' + introHtml('summary') + '<h3>' + esc(t.summaryTitle) + '</h3>';
 		// Design studio: the kit discount only at the total (and as a gold badge above the table).
 		var perLine = design.cz_discount !== 'total' && design.cz_discount !== 'badge';
 		if (discount && design.cz_discount === 'badge') {
@@ -2243,7 +2245,8 @@
 			var subtotal = line.price * line.qty;
 			total += subtotal;
 			html +=
-				'<tr><td>' + esc(line.name) + (line.detail ? '<br><small>' + esc(line.detail) + '</small>' : '') + '</td>' +
+				'<tr><td><span class="aimp-summary-item">' + (line.image ? '<img src="' + esc(line.image) + '" alt="" width="44" height="44" loading="lazy">' : '') +
+				'<span>' + esc(line.name) + (line.detail ? '<br><small>' + esc(line.detail) + '</small>' : '') + '</span></span></td>' +
 				'<td>' + esc(line.qty) + '</td><td class="aimp-summary-price">' + (perLine ? priceHtml(subtotal) : esc(money(subtotal))) + '</td></tr>';
 		});
 		html += '</tbody><tfoot>';

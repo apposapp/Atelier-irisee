@@ -247,18 +247,60 @@ class AIMP_Mosaic {
 		if ( ! $ids ) {
 			$ids = self::bestsellers( $type );
 		}
-		return array_slice(
-			array_values(
-				array_filter(
-					array_map( 'wc_get_product', $ids ),
-					function ( $product ) {
-						return $product && 'publish' === $product->get_status() && $product->is_visible();
-					}
-				)
-			),
-			0,
-			self::COUNT
+		$usable = function ( $product ) {
+			return $product && 'publish' === $product->get_status() && $product->is_visible();
+		};
+		$list = array_values( array_filter( array_map( 'wc_get_product', $ids ), $usable ) );
+
+		// Design studio: a product chosen for a box stays in that box; the other boxes follow the order above.
+		$picks = self::picks( $type );
+		if ( ! $picks ) {
+			return array_slice( $list, 0, self::COUNT );
+		}
+		$chosen = array();
+		foreach ( $picks as $box => $id ) {
+			$product = wc_get_product( $id );
+			if ( $usable( $product ) ) {
+				$chosen[ (int) $box ] = $product;
+			}
+		}
+		$taken = array_map(
+			function ( $product ) {
+				return $product->get_id();
+			},
+			$chosen
 		);
+		$rest  = array_values(
+			array_filter(
+				$list,
+				function ( $product ) use ( $taken ) {
+					return ! in_array( $product->get_id(), $taken, true );
+				}
+			)
+		);
+		$out   = array();
+		for ( $box = 1; $box <= self::COUNT; $box++ ) {
+			if ( isset( $chosen[ $box ] ) ) {
+				$out[] = $chosen[ $box ];
+			} elseif ( $rest ) {
+				$out[] = array_shift( $rest );
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * The products chosen per box in the Design studio for this mosaic: box => product id.
+	 *
+	 * @param string $type all, fabrics, patterns or haberdashery.
+	 * @return array
+	 */
+	public static function picks( $type ) {
+		if ( ! class_exists( 'AIMP_Design' ) ) {
+			return array();
+		}
+		$all = AIMP_Design::clean_picks( (string) AIMP_Design::opt( 'mosaic', 'mos_picks', '' ) );
+		return isset( $all[ $type ] ) ? $all[ $type ] : array();
 	}
 
 	/* ------------------------------------------------------------------
@@ -308,7 +350,7 @@ class AIMP_Mosaic {
 				AIMP_Favorites::button_html( $product->get_id(), 'aimp-fav--overlay' )
 			);
 		}
-		$mosaic = '<div class="aimp-configurator aimp-mosaic"><ul class="aimp-mosaic-grid">' . $html . '</ul></div>';
+		$mosaic = '<div class="aimp-configurator aimp-mosaic"><ul class="aimp-mosaic-grid" data-mosaic-type="' . esc_attr( $type ) . '">' . $html . '</ul></div>';
 		$title  = trim( AIMP_Settings::localized( $atts['title'] ) );
 		if ( '' === $title ) {
 			return $mosaic;

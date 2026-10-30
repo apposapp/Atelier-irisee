@@ -55,7 +55,7 @@ class AIMP_Design {
 		// The studio's screen: room for the panel and the preview (admin-design.css hides the WordPress menu).
 		add_filter( 'admin_body_class', array( __CLASS__, 'body_class' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_assets' ) );
-		foreach ( array( 'css', 'save', 'publish', 'discard', 'restore', 'import', 'texts', 'translate', 'look_save', 'look_load', 'look_delete', 'look_plan' ) as $action ) {
+		foreach ( array( 'css', 'save', 'publish', 'discard', 'restore', 'import', 'texts', 'translate', 'look_save', 'look_load', 'look_delete', 'look_plan', 'products' ) as $action ) {
 			add_action( 'wp_ajax_aimp_design_' . $action, array( __CLASS__, 'ajax_' . $action ) );
 		}
 		add_action( 'wp_head', array( __CLASS__, 'print_style' ), 100 );
@@ -484,6 +484,8 @@ class AIMP_Design {
 			'hero_tint'   => array(
 				'h_tint'     => 'color',
 				'h_strength' => array( 0, 90, -1 ),
+				// How see-through the cream arch is (100 = solid; standard 90).
+				'h_arch'     => array( 40, 100, -1 ),
 			),
 			'hero_layout' => array(
 				'h_height' => array( 'select', array( '', 'large', 'medium' ) ),
@@ -555,6 +557,8 @@ class AIMP_Design {
 				'mos_nocaption' => 'bool',
 				'mos_noprice'   => 'bool',
 				'mos_hover'     => array( 'select', array( '', 'none', 'lift' ) ),
+				// A product per box, chosen by clicking a box: {"all":{"1":123,"3":456}, "fabrics":{…}}.
+				'mos_picks'     => 'picks',
 			),
 			// The product page (phase 6).
 			'pp_blocks'   => self::product_block_fields(),
@@ -736,6 +740,9 @@ class AIMP_Design {
 			'gp_opts'     => array(
 				'gp_layout' => array( 'select', array( '', 'amounts', 'designs' ) ),
 				'gp_img'    => 'image',
+				// The card's tilt in degrees (standard -4) and which side the picture is on.
+				'gp_rot'    => array( -20, 20, -99 ),
+				'gp_right'  => 'bool',
 			),
 			'br_opts'     => array_merge(
 				array(
@@ -1278,7 +1285,7 @@ class AIMP_Design {
 	 */
 	public static function reload_keys() {
 		$groups = self::groups();
-		$keys   = array( 'nosticky', 'noshrink', 'h_img', 'h_pimg', 'h_video', 'h_slides', 'h_interval', 'ks_hide_2', 'ks_hide_3', 'ks_step5', 'ks_speed', 'ks_noloops', 'ks_url', 'ks_nosparkle', 'ks_nopopup', 'mos_source', 'brand', 'b_new', 'b_sale', 'b_low', 'pp_sticky', 'pp_share', 'pp_layout', 'pp_brand_link', 'pp_count', 'pp_related', 'cz_nosparkle', 'ft_top', 'cz_norder', 'cz_nonotions' );
+		$keys   = array( 'nosticky', 'noshrink', 'h_img', 'h_pimg', 'h_video', 'h_slides', 'h_interval', 'ks_hide_2', 'ks_hide_3', 'ks_step5', 'ks_speed', 'ks_noloops', 'ks_url', 'ks_nosparkle', 'ks_nopopup', 'mos_source', 'mos_picks', 'brand', 'b_new', 'b_sale', 'b_low', 'pp_sticky', 'pp_share', 'pp_layout', 'pp_brand_link', 'pp_count', 'pp_related', 'cz_nosparkle', 'ft_top', 'cz_norder', 'cz_nonotions' );
 		for ( $n = 1; $n <= 5; $n++ ) {
 			$keys[] = 'ks_icon_' . $n;
 			$keys[] = 'ks_img_' . $n;
@@ -1366,6 +1373,31 @@ class AIMP_Design {
 	 * @param mixed $styles Posted or imported styles.
 	 * @return array
 	 */
+	/**
+	 * The mosaic's chosen products: { type: { box: product id } }, only existing products and boxes 1–10.
+	 *
+	 * @param string|array $value JSON or array.
+	 * @return array
+	 */
+	public static function clean_picks( $value ) {
+		$value = is_string( $value ) ? json_decode( wp_unslash( $value ), true ) : $value;
+		$clean = array();
+		foreach ( is_array( $value ) ? $value : array() as $type => $boxes ) {
+			$type = sanitize_key( $type );
+			if ( ! in_array( $type, AIMP_Shop::TYPES, true ) || ! is_array( $boxes ) ) {
+				continue;
+			}
+			foreach ( $boxes as $box => $id ) {
+				$box = (int) $box;
+				$id  = absint( $id );
+				if ( $box >= 1 && $box <= AIMP_Mosaic::COUNT && $id && 'product' === get_post_type( $id ) ) {
+					$clean[ $type ][ (string) $box ] = $id;
+				}
+			}
+		}
+		return $clean;
+	}
+
 	public static function clean( $styles ) {
 		$clean    = array();
 		$elements = self::elements();
@@ -1392,6 +1424,11 @@ class AIMP_Design {
 					$color = self::clean_color( (string) $value, 0 === strpos( $key, 'em_' ) );
 					if ( '' !== $color ) {
 						$row[ $key ] = $color;
+					}
+				} elseif ( 'picks' === $rule ) {
+					$picks = self::clean_picks( $value );
+					if ( $picks ) {
+						$row[ $key ] = wp_json_encode( $picks );
 					}
 				} elseif ( 'image' === $rule ) {
 					if ( absint( $value ) && wp_attachment_is_image( absint( $value ) ) ) {
@@ -2430,6 +2467,15 @@ class AIMP_Design {
 			$computer .= 'html body .aimp-hero::before{' . $layer( '90deg' ) . '}';
 			$phone    .= 'html body .aimp-hero::before{' . $layer( '180deg' ) . '}';
 		}
+		if ( null !== $get( 'hero', 'h_arch' ) ) {
+			$css .= 'html body .aimp-hero .aimp-hero-arch{background:rgba(253,248,244,' . ( (int) $get( 'hero', 'h_arch' ) / 100 ) . ')!important}';
+		}
+		if ( null !== $get( 'home-giftcards', 'gp_rot' ) ) {
+			$css .= 'html body .aimp-home-giftcards .aimp-gp-card{transform:rotate(' . (int) $get( 'home-giftcards', 'gp_rot' ) . 'deg)!important}';
+		}
+		if ( $get( 'home-giftcards', 'gp_right' ) ) {
+			$css .= 'html body .aimp-home-giftcards .aimp-gp-media{order:2;justify-content:flex-start!important}';
+		}
 		if ( null !== $get( 'hero', 'h_strength' ) ) {
 			$css .= 'html body .aimp-hero{--aimp-hero-tint:' . ( (int) $get( 'hero', 'h_strength' ) / 100 ) . '!important}';
 		}
@@ -3132,6 +3178,16 @@ class AIMP_Design {
 					'reload'   => self::reload_groups(),
 					'reloadKeys' => self::reload_keys(),
 					'i18n'     => array(
+						'picksFor'          => __( 'Mosaic of', 'atelier-irisee-master-plugin' ),
+						'picks_all'         => __( 'All products', 'atelier-irisee-master-plugin' ),
+						'picks_fabrics'     => __( 'Fabrics', 'atelier-irisee-master-plugin' ),
+						'picks_patterns'    => __( 'Patterns', 'atelier-irisee-master-plugin' ),
+						'picks_haberdashery' => __( 'Haberdashery', 'atelier-irisee-master-plugin' ),
+						'picksAuto'         => __( 'Automatic', 'atelier-irisee-master-plugin' ),
+						'picksAutoBtn'      => __( 'Back to automatic', 'atelier-irisee-master-plugin' ),
+						'picksChoose'       => __( 'Choose a product', 'atelier-irisee-master-plugin' ),
+						'picksSearch'       => __( 'Search a product…', 'atelier-irisee-master-plugin' ),
+						'picksNone'         => __( 'Nothing found', 'atelier-irisee-master-plugin' ),
 						'saving'      => __( 'Saving…', 'atelier-irisee-master-plugin' ),
 						'saved'       => __( 'Draft saved', 'atelier-irisee-master-plugin' ),
 						'unpublished' => __( 'Not published yet', 'atelier-irisee-master-plugin' ),
@@ -3773,6 +3829,8 @@ class AIMP_Design {
 		self::color( 'h_tint', __( 'Colour (standard gold)', 'atelier-irisee-master-plugin' ) );
 		self::number( 'h_strength', __( 'Strength', 'atelier-irisee-master-plugin' ), 0, 90, '%' );
 		echo '<button type="button" class="button-link" data-clear="h_strength">' . esc_html( $standard ) . '</button>';
+		self::number( 'h_arch', __( 'Arch: how solid the background is (100 = not see-through)', 'atelier-irisee-master-plugin' ), 40, 100, '%' );
+		echo '<button type="button" class="button-link" data-clear="h_arch">' . esc_html( $standard ) . '</button>';
 		echo '</fieldset>';
 
 		$places = array(
@@ -3887,6 +3945,10 @@ class AIMP_Design {
 				'row'  => __( 'One row to scroll sideways', 'atelier-irisee-master-plugin' ),
 			)
 		);
+		echo '<div class="aimp-ds-picks" data-picks><p class="aimp-ds-picks-title">' . esc_html__( 'Product per box', 'atelier-irisee-master-plugin' ) . '</p>' .
+			'<p class="description">' . esc_html__( 'Click a box in the preview, or choose one here. Boxes without a choice follow the order above.', 'atelier-irisee-master-plugin' ) . '</p>' .
+			'<div class="aimp-ds-picks-list"></div></div>' .
+			'<textarea data-key="mos_picks" hidden></textarea>';
 		self::number( 'mos_gap', __( 'Space between pictures', 'atelier-irisee-master-plugin' ), 0, 40, 'px' );
 		echo '<button type="button" class="button-link" data-clear="mos_gap">' . esc_html( $standard ) . '</button>';
 		self::check_box( 'mos_nocaption', __( 'No names and prices', 'atelier-irisee-master-plugin' ) );
@@ -4432,6 +4494,9 @@ class AIMP_Design {
 			)
 		);
 		self::picture_field( 'gp_img', __( 'Picture (standard: the first card design)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'gp_rot', __( 'Tilt of the card', 'atelier-irisee-master-plugin' ), -20, 20, '°' );
+		echo '<button type="button" class="button-link" data-clear="gp_rot">' . esc_html( $standard ) . '</button>';
+		self::check_box( 'gp_right', __( 'Text on the left, picture on the right', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'Place it with [atelier_irisee_giftcard_promo]; layout="banner", "amounts" or "designs" chooses a layout for one place.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
@@ -4955,6 +5020,39 @@ class AIMP_Design {
 	/**
 	 * A text translated into the empty languages (with the AI pictures key: Gemini or OpenAI).
 	 */
+	/**
+	 * Mosaic boxes: products for the search field (term), or the names of chosen ones (ids).
+	 */
+	public static function ajax_products() {
+		self::check();
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked in check().
+		$term = isset( $_POST['term'] ) ? sanitize_text_field( wp_unslash( $_POST['term'] ) ) : '';
+		$ids  = isset( $_POST['ids'] ) ? array_filter( array_map( 'absint', explode( ',', sanitize_text_field( wp_unslash( $_POST['ids'] ) ) ) ) ) : array();
+		// phpcs:enable
+		$args = array(
+			'status' => 'publish',
+			'limit'  => 12,
+		);
+		if ( $ids ) {
+			$args['include'] = $ids;
+			$args['limit']   = count( $ids );
+		} elseif ( '' !== $term ) {
+			$args['s'] = $term;
+		} else {
+			wp_send_json_success( array() );
+		}
+		$out = array();
+		foreach ( wc_get_products( $args ) as $product ) {
+			$image = $product->get_image_id() ? wp_get_attachment_image_url( $product->get_image_id(), 'thumbnail' ) : wc_placeholder_img_src( 'thumbnail' );
+			$out[] = array(
+				'id'    => $product->get_id(),
+				'name'  => wp_strip_all_tags( $product->get_name() ),
+				'image' => $image,
+			);
+		}
+		wp_send_json_success( $out );
+	}
+
 	public static function ajax_translate() {
 		self::check();
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked in check().

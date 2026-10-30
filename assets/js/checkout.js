@@ -170,7 +170,7 @@
 				return;
 			}
 			var total = root.querySelector('.order-total .woocommerce-Price-amount');
-			bar.querySelector('.aimp-checkout-bar-total').textContent = total ? total.textContent.trim() : '';
+			bar.querySelector('.aimp-checkout-bar-total').textContent = total ? total.textContent.trim() + (t.inclTax ? ' ' + t.inclTax : '') : '';
 			bar.querySelector('.aimp-checkout-bar-button').textContent = (button.textContent || button.value || '').trim();
 		}
 

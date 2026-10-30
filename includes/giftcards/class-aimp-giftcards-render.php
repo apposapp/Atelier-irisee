@@ -26,7 +26,7 @@ class AIMP_Giftcards_Render {
 	private static $size = null;
 
 	/** Raise when the drawing changes, so cached pictures are drawn again. */
-	const DRAW_VERSION = 6;
+	const DRAW_VERSION = 7; // 7: the whole logo (no cropped copy).
 
 
 	/**
@@ -576,9 +576,13 @@ class AIMP_Giftcards_Render {
 			// A smaller copy WordPress made, when it is big enough (less memory than a camera original).
 			$meta = wp_get_attachment_metadata( (int) $source );
 			if ( $original && ! empty( $meta['sizes'] ) ) {
-				$best = 0;
+				$best  = 0;
+				$ratio = ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ? $meta['width'] / $meta['height'] : 0;
 				foreach ( $meta['sizes'] as $size ) {
-					if ( ! empty( $size['file'] ) && $size['width'] >= $min && ( ! $best || $size['width'] < $best ) ) {
+					// Only copies with the original's proportions: a cropped size (e.g. 400×250) cut off the top and
+					// bottom of a round logo.
+					$same = $ratio && ! empty( $size['height'] ) && abs( $size['width'] / $size['height'] - $ratio ) < 0.02;
+					if ( ! empty( $size['file'] ) && $same && $size['width'] >= $min && ( ! $best || $size['width'] < $best ) ) {
 						$best = $size['width'];
 						$path = trailingslashit( dirname( $original ) ) . $size['file'];
 					}

@@ -20,6 +20,43 @@
 	cursor: pointer;
 }
 
+/* Phones: all five numbers on one line, only the current step with its name. */
+@media (max-width: 700px) {
+	.aimp-configurator .aimp-checkout-steps {
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.aimp-configurator .aimp-checkout-steps li {
+		flex: 0 0 auto;
+	}
+
+	.aimp-configurator .aimp-checkout-steps li:not(.is-current) :is(a, .aimp-checkout-step-label) {
+		gap: 0;
+		font-size: 0;
+	}
+
+	.aimp-configurator .aimp-checkout-steps li:not(.is-current) .aimp-step-num {
+		font-size: 13px;
+	}
+
+	.aimp-configurator .aimp-checkout-steps li.is-current {
+		flex: 0 1 auto;
+		min-width: 0;
+		white-space: nowrap;
+	}
+}
+
+/* "(incl. btw)" after a total. */
+.aimp-configurator .aimp-incl-tax {
+	margin-left: 0.3em;
+	font-size: 0.78em;
+	font-weight: 600;
+	white-space: nowrap;
+	opacity: 0.85;
+}
+
 .aimp-configurator .aimp-checkout-message {
 	margin: 0 0 1rem;
 	padding: 0.75rem 1rem;

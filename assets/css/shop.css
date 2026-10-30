@@ -451,6 +451,15 @@
 	container-name: aimp;
 }
 
+/* Computers: 80% of the width, centred (tablets and phones use the full width). */
+@media (min-width: 1025px) {
+	.aimp-configurator.aimp-mosaic {
+		width: 80%;
+		margin-right: auto;
+		margin-left: auto;
+	}
+}
+
 .aimp-configurator .aimp-mosaic-grid {
 	display: grid;
 	grid-template-columns: repeat(12, minmax(0, 1fr));

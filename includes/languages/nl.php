@@ -3081,4 +3081,18 @@ return array(
 	'Search products' => 'Producten zoeken',
 	'The link may be old or contain a typo. Search for what you need, or continue below.' => 'Misschien is de link verouderd of zit er een tikfout in. Zoek wat je nodig hebt, of kies hieronder.',
 	'This page does not exist (anymore)' => 'Deze pagina bestaat niet (meer)',
+
+	// 3.61.0: studio mosaic boxes, hero arch, gift card promo, incl. VAT
+	'(incl. VAT)' => '(incl. btw)',
+	'Arch: how solid the background is (100 = not see-through)' => 'Boog: hoe dekkend de achtergrond is (100 = niet doorzichtig)',
+	'Automatic' => 'Automatisch',
+	'Back to automatic' => 'Terug naar automatisch',
+	'Choose a product' => 'Kies een product',
+	'Click a box in the preview, or choose one here. Boxes without a choice follow the order above.' => 'Klik op een vak in het voorbeeld, of kies het hier. Vakken zonder keuze volgen de volgorde hierboven.',
+	'Mosaic of' => 'Mozaïek van',
+	'Nothing found' => 'Niets gevonden',
+	'Product per box' => 'Product per vak',
+	'Search a product…' => 'Zoek een product…',
+	'Text on the left, picture on the right' => 'Tekst links, afbeelding rechts',
+	'Tilt of the card' => 'Kanteling van de kaart',
 );

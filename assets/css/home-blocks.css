@@ -493,6 +493,16 @@
 	border: 5px double var(--hb-gold);
 	border-radius: 50%;
 	box-shadow: 0 10px 26px color-mix(in srgb, var(--hb-brown) 18%, transparent);
+	overflow: hidden;
+}
+
+.aimp-maker-inset img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	object-fit: cover;
+	border-radius: 50%;
 }
 
 .aimp-home-maker.is-picture-right .aimp-maker-inset {

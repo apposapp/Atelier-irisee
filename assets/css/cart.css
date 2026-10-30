@@ -559,3 +559,12 @@
 .aimp-configurator .aimp-cart-side .shipping-calculator-form button {
 	justify-self: start;
 }
+
+/* "(incl. btw)" after the total. */
+.aimp-configurator .aimp-incl-tax {
+	margin-left: 0.3em;
+	font-size: 0.78em;
+	font-weight: 600;
+	white-space: nowrap;
+	opacity: 0.85;
+}

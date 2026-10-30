@@ -34,6 +34,28 @@ class AIMP_Checkout {
 		add_filter( 'woocommerce_enable_order_notes_field', array( __CLASS__, 'order_notes' ), 20 );
 		// WooCommerce's text about personal data (checkout and registration) in the visitor's language.
 		add_filter( 'woocommerce_get_privacy_policy_text', array( __CLASS__, 'privacy_text' ), 20, 2 );
+		// "(incl. btw)" after the total in the cart and at checkout (the prices include VAT; WooCommerce only says so
+		// when it calculates taxes itself).
+		add_filter( 'woocommerce_cart_totals_order_total_html', array( __CLASS__, 'total_with_tax_note' ), 20 );
+		// "Ship to a different address?" starts unticked; the customer ticks it when needed.
+		add_filter( 'woocommerce_ship_to_different_address_checked', '__return_false', 20 );
+	}
+
+	/**
+	 * "(incl. btw)" in the visitor's language.
+	 *
+	 * @return string HTML.
+	 */
+	public static function tax_note() {
+		return '<small class="aimp-incl-tax">' . esc_html__( '(incl. VAT)', 'atelier-irisee-master-plugin' ) . '</small>';
+	}
+
+	/**
+	 * @param string $html Order total HTML.
+	 * @return string
+	 */
+	public static function total_with_tax_note( $html ) {
+		return wc_tax_enabled() || false !== strpos( $html, 'aimp-incl-tax' ) ? $html : $html . ' ' . self::tax_note();
 	}
 
 	/**
@@ -103,7 +125,7 @@ class AIMP_Checkout {
 		$facts   = array(
 			__( 'Order number', 'atelier-irisee-master-plugin' )   => $order->get_order_number(),
 			__( 'Date', 'atelier-irisee-master-plugin' )           => wc_format_datetime( $order->get_date_created() ),
-			__( 'Total', 'atelier-irisee-master-plugin' )          => wp_strip_all_tags( $order->get_formatted_order_total() ),
+			__( 'Total', 'atelier-irisee-master-plugin' )          => wp_strip_all_tags( $order->get_formatted_order_total() ) . ( wc_tax_enabled() ? '' : ' ' . __( '(incl. VAT)', 'atelier-irisee-master-plugin' ) ),
 			__( 'Payment method', 'atelier-irisee-master-plugin' ) => wp_strip_all_tags( $order->get_payment_method_title() ),
 		);
 		if ( $order->needs_shipping_address() && ! $order->has_status( array( 'failed', 'cancelled' ) ) ) {
@@ -287,6 +309,7 @@ class AIMP_Checkout {
 			'next'          => __( 'Next', 'atelier-irisee-master-plugin' ),
 			'back'          => __( 'Back', 'atelier-irisee-master-plugin' ),
 			'toPay'         => __( 'To payment', 'atelier-irisee-master-plugin' ),
+			'inclTax'       => wc_tax_enabled() ? '' : __( '(incl. VAT)', 'atelier-irisee-master-plugin' ),
 			'required'      => __( 'Please fill in the required fields.', 'atelier-irisee-master-plugin' ),
 			'address'       => __( 'Delivery address', 'atelier-irisee-master-plugin' ),
 			'change'        => __( 'Change', 'atelier-irisee-master-plugin' ),
@@ -355,6 +378,7 @@ class AIMP_Checkout {
 							<span class="aimp-checkout-summary-title"><?php esc_html_e( 'Your order', 'atelier-irisee-master-plugin' ); ?></span>
 							<span class="aimp-checkout-summary-count">(<?php echo (int) AIMP_Cart_Page::summary_count(); ?>)</span>
 							<span class="aimp-checkout-summary-total" data-aimp-summary-total>· <?php echo wp_kses_post( WC()->cart ? WC()->cart->get_total() : '' ); ?></span>
+							<?php echo wc_tax_enabled() ? '' : self::tax_note(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in tax_note(). ?>
 						</summary>
 						<?php echo AIMP_Cart_Page::summary_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in summary_html(). ?>
 					</details>
