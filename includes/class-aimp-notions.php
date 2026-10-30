@@ -373,12 +373,82 @@ class AIMP_Notions {
 	 * @return string
 	 */
 	public static function type_of( $product, $kind = '' ) {
-		$info = self::kind( '' !== $kind ? $kind : self::kind_of( $product ) );
+		$kind = '' !== $kind ? $kind : self::kind_of( $product );
+		$info = self::kind( $kind );
 		if ( ! $info ) {
 			return '';
 		}
+		// Interfacing: the subcategory (Tussenvoering, Schoudervulling, Keperband, …) decides, before the saved type.
+		if ( 'interfacing' === $kind ) {
+			$cats = wc_get_product_cat_ids( $product->get_id() );
+			foreach ( self::type_categories( $kind ) as $type => $cat ) {
+				if ( array_intersect( $cats, AIMP_Catalog::category_tree( $cat ) ) ) {
+					return $type;
+				}
+			}
+		}
 		$type = (string) $product->get_meta( self::META_TYPE );
 		return isset( $info['types'][ $type ] ) ? $type : $info['default_type'];
+	}
+
+	/**
+	 * The subcategories of a kind's category that belong to one of its types, matched by name in any language
+	 * ("Schoudervulling" ↔ "Schoudervullingen", "Keperband" ↔ own type "Keperband"): type => category ID. Only
+	 * interfacing (Verstevigingen) works this way.
+	 *
+	 * @param string $kind Kind.
+	 * @return array
+	 */
+	public static function type_categories( $kind ) {
+		static $cache = array();
+		if ( isset( $cache[ $kind ] ) ) {
+			return $cache[ $kind ];
+		}
+		$cache[ $kind ] = array();
+		$info           = self::kind( $kind );
+		$root           = $info && 'interfacing' === $kind ? (int) AIMP_Settings::get( $info['setting'] ) : 0;
+		if ( ! $root ) {
+			return $cache[ $kind ];
+		}
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'parent'     => $root,
+				'hide_empty' => false,
+			)
+		);
+		if ( is_wp_error( $terms ) || ! $terms ) {
+			return $cache[ $kind ];
+		}
+		$plain = function ( $text ) {
+			return preg_replace( '/[^a-z0-9]/', '', strtolower( remove_accents( wp_specialchars_decode( (string) $text, ENT_QUOTES ) ) ) );
+		};
+		$same  = function ( $a, $b ) {
+			return '' !== $a && '' !== $b && ( $a === $b || ( min( strlen( $a ), strlen( $b ) ) >= 5 && ( 0 === strpos( $a, $b ) || 0 === strpos( $b, $a ) ) ) );
+		};
+		// Every type's name in every language.
+		$names = array();
+		foreach ( array_keys( AIMP_I18n::languages() ) as $lang ) {
+			AIMP_I18n::with_language(
+				$lang,
+				function () use ( $kind, &$names, $plain ) {
+					foreach ( self::kinds()[ $kind ]['types'] as $type => $name ) {
+						$names[ $type ][] = $plain( $name );
+					}
+				}
+			);
+		}
+		foreach ( $names as $type => $list ) {
+			foreach ( $terms as $term ) {
+				foreach ( array_unique( $list ) as $name ) {
+					if ( $same( $name, $plain( $term->name ) ) || $same( $name, $plain( $term->slug ) ) ) {
+						$cache[ $kind ][ $type ] = (int) $term->term_id;
+						continue 3;
+					}
+				}
+			}
+		}
+		return $cache[ $kind ];
 	}
 
 	/**
@@ -1076,6 +1146,11 @@ class AIMP_Notions {
 		$info  = isset( $rules[ $rule ] ) ? self::kind( $rules[ $rule ][0] ) : null;
 		// A type counted otherwise than its kind (shoulder pads) has no size range.
 		if ( $info && 'piece' === self::measure( $rules[ $rule ][0], $rules[ $rule ][1] ) && 'piece' !== $info['measure'] ) {
+			return '';
+		}
+		// Of the interfacing types only interfacing fabric (Tussenvoering) is limited by the pattern; twill tape and the
+		// other own types offer all of theirs.
+		if ( 'interfacing' === $rules[ $rule ][0] && 'interfacing' !== $rules[ $rule ][1] ) {
 			return '';
 		}
 		return $info && '' !== $info['range'] ? $info['range_unit'] : '';

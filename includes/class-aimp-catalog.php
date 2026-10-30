@@ -792,7 +792,7 @@ class AIMP_Catalog {
 	 * @param array  $meta_query Optional extra meta query.
 	 * @return array [ ids, page, pages, total ]
 	 */
-	private static function query_products( $term_ids, $type, $page, $per_page, $meta_query = array() ) {
+	private static function query_products( $term_ids, $type, $page, $per_page, $meta_query = array(), $exclude = array() ) {
 		if ( empty( $term_ids ) ) {
 			return array(
 				'ids'   => array(),
@@ -801,7 +801,16 @@ class AIMP_Catalog {
 				'total' => 0,
 			);
 		}
-		$args                   = self::base_query_args( $term_ids, $type, $meta_query );
+		$args = self::base_query_args( $term_ids, $type, $meta_query );
+		if ( $exclude ) {
+			$args['tax_query'][] = array(
+				'taxonomy'         => 'product_cat',
+				'field'            => 'term_id',
+				'terms'            => array_map( 'absint', $exclude ),
+				'include_children' => true,
+				'operator'         => 'NOT IN',
+			);
+		}
 		$args['posts_per_page'] = max( 1, $per_page );
 		$args['paged']          = max( 1, absint( $page ) );
 
@@ -1458,7 +1467,7 @@ class AIMP_Catalog {
 		foreach ( array( 'normal' => self::META_INTERFACING, 'volume' => self::META_INTERFACING_VOL ) as $slot => $meta ) {
 			$id      = absint( get_post_meta( absint( $fabric_id ), $meta, true ) );
 			$product = $id ? self::get_material( $id, self::category_tree( AIMP_Settings::get( 'interfacing_cat' ) ) ) : null;
-			if ( $product && 'shoulder_pad' !== AIMP_Notions::type_of( $product, 'interfacing' ) ) {
+			if ( $product && 'interfacing' === AIMP_Notions::type_of( $product, 'interfacing' ) ) {
 				$list[ $slot ] = $product->get_id();
 			}
 		}
@@ -2189,12 +2198,24 @@ class AIMP_Catalog {
 			);
 		}
 		// Of the rule's type, within the pattern's diameter or width range.
-		$rule = self::notion_rule( $type, $req );
-		if ( $rule ) {
-			$meta_query[] = AIMP_Notions::meta_query( $rule[0], $rule[1] );
+		$rule    = self::notion_rule( $type, $req );
+		$cats    = array( self::notion_category( $type ) );
+		$exclude = array();
+		$by_cat  = AIMP_Notions::type_categories( $types[ $type ]['notion_kind'] );
+		$type_of = $rule ? AIMP_Notions::rule_type( $rule[0], $rule[1] ) : '';
+		if ( '' !== $type_of && isset( $by_cat[ $type_of ] ) && 'interfacing' !== $type_of ) {
+			// Interfacing with its own subcategory (Schoudervulling, Keperband): every product in it.
+			$cats = array( $by_cat[ $type_of ] );
+		} else {
+			if ( $rule ) {
+				$meta_query[] = AIMP_Notions::meta_query( $rule[0], $rule[1] );
+			}
+			// Not the products of the other types' subcategories (whatever type they were saved with).
+			unset( $by_cat[ $type_of ] );
+			$exclude = array_values( $by_cat );
 		}
 
-		$result = self::query_products( array( self::notion_category( $type ) ), 'simple', $page, AIMP_Settings::get( 'per_page' ), $meta_query );
+		$result = self::query_products( $cats, 'simple', $page, AIMP_Settings::get( 'per_page' ), $meta_query, $exclude );
 		$items  = array();
 		foreach ( $result['ids'] as $id ) {
 			$product = wc_get_product( $id );
