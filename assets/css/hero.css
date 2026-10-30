@@ -244,10 +244,18 @@
 @media (min-width: 701px) and (max-width: 1024px) {
 	html body .aimp-hero {
 		align-items: flex-end !important;
+		padding-bottom: 4.5rem !important;
+	}
+
+	/* The narrow crop shows the middle-left of the picture, so the subject on the left stays in view. */
+	html body .aimp-hero.aimp-hero,
+	html body .aimp-hero.aimp-hero .aimp-hero-media > * {
+		background-position: 40% 40% !important;
+		object-position: 40% 40% !important;
 	}
 
 	.aimp-hero-arch {
-		font-size: 15px;
+		font-size: 13px;
 	}
 }
 

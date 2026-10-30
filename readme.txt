@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.60.0
+Stable tag: 3.60.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.60.1 =
+* Phones: a cart item keeps its picture column narrow, so the name is no longer squeezed (an older rule put the amount under the picture).
+* Tablets: the hero picture is focused a bit more to the left and the arch is smaller, so the dog and the person both stay in view.
 
 = 3.60.0 =
 * Customizer: "(optional)" no longer appears twice in titles; the step bar stays on one line on phones; space is reserved while it loads (no jumping footer).

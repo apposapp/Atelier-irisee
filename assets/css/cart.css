@@ -331,39 +331,13 @@
 	}
 }
 
-/* Phones: picture | name and price (full width) | ×, with the amount and subtotal on the row under it,
- * so the name is never squeezed to one word per line. */
 @container aimp (max-width: 560px) {
 	.aimp-configurator .aimp-cart-single {
 		grid-template-columns: auto minmax(0, 1fr) auto;
-		grid-template-areas:
-			"thumb info remove"
-			"thumb qty total";
-		gap: 0.4rem 0.75rem;
 	}
 
-	.aimp-configurator .aimp-cart-single > .aimp-cart-thumb {
-		grid-area: thumb;
-		align-self: start;
-	}
-
-	.aimp-configurator .aimp-cart-single > .aimp-cart-single-info {
-		grid-area: info;
-	}
-
-	.aimp-configurator .aimp-cart-single > .aimp-cart-single-qty {
-		grid-area: qty;
-		justify-self: start;
-	}
-
-	.aimp-configurator .aimp-cart-single > .aimp-cart-single-subtotal {
-		grid-area: total;
-		justify-self: end;
-	}
-
-	.aimp-configurator .aimp-cart-single > .aimp-cart-remove--x {
-		grid-area: remove;
-		align-self: start;
+	.aimp-cart-single-qty {
+		grid-column: 2;
 	}
 }
 
@@ -495,10 +469,13 @@
  * the totals come after the products, full width. */
 @container aimp (max-width: 560px) {
 	.aimp-configurator .aimp-cart-single {
-		grid-template-columns: auto minmax(0, 1fr) auto;
+		/* The picture keeps its own width: the amount sits under the name, not under the picture, so the
+		 * name is never squeezed to one word per line. */
+		grid-template-columns: 64px minmax(0, 1fr) auto;
 		grid-template-areas:
 			"thumb info remove"
-			"qty qty subtotal";
+			"thumb qty subtotal";
+		column-gap: 0.75rem;
 		margin: 0 0 0.75rem;
 		padding: 0.85rem 1rem;
 		border: 1px var(--aimp-site-line, solid) var(--aimp-gold);
