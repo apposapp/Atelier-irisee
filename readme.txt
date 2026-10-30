@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.59.0
+Stable tag: 3.59.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,8 +29,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 
 == Changelog ==
 
+= 3.59.1 =
+* Gift cards: the price and the amount chooser on one line, "Preview your card" and "Add to cart" under them.
+* Home → Shop by category: back to the layout before 3.59.0.
+
 = 3.59.0 =
-* Home → Shop by category: the sewing kit tile is wider, the three other sections stack underneath each other next to it (no more stretched picture). Tablets: three in a row; phones: under each other with the name next to a small picture.
 * Gift cards: the buy bar (amount, price, Add to cart) moved under the choices, next to "Preview your card".
 * Gift cards: Add to cart only works when everything needed is filled in; until then the button looks muted and a click marks what is missing. The names (the lucky one and yours) are now required for email to someone else and by post.
 
