@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.57.2
+Stable tag: 3.57.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.57.3 =
+* Pattern page: the finish choice has no box any more; its two options sit next to each other with "or" between them (under each other when there is no room).
 
 = 3.57.2 =
 * Pattern page: no line between the haberdashery and the size chart; the haberdashery tiles are smaller and sit next to each other when there is room (the haberdashery column is a bit wider), and values like "10 mm" stay on one line.

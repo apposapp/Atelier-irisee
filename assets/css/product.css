@@ -1117,12 +1117,27 @@ html:has(.aimp-product-reviews) {
 }
 
 
-/* Finish choice: the two options in a gold-edged box, with "or" between them. */
+/* Finish choice: no box; the title, then the two options next to each other with "or" between them
+ * (under each other when there is no room). */
 .aimp-configurator .aimp-finish-block {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.4rem 0.6rem;
 	margin-top: 0.9rem;
-	padding: 0.7rem 0.9rem;
-	border: 1px var(--aimp-site-line, solid) var(--aimp-gold, #b38f4f);
-	border-radius: var(--aimp-radius, 6px);
+}
+
+.aimp-configurator .aimp-finish-title {
+	flex: 1 1 100%;
+}
+
+.aimp-configurator .aimp-finish-option {
+	flex: 1 1 10.5rem;
+	min-width: 0;
+}
+
+.aimp-configurator .aimp-finish-option .aimp-washing-grid {
+	grid-template-columns: minmax(0, 1fr);
 }
 
 .aimp-configurator .aimp-finish-block :is(.aimp-finish-title, .aimp-finish-name, .aimp-finish-or) {
@@ -1137,13 +1152,13 @@ html:has(.aimp-product-reviews) {
 }
 
 .aimp-configurator .aimp-finish-block .aimp-finish-name {
-	margin-top: 0.4rem;
-	margin-bottom: 0.4rem;
+	margin-bottom: 0.3rem;
 	font-weight: 600;
 }
 
 .aimp-configurator .aimp-finish-block .aimp-finish-or {
-	margin: 0.4rem 0 0;
+	flex: 0 0 auto;
+	margin: 1.4rem 0 0;
 	font-style: italic;
 	text-align: center;
 	opacity: 0.8;
