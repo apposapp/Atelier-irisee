@@ -1590,6 +1590,9 @@ class AIMP_Design {
 	 *
 	 * @return array
 	 */
+	/** Divi texts that could not be placed on Publish (their page changed meanwhile). */
+	private static $divi_failed = array();
+
 	public static function setting_texts() {
 		$steps  = array( 'kit-steps', 'kit-step', 'kit-steps-list' );
 		$footer = array( 'footer', 'footer-columns', 'footer-title' );
@@ -1741,6 +1744,44 @@ class AIMP_Design {
 	}
 
 	/**
+	 * In the preview: the studio's own texts as the page shows them now, in the page's language, so a click on one can
+	 * edit it in place: [ key, value, type, label ]. Only single texts (not lists, pairs or "NL | FR | EN" lines).
+	 *
+	 * @return array
+	 */
+	public static function inline_settings() {
+		$lang = AIMP_I18n::current();
+		$out  = array();
+		foreach ( self::setting_fields() as $field ) {
+			if ( ! in_array( $field['type'], array( 'lang', 'langlong', 'plain', 'long' ), true ) ) {
+				continue;
+			}
+			$per_lang = in_array( $field['type'], array( 'lang', 'langlong' ), true );
+			$key      = $per_lang ? $field['key'] . '_' . $lang : $field['key'];
+			list( $option, $name ) = explode( ':', $key, 2 );
+			$value = self::setting_draft( $option, $name );
+			if ( null === $value ) {
+				$value = self::setting_value( $key );
+			}
+			if ( '' === trim( (string) $value ) && $per_lang ) {
+				$value = isset( $field['hints'][ $lang ] ) ? $field['hints'][ $lang ] : '';
+			}
+			if ( '' === trim( (string) $value ) ) {
+				continue;
+			}
+			$out[] = array(
+				'key'   => $key,
+				'base'  => $field['key'],
+				'value' => (string) $value,
+				'type'  => $field['type'],
+				'label' => $field['label'],
+				'hints' => $field['hints'],
+			);
+		}
+		return $out;
+	}
+
+	/**
 	 * The current (published) value of a setting key ("option:key").
 	 *
 	 * @param string $key Key.
@@ -1772,6 +1813,14 @@ class AIMP_Design {
 		$keys  = self::setting_keys();
 		$clean = array();
 		foreach ( is_array( $posted ) ? $posted : array() as $key => $value ) {
+			// A text typed in Divi, edited on the page (class-aimp-design-inline.php).
+			if ( 0 === strpos( (string) $key, 'divi:' ) ) {
+				$divi = class_exists( 'AIMP_Design_Inline' ) ? AIMP_Design_Inline::clean_draft( $key, $value ) : null;
+				if ( null !== $divi ) {
+					$clean[ $key ] = $divi;
+				}
+				continue;
+			}
 			if ( ! isset( $keys[ $key ] ) || ! is_scalar( $value ) ) {
 				continue;
 			}
@@ -1812,6 +1861,17 @@ class AIMP_Design {
 	 * @param array $draft "option:key" => text.
 	 */
 	private static function publish_settings( $draft ) {
+		// Texts typed in Divi: Dutch into their pages, French and English into their own option.
+		$divi = array();
+		foreach ( $draft as $key => $value ) {
+			if ( 0 === strpos( (string) $key, 'divi:' ) ) {
+				$divi[ $key ] = $value;
+				unset( $draft[ $key ] );
+			}
+		}
+		if ( $divi && class_exists( 'AIMP_Design_Inline' ) ) {
+			self::$divi_failed = AIMP_Design_Inline::publish( $divi );
+		}
 		$by_option = array();
 		foreach ( $draft as $key => $value ) {
 			list( $option, $name )           = explode( ':', $key, 2 );
@@ -3230,7 +3290,12 @@ class AIMP_Design {
 						'staleStudio'      => __( 'The plugin was updated since this Design studio was opened. Reload it before you change anything: until then nothing is saved.', 'atelier-irisee-master-plugin' ),
 						'reloadStudio'     => __( 'Reload the studio', 'atelier-irisee-master-plugin' ),
 						// Translating, back to standard, finding settings, layers.
-						'translate'        => __( 'Translate to the empty languages', 'atelier-irisee-master-plugin' ),
+						'translate'        => __( 'Translate the Dutch into the other languages', 'atelier-irisee-master-plugin' ),
+						'inlineTitle'      => __( 'Text on the page', 'atelier-irisee-master-plugin' ),
+						'inlineHelp'       => __( 'Changed on the page. The other languages:', 'atelier-irisee-master-plugin' ),
+						'inlineNone'       => __( 'This text cannot be changed here (a product, a WooCommerce text or a text made of several parts). Click to select it instead.', 'atelier-irisee-master-plugin' ),
+						'inlineClose'      => __( 'Close', 'atelier-irisee-master-plugin' ),
+						'inlineCodes'      => __( 'Keep the parts like %s or %1$s in the text.', 'atelier-irisee-master-plugin' ),
 						'translating'      => __( 'Translating…', 'atelier-irisee-master-plugin' ),
 						'translateFull'    => __( 'Every language is filled in already. Empty one to translate it again.', 'atelier-irisee-master-plugin' ),
 						'translateNothing' => __( 'Type a text in one language first.', 'atelier-irisee-master-plugin' ),
@@ -4698,6 +4763,7 @@ class AIMP_Design {
 					<button type="button" class="button" data-width="390" aria-pressed="false"><?php echo esc_html( $phone ); ?></button>
 				</div>
 				<label class="aimp-ds-pickmode"><input type="checkbox" checked> <?php esc_html_e( 'Click to select', 'atelier-irisee-master-plugin' ); ?></label>
+				<label class="aimp-ds-editmode"><input type="checkbox"> <?php esc_html_e( 'Edit texts on the page', 'atelier-irisee-master-plugin' ); ?></label>
 				<span class="aimp-ds-status" role="status"></span>
 				<button type="button" class="button aimp-ds-discard"><?php esc_html_e( 'Discard draft', 'atelier-irisee-master-plugin' ); ?></button>
 				<button type="button" class="button button-primary aimp-ds-publish"><?php esc_html_e( 'Publish', 'atelier-irisee-master-plugin' ); ?></button>
@@ -4952,7 +5018,11 @@ class AIMP_Design {
 		}
 		// Cached pages carry the old style block and texts.
 		self::purge();
-		wp_send_json_success( self::state() );
+		$state = self::state();
+		if ( self::$divi_failed ) {
+			$state['notice'] = __( 'Some texts typed in Divi were changed in the page meanwhile and could not be published. Edit them again.', 'atelier-irisee-master-plugin' );
+		}
+		wp_send_json_success( $state );
 	}
 
 	/** The draft goes back to the live look. */

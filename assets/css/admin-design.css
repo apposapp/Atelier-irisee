@@ -1524,3 +1524,43 @@ body.aimp-ds-screen .aimp-ds {
 .aimp-ds-pick-search button:focus-visible {
 	background: #f3ead8;
 }
+
+/* "Edit texts on the page": the switch, and the panel with the text in every language. */
+.aimp-ds-editmode {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	white-space: nowrap;
+}
+
+.aimp-ds-inline-panel {
+	margin: 0 0 0.75rem;
+	padding: 0.75rem;
+	border: 1px solid #b38f4f;
+	border-radius: 8px;
+	background: #fffaf2;
+}
+
+.aimp-ds-inline-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+.aimp-ds-inline-field {
+	display: grid;
+	grid-template-columns: 2rem minmax(0, 1fr);
+	gap: 0.4rem;
+	align-items: start;
+	margin: 0.4rem 0;
+}
+
+.aimp-ds-inline-field span {
+	padding-top: 0.35rem;
+	font-weight: 600;
+}
+
+.aimp-ds-inline-field textarea {
+	width: 100%;
+}

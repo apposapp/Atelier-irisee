@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.61.0
+Stable tag: 3.62.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.62.0 =
+* Design studio: "Edit texts on the page". Switch it on in the toolbar and click a text in the preview to change it in place: the studio's own texts (home blocks, hero, About page, contact, footer…), shop texts and texts typed in Divi. A panel then shows the text in Dutch, French and English. Everything stays a draft until Publish; on Publish the Dutch of a Divi text goes into the page itself, and the French and English versions are shown to French and English visitors.
+* Design studio: the translate button translates the Dutch into the other languages, replacing what is there (draft until Publish).
+* Gift card promo on computers: at most 80% wide, the picture and the text close together in the middle.
 
 = 3.61.0 =
 * Design studio → Mosaic: choose the product of each box (click a box in the preview, or choose it in the list); boxes without a choice follow the normal order. The mosaic is 80% wide on computers.

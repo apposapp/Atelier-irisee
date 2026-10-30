@@ -732,6 +732,110 @@
 	}
 
 	/* ---------------------------------------------------------------
+	 * Texts edited on the page ("Edit texts on the page"): the preview sends the new wording; it becomes a draft like
+	 * in the side panel, and a small panel shows the text in every language with the translate button.
+	 * ------------------------------------------------------------- */
+	var inlinePanel = null;
+
+	function inlineValue(key, fallback) {
+		if (draftSettings[key] !== undefined) {
+			return draftSettings[key];
+		}
+		if (liveSettings[key] !== undefined && liveSettings[key] !== '') {
+			return liveSettings[key];
+		}
+		return fallback || '';
+	}
+
+	function showInlinePanel(title, fields) {
+		if (!inlinePanel) {
+			inlinePanel = document.createElement('div');
+			inlinePanel.className = 'aimp-ds-inline-panel';
+			var side = q('.aimp-ds-panel') || edit.parentNode;
+			side.insertBefore(inlinePanel, side.firstChild);
+		}
+		inlinePanel.hidden = false;
+		inlinePanel.innerHTML = '<div class="aimp-ds-inline-head"><strong></strong><button type="button" class="button-link" data-inline-close></button></div><p class="description"></p>';
+		inlinePanel.querySelector('strong').textContent = title;
+		inlinePanel.querySelector('[data-inline-close]').textContent = t.inlineClose || 'Close';
+		inlinePanel.querySelector('.description').textContent = t.inlineHelp || '';
+		inlinePanel.querySelector('[data-inline-close]').addEventListener('click', function () {
+			inlinePanel.hidden = true;
+		});
+		var list = [];
+		fields.forEach(function (f) {
+			var label = document.createElement('label');
+			label.className = 'aimp-ds-inline-field';
+			var tag = document.createElement('span');
+			tag.textContent = f.code.toUpperCase();
+			var input = document.createElement('textarea');
+			input.rows = f.long ? 4 : 2;
+			input.value = f.value;
+			input.placeholder = f.hint || '';
+			input.addEventListener('input', function () {
+				f.set(input.value);
+			});
+			label.appendChild(tag);
+			label.appendChild(input);
+			inlinePanel.appendChild(label);
+			list.push({ code: f.code, el: input });
+		});
+		inlinePanel.appendChild(translateButton(list));
+		inlinePanel.scrollIntoView({ block: 'nearest' });
+	}
+
+	function inlineEdited(data) {
+		var langs = Object.keys(cfg.languages || { nl: 1, fr: 1, en: 1 });
+		if (data.kind === 'setting') {
+			setSetting(data.key, data.value);
+			if (data.type === 'lang' || data.type === 'langlong') {
+				showInlinePanel(data.label || t.inlineTitle, langs.map(function (code) {
+					var key = data.base + '_' + code;
+					return {
+						code: code,
+						long: data.type === 'langlong',
+						hint: data.hints ? data.hints[code] : '',
+						value: code === data.lang ? data.value : inlineValue(key, ''),
+						set: function (value) {
+							setSetting(key, value);
+						}
+					};
+				}));
+			}
+		} else if (data.kind === 'divi') {
+			var base = 'divi:' + data.post + ':' + data.hash;
+			setSetting(base + '_' + data.lang, data.value);
+			showInlinePanel(t.inlineTitle, langs.map(function (code) {
+				var key = base + '_' + code;
+				var known = code === 'nl' ? data.nl : (data[code] || '');
+				return {
+					code: code,
+					long: !!data.rich,
+					value: code === data.lang ? data.value : (draftSettings[key] !== undefined ? draftSettings[key] : known),
+					set: function (value) {
+						setSetting(key, value);
+					}
+				};
+			}));
+		} else if (data.kind === 'shop') {
+			var own = draftTexts[data.original] || {};
+			var need = (data.original.match(/%(\d+\$)?[sd]/g) || []).sort().join();
+			if ((data.value.match(/%(\d+\$)?[sd]/g) || []).sort().join() !== need) {
+				showStatus(t.inlineCodes || '');
+				reloadPreview();
+				return;
+			}
+			remember();
+			own[data.lang] = data.value;
+			draftTexts[data.original] = own;
+			textsChanged = true;
+			save(true);
+			// The clicked text's panel: all its languages and the translate button.
+			select(current && cfg.elements[current] ? current : '__text', false, { original: data.original, shown: data.value });
+		}
+	}
+
+	/* ---------------------------------------------------------------
 	 * Mosaic: a product per box (mos_picks: {"all":{"1":123}, ...})
 	 * ------------------------------------------------------------- */
 	var picksFocus = null;
@@ -1388,14 +1492,18 @@
 		note.className = 'aimp-ds-translate-note';
 		note.setAttribute('aria-live', 'polite');
 		button.addEventListener('click', function () {
+			// The Dutch (else the first filled language) into every other language, replacing what is there; it stays
+			// a draft until Publish.
 			var source = fields.filter(function (f) {
+				return f.code === 'nl' && f.el.value.trim() !== '';
+			})[0] || fields.filter(function (f) {
 				return f.el.value.trim() !== '';
 			})[0];
-			var empty = fields.filter(function (f) {
-				return f.el.value.trim() === '';
-			});
+			var empty = source ? fields.filter(function (f) {
+				return f !== source;
+			}) : [];
 			if (!source || !empty.length) {
-				note.textContent = source ? t.translateFull : t.translateNothing;
+				note.textContent = t.translateNothing;
 				return;
 			}
 			button.disabled = true;
@@ -1404,7 +1512,7 @@
 				return f.code;
 			}).join(',') }).then(function (data) {
 				empty.forEach(function (f) {
-					if (data && data[f.code] && f.el.value.trim() === '') {
+					if (data && data[f.code]) {
 						f.el.value = data[f.code];
 						f.el.dispatchEvent(new Event('input', { bubbles: true }));
 					}
@@ -2044,6 +2152,9 @@
 		post('publish', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts) }).then(function (data) {
 			setState(data);
 			reloadPreview();
+			if (data && data.notice) {
+				showStatus(data.notice);
+			}
 		}).catch(function (e) {
 			showStatus(e.message);
 		});
@@ -2856,7 +2967,22 @@
 	window.addEventListener('resize', fit);
 
 	var pickBox = q('.aimp-ds-pickmode input');
+	var editBox = q('.aimp-ds-editmode input');
+	if (editBox) {
+		editBox.addEventListener('change', function () {
+			// Editing texts and selecting parts take turns.
+			if (editBox.checked && pickBox.checked) {
+				pickBox.checked = false;
+				toFrame({ type: 'aimp-design-pick', on: false });
+			}
+			toFrame({ type: 'aimp-design-editmode', on: editBox.checked });
+		});
+	}
 	pickBox.addEventListener('change', function () {
+		if (pickBox.checked && editBox && editBox.checked) {
+			editBox.checked = false;
+			toFrame({ type: 'aimp-design-editmode', on: false });
+		}
 		toFrame({ type: 'aimp-design-pick', on: pickBox.checked });
 	});
 
@@ -2954,10 +3080,15 @@
 			renderList();
 			sendCss();
 			toFrame({ type: 'aimp-design-pick', on: pickBox.checked });
+			toFrame({ type: 'aimp-design-editmode', on: !!(editBox && editBox.checked) });
 			if (current) {
 				toFrame({ type: 'aimp-design-show', id: current, selector: cfg.elements[current] ? cfg.elements[current].selector : '', scroll: false });
 			}
 			sendSpacing();
+		} else if (e.data.type === 'aimp-design-inline') {
+			inlineEdited(e.data);
+		} else if (e.data.type === 'aimp-design-inline-none') {
+			showStatus(t.inlineNone || '');
 		} else if (e.data.type === 'aimp-design-select' && (cfg.elements[e.data.id] || e.data.text || e.data.textMiss || (e.data.path && e.data.path.length))) {
 			root.querySelector('.aimp-ds-tabs [data-tab="parts"]').click();
 			// A click on a text: that text (in its part); on other words: the part, with a note.

@@ -16,6 +16,9 @@
 	var names = cfg.names || {};
 	var words = cfg.words || {};
 	var pick = true;
+	// "Edit texts on the page": a click on a text makes it editable in place.
+	var editMode = false;
+	var editing = null;
 	var selectedSel = '';
 	var hovered = null;
 
@@ -676,7 +679,145 @@
 		}
 	}, true);
 
+	/*
+	 * "Edit texts on the page": a click on a text the studio knows (a Divi text, one of the studio's own texts or a
+	 * shop text) makes it editable in place; Enter or clicking elsewhere keeps it, Esc goes back.
+	 */
+	var editStyle = document.createElement('style');
+	editStyle.textContent = 'html.aimp-ds-editing :is(p,h1,h2,h3,h4,h5,h6,a,span,li,button,small,strong,em,label,figcaption,dt,dd):hover{outline:1px dashed #b38f4f;outline-offset:2px;cursor:text}' +
+		'[data-aimp-inline-editing]{outline:2px solid #b38f4f!important;outline-offset:3px;background:rgba(255,255,255,.6);cursor:text}';
+	document.head.appendChild(editStyle);
+
+	function stripTags(html) {
+		var box = document.createElement('div');
+		box.innerHTML = html || '';
+		return box.textContent || '';
+	}
+
+	function inlineMatch(el) {
+		var data = window.aimpInlineTexts || {};
+		var divi = data.divi || [];
+		var settings = data.settings || [];
+		for (var depth = 0; el && el.nodeType === 1 && el !== document.body && depth < 6; depth++, el = el.parentElement) {
+			var text = norm(el.innerText);
+			if (!text || text.length > 4000) {
+				continue;
+			}
+			for (var i = 0; i < divi.length; i++) {
+				if (norm(stripTags(divi[i].shown)) === text) {
+					return { el: el, kind: 'divi', entry: divi[i], rich: divi[i].rich };
+				}
+			}
+			for (var j = 0; j < settings.length; j++) {
+				if (norm(settings[j].value) === text) {
+					return { el: el, kind: 'setting', entry: settings[j], rich: false };
+				}
+			}
+		}
+		return null;
+	}
+
+	function startInline(target) {
+		var match = inlineMatch(target);
+		var shop = match ? null : textAt(target);
+		if (!match && shop) {
+			// A shop text: the element whose words are that text.
+			var el = target;
+			for (var d = 0; el && d < 4 && norm(el.textContent) !== shop.shown; d++) {
+				el = el.parentElement;
+			}
+			match = { el: el && norm(el.textContent) === shop.shown ? el : target, kind: 'shop', entry: shop, rich: false };
+		}
+		if (!match) {
+			send({ type: 'aimp-design-inline-none' });
+			return;
+		}
+		var node = match.el;
+		var before = node.innerHTML;
+		var beforeText = norm(node.innerText);
+		var long = match.rich || (match.entry && (match.entry.type === 'langlong' || match.entry.type === 'long'));
+		node.setAttribute('data-aimp-inline-editing', '1');
+		node.setAttribute('contenteditable', match.rich ? 'true' : 'plaintext-only');
+		if (node.contentEditable !== 'plaintext-only' && !match.rich) {
+			node.setAttribute('contenteditable', 'true');
+		}
+		node.focus();
+		var range = document.createRange();
+		range.selectNodeContents(node);
+		range.collapse(false);
+		var selection = window.getSelection();
+		selection.removeAllRanges();
+		selection.addRange(range);
+		editing = { el: node };
+
+		function finish(keep) {
+			node.removeEventListener('keydown', onKey);
+			node.removeEventListener('blur', onBlur);
+			node.removeAttribute('contenteditable');
+			node.removeAttribute('data-aimp-inline-editing');
+			editing = null;
+			if (!keep) {
+				node.innerHTML = before;
+				return;
+			}
+			var value = match.rich ? node.innerHTML.trim() : node.innerText.replace(/ /g, ' ').trim();
+			if (norm(match.rich ? stripTags(value) : value) === beforeText || value === '') {
+				node.innerHTML = before;
+				return;
+			}
+			var lang = (window.aimpInlineTexts || {}).lang || 'nl';
+			var message = { type: 'aimp-design-inline', kind: match.kind, value: value, lang: lang };
+			if (match.kind === 'divi') {
+				message.post = match.entry.post;
+				message.hash = match.entry.hash;
+				message.nl = match.entry.nl;
+				message.fr = match.entry.fr;
+				message.en = match.entry.en;
+				message.rich = !!match.rich;
+			} else if (match.kind === 'setting') {
+				message.key = match.entry.key;
+				message.base = match.entry.base;
+				message.type = match.entry.type;
+				message.label = match.entry.label;
+				message.hints = match.entry.hints;
+			} else {
+				message.original = match.entry.original;
+			}
+			send(message);
+		}
+
+		function onKey(e) {
+			if (e.key === 'Escape') {
+				e.preventDefault();
+				finish(false);
+			} else if (e.key === 'Enter' && !e.shiftKey && !long) {
+				e.preventDefault();
+				finish(true);
+			}
+		}
+
+		function onBlur() {
+			finish(true);
+		}
+
+		node.addEventListener('keydown', onKey);
+		node.addEventListener('blur', onBlur);
+	}
+
 	document.addEventListener('click', function (e) {
+		if (editMode) {
+			// Clicks inside the text being edited move the cursor; any other click edits that text (links stay put).
+			if (editing && editing.el.contains(e.target)) {
+				return;
+			}
+			e.preventDefault();
+			e.stopPropagation();
+			if (editing) {
+				editing.el.blur();
+			}
+			startInline(e.target);
+			return;
+		}
 		// A click on the studio's own layers (handles, labels) selects nothing.
 		if (pick && e.target.closest && e.target.closest('[data-aimp-ds-layer]')) {
 			dragged = false;
@@ -770,6 +911,9 @@
 				window.sessionStorage.setItem('aimp-design-scroll', String(window.scrollY));
 			} catch (err) {}
 			window.location.reload();
+		} else if (data.type === 'aimp-design-editmode') {
+			editMode = !!data.on;
+			document.documentElement.classList.toggle('aimp-ds-editing', editMode);
 		} else if (data.type === 'aimp-design-pick') {
 			pick = !!data.on;
 			if (!pick && hovered) {

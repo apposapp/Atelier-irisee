@@ -2420,7 +2420,6 @@ return array(
 	'Round picture: focal point top / bottom' => 'Photo ronde : point focal haut / bas',
 	'The translation could not be read. Please try again.' => 'La traduction n\'a pas pu être lue. Veuillez réessayer.',
 	'Time to slide down' => 'Durée du défilement vers le bas',
-	'Translate to the empty languages' => 'Traduire vers les langues vides',
 	'Translating…' => 'Traduction…',
 	'Type a text in one language first.' => 'Tapez d\'abord un texte dans une langue.',
 
@@ -3095,4 +3094,13 @@ return array(
 	'Search a product…' => 'Rechercher un produit…',
 	'Text on the left, picture on the right' => 'Texte à gauche, image à droite',
 	'Tilt of the card' => 'Inclinaison de la carte',
+
+	// 3.62.0: edit texts on the page
+	'Changed on the page. The other languages:' => 'Modifié sur la page. Les autres langues :',
+	'Edit texts on the page' => 'Modifier les textes sur la page',
+	'Keep the parts like %s or %1$s in the text.' => 'Gardez les parties comme %s ou %1$s dans le texte.',
+	'Some texts typed in Divi were changed in the page meanwhile and could not be published. Edit them again.' => 'Certains textes saisis dans Divi ont été modifiés entre-temps dans la page et n\'ont pas pu être publiés. Modifiez-les à nouveau.',
+	'Text on the page' => 'Texte sur la page',
+	'This text cannot be changed here (a product, a WooCommerce text or a text made of several parts). Click to select it instead.' => 'Ce texte ne peut pas être modifié ici (un produit, un texte WooCommerce ou un texte composé de plusieurs parties). Cliquez dessus pour le sélectionner.',
+	'Translate the Dutch into the other languages' => 'Traduire le néerlandais dans les autres langues',
 );

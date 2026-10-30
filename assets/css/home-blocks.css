@@ -834,6 +834,22 @@
 	gap: clamp(1.5rem, 3vw, 2.5rem);
 }
 
+/* Computers: at most 80% wide, picture and text close together in the middle (not each against an edge). */
+@media (min-width: 701px) {
+	.aimp-home-giftcards:is(.is-banner, .is-amounts) {
+		max-width: 80%;
+		margin-right: auto;
+		margin-left: auto;
+		grid-template-columns: minmax(0, 30rem) minmax(0, 28rem);
+		justify-content: center;
+		gap: clamp(1.25rem, 2.5vw, 2rem);
+	}
+
+	.aimp-home-giftcards:is(.is-banner, .is-amounts) .aimp-gp-media {
+		justify-content: center;
+	}
+}
+
 .aimp-home-giftcards.has-no-picture {
 	grid-template-columns: minmax(0, 46rem);
 	justify-content: center;
