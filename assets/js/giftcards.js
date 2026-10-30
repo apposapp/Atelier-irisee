@@ -91,7 +91,11 @@
 				email.required = delivery === 'email_other';
 			}
 			if (name) {
-				name.required = delivery === 'email_other';
+				name.required = delivery === 'email_other' || delivery === 'post';
+			}
+			var sender = form.querySelector('#aimp-gc-sender');
+			if (sender) {
+				sender.required = delivery === 'email_other' || delivery === 'post';
 			}
 			if (custom) {
 				custom.required = amountChoice === 'custom';
@@ -110,6 +114,7 @@
 		form.addEventListener('change', update);
 		form.addEventListener('input', update);
 		update();
+		guard(form);
 
 		// The greeting follows the chosen theme, until the customer writes their own.
 		var greeting = form.querySelector('#aimp-gc-greeting');
@@ -177,6 +182,98 @@
 					});
 			});
 		}
+	}
+
+	/*
+	 * Add to cart only with everything needed filled in. Until then the button looks muted; a click marks the
+	 * empty fields, says which they are and goes to the first. The cart checks it all again.
+	 */
+	function guard(form) {
+		var buy = form.closest('form');
+		var button = buy && (buy.querySelector('.aimp-add-to-cart') || (buy.id && document.querySelector('.aimp-add-to-cart[form="' + buy.id + '"]')));
+		if (!buy || !button) {
+			return;
+		}
+		buy.noValidate = true;
+		var note = document.createElement('p');
+		note.className = 'aimp-gc-missing';
+		note.setAttribute('role', 'alert');
+		note.hidden = true;
+		var bar = button.closest('.aimp-buy-bar') || button;
+		bar.parentNode.insertBefore(note, bar.nextSibling);
+
+		function labelOf(el) {
+			var text = '';
+			if (el.type === 'radio') {
+				var legend = el.closest('fieldset') && el.closest('fieldset').querySelector('legend');
+				text = legend ? legend.textContent : '';
+			} else {
+				var label = el.id && document.querySelector('label[for="' + el.id + '"]');
+				text = label ? label.textContent : (el.getAttribute('aria-label') || '');
+			}
+			// "Your name (shown on the gift card)" → "Your name".
+			return text.replace(/\s*\(.*\)\s*$/, '').replace(/\s+/g, ' ').trim();
+		}
+
+		function missing() {
+			var seen = {};
+			return Array.prototype.filter.call(buy.elements, function (el) {
+				if (!el.willValidate || el.disabled || el.checkValidity() || seen[el.name]) {
+					return false;
+				}
+				seen[el.name] = true;
+				return true;
+			});
+		}
+
+		function mark(list) {
+			buy.querySelectorAll('.aimp-gc-field--error').forEach(function (box) {
+				box.classList.remove('aimp-gc-field--error');
+			});
+			document.querySelectorAll('[form="' + buy.id + '"][aria-invalid]').forEach(function (el) {
+				el.removeAttribute('aria-invalid');
+			});
+			list.forEach(function (el) {
+				el.setAttribute('aria-invalid', 'true');
+				var box = el.closest('.aimp-gc-field, .aimp-gc-group, .aimp-stepper');
+				if (box) {
+					box.classList.add('aimp-gc-field--error');
+				}
+			});
+		}
+
+		var shown = false;
+		function refresh() {
+			var list = missing();
+			button.classList.toggle('is-incomplete', list.length > 0);
+			button.setAttribute('aria-disabled', list.length ? 'true' : 'false');
+			if (shown) {
+				mark(list);
+				note.hidden = !list.length;
+				note.textContent = list.length ? (t.missing || '%s').replace('%s', list.map(labelOf).join(', ')) : '';
+			}
+		}
+
+		buy.addEventListener('submit', function (e) {
+			var list = missing();
+			if (!list.length) {
+				return;
+			}
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			shown = true;
+			refresh();
+			var first = list[0];
+			(first.closest('.aimp-gc-field, .aimp-gc-group, .aimp-stepper') || first).scrollIntoView({ behavior: 'smooth', block: 'center' });
+			first.focus({ preventScroll: true });
+		}, true);
+		// Also the amount in the buy bar, which belongs to this form but sits outside the choices.
+		document.addEventListener('input', refresh);
+		document.addEventListener('change', refresh);
+		bar.addEventListener('click', function () {
+			setTimeout(refresh, 0); // The ‹ › arrows change the amount without an input event.
+		});
+		refresh();
 	}
 
 	document.querySelectorAll('[data-aimp-gc-form]').forEach(initForm);

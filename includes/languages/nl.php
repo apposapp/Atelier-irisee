@@ -3069,4 +3069,8 @@ return array(
 
 	// 3.57.1: accessory tiles
 	'%1$s: %2$s' => '%1$s: %2$s',
+
+	// Gift card form: required fields
+	'Please fill in first: %s' => 'Vul eerst nog in: %s',
+	'Please enter your name, shown on the gift card.' => 'Vul je naam in, die op de cadeaubon komt.',
 );

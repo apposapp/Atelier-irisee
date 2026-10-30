@@ -153,6 +153,8 @@ class AIMP_Giftcards_Redeem {
 					'copy'    => __( 'Copy code', 'atelier-irisee-master-plugin' ),
 					'enter'   => __( 'Please enter a gift card code.', 'atelier-irisee-master-plugin' ),
 					'working' => __( 'Please wait…', 'atelier-irisee-master-plugin' ),
+					/* translators: %s: the fields still empty, e.g. "Name of the lucky one, Your name" */
+					'missing' => __( 'Please fill in first: %s', 'atelier-irisee-master-plugin' ),
 				),
 			)
 		);

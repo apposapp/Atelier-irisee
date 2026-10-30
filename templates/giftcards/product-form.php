@@ -136,6 +136,8 @@ $aimp_v    = function ( $key ) use ( $aimp_sent ) {
 				<label for="aimp-gc-recipient-email"><?php esc_html_e( 'Their email address', 'atelier-irisee-master-plugin' ); ?></label>
 				<input type="email" id="aimp-gc-recipient-email" name="aimp_gc[recipient_email]" autocomplete="off" value="<?php echo esc_attr( $aimp_v( 'recipient_email' ) ); ?>">
 			</p>
+		<?php endif; ?>
+		<?php if ( $aimp_recipient || $aimp_post ) : ?>
 			<p class="aimp-gc-field" data-aimp-gc-show="delivery:email_other,post">
 				<label for="aimp-gc-sender"><?php esc_html_e( 'Your name (shown on the gift card)', 'atelier-irisee-master-plugin' ); ?></label>
 				<input type="text" id="aimp-gc-sender" name="aimp_gc[sender_name]" maxlength="80" autocomplete="name" value="<?php echo esc_attr( $aimp_v( 'sender_name' ) ); ?>">
@@ -159,7 +161,10 @@ $aimp_v    = function ( $key ) use ( $aimp_sent ) {
 
 	<?php if ( AIMP_Giftcards_Render::available() && $aimp_designs ) : ?>
 		<div class="aimp-gc-preview" data-aimp-gc-preview>
-			<button type="button" class="aimp-gc-preview-button" data-aimp-gc-preview-button><?php esc_html_e( 'Preview your card', 'atelier-irisee-master-plugin' ); ?></button>
+			<div class="aimp-gc-actions">
+				<button type="button" class="aimp-gc-preview-button" data-aimp-gc-preview-button><?php esc_html_e( 'Preview your card', 'atelier-irisee-master-plugin' ); ?></button>
+				<?php AIMP_Giftcards_Product::buy_bar_html(); ?>
+			</div>
 			<div class="aimp-gc-preview-sides" hidden>
 				<figure><img alt="" data-aimp-gc-preview-front><figcaption><?php esc_html_e( 'Front side', 'atelier-irisee-master-plugin' ); ?></figcaption></figure>
 				<figure><img alt="" data-aimp-gc-preview-back><figcaption><?php esc_html_e( 'Back side', 'atelier-irisee-master-plugin' ); ?></figcaption></figure>
@@ -167,6 +172,13 @@ $aimp_v    = function ( $key ) use ( $aimp_sent ) {
 			<p class="aimp-gc-preview-msg" role="status" hidden></p>
 		</div>
 	<?php endif; ?>
+
+	<?php
+	// The product page's buy bar, when it was not printed next to the preview button.
+	if ( class_exists( 'AIMP_Giftcards_Product' ) ) {
+		AIMP_Giftcards_Product::buy_bar_html();
+	}
+	?>
 
 	<p class="aimp-gc-total" aria-live="polite"><?php esc_html_e( 'Total', 'atelier-irisee-master-plugin' ); ?>: <strong data-aimp-gc-total></strong></p>
 </div>

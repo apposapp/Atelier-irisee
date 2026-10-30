@@ -169,6 +169,31 @@
 	font: inherit;
 }
 
+/* Something needed is still empty: the button looks muted (a click says what), the fields are marked. */
+.aimp-add-to-cart.is-incomplete {
+	opacity: 0.55;
+}
+
+.aimp-gc-field--error :is(input, textarea),
+.aimp-gc-field--error.aimp-stepper {
+	border-color: var(--aimp-site-error, #a3352b);
+	box-shadow: 0 0 0 1px var(--aimp-site-error, #a3352b);
+}
+
+.aimp-gc-group.aimp-gc-field--error legend {
+	color: var(--aimp-site-error, #a3352b);
+}
+
+.aimp-gc-missing {
+	margin: 0.5rem 0 0;
+	color: var(--aimp-site-error, #a3352b);
+	font-weight: 600;
+}
+
+.aimp-gc-missing[hidden] {
+	display: none;
+}
+
 .aimp-gc-total {
 	margin: 0;
 	font-size: 1.1em;

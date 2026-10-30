@@ -17,6 +17,14 @@ class AIMP_Giftcards_Product {
 	/** @var array|null Validated form values of the current add-to-cart request. */
 	private static $pending = null;
 
+	/**
+	 * The product page's buy bar (amount, price, Add to cart) for a gift card: printed by the form, next to
+	 * "Preview your card", so the customer goes through the choices first.
+	 *
+	 * @var string
+	 */
+	public static $buy_bar = '';
+
 	public static function init() {
 		add_action( 'woocommerce_product_options_general_product_data', array( __CLASS__, 'render_flag' ) );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_flag' ) );
@@ -138,6 +146,14 @@ class AIMP_Giftcards_Product {
 		include $template ? $template : AIMP_PLUGIN_DIR . 'templates/giftcards/product-form.php';
 	}
 
+	/**
+	 * Prints the buy bar handed over by the product page (once).
+	 */
+	public static function buy_bar_html() {
+		echo self::$buy_bar; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built and escaped by the product page template.
+		self::$buy_bar = '';
+	}
+
 	public static function price_html( $html, $product ) {
 		if ( ! self::is_giftcard( $product ) ) {
 			return $html;
@@ -239,11 +255,17 @@ class AIMP_Giftcards_Product {
 		}
 		$values['send_date']       = '';
 
-		if ( 'email_other' === $values['delivery'] ) {
-			$values['recipient_email'] = sanitize_email( $get( 'recipient_email' ) );
+		// To someone else or by post: the names on the card are needed.
+		if ( in_array( $values['delivery'], array( 'email_other', 'post' ), true ) ) {
 			if ( '' === $values['recipient_name'] ) {
 				$errors[] = __( 'Please enter the name of the person who receives the gift card.', 'atelier-irisee-master-plugin' );
 			}
+			if ( '' === $values['sender_name'] ) {
+				$errors[] = __( 'Please enter your name, shown on the gift card.', 'atelier-irisee-master-plugin' );
+			}
+		}
+		if ( 'email_other' === $values['delivery'] ) {
+			$values['recipient_email'] = sanitize_email( $get( 'recipient_email' ) );
 			if ( ! is_email( $values['recipient_email'] ) ) {
 				$errors[] = __( 'Please enter a valid email address for the person who receives the gift card.', 'atelier-irisee-master-plugin' );
 			}

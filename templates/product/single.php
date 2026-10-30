@@ -150,6 +150,12 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 			<?php endif; ?>
 
 			<?php if ( $aimp_buy ) : ?>
+				<?php
+				// Gift cards: the bar goes under the choices, next to "Preview your card" (see the gift card form).
+				if ( $aimp_giftcard ) {
+					ob_start();
+				}
+				?>
 				<?php // Buy bar: price on the left, quantity and button on the right. ?>
 				<div class="aimp-buy-bar" data-aimp-buy data-unit-price="<?php echo esc_attr( wc_format_decimal( $aimp_buy['unit_price'], wc_get_price_decimals() ) ); ?>" data-per-10cm="<?php echo $aimp_buy['per_10cm'] ? '1' : '0'; ?>" data-set-size="<?php echo esc_attr( isset( $aimp_buy['set_size'] ) ? (int) $aimp_buy['set_size'] : 1 ); ?>"<?php echo ! empty( $aimp_buy['unit_text'] ) ? ' data-unit-text="' . esc_attr( $aimp_buy['unit_text'] ) . '"' : ''; ?><?php echo $aimp_giftcard ? ' data-giftcard' : ''; ?>>
 					<div class="aimp-buy-price">
@@ -205,6 +211,14 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 						<?php endif; ?>
 					</div>
 				</div>
+				<?php
+				if ( $aimp_giftcard ) {
+					AIMP_Giftcards_Product::$buy_bar = ob_get_clean();
+					if ( ! $aimp_buy['available'] ) {
+						AIMP_Giftcards_Product::buy_bar_html(); // Not for sale: no form, the bar stays here.
+					}
+				}
+				?>
 				<?php if ( ! $aimp_buy['available'] && ! $aimp_giftcard ) : ?>
 					<?php echo AIMP_Stock_Alerts::form_html( $the_product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in form_html(). ?>
 				<?php endif; ?>
@@ -308,6 +322,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 					<?php do_action( 'woocommerce_before_add_to_cart_button' ); ?>
 					<input type="hidden" name="add-to-cart" value="<?php echo esc_attr( $aimp_id ); ?>">
 					<?php do_action( 'woocommerce_after_add_to_cart_button' ); ?>
+					<?php AIMP_Giftcards_Product::buy_bar_html(); // Only when a theme's own form did not print it. ?>
 				</form>
 			<?php elseif ( ! $aimp_buy ) : ?>
 				<div class="aimp-product-buy"><?php woocommerce_template_single_add_to_cart(); ?></div>

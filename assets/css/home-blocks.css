@@ -320,14 +320,48 @@
 	margin: 0;
 }
 
-/* Without the gift card tile, three small tiles are left next to the large one: the last is two wide, so no gap. */
-.aimp-home-cats .aimp-overview-grid.has-hero > .aimp-overview-card:nth-child(even):last-child {
-	grid-column: span 2;
+/* Without the gift card tile, three tiles are left: stacked in one column next to a wider large tile. */
+.aimp-home-cats .aimp-configurator .aimp-overview-grid.has-hero {
+	--aimp-hero-rows: 3;
+	grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
 }
 
+@container aimp (min-width: 901px) {
+	.aimp-home-cats .aimp-configurator .aimp-overview-grid.has-hero {
+		grid-template-rows: repeat(3, minmax(0, 1fr));
+	}
+}
+
+/* Tablets: the large tile on top, the three in one row under it. */
 @container aimp (max-width: 900px) {
-	.aimp-home-cats .aimp-overview-grid.has-hero > .aimp-overview-card:nth-child(even):last-child .aimp-card-image {
-		aspect-ratio: 16 / 10;
+	.aimp-home-cats .aimp-configurator .aimp-overview-grid.has-hero {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+/* Phones: the three under each other, each a small picture with the name next to it. */
+@container aimp (max-width: 560px) {
+	.aimp-home-cats .aimp-configurator .aimp-overview-grid.has-hero {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-home-cats .aimp-configurator .aimp-overview-grid.has-hero .aimp-overview-card:not(.aimp-overview-hero) a.aimp-card {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.aimp-home-cats .aimp-configurator .aimp-overview-grid.has-hero .aimp-overview-card:not(.aimp-overview-hero) .aimp-card-image {
+		flex: 0 0 38%;
+	}
+
+	.aimp-home-cats .aimp-configurator .aimp-overview-grid.has-hero .aimp-overview-card:not(.aimp-overview-hero) .aimp-card-name {
+		position: static;
+		flex: 1 1 auto;
+		padding: 0 1rem;
+		background: none;
+		color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+		font-size: 1em;
+		text-align: left;
 	}
 }
 
