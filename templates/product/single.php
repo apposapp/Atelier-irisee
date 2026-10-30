@@ -477,7 +477,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 						<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Accessories', 'atelier-irisee-master-plugin' ); ?></h4>
 						<?php if ( $aimp_group['accessories'] || $aimp_group['finish'] ) : ?>
 							<?php if ( $aimp_group['accessories'] ) : ?>
-								<ul class="aimp-accessories">
+								<ul class="aimp-washing-grid aimp-accessories">
 									<?php
 									foreach ( $aimp_group['accessories'] as $aimp_item ) {
 										echo AIMP_Product_Page::accessory_html( $aimp_item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in accessory_html().
@@ -495,7 +495,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 										<?php endif; ?>
 										<div class="aimp-finish-option">
 											<p class="aimp-finish-name"><?php echo esc_html( $aimp_option['name'] ); ?></p>
-											<ul class="aimp-accessories">
+											<ul class="aimp-washing-grid aimp-accessories">
 												<?php
 												foreach ( $aimp_option['items'] as $aimp_item ) {
 													echo AIMP_Product_Page::accessory_html( $aimp_item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in accessory_html().

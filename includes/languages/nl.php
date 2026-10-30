@@ -3066,4 +3066,7 @@ return array(
 	'e.g. Button closure' => 'bv. Knoopsluiting',
 	'e.g. Tie closure' => 'bv. Koordsluiting',
 	'or' => 'of',
+
+	// 3.57.1: accessory tiles
+	'%1$s: %2$s' => '%1$s: %2$s',
 );

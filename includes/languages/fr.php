@@ -3066,4 +3066,7 @@ return array(
 	'e.g. Button closure' => 'p. ex. Fermeture à boutons',
 	'e.g. Tie closure' => 'p. ex. Fermeture à nouer',
 	'or' => 'ou',
+
+	// 3.57.1: accessory tiles
+	'%1$s: %2$s' => '%1$s : %2$s',
 );

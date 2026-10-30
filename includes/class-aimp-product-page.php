@@ -1199,17 +1199,19 @@ class AIMP_Product_Page {
 	}
 
 	/**
-	 * One item of the pattern page's accessories: its icon and name, then its labelled facts.
+	 * One item of the pattern page's accessories, as a tile like the fabric specifications: the gold icon, the name
+	 * as its title, and each fact on its own line ("Amount: 8", "Diameter: 8–11 mm").
 	 *
 	 * @param array $item [ icon, name, facts: [ [ icon, label, value ] ] ] from size_table().
 	 * @return string
 	 */
 	public static function accessory_html( $item ) {
-		$facts = '';
+		$facts = array();
 		foreach ( $item['facts'] as $fact ) {
-			$facts .= '<div><dt>' . $fact['icon'] . esc_html( $fact['label'] ) . '</dt><dd>' . esc_html( $fact['value'] ) . '</dd></div>';
+			/* translators: 1: e.g. "Diameter", 2: e.g. "8–11 mm" */
+			$facts[] = esc_html( sprintf( __( '%1$s: %2$s', 'atelier-irisee-master-plugin' ), $fact['label'], $fact['value'] ) );
 		}
-		return '<li class="aimp-accessory"><span class="aimp-accessory-name">' . $item['icon'] . esc_html( $item['name'] ) . '</span><dl class="aimp-accessory-facts">' . $facts . '</dl></li>';
+		return '<li class="aimp-washing-tile aimp-accessory">' . $item['icon'] . '<span><strong>' . esc_html( $item['name'] ) . '</strong>' . implode( '<br>', $facts ) . '</span></li>';
 	}
 
 	/**
