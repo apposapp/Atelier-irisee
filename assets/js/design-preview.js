@@ -777,7 +777,7 @@
 			} else if (match.kind === 'setting') {
 				message.key = match.entry.key;
 				message.base = match.entry.base;
-				message.type = match.entry.type;
+				message.fieldType = match.entry.type;
 				message.label = match.entry.label;
 				message.hints = match.entry.hints;
 			} else {

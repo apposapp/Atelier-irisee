@@ -788,12 +788,12 @@
 		var langs = Object.keys(cfg.languages || { nl: 1, fr: 1, en: 1 });
 		if (data.kind === 'setting') {
 			setSetting(data.key, data.value);
-			if (data.type === 'lang' || data.type === 'langlong') {
+			if (data.fieldType === 'lang' || data.fieldType === 'langlong') {
 				showInlinePanel(data.label || t.inlineTitle, langs.map(function (code) {
 					var key = data.base + '_' + code;
 					return {
 						code: code,
-						long: data.type === 'langlong',
+						long: data.fieldType === 'langlong',
 						hint: data.hints ? data.hints[code] : '',
 						value: code === data.lang ? data.value : inlineValue(key, ''),
 						set: function (value) {

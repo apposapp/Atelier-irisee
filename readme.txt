@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.62.1
+Stable tag: 3.62.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.62.2 =
+* Design studio: a text edited on the page is saved as a draft again (the message to the studio lost its type, so the edit was ignored).
 
 = 3.62.1 =
 * Checkout on phones: the order summary's header stays on one line ("(incl. VAT)" is shown at the total).
