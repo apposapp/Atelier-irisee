@@ -1143,3 +1143,10 @@
 	white-space: normal;
 	overflow-wrap: anywhere;
 }
+
+/* Phones: the order summary's header stays on one line; "(incl. btw)" is shown at the total below. */
+@media (max-width: 700px) {
+	.aimp-configurator .aimp-checkout-summary summary .aimp-incl-tax {
+		display: none;
+	}
+}
