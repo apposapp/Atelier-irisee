@@ -55,7 +55,7 @@ Don't use GitHub's green **Code → Download ZIP** button. That zip has the wron
 
    All pictures of the pattern are shown in the configurator: the main image, the product gallery, and the variation images. When a customer picks a size that has its own picture, that picture is shown.
 3. **Fabrics and haberdashery** are *simple* products.
-   - Fabric prices and stock are **per 10 cm**. Elastic, bias tape, ribbons & cords and interfacing are per 10 cm or per roll (Sold per). A size that needs 85 cm adds 9 × 10 cm, or 1 roll of 1 m.
+   - Fabric prices and stock are **per 10 cm**. Interfacing is per 10 cm; elastic, bias tape and ribbons & cords are per 10 cm or per roll (Sold per). A size that needs 85 cm adds 9 × 10 cm, or 1 roll of 1 m.
    - Zips have a length (Haberdashery details). The configurator only offers zips whose length matches what the size needs.
    - Buttons, zips, interfacing, elastic, ribbons & cords and bias tape get a **Haberdashery details** box, see [Haberdashery](#haberdashery).
 4. Put the shortcode `[atelier_irisee_configurator]` on a page.
@@ -168,7 +168,7 @@ Six kinds of haberdashery, described in one registry (`AIMP_Notions::kinds()`): 
 - `_aimp_hab_type`: the kind's types (buttons: button, jeans button, press stud; zips: the four zip types; ribbons & cords: ribbon, cord). Without a type a product counts as the kind's default type; a zip without a type fits every zip type.
 - `_aimp_hab_colour`, `_aimp_hab_material`, `_aimp_hab_finish`, `_aimp_hab_mounting`: free texts.
 - `_aimp_hab_diameter` (mm), `_aimp_hab_width` (mm; interfacing cm), `_aimp_hab_length` (cm: the zip length, or the length of one roll).
-- `_aimp_hab_sold`: `piece` or `set` (buttons, zips; set size `_aimp_hab_set_size`), `10cm` or `roll` (the others). `AIMP_Notions::pack_qty()` turns a need (pieces, or cm) into the cart quantity: whole sets, 10 cm units or whole rolls.
+- `_aimp_hab_sold`: `piece` or `set` (buttons, zips; set size `_aimp_hab_set_size`), `10cm` or `roll` (the others; interfacing only `10cm`). `AIMP_Notions::pack_qty()` turns a need (pieces, or cm) into the cart quantity: whole sets, 10 cm units or whole rolls.
 - `_aimp_hab_ideal_for`: up to four keys of `AIMP_Notions::ideal_for_options()` (icons: `AIMP_Product_Page::clothing_icon()`).
 - `_aimp_order_info`: shown under the buy bar, as on fabrics.
 

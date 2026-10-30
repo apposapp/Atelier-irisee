@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.55.0
+Stable tag: 3.56.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,15 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.56.0 =
+* Pattern page: the haberdashery next to the size chart is a clear list with an icon per item and labelled facts (amount, length, diameter, width), separated from the size chart by a fine gold line.
+* Haberdashery ranges: with only the first box filled in, the website shows that size without "from".
+* Body measurements per size can be a range (from – to); only "from" filled in is one value as before.
+* Customizer: what a size needs reads "8 pieces · diameter 8–11 mm" and "1,45 m · width 2–3 cm"; a chosen product sold per 10 cm also says how much is added (145 cm needed: 1,5 m, 15 × 10 cm).
+* Customizer: the size-needs cards wrap long names and values inside the card.
+* Customizer: "I already have my own …" is a card for lining, interfacing and every haberdashery type, and those steps say "(optional)"; saved kits remember these choices.
+* Interfacing is no longer sold per roll: the option is gone from the product screen and the customizer only mentions pieces of 10 cm.
 
 = 3.55.0 =
 * Product screen: the Product data box and the Atelier Irisee workspace always show, open and in the main column, for every user. Their Screen Options checkboxes are gone, so nobody can hide them by accident any more.

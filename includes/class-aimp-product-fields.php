@@ -288,8 +288,22 @@ class AIMP_Product_Fields {
 				<fieldset class="aimp-material-group aimp-measurement-group has-types">
 					<legend><?php esc_html_e( 'Body measurements', 'atelier-irisee-master-plugin' ); ?></legend>
 					<?php
+					// From and to ("88–92 cm"); only "from" filled in is one value.
 					foreach ( self::measurement_fields() as $meta => $label ) {
-						$input( ltrim( $meta, '_' ), $label, 'cm', (string) $variation->get_meta( $meta ) );
+						$name = ltrim( $meta, '_' );
+						$id   = 'aimp_' . $name . '_' . $loop;
+						printf(
+							'<label class="aimp-material-field aimp-measure-range" for="%1$s"><span>%2$s</span><span class="aimp-material-input"><input type="number" min="0" step="0.5" id="%1$s" name="%3$s" value="%4$s" placeholder="%5$s" aria-label="%2$s %5$s"><em>–</em><input type="number" min="0" step="0.5" name="%6$s" value="%7$s" placeholder="%8$s" aria-label="%2$s %8$s"><em>%9$s</em></span></label>',
+							esc_attr( $id ),
+							esc_html( $label ),
+							esc_attr( 'aimp_material[' . $name . '][' . $loop . ']' ),
+							esc_attr( (string) $variation->get_meta( $meta ) ),
+							esc_attr__( 'from', 'atelier-irisee-master-plugin' ),
+							esc_attr( 'aimp_material[' . $name . '_to][' . $loop . ']' ),
+							esc_attr( (string) $variation->get_meta( $meta . '_to' ) ),
+							esc_attr__( 'to', 'atelier-irisee-master-plugin' ),
+							esc_html__( 'cm', 'atelier-irisee-master-plugin' )
+						);
 					}
 					?>
 				</fieldset>
@@ -321,7 +335,8 @@ class AIMP_Product_Fields {
 			$fields[ $key ] = array( $field['meta'], $field['unit'] );
 		}
 		foreach ( self::measurement_fields() as $meta => $label ) {
-			$fields[ ltrim( $meta, '_' ) ] = array( $meta, 'cm' );
+			$fields[ ltrim( $meta, '_' ) ]         = array( $meta, 'cm' );
+			$fields[ ltrim( $meta, '_' ) . '_to' ] = array( $meta . '_to', 'cm' );
 		}
 		// Haberdashery switched off on the Atelier Irisee tab (as on the screen, also before the pattern is saved).
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
@@ -345,6 +360,13 @@ class AIMP_Product_Fields {
 				continue;
 			}
 			$variation->update_meta_data( $field[0], 'cm' === $field[1] ? wc_format_decimal( (float) $value, 1, true ) : (string) absint( $value ) );
+		}
+		// A "to" without a "from", or not above it, is no range.
+		foreach ( self::measurement_fields() as $meta => $label ) {
+			$from = (float) $variation->get_meta( $meta );
+			if ( $from <= 0 || (float) $variation->get_meta( $meta . '_to' ) <= $from ) {
+				$variation->delete_meta_data( $meta . '_to' );
+			}
 		}
 		// Fabric is kept in cm from now on.
 		$variation->delete_meta_data( AIMP_Catalog::META_FABRIC_UNITS );

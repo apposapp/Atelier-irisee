@@ -216,18 +216,22 @@ class AIMP_Notion_Fields {
 							<?php else : ?>
 								<?php $roll = $is_current && $way === $measure ? AIMP_Notions::number( $product, 'length' ) : 0; ?>
 								<label><input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="10cm"<?php checked( $way === $measure && '10cm' === $sold ); ?><?php disabled( $way !== $measure ); ?>> <?php esc_html_e( 'Per 10 cm', 'atelier-irisee-master-plugin' ); ?></label>
+								<?php if ( AIMP_Notions::has_rolls( $kind ) ) : ?>
 								<label>
 									<input type="radio" name="<?php echo esc_attr( $base . '[sold]' ); ?>" value="roll"<?php checked( $way === $measure && 'roll' === $sold ); ?><?php disabled( $way !== $measure ); ?>>
 									<?php esc_html_e( 'Per piece/roll of', 'atelier-irisee-master-plugin' ); ?>
 									<input type="number" class="small-text" data-sold="roll" name="<?php echo esc_attr( $base . '[length]' ); ?>" min="1" step="1" value="<?php echo $roll > 0 ? esc_attr( wc_format_decimal( $roll, 1, true ) ) : ''; ?>" aria-label="<?php esc_attr_e( 'Length of a roll in cm', 'atelier-irisee-master-plugin' ); ?>"<?php disabled( $way !== $measure ); ?>>
 									<?php esc_html_e( 'cm', 'atelier-irisee-master-plugin' ); ?>
 								</label>
+								<?php endif; ?>
 							<?php endif; ?>
 						</p>
 						<p class="description">
 							<?php
 							if ( 'piece' === $way ) {
 								esc_html_e( 'Per set: the price and the stock are per set, and one sale lowers the stock by one set. The customer sees "per set of 6"; the configurator adds as many whole sets as a pattern size needs.', 'atelier-irisee-master-plugin' );
+							} elseif ( ! AIMP_Notions::has_rolls( $kind ) ) {
+								esc_html_e( 'Price and stock per 10 cm, like fabric (5 m in stock = stock 50).', 'atelier-irisee-master-plugin' );
 							} else {
 								esc_html_e( 'Per 10 cm: price and stock per 10 cm, like fabric (a 5 m roll = stock 50). Per piece/roll: price and stock per roll of the length you fill in; the configurator adds as many whole rolls as a pattern size needs.', 'atelier-irisee-master-plugin' );
 							}
@@ -332,7 +336,7 @@ class AIMP_Notion_Fields {
 			$sold = 'set' === $sold && $size > 1 ? 'set' : 'piece';
 			$set( AIMP_Notions::META_SET_SIZE, 'set' === $sold ? (string) $size : '' );
 		} else {
-			$sold = 'roll' === $sold && '' !== $number( isset( $row['length'] ) ? $row['length'] : '' ) ? 'roll' : '10cm';
+			$sold = 'roll' === $sold && AIMP_Notions::has_rolls( $kind ) && '' !== $number( isset( $row['length'] ) ? $row['length'] : '' ) ? 'roll' : '10cm';
 			$product->delete_meta_data( AIMP_Notions::META_SET_SIZE );
 		}
 		$product->update_meta_data( AIMP_Notions::META_SOLD, $sold );

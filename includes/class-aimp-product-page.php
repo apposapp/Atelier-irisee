@@ -177,7 +177,7 @@ class AIMP_Product_Page {
 	 */
 	/**
 	 * Pattern page "Accessories" and size table: one group per design (or one group), each
-	 * [ name, accessories: [ [ label, text ] ], columns: [ label ], rows: [ [ size, cells… ] ] ].
+	 * [ name, accessories: [ [ icon, name, facts: [ [ icon, label, value ] ] ] ], columns: [ label ], rows: [ [ size, cells… ] ] ].
 	 * Only filled-in materials and measurements are listed.
 	 *
 	 * @param WC_Product $pattern Pattern.
@@ -202,12 +202,22 @@ class AIMP_Product_Page {
 		}
 		$groups = array();
 		foreach ( $sizes as $slug => $reqs ) {
-			// Haberdashery with the diameter or width that fits ("6 · 15–20 mm"), from this design's rules.
-			$button_ranges = array();
+			// The diameter or width that fits ("15–20 mm"), from this design's rules: material => [ fact key, text ].
+			$ranges = array();
 			foreach ( AIMP_Notions::rules() as $rule => $info ) {
-				$button_ranges[ $info[2] ] = AIMP_Notions::range_text( $reqs[0]['notion_rules'][ $rule ], AIMP_Notions::rule_unit( $rule ) );
+				$text = AIMP_Notions::range_text( $reqs[0]['notion_rules'][ $rule ], AIMP_Notions::rule_unit( $rule ) );
+				$kind = AIMP_Notions::kind( $info[0] );
+				if ( '' !== $text && $kind ) {
+					$ranges[ $info[2] ] = array( 'diameter' === $kind['range'] ? 'diameter' : 'width', $text );
+				}
 			}
-			// Accessories: every material any size needs, one value or a range.
+			$fact_labels = array(
+				'amount'   => __( 'Amount', 'atelier-irisee-master-plugin' ),
+				'length'   => __( 'Length', 'atelier-irisee-master-plugin' ),
+				'diameter' => __( 'Diameter', 'atelier-irisee-master-plugin' ),
+				'width'    => __( 'Width', 'atelier-irisee-master-plugin' ),
+			);
+			// Accessories: every material any size needs, with an icon and its facts (amount or length, then diameter or width).
 			$accessories = array();
 			foreach ( $fields as $key => $field ) {
 				// Fabric and lining have their own columns in the table.
@@ -225,15 +235,22 @@ class AIMP_Product_Page {
 				if ( ! $amounts ) {
 					continue;
 				}
-				$min           = min( $amounts );
-				$max           = max( $amounts );
-				$text          = $min === $max ? AIMP_Catalog::material_text( $key, $min ) : ( 'cm' === $field['unit']
+				$min   = min( $amounts );
+				$max   = max( $amounts );
+				$text  = $min === $max ? AIMP_Catalog::material_text( $key, $min ) : ( 'cm' === $field['unit']
 					/* translators: 1: smallest length, 2: largest length (in cm) */
 					? sprintf( __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $min, floor( $min ) == $min ? 0 : 1 ), AIMP_I18n::number( $max, floor( $max ) == $max ? 0 : 1 ) )
 					: sprintf( '%d–%d', $min, $max ) );
-
-				$range         = isset( $button_ranges[ $key ] ) ? $button_ranges[ $key ] : '';
-				$accessories[] = array( AIMP_Catalog::material_label( $key, $reqs[0] ), '' !== $range ? $text . ' · ' . $range : $text );
+				$first = 'cm' === $field['unit'] ? 'length' : 'amount';
+				$facts = array( array( 'icon' => self::fabric_icon( 'cm' === $field['unit'] ? 'length' : 'set' ), 'label' => $fact_labels[ $first ], 'value' => $text ) );
+				if ( isset( $ranges[ $key ] ) ) {
+					$facts[] = array( 'icon' => self::fabric_icon( $ranges[ $key ][0] ), 'label' => $fact_labels[ $ranges[ $key ][0] ], 'value' => $ranges[ $key ][1] );
+				}
+				$accessories[] = array(
+					'icon'  => self::fabric_icon( self::material_icon( $key ) ),
+					'name'  => AIMP_Catalog::material_label( $key, $reqs[0] ),
+					'facts' => $facts,
+				);
 			}
 			// Table: the measurements filled in for at least one size, then the fabric.
 			$used = array();
@@ -255,8 +272,7 @@ class AIMP_Product_Page {
 			foreach ( $reqs as $req ) {
 				$row = array( $req['size'] );
 				foreach ( array_keys( $used ) as $key ) {
-					/* translators: %s: length in cm */
-					$row[] = '' !== (string) $req[ $key ] && (float) $req[ $key ] > 0 ? sprintf( __( '%s cm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( (float) $req[ $key ], floor( (float) $req[ $key ] ) == (float) $req[ $key ] ? 0 : 1 ) ) : '–';
+					$row[] = '' !== (string) $req[ $key ] && (float) $req[ $key ] > 0 ? AIMP_Catalog::measure_text( $req[ $key ], isset( $req[ $key . '_to' ] ) ? $req[ $key . '_to' ] : '' ) : '–';
 				}
 				/* translators: %s: length in metres */
 				$row[] = $req['fabric_cm'] > 0 ? sprintf( __( '%s m', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $req['fabric_cm'] / 100, 2 ) ) : '–';
@@ -1152,6 +1168,46 @@ class AIMP_Product_Page {
 		}
 		$link = get_term_link( $terms[0] );
 		return is_wp_error( $link ) ? '' : $link;
+	}
+
+	/**
+	 * The icon name of a configurator step (AIMP_Catalog::notion_types()): zips, buttons, bias, elastic, interfacing, … .
+	 *
+	 * @param string $type Step key.
+	 * @param array  $info Its notion_types() entry.
+	 * @return string
+	 */
+	public static function notion_icon( $type, $info ) {
+		if ( 'shoulder_pads' === $type ) {
+			return 'shoulder_pad';
+		}
+		if ( 'zip' === $info['kind'] ) {
+			return 'zips';
+		}
+		if ( 'count' === $info['kind'] ) {
+			return 'buttons';
+		}
+		if ( in_array( $type, array( 'bias', 'elastic', 'interfacing' ), true ) ) {
+			return $type;
+		}
+		return 'interfacing' === $info['notion_kind'] ? 'interfacing' : 'ribbons';
+	}
+
+	/**
+	 * The icon name of a material (a key of AIMP_Catalog::material_fields()).
+	 *
+	 * @param string $key Material.
+	 * @return string
+	 */
+	public static function material_icon( $key ) {
+		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
+			if ( $info['material'] === $key ) {
+				return self::notion_icon( $type, $info );
+			}
+		}
+		// Not sold in the kit (embroidery, bag strap, cord lock): a length or a number.
+		$fields = AIMP_Catalog::material_fields();
+		return isset( $fields[ $key ] ) && 'cm' === $fields[ $key ]['unit'] ? 'length' : 'set';
 	}
 
 	/**

@@ -108,7 +108,14 @@ class AIMP_Shortcode {
 			'stepLining'      => __( 'Lining', 'atelier-irisee-master-plugin' ),
 			'chooseLining'    => __( 'Choose your lining (optional)', 'atelier-irisee-master-plugin' ),
 			'confirmLining'   => __( 'Confirm lining', 'atelier-irisee-master-plugin' ),
-			'skipLining'      => __( 'Continue without lining', 'atelier-irisee-master-plugin' ),
+			'ownLining'       => __( 'I already have my own lining', 'atelier-irisee-master-plugin' ),
+			'ownLiningNote'   => __( 'Lining: you use your own.', 'atelier-irisee-master-plugin' ),
+			/* translators: %s: haberdashery, e.g. "buttons" */
+			'ownNotion'       => __( 'I already have my own %s', 'atelier-irisee-master-plugin' ),
+			/* translators: %s: haberdashery, e.g. "Buttons" */
+			'ownNotionNote'   => __( '%s: you use your own.', 'atelier-irisee-master-plugin' ),
+			'ownSub'          => __( 'Nothing is added to your kit', 'atelier-irisee-master-plugin' ),
+			'optional'        => __( '(optional)', 'atelier-irisee-master-plugin' ),
 			'noLinings'       => __( 'No lining fabrics are available at the moment.', 'atelier-irisee-master-plugin' ),
 			'liningNeeded'    => __( 'Lining', 'atelier-irisee-master-plugin' ),
 			'selectLiningHint' => __( 'Select a lining to see its pictures and details.', 'atelier-irisee-master-plugin' ),
@@ -117,7 +124,7 @@ class AIMP_Shortcode {
 			'stepInterfacing' => __( 'Interfacing choice', 'atelier-irisee-master-plugin' ),
 			'chooseInterfacing' => __( 'Choose your interfacing', 'atelier-irisee-master-plugin' ),
 			'interfacingHint' => __( 'This pattern needs interfacing. Choose one, or tell us you have your own.', 'atelier-irisee-master-plugin' ),
-			'ownInterfacing'  => __( 'I have my own interfacing', 'atelier-irisee-master-plugin' ),
+			'ownInterfacing'  => __( 'I already have my own interfacing', 'atelier-irisee-master-plugin' ),
 			'normalInterfacing' => __( 'Normal interfacing', 'atelier-irisee-master-plugin' ),
 			'volumeInterfacing' => __( 'Volume interfacing', 'atelier-irisee-master-plugin' ),
 			'ownInterfacingNote' => __( 'Interfacing: you use your own.', 'atelier-irisee-master-plugin' ),
@@ -132,7 +139,7 @@ class AIMP_Shortcode {
 			'bandanaPattern'  => __( 'Dog bandana pattern', 'atelier-irisee-master-plugin' ),
 			'bandanaFor'      => __( 'For the dog bandana', 'atelier-irisee-master-plugin' ),
 			'bandanaGuide'    => __( 'About the bandana', 'atelier-irisee-master-plugin' ),
-			'chooseInterfacingFirst' => __( 'Choose an interfacing, or "I have my own interfacing", to continue.', 'atelier-irisee-master-plugin' ),
+			'chooseInterfacingFirst' => __( 'Choose an interfacing, or "I already have my own interfacing", to continue.', 'atelier-irisee-master-plugin' ),
 			'stepNotions'     => __( 'Choose your haberdashery', 'atelier-irisee-master-plugin' ),
 			'stepSummary'     => __( 'Summary', 'atelier-irisee-master-plugin' ),
 			'all'             => __( 'All', 'atelier-irisee-master-plugin' ),
@@ -297,8 +304,7 @@ class AIMP_Shortcode {
 			'extra'  => AIMP_Product_Page::fabric_icon( 'tips' ),
 		);
 		foreach ( AIMP_Catalog::notion_types() as $type => $info ) {
-			$icon           = 'shoulder_pads' === $type ? 'shoulder_pad' : ( 'zip' === $info['kind'] ? 'zips' : ( 'count' === $info['kind'] ? 'buttons' : ( in_array( $type, array( 'bias', 'elastic', 'interfacing' ), true ) ? $type : ( 'interfacing' === $info['notion_kind'] ? 'interfacing' : 'ribbons' ) ) ) );
-			$icons[ $type ] = AIMP_Product_Page::fabric_icon( $icon );
+			$icons[ $type ] = AIMP_Product_Page::fabric_icon( AIMP_Product_Page::notion_icon( $type, $info ) );
 		}
 		return $icons;
 	}

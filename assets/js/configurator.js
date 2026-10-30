@@ -75,6 +75,8 @@
 	}
 
 	var fmt = UI.fmt;
+	// "I already have my own …": a sewing box with a heart (stroke icon like the need cards).
+	var OWN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M3.5 10h17v9.5a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1z"/><path d="M3.5 10l2-4.5h13l2 4.5"/><path d="M9 7.8V5.5a3 3 0 0 1 6 0v2.3"/><path d="M12 17.5s-3-1.8-3-3.6a1.6 1.6 0 0 1 3-.8 1.6 1.6 0 0 1 3 .8c0 1.8-3 3.6-3 3.6z"/></svg>';
 
 	function money(amount) {
 		return UI.money(amount, cfg.currency);
@@ -130,8 +132,13 @@
 		});
 	}
 
-	function measure(value) {
-		return value === '' || value === null || value === undefined ? '–' : esc(num(value)) + ' ' + esc(t.cm);
+	// One value, or "88–92 cm" when the size has a "to" above it.
+	function measure(value, to) {
+		if (value === '' || value === null || value === undefined) {
+			return '–';
+		}
+		var top = parseFloat(to);
+		return esc(num(value)) + (top > parseFloat(value) ? '–' + esc(num(top)) : '') + ' ' + esc(t.cm);
 	}
 
 	function request(action, data) {
@@ -410,12 +417,13 @@
 		s.liningImage = 0;
 		s.liningFilters = defaultFabricFilters();
 		s.liningCategories = null;
-		// The interfacing step: "I have my own interfacing" (its card choice is s.notions.interfacing).
+		// "I already have my own lining / interfacing / …" (the cards of those steps); own: per haberdashery type.
+		s.ownLining = false;
 		s.ownInterfacing = false;
 		this.resetBandana();
 		s.notions = {};
 		NOTIONS.forEach(function (n) {
-			s.notions[n.type] = { page: 1, data: null, selected: null, image: 0 };
+			s.notions[n.type] = { page: 1, data: null, selected: null, image: 0, own: false };
 		});
 	};
 
@@ -436,6 +444,7 @@
 		s.lining = null;
 		s.liningImage = 0;
 		s.liningCategories = null;
+		s.ownLining = false;
 		s.ownInterfacing = false;
 		if (s.notions.interfacing) {
 			s.notions.interfacing = { page: 1, data: null, selected: null, image: 0 };
@@ -537,14 +546,14 @@
 		}
 		// Lining: when the chosen size needs it.
 		if (size && size.lining_units > 0) {
-			steps.push({ key: 'lining', label: t.stepLining });
+			steps.push({ key: 'lining', label: t.stepLining, optional: true });
 		}
 		// Interfacing: its own step, from the fabric's normal / volume interfacing (or the ones that fit the pattern).
 		if (this.needsInterfacing()) {
-			steps.push({ key: 'interfacing', label: t.stepInterfacing });
+			steps.push({ key: 'interfacing', label: t.stepInterfacing, optional: true });
 		}
 		if (size ? this.notionTypes().length : NOTIONS.length) {
-			steps.push({ key: 'notions', label: t.stepNotions });
+			steps.push({ key: 'notions', label: t.stepNotions, optional: true });
 		}
 		steps.push({ key: 'summary', label: t.stepSummary });
 		return steps;
@@ -828,7 +837,8 @@
 		this.stepsEl.innerHTML = this.steps()
 			.map(function (step, i) {
 				var cls = i === current ? 'is-current' : i < current ? 'is-done' : '';
-				var inner = '<span class="aimp-step-num">' + (i + 1) + '</span> ' + esc(step.label);
+				var inner = '<span class="aimp-step-num">' + (i + 1) + '</span> ' + esc(step.label) +
+					(step.optional ? ' <small class="aimp-step-optional">' + esc(t.optional) + '</small>' : '');
 				// After adding to the cart, start over via "Configure another" instead of editing the added set.
 				if (i < current && !self.state.added) {
 					inner = '<button type="button" data-step="' + esc(step.key) + '">' + inner + '</button>';
@@ -1121,7 +1131,7 @@
 			if (measures.length) {
 				html += '<dl class="aimp-measurements">';
 				measures.forEach(function (m) {
-					html += '<div><dt>' + esc(t[m[1]]) + '</dt><dd>' + measure(size[m[0]]) + '</dd></div>';
+					html += '<div><dt>' + esc(t[m[1]]) + '</dt><dd>' + measure(size[m[0]], size[m[0] + '_to']) + '</dd></div>';
 				});
 				html += '</dl>';
 			}
@@ -1301,7 +1311,7 @@
 				'<th scope="row">' + esc(sz.label) + '</th>';
 			measures.forEach(function (m) {
 				// The column name for the phone cards (the sheet is outside the configurator's table labelling).
-				html += '<td data-label="' + esc(t[m[1]]) + '">' + measure(sz[m[0]]) + '</td>';
+				html += '<td data-label="' + esc(t[m[1]]) + '">' + measure(sz[m[0]], sz[m[0] + '_to']) + '</td>';
 			});
 			html += '</tr>';
 		});
@@ -1388,7 +1398,7 @@
 			introHtml(k) +
 			this.recapHtml() +
 			'<h3>' + esc(k === 'lining' ? t.chooseLining : t.chooseFabric) + '</h3>' +
-			(k === 'lining' ? '<div class="aimp-notice aimp-lining-note" role="note"><p>' + esc(t.liningNote) + '</p></div>' : '') +
+			(k === 'lining' ? '<div class="aimp-notice aimp-lining-note" role="note"><p>' + esc(t.liningNote) + '</p></div><div data-own="lining"></div>' : '') +
 			'<div class="aimp-fabric-filterbar">' +
 			'<button type="button" class="aimp-button aimp-shop-toggle" data-action="toggle-filters" aria-controls="aimp-fabric-filters"></button>' +
 			'</div>' +
@@ -1417,18 +1427,22 @@
 			'</div>' +
 			'<div class="aimp-actions">' +
 			'<button type="button" class="aimp-button aimp-button--ghost" data-action="back">' + esc(t.back) + '</button>' +
-			(k === 'lining' ? '<button type="button" class="aimp-button aimp-button--ghost" data-action="skip-lining">' + esc(t.skipLining) + '</button>' : '') +
 			'</div>' +
 			'</div>';
 
 		this.body.querySelector('[data-action="back"]').addEventListener('click', function () {
 			self.prev();
 		});
-		var skip = this.body.querySelector('[data-action="skip-lining"]');
-		if (skip) {
-			skip.addEventListener('click', function () {
-				s.lining = null;
-				self.next();
+		// "I already have my own lining": no lining in the kit, on to the next step.
+		if (k === 'lining') {
+			this.ownCard('lining', t.ownLining, function () {
+				return s.ownLining;
+			}, function (on) {
+				s.ownLining = on;
+				if (on) {
+					s.lining = null;
+					self.next();
+				}
 			});
 		}
 
@@ -1621,6 +1635,10 @@
 					s[k] = item;
 					s[k + 'Image'] = 0;
 				}
+				if (k === 'lining' && s.ownLining) {
+					s.ownLining = false;
+					self.redrawOwn('lining');
+				}
 				self.renderFabricGrid();
 				self.renderFabricPanel();
 				self.showPanel(self.findPanel('fabric-panel'));
@@ -1664,6 +1682,72 @@
 	 * Step 3: haberdashery (buttons, zips, ribbons, bias tape)
 	 * ------------------------------------------------------------- */
 
+	/* "I already have my own …": a card of its own above the grid, filled when "on". */
+
+	// slot: the [data-own] place; isOn(): its state; toggle(on): what a click does (then the card is drawn again).
+	Configurator.prototype.ownCard = function (slot, label, isOn, toggle) {
+		var self = this;
+		this.ownDraw = this.ownDraw || {};
+		this.ownDraw[slot] = function () {
+			var box = self.body.querySelector('[data-own="' + slot + '"]');
+			if (!box) {
+				return;
+			}
+			var on = !!isOn();
+			box.className = 'aimp-own-choice';
+			box.innerHTML =
+				'<button type="button" class="aimp-card aimp-card--own' + (on ? ' is-selected' : '') + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+				'<span class="aimp-card-own-icon" aria-hidden="true">' + OWN_ICON + '</span>' +
+				'<span class="aimp-card-name">' + esc(label) + '<small class="aimp-card-sub">' + esc(t.ownSub) + '</small></span>' +
+				(on ? '<span class="aimp-badge aimp-badge--selected">' + esc(t.selected) + '</span>' : '') +
+				'</button>';
+			box.querySelector('button').addEventListener('click', function () {
+				toggle(!isOn());
+				self.redrawOwn(slot);
+			});
+		};
+		this.ownDraw[slot]();
+	};
+
+	Configurator.prototype.redrawOwn = function (slot) {
+		if (this.ownDraw && this.ownDraw[slot]) {
+			this.ownDraw[slot]();
+		}
+	};
+
+	// Interfacing keeps its own flag (saved kits, the summary); the other types use their bucket.
+	Configurator.prototype.setOwn = function (type, on) {
+		if (type === 'interfacing') {
+			this.state.ownInterfacing = on;
+		} else {
+			this.state.notions[type].own = on;
+		}
+		this.redrawOwn(type);
+	};
+
+	Configurator.prototype.ownNotionCard = function (type, label) {
+		var self = this;
+		var s = this.state;
+		this.ownCard(type, label, function () {
+			return type === 'interfacing' ? s.ownInterfacing : s.notions[type].own;
+		}, function (on) {
+			self.setOwn(type, on);
+			if (on) {
+				s.notions[type].selected = null;
+				s.notions[type].preview = null;
+				self.closeSheet();
+				self.renderNotionGrid(type);
+			}
+		});
+	};
+
+	// What a size calls a haberdashery type ("Buttons – Cuffs"), or its standard name.
+	Configurator.prototype.notionName = function (type) {
+		var size = this.state.size;
+		var own = size && size.notions && size.notions[type] ? size.notions[type].name : '';
+		return own || t[notionInfo(type).label] || '';
+	};
+
 	// The haberdashery types the chosen size needs.
 	Configurator.prototype.notionTypes = function () {
 		var size = this.state.size;
@@ -1695,13 +1779,13 @@
 		this.body.innerHTML =
 			'<div class="aimp-step aimp-step--notions aimp-step--interfacing">' + introHtml('interfacing') + this.recapHtml() +
 			'<section class="aimp-notion-section">' +
-			'<h3>' + esc(t.chooseInterfacing) + '</h3>' +
+			'<h3>' + esc(t.chooseInterfacing) + ' <span class="aimp-optional">' + esc(t.optional) + '</span></h3>' +
 			'<p class="aimp-help">' + esc(t.interfacingHint) + ' ' + esc(info.willAdd(s.size)) + '</p>' +
+			'<div data-own="interfacing"></div>' +
 			'<div class="aimp-split">' +
 			'<div class="aimp-split-main" data-role="notions-interfacing"></div>' +
 			'<aside class="aimp-split-side" data-role="notion-panel-interfacing"></aside>' +
 			'</div>' +
-			'<p><button type="button" class="aimp-button aimp-button--ghost aimp-own-interfacing" data-action="own-interfacing" aria-pressed="false">' + esc(t.ownInterfacing) + '</button></p>' +
 			'</section>' +
 			'<div data-role="messages"></div>' +
 			'<div class="aimp-actions">' +
@@ -1712,14 +1796,7 @@
 		this.body.querySelector('[data-action="back"]').addEventListener('click', function () {
 			self.prev();
 		});
-		this.body.querySelector('[data-action="own-interfacing"]').addEventListener('click', function () {
-			s.ownInterfacing = !s.ownInterfacing;
-			if (s.ownInterfacing) {
-				s.notions.interfacing.selected = null;
-				self.closeSheet();
-			}
-			self.renderNotionGrid('interfacing');
-		});
+		this.ownNotionCard('interfacing', t.ownInterfacing);
 		this.body.querySelector('[data-action="continue"]').addEventListener('click', function () {
 			var data = s.notions.interfacing.data;
 			var nothing = data && !(data.items || []).some(function (item) {
@@ -1748,8 +1825,9 @@
 			var group = s.size.notions && s.size.notions[type] ? s.size.notions[type].label : '';
 			html +=
 				'<section class="aimp-notion-section">' +
-				'<h3>' + esc(t[info.title]) + (group ? ' <span class="aimp-notion-group">· ' + esc(group) + '</span>' : '') + '</h3>' +
+				'<h3>' + esc(t[info.title]) + (group ? ' <span class="aimp-notion-group">· ' + esc(group) + '</span>' : '') + ' <span class="aimp-optional">' + esc(t.optional) + '</span></h3>' +
 				'<p class="aimp-help">' + esc(info.willAdd(s.size)) + ' ' + esc(t.deselectHint) + '</p>' +
+				'<div data-own="' + esc(type) + '"></div>' +
 				'<div class="aimp-split">' +
 				'<div class="aimp-split-main" data-role="notions-' + type + '"></div>' +
 				'<aside class="aimp-split-side" data-role="notion-panel-' + type + '"></aside>' +
@@ -1772,6 +1850,7 @@
 		});
 
 		this.notionTypes().forEach(function (type) {
+			self.ownNotionCard(type, fmt(t.ownNotion, self.notionName(type).toLowerCase()));
 			self.renderNotionGrid(type);
 			if (!s.notions[type].data) {
 				self.loadNotions(type);
@@ -1819,11 +1898,7 @@
 		if (!container) {
 			return;
 		}
-		var own = type === 'interfacing' ? this.body.querySelector('[data-action="own-interfacing"]') : null;
-		if (own) {
-			own.setAttribute('aria-pressed', s.ownInterfacing ? 'true' : 'false');
-			own.classList.toggle('aimp-button--ghost', !s.ownInterfacing);
-		}
+		this.redrawOwn(type);
 		this.renderGrid(container, bucket.data, {
 			selectedId: bucket.selected ? bucket.selected.id : null,
 			emptyText: t.noNotions,
@@ -1839,8 +1914,8 @@
 					return;
 				}
 				bucket.selected = bucket.selected && bucket.selected.id === item.id ? null : item;
-				if (bucket.selected && type === 'interfacing') {
-					s.ownInterfacing = false;
+				if (bucket.selected) {
+					self.setOwn(type, false);
 				}
 				self.renderNotionGrid(type);
 				if (bucket.selected) {
@@ -1881,8 +1956,8 @@
 				choose.addEventListener('click', function () {
 					bucket.selected = chosen ? null : shown;
 					bucket.preview = null;
-					if (bucket.selected && type === 'interfacing') {
-						s.ownInterfacing = false;
+					if (bucket.selected) {
+						self.setOwn(type, false);
 					}
 					self.closeSheet();
 					self.renderNotionGrid(type);
@@ -2094,11 +2169,16 @@
 		html += '<tr><th colspan="2">' + esc(t.total) + '</th><td class="aimp-summary-price">' + priceHtml(total) + '</td></tr></tfoot></table></div>';
 		html += this.bandanaHtml(discount);
 		if (s.size.lining_units > 0 && !s.lining) {
-			html += '<p class="aimp-help aimp-summary-note">' + esc(t.noLiningNote) + '</p>';
+			html += '<p class="aimp-help aimp-summary-note">' + esc(s.ownLining ? t.ownLiningNote : t.noLiningNote) + '</p>';
 		}
 		if (this.needsInterfacing() && s.ownInterfacing) {
 			html += '<p class="aimp-help aimp-summary-note">' + esc(t.ownInterfacingNote) + '</p>';
 		}
+		this.notionTypes().forEach(function (type) {
+			if (s.notions[type].own && !s.notions[type].selected) {
+				html += '<p class="aimp-help aimp-summary-note">' + esc(fmt(t.ownNotionNote, this.notionName(type))) + '</p>';
+			}
+		}, this);
 		html += '<p class="aimp-help">' + esc(t.lockedNote) + '</p>';
 		if (design.cz_note) {
 			html += '<p class="aimp-help aimp-cz-note">' + esc(localText(design.cz_note)) + '</p>';
@@ -2138,7 +2218,11 @@
 			variation: s.size.id,
 			fabric: s.size.fabric_units > 0 && s.fabric ? s.fabric.id : 0,
 			lining: s.size.lining_units > 0 && s.lining ? s.lining.id : 0,
-			own_interfacing: s.ownInterfacing ? 1 : 0
+			own_interfacing: s.ownInterfacing ? 1 : 0,
+			own_lining: s.ownLining && !s.lining ? 1 : 0,
+			own_notions: this.notionTypes().filter(function (type) {
+				return s.notions[type].own && !s.notions[type].selected;
+			}).join(',')
 		};
 		this.bandanaParams(params);
 		NOTIONS.forEach(function (n) {
@@ -2193,6 +2277,12 @@
 					s.notions[n.type].selected = (data.notions && data.notions[n.type]) || null;
 				});
 				s.ownInterfacing = !!data.own_interfacing && !s.notions.interfacing.selected;
+				s.ownLining = !!data.own_lining && !s.lining;
+				(data.own_notions || []).forEach(function (type) {
+					if (s.notions[type] && !s.notions[type].selected) {
+						s.notions[type].own = true;
+					}
+				});
 				// The bandana's choices come back once its offer is loaded (summary).
 				s.bandanaRestore = data.bandana || null;
 				// The first step that still needs a choice, otherwise the overview.
@@ -2202,7 +2292,7 @@
 				} else if (self.needsInterfacing() && !s.notions.interfacing.selected && !s.ownInterfacing) {
 					step = 'interfacing';
 				} else if (self.notionTypes().some(function (type) {
-					return !s.notions[type].selected;
+					return !s.notions[type].selected && !s.notions[type].own;
 				})) {
 					step = 'notions';
 				}

@@ -1338,7 +1338,6 @@ return array(
 
 	// 3.6.0: sets
 	'%1$d × set of %2$d' => '%1$d × set van %2$d',
-	'%1$s: %2$d needed' => '%1$s: %2$d nodig',
 
 	// 3.6.1
 	'Allowed: %s' => 'Toegestaan: %s',
@@ -2215,7 +2214,6 @@ return array(
 	'Can also be used as lining' => 'Ook bruikbaar als voering',
 	'Choose your lining (optional)' => 'Kies je voering (optioneel)',
 	'Confirm lining' => 'Voering bevestigen',
-	'Continue without lining' => 'Verder zonder voering',
 	'It then also shows under Lining in the shop and in the lining step of the customizer: the same product, price and stock.' => 'Hij verschijnt dan ook onder Voering in de winkel en in de voeringstap van Naaipakketten: hetzelfde product, dezelfde prijs en voorraad.',
 	'Lining' => 'Voering',
 	'No lining fabrics are available at the moment.' => 'Er zijn momenteel geen voeringstoffen beschikbaar.',
@@ -2655,10 +2653,8 @@ return array(
 
 	// 3.52.0: lining and interfacing
 	'Interfacing choice' => 'Versteviging',
-	'Choose an interfacing, or "I have my own interfacing", to continue.' => 'Kies een versteviging, of "Ik heb zelf versteviging", om verder te gaan.',
 	'Choose your interfacing' => 'Kies je versteviging',
 	'Every lining fabric' => 'Alle voeringstoffen',
-	'I have my own interfacing' => 'Ik heb zelf versteviging',
 	'In the customizer the customer chooses between these (or their own interfacing) when the pattern needs interfacing. Both empty: the customer picks from all interfacings that fit the pattern.' => 'In de naaipakket-samensteller kiest de klant hiertussen (of eigen versteviging) als het patroon versteviging nodig heeft. Beide leeg: de klant kiest uit alle verstevigingen die bij het patroon passen.',
 	'Interfacing: you use your own.' => 'Versteviging: je gebruikt je eigen.',
 	'Linings that fit this fabric' => 'Voeringen die bij deze stof passen',
@@ -3035,4 +3031,20 @@ return array(
 	'Your bandana in six steps' => 'Je bandana in zes stappen',
 	'own prompt' => 'eigen prompt',
 	'with your dog' => 'met je hond',
+
+	// 3.56: haberdashery facts, own cards
+	'%1$s is added (%2$d × 10 cm)' => 'Toegevoegd: %1$s (%2$d × 10 cm)',
+	'%s: you use your own.' => '%s: je gebruikt je eigen.',
+	'Amount' => 'Aantal',
+	'Choose an interfacing, or "I already have my own interfacing", to continue.' => 'Kies een versteviging, of "Ik heb zelf al versteviging", om verder te gaan.',
+	'Enough is added, in pieces of 10 cm.' => 'Er wordt genoeg toegevoegd, in stukken van 10 cm.',
+	'I already have my own %s' => 'Ik heb zelf al %s',
+	'I already have my own interfacing' => 'Ik heb zelf al versteviging',
+	'I already have my own lining' => 'Ik heb zelf al voering',
+	'Lining: you use your own.' => 'Voering: je gebruikt je eigen.',
+	'Nothing is added to your kit' => 'Er wordt niets aan je pakket toegevoegd',
+	'Price and stock per 10 cm, like fabric (5 m in stock = stock 50).' => 'Prijs en voorraad per 10 cm, zoals stof (5 m in voorraad = voorraad 50).',
+	'diameter %s' => 'diameter %s',
+	'from' => 'van',
+	'width %s' => 'breedte %s',
 );

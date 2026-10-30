@@ -122,6 +122,8 @@ class AIMP_Notions {
 				'main'         => 'width',
 				'range'        => 'width',
 				'range_unit'   => 'cm',
+				// Interfacing fabric is only sold per 10 cm, never per roll.
+				'rolls'        => false,
 			),
 			'elastic'     => array(
 				'setting'      => 'elastic_cat',
@@ -407,7 +409,18 @@ class AIMP_Notions {
 			$size = absint( $product->get_meta( self::META_SET_SIZE ) );
 			return ( 'set' === $sold || '' === $sold ) && $size > 1 ? 'set' : 'piece';
 		}
-		return 'roll' === $sold && self::number( $product, 'length' ) > 0 ? 'roll' : '10cm';
+		return 'roll' === $sold && self::has_rolls( self::kind_of( $product ) ) && self::number( $product, 'length' ) > 0 ? 'roll' : '10cm';
+	}
+
+	/**
+	 * Whether products of a kind sold by length can be sold per roll (not interfacing).
+	 *
+	 * @param string $kind Kind.
+	 * @return bool
+	 */
+	public static function has_rolls( $kind ) {
+		$info = self::kind( $kind );
+		return $info && ( ! isset( $info['rolls'] ) || $info['rolls'] );
 	}
 
 	/**
@@ -766,7 +779,8 @@ class AIMP_Notions {
 	}
 
 	/**
-	 * "2 × set of 6" or "1 × roll of 3 m" for a cart quantity; '' when sold per piece or per 10 cm.
+	 * "2 × set of 6", "1 × roll of 3 m" or "1,50 m is added (15 × 10 cm)" for a cart quantity; '' when sold per piece.
+	 * Per 10 cm the need is rounded up, so 145 cm needed becomes 150 cm.
 	 *
 	 * @param WC_Product $product Product.
 	 * @param int        $qty     Quantity.
@@ -780,6 +794,9 @@ class AIMP_Notions {
 			case 'roll':
 				/* translators: 1: number of rolls, 2: length of a roll */
 				return sprintf( __( '%1$d × roll of %2$s', 'atelier-irisee-master-plugin' ), (int) $qty, self::length_text( self::roll_length( $product ) ) );
+			case '10cm':
+				/* translators: 1: length, e.g. "1,50 m", 2: number of 10 cm pieces */
+				return sprintf( __( '%1$s is added (%2$d × 10 cm)', 'atelier-irisee-master-plugin' ), self::length_text( (int) $qty * AIMP_Catalog::FABRIC_UNIT_CM ), (int) $qty );
 		}
 		return '';
 	}
@@ -989,7 +1006,7 @@ class AIMP_Notions {
 	}
 
 	/**
-	 * "15–20 mm", "from 15 mm", "up to 20 mm" or '' (any size).
+	 * "15–20 mm", "15 mm" (only the first box), "up to 20 mm" or '' (any size).
 	 *
 	 * @param array  $rule [ on, min, max ].
 	 * @param string $unit mm or cm.
@@ -1009,9 +1026,9 @@ class AIMP_Notions {
 			/* translators: 1: smallest size, 2: largest size */
 			return sprintf( $cm ? __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ) : __( '%1$s–%2$s mm', 'atelier-irisee-master-plugin' ), $num( min( $min, $max ) ), $num( max( $min, $max ) ) );
 		}
+		// Only the first box filled in: that size, without "from".
 		if ( $min > 0 ) {
-			/* translators: %s: size */
-			return sprintf( $cm ? __( 'from %s cm', 'atelier-irisee-master-plugin' ) : __( 'from %s mm', 'atelier-irisee-master-plugin' ), $num( $min ) );
+			return self::measure_text( $min, $unit );
 		}
 		if ( $max > 0 ) {
 			/* translators: %s: size */

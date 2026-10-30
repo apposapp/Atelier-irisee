@@ -1338,7 +1338,6 @@ return array(
 
 	// 3.6.0: sets
 	'%1$d × set of %2$d' => '%1$d × lot de %2$d',
-	'%1$s: %2$d needed' => '%1$s : %2$d nécessaires',
 
 	// 3.6.1
 	'Allowed: %s' => 'Autorisé : %s',
@@ -2215,7 +2214,6 @@ return array(
 	'Can also be used as lining' => 'Utilisable aussi comme doublure',
 	'Choose your lining (optional)' => 'Choisissez votre doublure (facultatif)',
 	'Confirm lining' => 'Confirmer la doublure',
-	'Continue without lining' => 'Continuer sans doublure',
 	'It then also shows under Lining in the shop and in the lining step of the customizer: the same product, price and stock.' => 'Il apparaît alors aussi sous Doublure dans la boutique et à l\'étape doublure des kits de couture : même produit, même prix et même stock.',
 	'Lining' => 'Doublure',
 	'No lining fabrics are available at the moment.' => 'Aucun tissu de doublure n\'est disponible pour le moment.',
@@ -2655,10 +2653,8 @@ return array(
 
 	// 3.52.0: lining and interfacing
 	'Interfacing choice' => 'Entoilage',
-	'Choose an interfacing, or "I have my own interfacing", to continue.' => 'Choisissez un entoilage, ou « J\'ai mon propre entoilage », pour continuer.',
 	'Choose your interfacing' => 'Choisissez votre entoilage',
 	'Every lining fabric' => 'Tous les tissus de doublure',
-	'I have my own interfacing' => 'J\'ai mon propre entoilage',
 	'In the customizer the customer chooses between these (or their own interfacing) when the pattern needs interfacing. Both empty: the customer picks from all interfacings that fit the pattern.' => 'Dans le configurateur, le client choisit entre ceux-ci (ou son propre entoilage) quand le patron demande de l\'entoilage. Les deux vides : le client choisit parmi tous les entoilages qui conviennent au patron.',
 	'Interfacing: you use your own.' => 'Entoilage : vous utilisez le vôtre.',
 	'Linings that fit this fabric' => 'Doublures qui conviennent à ce tissu',
@@ -3035,4 +3031,20 @@ return array(
 	'Your bandana in six steps' => 'Votre bandana en six étapes',
 	'own prompt' => 'prompt personnalisé',
 	'with your dog' => 'avec votre chien',
+
+	// 3.56: haberdashery facts, own cards
+	'%1$s is added (%2$d × 10 cm)' => 'Ajouté : %1$s (%2$d × 10 cm)',
+	'%s: you use your own.' => '%s : vous utilisez les vôtres.',
+	'Amount' => 'Quantité',
+	'Choose an interfacing, or "I already have my own interfacing", to continue.' => 'Choisissez un entoilage, ou « J\'ai déjà mon propre entoilage », pour continuer.',
+	'Enough is added, in pieces of 10 cm.' => 'Nous ajoutons assez, par morceaux de 10 cm.',
+	'I already have my own %s' => 'J\'ai déjà ce qu\'il faut : %s',
+	'I already have my own interfacing' => 'J\'ai déjà mon propre entoilage',
+	'I already have my own lining' => 'J\'ai déjà ma propre doublure',
+	'Lining: you use your own.' => 'Doublure : vous utilisez la vôtre.',
+	'Nothing is added to your kit' => 'Rien n\'est ajouté à votre kit',
+	'Price and stock per 10 cm, like fabric (5 m in stock = stock 50).' => 'Prix et stock par 10 cm, comme le tissu (5 m en stock = stock 50).',
+	'diameter %s' => 'diamètre %s',
+	'from' => 'de',
+	'width %s' => 'largeur %s',
 );

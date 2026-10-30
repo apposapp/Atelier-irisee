@@ -476,9 +476,16 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 					<div class="aimp-pattern-accessories">
 						<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Accessories', 'atelier-irisee-master-plugin' ); ?></h4>
 						<?php if ( $aimp_group['accessories'] ) : ?>
-							<ul>
+							<ul class="aimp-accessories">
 								<?php foreach ( $aimp_group['accessories'] as $aimp_item ) : ?>
-									<li><span><?php echo esc_html( $aimp_item[0] ); ?></span><strong><?php echo esc_html( $aimp_item[1] ); ?></strong></li>
+									<li class="aimp-accessory">
+										<span class="aimp-accessory-name"><?php echo $aimp_item['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><?php echo esc_html( $aimp_item['name'] ); ?></span>
+										<dl class="aimp-accessory-facts">
+											<?php foreach ( $aimp_item['facts'] as $aimp_fact ) : ?>
+												<div><dt><?php echo $aimp_fact['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><?php echo esc_html( $aimp_fact['label'] ); ?></dt><dd><?php echo esc_html( $aimp_fact['value'] ); ?></dd></div>
+											<?php endforeach; ?>
+										</dl>
+									</li>
 								<?php endforeach; ?>
 							</ul>
 						<?php else : ?>

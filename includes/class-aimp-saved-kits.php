@@ -57,6 +57,16 @@ class AIMP_Saved_Kits {
 		return isset( $_POST[ $name ] ) ? absint( wp_unslash( $_POST[ $name ] ) ) : 0;
 	}
 
+	/**
+	 * The posted "own" haberdashery types (comma-separated), only known ones.
+	 *
+	 * @return string[]
+	 */
+	private static function own_notions() {
+		$posted = isset( $_POST['own_notions'] ) ? explode( ',', sanitize_text_field( wp_unslash( $_POST['own_notions'] ) ) ) : array();
+		return array_values( array_intersect( array_map( 'sanitize_key', $posted ), array_keys( AIMP_Catalog::notion_types() ) ) );
+	}
+
 	public static function save_kit() {
 		self::require_login();
 		if ( ! check_ajax_referer( AIMP_Ajax::NONCE, 'nonce', false ) ) {
@@ -78,6 +88,9 @@ class AIMP_Saved_Kits {
 			'notions'   => $notions,
 			// "I have my own interfacing" (the interfacing step).
 			'own_interfacing' => 1 === self::int_param( 'own_interfacing' ) ? 1 : 0,
+			// "I already have my own lining" and the haberdashery types the customer has at home.
+			'own_lining'  => 1 === self::int_param( 'own_lining' ) ? 1 : 0,
+			'own_notions' => self::own_notions(),
 			// The matching dog bandana, with its thread and band.
 			'bandana'   => array(
 				'on'     => 1 === self::int_param( 'bandana' ) ? 1 : 0,
@@ -179,6 +192,8 @@ class AIMP_Saved_Kits {
 				'lining'  => $lining,
 				'notions' => (object) $notions,
 				'own_interfacing' => ! empty( $kit['own_interfacing'] ),
+				'own_lining'      => ! empty( $kit['own_lining'] ),
+				'own_notions'     => isset( $kit['own_notions'] ) ? array_values( (array) $kit['own_notions'] ) : array(),
 				'bandana' => isset( $kit['bandana'] ) && is_array( $kit['bandana'] ) ? array_map( 'absint', $kit['bandana'] ) : null,
 				'message' => $missing ? __( 'Some items of this kit are no longer available. Please choose them again.', 'atelier-irisee-master-plugin' ) : '',
 			)

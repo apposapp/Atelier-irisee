@@ -150,6 +150,27 @@ class AIMP_Catalog {
 	}
 
 	/**
+	 * A body measurement: "88 cm", or "88–92 cm" when a "to" above it is set.
+	 *
+	 * @param string|float $from From.
+	 * @param string|float $to   To ('' for one value).
+	 * @return string
+	 */
+	public static function measure_text( $from, $to = '' ) {
+		$from = (float) $from;
+		$to   = (float) $to;
+		$num  = function ( $n ) {
+			return AIMP_I18n::number( $n, floor( $n ) == $n ? 0 : 1 );
+		};
+		if ( $to > $from ) {
+			/* translators: 1: smallest length, 2: largest length (in cm) */
+			return sprintf( __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ), $num( $from ), $num( $to ) );
+		}
+		/* translators: %s: length in cm */
+		return sprintf( __( '%s cm', 'atelier-irisee-master-plugin' ), $num( $from ) );
+	}
+
+	/**
 	 * "40 cm" or "2".
 	 *
 	 * @param string $key    A key of material_fields().
@@ -1005,6 +1026,11 @@ class AIMP_Catalog {
 			'height'       => self::pattern_height( $variation->get_parent_id(), $variation->get_id() ),
 			'hip'          => (string) $variation->get_meta( self::META_HIP ),
 			'inside_leg'   => (string) $variation->get_meta( self::META_INSIDE_LEG ),
+			// The top of a range ("88–92 cm"), '' for one value.
+			'bust_to'       => (string) $variation->get_meta( self::META_BUST . '_to' ),
+			'waist_to'      => (string) $variation->get_meta( self::META_WAIST . '_to' ),
+			'hip_to'        => (string) $variation->get_meta( self::META_HIP . '_to' ),
+			'inside_leg_to' => (string) $variation->get_meta( self::META_INSIDE_LEG . '_to' ),
 		);
 	}
 
@@ -1137,6 +1163,10 @@ class AIMP_Catalog {
 				'height'       => $req['height'],
 				'hip'          => $req['hip'],
 				'inside_leg'   => $req['inside_leg'],
+				'bust_to'      => $req['bust_to'],
+				'waist_to'     => $req['waist_to'],
+				'hip_to'       => $req['hip_to'],
+				'inside_leg_to' => $req['inside_leg_to'],
 				'fabric_units' => $req['fabric_units'],
 				'fabric_text'  => self::fabric_need_text( $req ),
 				'lining_units' => $req['lining_units'],
@@ -1452,23 +1482,23 @@ class AIMP_Catalog {
 				$will = sprintf( __( '%1$d zip(s) of %2$s cm will be added.', 'atelier-irisee-master-plugin' ), 1, AIMP_I18n::number( $amount, floor( $amount ) == $amount ? 0 : 1 ) );
 			} elseif ( 'length' === $info['kind'] ) {
 				// By length: in cm, with the width range of the pattern; the chosen product decides 10 cm units or rolls.
-				$rule  = self::notion_rule( $type, $req );
-				$range = $rule ? AIMP_Notions::range_text( $rule[1], AIMP_Notions::rule_unit( $rule[0] ) ) : '';
-				$need  = AIMP_Notions::length_text( $amount ) . ( '' !== $range ? ' (' . $range . ')' : '' );
-				/* translators: 1: material, e.g. "Elastic", 2: length, e.g. "85 cm (10–20 mm)" */
+				$range = self::range_fact( self::notion_rule( $type, $req ) );
+				$need  = AIMP_Notions::length_text( $amount ) . ( '' !== $range ? ' · ' . $range : '' );
+				/* translators: 1: material, e.g. "Elastic", 2: length, e.g. "85 cm · width 10–20 mm" */
 				$will = sprintf( __( '%1$s: %2$s needed.', 'atelier-irisee-master-plugin' ), self::material_label( $info['material'], $req ), $need ) . ' ' .
-					__( 'Enough is added: in pieces of 10 cm, or whole rolls.', 'atelier-irisee-master-plugin' );
+					( AIMP_Notions::has_rolls( $info['notion_kind'] ) ? __( 'Enough is added: in pieces of 10 cm, or whole rolls.', 'atelier-irisee-master-plugin' ) : __( 'Enough is added, in pieces of 10 cm.', 'atelier-irisee-master-plugin' ) );
 			} else {
-				$need = (string) $qty;
+				/* translators: %d: number of pieces */
+				$need = sprintf( _n( '%d piece', '%d pieces', $qty, 'atelier-irisee-master-plugin' ), $qty );
 				/* translators: 1: amount, 2: material, e.g. "Press studs" */
 				$will = sprintf( __( '%1$d × %2$s will be added.', 'atelier-irisee-master-plugin' ), $qty, self::material_label( $info['material'], $req ) );
-				// Buttons: with the diameter range of the pattern; sets are rounded up to whole sets.
-				$rule  = self::notion_rule( $type, $req );
-				$range = $rule ? AIMP_Notions::range_text( $rule[1], AIMP_Notions::rule_unit( $rule[0] ) ) : '';
+				// Buttons: with the diameter range of the pattern ("8 pieces · diameter 8–11 mm"); sets are rounded up to whole sets.
+				$rule = self::notion_rule( $type, $req );
 				if ( $rule ) {
-					$need = '' !== $range ? $qty . ' (' . $range . ')' : (string) $qty;
-					/* translators: 1: material, e.g. "Buttons", 2: amount */
-					$will = sprintf( __( '%1$s: %2$d needed', 'atelier-irisee-master-plugin' ), self::material_label( $info['material'], $req ), $qty ) . ( '' !== $range ? ' (' . $range . ')' : '' ) . '. ' .
+					$range = self::range_fact( $rule );
+					$need .= '' !== $range ? ' · ' . $range : '';
+					/* translators: 1: material, e.g. "Buttons", 2: e.g. "8 pieces · diameter 8–11 mm" */
+					$will = sprintf( __( '%1$s: %2$s needed.', 'atelier-irisee-master-plugin' ), self::material_label( $info['material'], $req ), $need ) . ' ' .
 						__( 'Products sold per set are added in whole sets.', 'atelier-irisee-master-plugin' );
 				}
 			}
@@ -1483,6 +1513,23 @@ class AIMP_Catalog {
 			);
 		}
 		return $notions;
+	}
+
+	/**
+	 * A rule's size range with what it measures: "diameter 8–11 mm", "width 2–3 cm", or ''.
+	 *
+	 * @param array|null $rule [ rule key, rule ] from notion_rule().
+	 * @return string
+	 */
+	private static function range_fact( $rule ) {
+		$text = $rule ? AIMP_Notions::range_text( $rule[1], AIMP_Notions::rule_unit( $rule[0] ) ) : '';
+		if ( '' === $text ) {
+			return '';
+		}
+		$rules = AIMP_Notions::rules();
+		$kind  = isset( $rules[ $rule[0] ] ) ? AIMP_Notions::kind( $rules[ $rule[0] ][0] ) : null;
+		/* translators: %s: e.g. "8–11 mm" */
+		return sprintf( $kind && 'diameter' === $kind['range'] ? __( 'diameter %s', 'atelier-irisee-master-plugin' ) : __( 'width %s', 'atelier-irisee-master-plugin' ), $text );
 	}
 
 	/**

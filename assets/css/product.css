@@ -1092,24 +1092,83 @@ html:has(.aimp-product-reviews) {
 	margin: 0 0 0.6rem;
 }
 
-.aimp-configurator .aimp-pattern-accessories ul {
+.aimp-configurator .aimp-pattern-accessories ul.aimp-accessories {
+	display: grid;
+	gap: 0;
 	margin: 0;
 	padding: 0;
 	list-style: none;
 }
 
-.aimp-configurator .aimp-pattern-accessories li {
-	display: flex;
-	justify-content: space-between;
-	gap: 0.75rem;
+/* One block per material: its icon and name, then the facts with their own small icon and label. */
+.aimp-configurator .aimp-accessory {
+	display: grid;
+	gap: 0.4rem;
 	margin: 0;
-	padding: 0.45rem 0;
+	padding: 0.7rem 0;
 	border-bottom: 1px var(--aimp-site-line, solid) var(--aimp-gold-tint);
 }
 
-.aimp-configurator .aimp-pattern-accessories li strong {
+.aimp-configurator .aimp-accessory:first-child {
+	padding-top: 0.2rem;
+}
+
+.aimp-configurator .aimp-accessory-name {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-weight: 600;
+}
+
+.aimp-configurator .aimp-accessory-name .aimp-washing-icon {
+	flex: 0 0 auto;
+	width: 1.6rem;
+	height: 1.6rem;
 	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
-	white-space: nowrap;
+}
+
+.aimp-configurator .aimp-accessory-facts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem 1.25rem;
+	margin: 0 0 0 2.1rem;
+}
+
+.aimp-configurator .aimp-accessory-facts > div {
+	display: flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 0 0.4rem;
+	min-width: 0;
+}
+
+.aimp-configurator .aimp-accessory-facts dt {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	margin: 0;
+	font-size: 0.8em;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	opacity: 0.8;
+}
+
+.aimp-configurator .aimp-accessory-facts dt .aimp-washing-icon {
+	width: 1rem;
+	height: 1rem;
+	align-self: center;
+}
+
+.aimp-configurator .aimp-accessory-facts dd {
+	margin: 0;
+	font-weight: 600;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+}
+
+/* A fine line between the accessories and the size chart: beside it, or above it when they stack. */
+.aimp-pattern-needs-row > .aimp-pattern-sizes {
+	padding-left: calc(var(--aimp-gap) * 1.5);
+	border-left: 1px var(--aimp-site-line, solid) var(--aimp-gold, #b38f4f);
 }
 
 .aimp-pattern-sizes-head {
@@ -1128,6 +1187,13 @@ html:has(.aimp-product-reviews) {
 @container aimp (max-width: 760px) {
 	.aimp-pattern-needs-row {
 		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-pattern-needs-row > .aimp-pattern-sizes {
+		padding-top: calc(var(--aimp-gap) * 1.5);
+		padding-left: 0;
+		border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold, #b38f4f);
+		border-left: 0;
 	}
 }
 
