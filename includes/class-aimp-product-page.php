@@ -1209,7 +1209,7 @@ class AIMP_Product_Page {
 		$facts = array();
 		foreach ( $item['facts'] as $fact ) {
 			/* translators: 1: e.g. "Diameter", 2: e.g. "8–11 mm" */
-			$facts[] = esc_html( sprintf( __( '%1$s: %2$s', 'atelier-irisee-master-plugin' ), $fact['label'], $fact['value'] ) );
+			$facts[] = esc_html( sprintf( __( '%1$s: %2$s', 'atelier-irisee-master-plugin' ), $fact['label'], str_replace( ' ', "\u{a0}", $fact['value'] ) ) ); // "10 mm" stays on one line.
 		}
 		return '<li class="aimp-washing-tile aimp-accessory">' . $item['icon'] . '<span><strong>' . esc_html( $item['name'] ) . '</strong>' . implode( '<br>', $facts ) . '</span></li>';
 	}

@@ -1071,14 +1071,14 @@ html:has(.aimp-product-reviews) {
 	flex-basis: 100%;
 }
 
-/* Patterns: "Accessories" (about 30%) next to the size table with fabric (about 70%), per design. */
+/* Patterns: "Accessories" (about 40%) next to the size table with fabric (about 60%), per design. */
 .aimp-configurator .aimp-pattern-needs-design {
 	margin: 0 0 0.75rem;
 }
 
 .aimp-pattern-needs-row {
 	display: grid;
-	grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
+	grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
 	gap: calc(var(--aimp-gap) * 1.5);
 	align-items: start;
 }
@@ -1092,10 +1092,28 @@ html:has(.aimp-product-reviews) {
 	margin: 0 0 0.6rem;
 }
 
-/* The accessories: the fabric specification tiles (gold icon, gold title, the facts under it), one per row. */
+/* The accessories: the fabric specification tiles (gold icon, gold title, the facts under it), a bit smaller,
+ * next to each other when there is room. */
 .aimp-configurator .aimp-pattern-accessories .aimp-washing-grid {
-	grid-template-columns: minmax(0, 1fr);
-	gap: 0.6rem;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr));
+	gap: 0.5rem;
+}
+
+.aimp-configurator .aimp-pattern-accessories .aimp-washing-tile {
+	gap: 0.5rem;
+	padding: 0.6rem 0.65rem;
+	font-size: 0.92em;
+}
+
+.aimp-configurator .aimp-pattern-accessories .aimp-washing-tile .aimp-washing-icon {
+	width: 1.6rem;
+	height: 1.6rem;
+}
+
+.aimp-configurator .aimp-pattern-accessories .aimp-washing-tile span {
+	min-width: 0;
+	overflow-wrap: break-word;
+	hyphens: auto;
 }
 
 
@@ -1131,12 +1149,6 @@ html:has(.aimp-product-reviews) {
 	opacity: 0.8;
 }
 
-/* A fine line between the accessories and the size chart: beside it, or above it when they stack. */
-.aimp-pattern-needs-row > .aimp-pattern-sizes {
-	padding-left: calc(var(--aimp-gap) * 1.5);
-	border-left: 1px var(--aimp-site-line, solid) var(--aimp-gold, #b38f4f);
-}
-
 .aimp-pattern-sizes-head {
 	display: flex;
 	flex-wrap: wrap;
@@ -1153,13 +1165,6 @@ html:has(.aimp-product-reviews) {
 @container aimp (max-width: 760px) {
 	.aimp-pattern-needs-row {
 		grid-template-columns: minmax(0, 1fr);
-	}
-
-	.aimp-pattern-needs-row > .aimp-pattern-sizes {
-		padding-top: calc(var(--aimp-gap) * 1.5);
-		padding-left: 0;
-		border-top: 1px var(--aimp-site-line, solid) var(--aimp-gold, #b38f4f);
-		border-left: 0;
 	}
 }
 
