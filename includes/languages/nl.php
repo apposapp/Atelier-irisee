@@ -3073,4 +3073,12 @@ return array(
 	// Gift card form: required fields
 	'Please fill in first: %s' => 'Vul eerst nog in: %s',
 	'Please enter your name, shown on the gift card.' => 'Vul je naam in, die op de cadeaubon komt.',
+
+	// 3.60.0: 404 page, tab bar, free shipping
+	'Contact' => 'Contact',
+	'Free' => 'Gratis',
+	'Kits' => 'Pakketten',
+	'Search products' => 'Producten zoeken',
+	'The link may be old or contain a typo. Search for what you need, or continue below.' => 'Misschien is de link verouderd of zit er een tikfout in. Zoek wat je nodig hebt, of kies hieronder.',
+	'This page does not exist (anymore)' => 'Deze pagina bestaat niet (meer)',
 );

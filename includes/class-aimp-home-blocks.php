@@ -431,7 +431,7 @@ class AIMP_Home_Blocks {
 			);
 			$url   = $found ? get_permalink( $found[0] ) : '';
 		}
-		return '<section class="aimp-home-block aimp-home-faq">' . self::title( AIMP_Blocks::text( 'fq_title' ) ) . AIMP_Blocks::faq_html( $pairs ) .
+		return '<section class="aimp-home-block aimp-home-faq" id="veelgestelde-vragen">' . self::title( AIMP_Blocks::text( 'fq_title' ) ) . AIMP_Blocks::faq_html( $pairs ) .
 			( '' !== $url ? '<p class="aimp-home-faq-more"><a class="aimp-block-button" href="' . esc_url( $url ) . '">' . esc_html( AIMP_Blocks::text( 'fq_button' ) ) . '</a></p>' : '' ) . '</section>';
 	}
 

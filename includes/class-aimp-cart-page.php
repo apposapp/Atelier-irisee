@@ -28,6 +28,26 @@ class AIMP_Cart_Page {
 		add_action( 'wp_loaded', array( __CLASS__, 'lengths_to_quantities' ), 19 );
 		// After WooCommerce removed a discount code (?remove_coupon=…): a message and a clean address.
 		add_action( 'wp_loaded', array( __CLASS__, 'after_remove_coupon' ), 25 );
+		// Free shipping (from the threshold) says so, instead of only the method's name.
+		add_filter( 'woocommerce_cart_shipping_method_full_label', array( __CLASS__, 'free_shipping_label' ), 20, 2 );
+	}
+
+	/**
+	 * "PostNL: Gratis" when the shipping costs nothing (WooCommerce then shows only the name). Local pickup is left
+	 * as it is.
+	 *
+	 * @param string           $label  Label HTML.
+	 * @param WC_Shipping_Rate $method Rate.
+	 * @return string
+	 */
+	public static function free_shipping_label( $label, $method ) {
+		if ( ! $method instanceof WC_Shipping_Rate || 'local_pickup' === $method->get_method_id() || 'pickup_location' === $method->get_method_id() ) {
+			return $label;
+		}
+		if ( (float) $method->get_cost() > 0 || false !== strpos( $label, 'amount' ) ) {
+			return $label;
+		}
+		return $label . ': <strong class="aimp-shipping-free">' . esc_html__( 'Free', 'atelier-irisee-master-plugin' ) . '</strong>';
 	}
 
 	public static function after_remove_coupon() {
@@ -144,6 +164,7 @@ class AIMP_Cart_Page {
 						'total'      => 0,
 						'regular'    => 0,
 						'remove_url' => wc_get_cart_remove_url( $key ),
+						'finish'     => '',
 						'items'      => array(),
 					);
 				}
@@ -154,6 +175,8 @@ class AIMP_Cart_Page {
 				$sets[ $group ]['items'][] = $line;
 				if ( 'pattern' === $line['role'] ) {
 					$sets[ $group ]['remove_url'] = wc_get_cart_remove_url( $key );
+					// The finish the customer chose (buttons or a cord, …), shown under the kit's title.
+					$sets[ $group ]['finish'] = isset( $meta['finish'] ) ? (string) $meta['finish'] : '';
 				}
 			} else {
 				$singles[] = $line;
@@ -228,6 +251,9 @@ class AIMP_Cart_Page {
 						echo esc_html( sprintf( __( 'Sewing project kit: %s', 'atelier-irisee-master-plugin' ), $aimp_set['label'] ) );
 						?>
 					</p>
+					<?php if ( '' !== $aimp_set['finish'] ) : ?>
+						<p class="aimp-os-set-finish"><?php echo esc_html( self::finish_text( $aimp_set['finish'] ) ); ?></p>
+					<?php endif; ?>
 					<ul class="aimp-os-items">
 						<?php foreach ( $aimp_set['items'] as $aimp_line ) : ?>
 							<li class="aimp-os-item">
@@ -275,13 +301,28 @@ class AIMP_Cart_Page {
 	}
 
 	/**
-	 * Number of products in the overview (a sewing project kit counts as one).
+	 * "Finish: Buttons", under a kit's title.
+	 *
+	 * @param string $finish Name of the chosen finish.
+	 * @return string
+	 */
+	public static function finish_text( $finish ) {
+		/* translators: %s: name of the chosen finish, e.g. "Buttons" */
+		return sprintf( __( 'Finish: %s', 'atelier-irisee-master-plugin' ), $finish );
+	}
+
+	/**
+	 * Number of products in the overview (each product of a sewing project kit counts).
 	 *
 	 * @return int
 	 */
 	public static function summary_count() {
 		$contents = self::contents();
-		return count( $contents['sets'] ) + count( $contents['singles'] );
+		$count    = count( $contents['singles'] );
+		foreach ( $contents['sets'] as $set ) {
+			$count += count( $set['items'] ); // Each product of a kit (the list shows them all).
+		}
+		return $count;
 	}
 
 	/**

@@ -3073,4 +3073,12 @@ return array(
 	// Gift card form: required fields
 	'Please fill in first: %s' => 'Veuillez d\'abord remplir : %s',
 	'Please enter your name, shown on the gift card.' => 'Veuillez indiquer votre nom, qui figure sur la carte cadeau.',
+
+	// 3.60.0: 404 page, tab bar, free shipping
+	'Contact' => 'Contact',
+	'Free' => 'Gratuit',
+	'Kits' => 'Kits',
+	'Search products' => 'Rechercher des produits',
+	'The link may be old or contain a typo. Search for what you need, or continue below.' => 'Le lien est peut-être ancien ou contient une faute de frappe. Cherchez ce dont vous avez besoin, ou continuez ci-dessous.',
+	'This page does not exist (anymore)' => 'Cette page n\'existe pas (ou plus)',
 );

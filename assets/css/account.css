@@ -480,6 +480,13 @@
 	margin-bottom: 0.4rem;
 }
 
+.aimp-order-kit-finish {
+	display: block;
+	margin: -0.2rem 0 0.4rem;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font-size: 0.9em;
+}
+
 .aimp-order-kit-items {
 	display: grid;
 	gap: 0.35rem;

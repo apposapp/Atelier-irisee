@@ -58,10 +58,14 @@ class AIMP_Orders {
 				$label          = (string) $item->get_meta( 'aimp_configuration' );
 				$kits[ $group ] = array(
 					// "Pattern – M (#AB12CD)" → "Pattern – M".
-					'label' => trim( preg_replace( '/\s*\(#[A-Z0-9]+\)$/', '', $label ) ),
-					'total' => 0,
-					'items' => array(),
+					'label'  => trim( preg_replace( '/\s*\(#[A-Z0-9]+\)$/', '', $label ) ),
+					'finish' => '',
+					'total'  => 0,
+					'items'  => array(),
 				);
+			}
+			if ( '' !== (string) $item->get_meta( 'aimp_finish' ) ) {
+				$kits[ $group ]['finish'] = (string) $item->get_meta( 'aimp_finish' );
 			}
 			$role   = (string) $item->get_meta( '_aimp_role' );
 			$length = (string) $item->get_meta( 'aimp_length' );
@@ -105,6 +109,9 @@ class AIMP_Orders {
 			echo '<tr class="woocommerce-table__line-item order_item aimp-order-kit"><td class="woocommerce-table__product-name product-name">';
 			/* translators: %s: pattern name and size */
 			echo '<strong class="aimp-order-kit-title">' . esc_html( sprintf( __( 'Sewing project kit: %s', 'atelier-irisee-master-plugin' ), $kit['label'] ) ) . '</strong>';
+			if ( '' !== $kit['finish'] ) {
+				echo '<span class="aimp-order-kit-finish">' . esc_html( AIMP_Cart_Page::finish_text( $kit['finish'] ) ) . '</span>';
+			}
 			echo '<ul class="aimp-order-kit-items">';
 			foreach ( $kit['items'] as $line ) {
 				printf(
@@ -149,9 +156,10 @@ class AIMP_Orders {
 		$out = '';
 		foreach ( $kits as $kit ) {
 			/* translators: %s: pattern name and size */
-			$title = sprintf( __( 'Sewing project kit: %s', 'atelier-irisee-master-plugin' ), $kit['label'] );
+			$title  = sprintf( __( 'Sewing project kit: %s', 'atelier-irisee-master-plugin' ), $kit['label'] );
+			$finish = '' !== $kit['finish'] ? AIMP_Cart_Page::finish_text( $kit['finish'] ) : '';
 			if ( self::$plain ) {
-				$out .= "\n" . $title . ' = ' . wp_strip_all_tags( $money( $kit['total'] ) ) . "\n";
+				$out .= "\n" . $title . ' = ' . wp_strip_all_tags( $money( $kit['total'] ) ) . "\n" . ( '' !== $finish ? '  ' . $finish . "\n" : '' );
 				foreach ( $kit['items'] as $line ) {
 					$out .= '  - ' . $line['name'] . ( '' !== $line['amount'] ? ' (' . $line['amount'] . ')' : '' ) . ' ' . wp_strip_all_tags( $money( $line['total'] ) ) . "\n";
 				}
@@ -165,6 +173,7 @@ class AIMP_Orders {
 			}
 			$out .= '<tr class="order_item aimp-order-kit">' .
 				'<td class="td" style="text-align:left;vertical-align:top;word-wrap:break-word"><strong>' . esc_html( $title ) . '</strong>' .
+				( '' !== $finish ? '<br><small style="color:#8a6a33">' . esc_html( $finish ) . '</small>' : '' ) .
 				'<table cellspacing="0" cellpadding="0" style="width:100%;margin-top:6px;border:0">' . $items . '</table></td>' .
 				'<td class="td" style="text-align:left;vertical-align:top">1</td>' .
 				'<td class="td" style="text-align:left;vertical-align:top">' . wp_kses_post( $money( $kit['total'] ) ) . '</td></tr>';

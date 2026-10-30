@@ -131,6 +131,7 @@ class AIMP_Account {
 		ob_start();
 		?>
 		<div class="aimp-account" data-close-label="<?php esc_attr_e( 'Close', 'atelier-irisee-master-plugin' ); ?>">
+			<?php echo AIMP_Page_Header::hidden_h1(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in hidden_h1(). ?>
 			<p class="aimp-account-hello">
 				<?php
 				/* translators: %s: customer name */

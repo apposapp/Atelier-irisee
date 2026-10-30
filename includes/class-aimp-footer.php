@@ -393,7 +393,7 @@ class AIMP_Footer {
 			'aimpFooter',
 			array(
 				'endpoint'    => WC_AJAX::get_endpoint( 'aimp_subscribe' ),
-				'status'      => WC_AJAX::get_endpoint( 'aimp_newsletter_status' ),
+				'status'      => add_query_arg( 'aimp_lang', AIMP_I18n::current(), WC_AJAX::get_endpoint( 'aimp_newsletter_status' ) ),
 				'unsubscribe' => WC_AJAX::get_endpoint( 'aimp_unsubscribe' ),
 				'resend'      => WC_AJAX::get_endpoint( 'aimp_newsletter_resend' ),
 				'error'       => __( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ),

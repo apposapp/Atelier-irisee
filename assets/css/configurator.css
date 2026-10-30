@@ -492,6 +492,36 @@
 	font-size: 0.85em;
 }
 
+/* Next to the details panel the grids take as many columns as fit, never narrower than a readable card
+ * (a fixed 3 or 4 left names on 4–5 lines on laptops). */
+.aimp-split .aimp-grid {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 11.5rem), 1fr));
+}
+
+.aimp-split .aimp-grid--compact {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+}
+
+@container aimp (max-width: 560px) {
+	.aimp-split .aimp-grid,
+	.aimp-split .aimp-grid--compact {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* "€1,90 per 10 cm" stays together; the details panel's add-to-cart button stays on one line. */
+.aimp-configurator .aimp-card-price {
+	text-wrap: balance;
+}
+
+.aimp-configurator .aimp-card-price small {
+	white-space: nowrap;
+}
+
+.aimp-configurator .aimp-split-side .aimp-add-to-cart {
+	white-space: nowrap;
+}
+
 .aimp-badge {
 	position: absolute;
 	top: 1.1rem;
@@ -1572,6 +1602,25 @@
 	.aimp-configurator .aimp-steps li:not(.is-current):not(.aimp-steps-back) .aimp-step-num {
 		font-size: 13px;
 	}
+
+	/* All on one line: the numbers keep their size, the current step's name shortens with "…" if needed. */
+	.aimp-configurator .aimp-steps {
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.aimp-configurator .aimp-steps li {
+		flex: 0 0 auto;
+	}
+
+	.aimp-configurator .aimp-steps li.is-current {
+		flex: 0 1 auto;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 }
 
 @media (min-width: 701px) {
@@ -1623,6 +1672,16 @@
 		content: attr(data-label) ": ";
 		color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
 		font-size: 0.85em;
+	}
+
+	/* Size chart cards: the label above its value, and a range like "80–83 cm" never split over two lines. */
+	.aimp-configurator table.aimp-size-chart tbody :is(th, td)[data-label]:not(:first-child)::before {
+		display: block;
+		content: attr(data-label);
+	}
+
+	.aimp-configurator table.aimp-size-chart tbody :is(th, td)[data-label]:not(:first-child) {
+		white-space: nowrap;
 	}
 
 	.aimp-configurator .aimp-table-scroll {
@@ -2223,4 +2282,24 @@
 	.aimp-configurator .aimp-steps.aimp-steps--bar::after {
 		transition: none;
 	}
+}
+
+/* Headings only for search engines and screen readers (the theme usually has this too). */
+.aimp-configurator .screen-reader-text,
+h1.screen-reader-text {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* The customizer is built by its script after the page has loaded: reserve a screen's height for it, so the footer
+ * doesn't show first and then jump down (layout shift). Its content is always taller than this. */
+.aimp-configurator[data-aimp-configurator] {
+	min-height: calc(100svh - var(--aimp-header-offset, 0px));
 }

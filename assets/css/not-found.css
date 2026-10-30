@@ -1,0 +1,73 @@
+/* Page not found (404): centred, with room around it so the footer stays at the bottom of the screen. */
+.aimp-configurator.aimp-not-found {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.9rem;
+	box-sizing: border-box;
+	max-width: 40rem;
+	min-height: calc(100svh - var(--aimp-header-offset, 0px) - 22rem);
+	margin: 0 auto;
+	padding: clamp(3rem, 8vh, 6rem) 1rem;
+	text-align: center;
+}
+
+.aimp-configurator .aimp-not-found-code {
+	margin: 0;
+	color: var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+	font-size: clamp(3.5rem, 12vw, 6rem);
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: 0.08em;
+}
+
+.aimp-configurator .aimp-not-found-title {
+	margin: 0;
+	font-size: clamp(1.4rem, 4vw, 2rem);
+	text-wrap: balance;
+}
+
+.aimp-configurator .aimp-not-found-text {
+	margin: 0;
+	max-width: 32rem;
+}
+
+.aimp-not-found-search {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.5rem;
+	width: 100%;
+	max-width: 28rem;
+	margin-top: 0.4rem;
+}
+
+.aimp-not-found-search input[type="search"] {
+	flex: 1 1 14rem;
+	min-width: 0;
+	padding: 0.65em 1em;
+	border: 1px solid var(--aimp-gold, #b38f4f);
+	border-radius: 100px;
+	background: #fff;
+	font: inherit;
+	font-size: max(16px, 1em);
+}
+
+.aimp-not-found-links {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.5rem;
+	margin: 0.8rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-not-found-links li {
+	margin: 0;
+	padding: 0;
+}
+
+.aimp-not-found-links li::before {
+	content: none;
+}

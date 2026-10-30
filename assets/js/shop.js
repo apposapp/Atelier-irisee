@@ -48,9 +48,11 @@
 	}
 
 	// The filter column on computers: as the visitor left it, else open (or closed: Design studio).
+	// Open by default only on wide screens: next to the details panel the column leaves the products too
+	// little room below 1600 px (the "Filters" button opens it).
 	function sidebarStart() {
 		var stored = storedSidebar();
-		return stored ? stored !== 'closed' : !design.f_hidden;
+		return stored ? stored !== 'closed' : !design.f_hidden && window.innerWidth >= 1600;
 	}
 
 	function storeSidebar(value) {

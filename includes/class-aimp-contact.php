@@ -85,7 +85,7 @@ class AIMP_Contact {
 			)
 		) as $order ) {
 			$date = $order->get_date_created();
-			$list[ $order->get_order_number() ] = '#' . $order->get_order_number() . ( $date ? ' – ' . wc_format_datetime( $date ) : '' );
+			$list[ $order->get_order_number() ] = '#' . $order->get_order_number() . ( $date ? ' – ' . wc_format_datetime( $date, 'j F Y' ) : '' ); // "26 oktober 2026", whatever the site's date format.
 		}
 		return $list;
 	}
@@ -154,7 +154,8 @@ class AIMP_Contact {
 							<?php echo AIMP_Blocks::icon( 'mail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?>
 							<div class="aimp-contact-card-text">
 								<span class="aimp-contact-label"><?php esc_html_e( 'Email', 'atelier-irisee-master-plugin' ); ?></span>
-								<a class="aimp-contact-value" href="<?php echo esc_url( 'mailto:' . $email ); ?>"><?php echo esc_html( $email ); ?></a>
+								<?php // A narrow card breaks the address after the "@" (not in the middle of a word). ?>
+								<a class="aimp-contact-value" href="<?php echo esc_url( 'mailto:' . $email ); ?>"><?php echo str_replace( '@', '@<wbr>', esc_html( $email ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped address with a line-break hint. ?></a>
 							</div>
 							<button type="button" class="aimp-contact-copy" data-copy="<?php echo esc_attr( $email ); ?>" aria-label="<?php esc_attr_e( 'Copy the email address', 'atelier-irisee-master-plugin' ); ?>">
 								<?php echo AIMP_Blocks::icon( 'copy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed SVG. ?><span class="aimp-contact-copied" aria-live="polite"></span>

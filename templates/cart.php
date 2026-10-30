@@ -12,6 +12,7 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 <div class="aimp-configurator aimp-cart woocommerce">
+	<?php echo AIMP_Page_Header::hidden_h1(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in hidden_h1(). ?>
 
 	<?php if ( ! $data['empty'] ) : ?>
 		<?php // "Continue shopping" at the top left: back to the last shop page visited (cart.js). ?>
@@ -74,6 +75,9 @@ defined( 'ABSPATH' ) || exit;
 							</h3>
 							<a class="aimp-cart-remove" href="<?php echo esc_url( $aimp_set['remove_url'] ); ?>" aria-label="<?php esc_attr_e( 'Remove this set', 'atelier-irisee-master-plugin' ); ?>"><?php esc_html_e( 'Remove set', 'atelier-irisee-master-plugin' ); ?></a>
 						</div>
+						<?php if ( ! empty( $aimp_set['finish'] ) ) : ?>
+							<p class="aimp-cart-set-finish"><?php echo esc_html( AIMP_Cart_Page::finish_text( $aimp_set['finish'] ) ); ?></p>
+						<?php endif; ?>
 						<ul class="aimp-cart-set-items">
 							<?php foreach ( $aimp_set['items'] as $aimp_line ) : ?>
 								<li class="aimp-cart-set-item">

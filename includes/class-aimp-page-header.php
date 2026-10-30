@@ -36,6 +36,19 @@ class AIMP_Page_Header {
 		add_action( 'et_before_main_content', array( __CLASS__, 'auto' ) );
 	}
 
+	/**
+	 * The page's title as its main heading for search engines and screen readers, on pages whose design shows
+	 * none (cart, checkout, account, customizer). Empty when a page header with the title was printed.
+	 *
+	 * @return string
+	 */
+	public static function hidden_h1() {
+		if ( self::$printed || ! is_singular() ) {
+			return '';
+		}
+		return '<h1 class="screen-reader-text">' . esc_html( wp_strip_all_tags( get_the_title( get_queried_object_id() ) ) ) . '</h1>';
+	}
+
 	public static function flush() {
 		delete_transient( 'aimp_page_headers' );
 	}

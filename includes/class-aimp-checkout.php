@@ -326,6 +326,7 @@ class AIMP_Checkout {
 		ob_start();
 		?>
 		<div class="<?php echo esc_attr( $classes ); ?>" data-aimp-checkout data-step="<?php echo esc_attr( $current ); ?>">
+			<?php echo AIMP_Page_Header::hidden_h1(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in hidden_h1(). ?>
 			<ol class="aimp-steps aimp-checkout-steps">
 				<?php
 				$index = 0;

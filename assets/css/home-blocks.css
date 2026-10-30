@@ -1182,3 +1182,8 @@
 		transition: none !important;
 	}
 }
+
+/* A link to the questions (footer "Veelgestelde vragen") lands below the sticky header. */
+#veelgestelde-vragen {
+	scroll-margin-top: calc(var(--aimp-header-offset, 0px) + 1rem);
+}

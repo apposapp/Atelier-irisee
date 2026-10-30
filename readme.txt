@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.59.2
+Stable tag: 3.60.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,21 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.60.0 =
+* Customizer: "(optional)" no longer appears twice in titles; the step bar stays on one line on phones; space is reserved while it loads (no jumping footer).
+* Cart, checkout, thank-you page and order e-mails show the chosen finish of a kit ("Finish: Buttons").
+* Pattern page: no empty "Accessories" heading above a design that only has a finish choice.
+* Product pages: the delivery line wraps instead of being cut off on computers; the breadcrumb no longer splits words on phones.
+* Shop and customizer on computers: the filter column starts folded below 1600 px wide and the product cards are never narrower than a readable width; "per 10 cm" stays with its price.
+* Phones: cart items stack (picture, name, then amount and subtotal); size chart cards show the label above its value and never split a range; the tab bar says "Kits" ("Pakketten"); the contact e-mail breaks after the @.
+* Tablets: the hero arch sits lower so the photo stays visible; the favourites mosaic uses three even columns. Computers: no gaps in the mosaic with fewer than 10 products; names up to two lines.
+* New page-not-found (404) page with a product search and links to the shop; hidden main headings on the cart, checkout, account and customizer pages for search engines and screen readers; About page text left-aligned.
+* Free shipping says "Free"; the checkout summary counts every product of a kit.
+* French: the newsletter message follows the page language; menu labels can be written as "Dutch | French".
+* Contact form: order dates as "26 October 2026" regardless of the site's date format.
+* Product photos without an alt text get the product name (on save, and once for existing products); alt texts you wrote are kept.
+* The questions block on the home page has the anchor #veelgestelde-vragen.
 
 = 3.59.2 =
 * Gift cards: the empty required fields are really marked red, the button really looks muted and the "Please fill in first" line is red, on its own line under the buttons (the product page's own field and text styles won before).

@@ -330,6 +330,7 @@ class AIMP_Shortcode {
 
 		ob_start();
 		?>
+		<?php echo AIMP_Page_Header::hidden_h1(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in hidden_h1(). ?>
 		<div class="aimp-configurator" data-aimp-configurator>
 			<noscript><?php esc_html_e( 'Please enable JavaScript to use the pattern configurator.', 'atelier-irisee-master-plugin' ); ?></noscript>
 		</div>

@@ -239,6 +239,18 @@
 	}
 }
 
+/* Tablets: the picture is cropped narrower, so the arch would cover the dog and faces in the upper half;
+   it sits lower and a bit smaller (overrides the computer placement of the Design studio on tablets only). */
+@media (min-width: 701px) and (max-width: 1024px) {
+	html body .aimp-hero {
+		align-items: flex-end !important;
+	}
+
+	.aimp-hero-arch {
+		font-size: 15px;
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.aimp-hero-arrow {
 		animation: none;

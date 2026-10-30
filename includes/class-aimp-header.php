@@ -22,12 +22,25 @@ class AIMP_Header {
 	/** The header is printed once per page. */
 	private static $printed = false;
 
+	/**
+	 * A menu label written as "Dutch | French | English" shows in the visitor's language (only the Dutch part when
+	 * no other is filled in), like the texts of the gold info bar.
+	 *
+	 * @param string $title Menu item label.
+	 * @return string
+	 */
+	public static function localized_menu_title( $title ) {
+		return ( is_admin() || false === strpos( (string) $title, '|' ) ) ? $title : AIMP_Settings::localized( $title );
+	}
+
 	public static function init() {
 		add_action( 'after_setup_theme', array( __CLASS__, 'register_menu' ), 20 );
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
 		add_filter( 'woocommerce_add_to_cart_fragments', array( __CLASS__, 'cart_fragment' ) );
 		add_filter( 'wp_nav_menu_objects', array( __CLASS__, 'haberdashery_items' ), 10, 2 );
+		// Menu labels in several languages: "Alle producten | Tous les produits" (Dutch | French | English).
+		add_filter( 'nav_menu_item_title', array( __CLASS__, 'localized_menu_title' ), 5 );
 
 		if ( ! AIMP_Settings::get( 'header_enabled' ) || is_admin() ) {
 			return;

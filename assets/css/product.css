@@ -1093,17 +1093,16 @@ html:has(.aimp-product-reviews) {
 
 
 /* The delivery line and "Only … left" keep their own size and colour (the general text rule above has the
- * weight of an ID, so these do too). On product pages the delivery line is one line, a bit smaller. */
+ * weight of an ID, so these do too). On product pages the delivery line is a bit smaller; its items stay whole
+ * and move to a next line when the column is too narrow (never cut off). */
 .aimp-configurator:is(.aimp-product, #aimp-specificity) .aimp-delivery-line li {
 	font-size: 0.8rem;
 	white-space: nowrap;
 }
 
 .aimp-configurator:is(.aimp-product, #aimp-specificity) .aimp-delivery-line {
-	flex-wrap: nowrap;
-	gap: 0.9rem;
-	overflow-x: auto;
-	scrollbar-width: none;
+	flex-wrap: wrap;
+	gap: 0.3rem 0.9rem;
 }
 
 .aimp-configurator:is(.aimp-product, #aimp-specificity) p.aimp-low-stock {
@@ -1439,7 +1438,7 @@ html:has(.aimp-product-reviews) {
 .aimp-configurator .aimp-product-topbar .woocommerce-breadcrumb {
 	flex: 1 1 auto;
 	min-width: 0;
-	overflow-wrap: anywhere;
+	overflow-wrap: break-word; /* Whole words move to the next line ("anywhere" split "Visco / se"). */
 }
 
 /* "Ideal for": two per row on phones (stronger than the general one-column rule for inspiration cards). */

@@ -86,7 +86,8 @@ class AIMP_Boot {
 		if ( is_admin() ) {
 			return;
 		}
-		$url    = WC_AJAX::get_endpoint( 'aimp_boot' );
+		// With the page's language, so the newsletter message comes back in it (not in the language of an older cookie).
+		$url    = add_query_arg( 'aimp_lang', AIMP_I18n::current(), WC_AJAX::get_endpoint( 'aimp_boot' ) );
 		$logged = is_user_logged_in() ? 'true' : 'false';
 		?>
 		<script id="aimp-boot">

@@ -144,7 +144,8 @@ $aimp_d = function ( $part, $key, $default = null ) {
 			$aimp_tabs[] = array( $data['shop_url'], 'shop', __( 'Shop', 'atelier-irisee-master-plugin' ) );
 		}
 		if ( ! $aimp_d( 'tabbar', 'tb_nokit' ) ) {
-			$aimp_tabs[] = array( isset( $data['kit_url'] ) ? $data['kit_url'] : '', 'kit', __( 'Sewing kits', 'atelier-irisee-master-plugin' ) );
+			// A short label: "Naaipakketten" doesn't fit a phone's tab.
+			$aimp_tabs[] = array( isset( $data['kit_url'] ) ? $data['kit_url'] : '', 'kit', __( 'Kits', 'atelier-irisee-master-plugin' ) );
 		}
 		if ( $aimp_d( 'tabbar', 'tb_fav' ) ) {
 			$aimp_tabs[] = array( $data['favorites_url'], 'heart', __( 'Favourites', 'atelier-irisee-master-plugin' ) );

@@ -122,6 +122,11 @@
 		return finish.a.types.indexOf(type) !== -1 ? 'a' : (finish.b.types.indexOf(type) !== -1 ? 'b' : '');
 	}
 
+	// " (optional)" after a title, unless the (translated) title already says so ("Kies je knopen (optioneel)").
+	function optionalMark(title) {
+		return String(title || '').indexOf(t.optional) !== -1 ? '' : ' <span class="aimp-optional">' + esc(t.optional) + '</span>';
+	}
+
 	function notionInfo(type) {
 		return NOTIONS.filter(function (n) {
 			return n.type === type;
@@ -849,7 +854,7 @@
 			.map(function (step, i) {
 				var cls = i === current ? 'is-current' : i < current ? 'is-done' : '';
 				var inner = '<span class="aimp-step-num">' + (i + 1) + '</span> ' + esc(step.label) +
-					(step.optional ? ' <small class="aimp-step-optional">' + esc(t.optional) + '</small>' : '');
+					(step.optional && String(step.label).indexOf(t.optional) === -1 ? ' <small class="aimp-step-optional">' + esc(t.optional) + '</small>' : '');
 				// After adding to the cart, start over via "Configure another" instead of editing the added set.
 				if (i < current && !self.state.added) {
 					inner = '<button type="button" data-step="' + esc(step.key) + '">' + inner + '</button>';
@@ -1475,7 +1480,8 @@
 			stored = window.localStorage.getItem('aimp_shop_filters');
 		} catch (e) {}
 		var narrow = window.matchMedia && window.matchMedia('(max-width: 999px)').matches;
-		setOpen(narrow ? false : stored !== 'closed', false);
+		// Open by default only on wide screens (see shop.js), or as the customer left it.
+		setOpen(narrow ? false : (stored ? stored !== 'closed' : window.innerWidth >= 1600), false);
 		toggle.addEventListener('click', function () {
 			setOpen(!step.classList.contains('is-filters-open'), true);
 		});
@@ -1821,7 +1827,7 @@
 		this.body.innerHTML =
 			'<div class="aimp-step aimp-step--notions aimp-step--interfacing">' + introHtml('interfacing') + this.recapHtml() +
 			'<section class="aimp-notion-section">' +
-			'<h3>' + esc(t.chooseInterfacing) + ' <span class="aimp-optional">' + esc(t.optional) + '</span></h3>' +
+			'<h3>' + esc(t.chooseInterfacing) + optionalMark(t.chooseInterfacing) + '</h3>' +
 			'<p class="aimp-help">' + esc(t.interfacingHint) + ' ' + esc(info.willAdd(s.size)) + '</p>' +
 			'<div data-own="interfacing"></div>' +
 			'<div class="aimp-split">' +
@@ -1892,7 +1898,7 @@
 			var group = s.size.notions && s.size.notions[type] ? s.size.notions[type].label : '';
 			html +=
 				'<section class="aimp-notion-section">' +
-				'<h3>' + esc(t[info.title]) + (group ? ' <span class="aimp-notion-group">· ' + esc(group) + '</span>' : '') + ' <span class="aimp-optional">' + esc(t.optional) + '</span></h3>' +
+				'<h3>' + esc(t[info.title]) + (group ? ' <span class="aimp-notion-group">· ' + esc(group) + '</span>' : '') + optionalMark(t[info.title]) + '</h3>' +
 				'<p class="aimp-help">' + esc(info.willAdd(s.size)) + ' ' + esc(t.deselectHint) + '</p>' +
 				'<div data-own="' + esc(type) + '"></div>' +
 				'<div class="aimp-split">' +

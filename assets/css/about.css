@@ -46,9 +46,14 @@
 }
 
 .aimp-about-chapter.has-no-picture {
-	grid-template-columns: minmax(0, 860px);
+	grid-template-columns: minmax(0, 42rem);
 	justify-content: center;
 	text-align: center;
+}
+
+/* Long text reads better left-aligned; only the chapter title stays centred. */
+.aimp-about-chapter.has-no-picture :is(p, ul, ol) {
+	text-align: left;
 }
 
 .aimp-about-media {

@@ -490,7 +490,10 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 						<?php if ( '' !== $aimp_group['name'] ) : ?>
 							<h3 class="aimp-pattern-needs-design"><?php echo esc_html( $aimp_group['name'] ); ?></h3>
 						<?php endif; ?>
-						<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Accessories', 'atelier-irisee-master-plugin' ); ?></h4>
+						<?php // Without fixed accessories (only a finish choice) the finish block has its own title. ?>
+						<?php if ( $aimp_group['accessories'] || ! $aimp_group['finish'] ) : ?>
+							<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Accessories', 'atelier-irisee-master-plugin' ); ?></h4>
+						<?php endif; ?>
 						<?php if ( $aimp_group['accessories'] || $aimp_group['finish'] ) : ?>
 							<?php if ( $aimp_group['accessories'] ) : ?>
 								<ul class="aimp-washing-grid aimp-accessories">

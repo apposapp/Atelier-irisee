@@ -345,6 +345,16 @@
 	font-weight: 700;
 }
 
+/* The chosen finish under a kit's title ("Afwerking: Knopen"). */
+.aimp-configurator :is(.aimp-cart-set-finish, .aimp-os-set-finish),
+.aimp-order-kit-finish {
+	display: block;
+	margin: -0.35rem 0 0.6rem;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font-size: 0.9em;
+	font-weight: 600;
+}
+
 .aimp-configurator .aimp-os-item {
 	display: grid;
 	grid-template-columns: 48px minmax(0, 1fr) auto;

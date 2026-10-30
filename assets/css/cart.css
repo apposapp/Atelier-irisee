@@ -67,6 +67,16 @@
 	font-size: 1.15em;
 }
 
+/* The chosen finish under a kit's title ("Afwerking: Knopen"). */
+.aimp-configurator :is(.aimp-cart-set-finish, .aimp-os-set-finish),
+.aimp-order-kit-finish {
+	display: block;
+	margin: -0.35rem 0 0.6rem;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+	font-size: 0.9em;
+	font-weight: 600;
+}
+
 .aimp-cart-set-items {
 	display: grid;
 	gap: 0.6rem;
@@ -321,13 +331,39 @@
 	}
 }
 
+/* Phones: picture | name and price (full width) | ×, with the amount and subtotal on the row under it,
+ * so the name is never squeezed to one word per line. */
 @container aimp (max-width: 560px) {
 	.aimp-configurator .aimp-cart-single {
 		grid-template-columns: auto minmax(0, 1fr) auto;
+		grid-template-areas:
+			"thumb info remove"
+			"thumb qty total";
+		gap: 0.4rem 0.75rem;
 	}
 
-	.aimp-cart-single-qty {
-		grid-column: 2;
+	.aimp-configurator .aimp-cart-single > .aimp-cart-thumb {
+		grid-area: thumb;
+		align-self: start;
+	}
+
+	.aimp-configurator .aimp-cart-single > .aimp-cart-single-info {
+		grid-area: info;
+	}
+
+	.aimp-configurator .aimp-cart-single > .aimp-cart-single-qty {
+		grid-area: qty;
+		justify-self: start;
+	}
+
+	.aimp-configurator .aimp-cart-single > .aimp-cart-single-subtotal {
+		grid-area: total;
+		justify-self: end;
+	}
+
+	.aimp-configurator .aimp-cart-single > .aimp-cart-remove--x {
+		grid-area: remove;
+		align-self: start;
 	}
 }
 
