@@ -1201,8 +1201,13 @@ html:has(.aimp-product-reviews) {
 	margin-bottom: 0.6rem;
 }
 
-.aimp-configurator .aimp-pattern-sizes-head h4 {
+.aimp-configurator .aimp-pattern-sizes-head .aimp-pattern-sizes-title {
 	margin: 0;
+}
+
+/* Next to a design's name: the same line height, so both titles start on one line. */
+.aimp-configurator .aimp-pattern-sizes-head h3.aimp-pattern-sizes-title {
+	line-height: 1.2;
 }
 
 @container aimp (max-width: 760px) {

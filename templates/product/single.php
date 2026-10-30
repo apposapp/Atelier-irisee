@@ -513,7 +513,9 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 					</div>
 					<div class="aimp-pattern-sizes">
 						<div class="aimp-pattern-sizes-head">
-							<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Size chart', 'atelier-irisee-master-plugin' ); ?></h4>
+							<?php // A pack: "Size chart" as large as the design's name next to it (both h3). ?>
+							<?php $aimp_tag = '' !== $aimp_group['name'] ? 'h3' : 'h4'; ?>
+							<<?php echo esc_html( $aimp_tag ); ?> class="aimp-product-subtitle aimp-pattern-sizes-title"><?php esc_html_e( 'Size chart', 'atelier-irisee-master-plugin' ); ?></<?php echo esc_html( $aimp_tag ); ?>>
 							<button type="button" class="aimp-button aimp-measure-button" data-aimp-measure><?php esc_html_e( 'How to measure your body measurements', 'atelier-irisee-master-plugin' ); ?></button>
 						</div>
 						<div class="aimp-table-scroll">
