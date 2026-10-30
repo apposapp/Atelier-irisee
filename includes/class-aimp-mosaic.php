@@ -270,7 +270,15 @@ class AIMP_Mosaic {
 	 * @return string
 	 */
 	public static function shortcode( $atts ) {
-		$atts     = shortcode_atts( array( 'type' => 'all' ), $atts, self::TAG );
+		// title: a section title like the other home blocks ("Onze favorieten | Nos favoris" for each language).
+		$atts     = shortcode_atts(
+			array(
+				'type'  => 'all',
+				'title' => '',
+			),
+			$atts,
+			self::TAG
+		);
 		$type     = in_array( $atts['type'], AIMP_Shop::TYPES, true ) ? $atts['type'] : 'all';
 		$products = self::products( $type );
 		if ( ! $products ) {
@@ -300,6 +308,15 @@ class AIMP_Mosaic {
 				AIMP_Favorites::button_html( $product->get_id(), 'aimp-fav--overlay' )
 			);
 		}
-		return '<div class="aimp-configurator aimp-mosaic"><ul class="aimp-mosaic-grid">' . $html . '</ul></div>';
+		$mosaic = '<div class="aimp-configurator aimp-mosaic"><ul class="aimp-mosaic-grid">' . $html . '</ul></div>';
+		$title  = trim( AIMP_Settings::localized( $atts['title'] ) );
+		if ( '' === $title ) {
+			return $mosaic;
+		}
+		if ( ! wp_style_is( 'aimp-home-blocks', 'registered' ) ) {
+			AIMP_Home_Blocks::register_assets();
+		}
+		wp_enqueue_style( 'aimp-home-blocks' );
+		return '<section class="aimp-home-block aimp-mosaic-block"><h2 class="aimp-block-title"><span>' . esc_html( $title ) . '</span></h2>' . $mosaic . '</section>';
 	}
 }
