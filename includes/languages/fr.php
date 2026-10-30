@@ -3103,4 +3103,15 @@ return array(
 	'Text on the page' => 'Texte sur la page',
 	'This text cannot be changed here (a product, a WooCommerce text or a text made of several parts). Click to select it instead.' => 'Ce texte ne peut pas être modifié ici (un produit, un texte WooCommerce ou un texte composé de plusieurs parties). Cliquez dessus pour le sélectionner.',
 	'Translate the Dutch into the other languages' => 'Traduire le néerlandais dans les autres langues',
+
+	// 3.63: extra fabric for narrow fabrics
+	'%1$s, incl. %2$s cm extra for this fabric width' => '%1$s, dont %2$s cm en plus pour cette largeur de tissu',
+	'Empty the extra cm to remove a row. After saving there are always two empty rows for new ones.' => 'Videz les cm en plus pour supprimer une ligne. Après l\'enregistrement, il y a toujours deux lignes vides pour de nouvelles.',
+	'Extra fabric for narrow fabrics' => 'Tissu en plus pour les tissus étroits',
+	'Fabric width (cm)' => 'Largeur du tissu (cm)',
+	'Fabric width from' => 'Largeur du tissu à partir de',
+	'Fabric width to' => 'Largeur du tissu jusqu\'à',
+	'For fabrics with a width in this band, these sizes need this much more fabric than their own length. The width is read from the fabric\'s "Fabric width" (e.g. "135 cm"). The first row that fits counts. Empty sizes: from the smallest or up to the largest.' => 'Pour les tissus dont la largeur est dans cette fourchette, ces tailles ont besoin d\'autant de tissu en plus que leur propre longueur. La largeur est lue dans « Largeur du tissu » du tissu (p. ex. « 135 cm »). La première ligne qui convient compte. Tailles vides : à partir de la plus petite ou jusqu\'à la plus grande.',
+	'largest' => 'la plus grande',
+	'smallest' => 'la plus petite',
 );

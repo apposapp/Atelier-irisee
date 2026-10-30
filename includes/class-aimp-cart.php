@@ -64,7 +64,8 @@ class AIMP_Cart {
 	 */
 	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0, $extras = array(), $finish = '' ) {
 		$errors = new WP_Error();
-		$req    = AIMP_Catalog::get_requirements( $variation_id );
+		// With the fabric: a narrow one can need more.
+		$req    = AIMP_Catalog::get_requirements( $variation_id, $fabric_id ? $fabric_id : null );
 		if ( ! $req ) {
 			$errors->add( 'aimp_pattern', __( 'This pattern size is not available.', 'atelier-irisee-master-plugin' ) );
 			return $errors;

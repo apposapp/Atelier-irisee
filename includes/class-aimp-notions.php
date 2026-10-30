@@ -983,6 +983,31 @@ class AIMP_Notions {
 	}
 
 	/**
+	 * "Extra fabric for narrow fabrics" of a pattern (or design), stored with its haberdashery rules (key
+	 * "fabric_extra"): rows of [ wmin, wmax (fabric width in cm), from, to (size slugs, '' = no limit), cm ].
+	 *
+	 * @param int    $pattern_id Pattern.
+	 * @param string $design     Design slug.
+	 * @return array
+	 */
+	public static function fabric_extra_rows( $pattern_id, $design = '' ) {
+		$saved = self::saved_rules( $pattern_id, $design );
+		$rows  = array();
+		foreach ( isset( $saved['fabric_extra'] ) && is_array( $saved['fabric_extra'] ) ? $saved['fabric_extra'] : array() as $row ) {
+			if ( is_array( $row ) && ! empty( $row['cm'] ) ) {
+				$rows[] = array(
+					'wmin' => isset( $row['wmin'] ) ? (int) $row['wmin'] : 0,
+					'wmax' => isset( $row['wmax'] ) ? (int) $row['wmax'] : 999,
+					'from' => isset( $row['from'] ) ? (string) $row['from'] : '',
+					'to'   => isset( $row['to'] ) ? (string) $row['to'] : '',
+					'cm'   => (float) $row['cm'],
+				);
+			}
+		}
+		return $rows;
+	}
+
+	/**
 	 * The stored rules of a pattern, or of one of its designs when it has its own.
 	 *
 	 * @param int    $pattern_id Pattern.

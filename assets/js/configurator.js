@@ -1680,7 +1680,8 @@
 			panel.innerHTML = '<div class="aimp-side-placeholder">' + esc(k === 'lining' ? t.selectLiningHint : t.selectFabricHint) + '</div>';
 			return;
 		}
-		var html = this.materialDetailsHtml(s[k], s[k + 'Image'], t.pricePerUnit, s.size[k + '_text']);
+		// A fabric knows its own amount (a narrow one can need more than the size's length).
+		var html = this.materialDetailsHtml(s[k], s[k + 'Image'], t.pricePerUnit, (k === 'fabric' && s.fabric.need_text) || s.size[k + '_text']);
 		html +=
 			'<div class="aimp-actions">' +
 			'<button type="button" class="aimp-button aimp-button--block" data-action="confirm-fabric">' + esc(k === 'lining' ? t.confirmLining : t.confirmFabric) + '</button>' +
@@ -2057,7 +2058,7 @@
 		var s = this.state;
 		var lines = [{ name: s.pattern.name + ' – ' + t.size + ' ' + s.size.label, qty: 1, price: s.size.price, image: s.pattern.image }];
 		if (s.size.fabric_units > 0 && s.fabric) {
-			lines.push({ name: s.fabric.name, detail: s.size.fabric_text, qty: s.size.fabric_units, price: s.fabric.price, image: s.fabric.image });
+			lines.push({ name: s.fabric.name, detail: s.fabric.need_text || s.size.fabric_text, qty: s.fabric.fabric_units || s.size.fabric_units, price: s.fabric.price, image: s.fabric.image });
 		}
 		if (s.size.lining_units > 0 && s.lining) {
 			lines.push({ name: s.lining.name, detail: t.stepLining + ' · ' + s.size.lining_text, qty: s.size.lining_units, price: s.lining.price, image: s.lining.image });

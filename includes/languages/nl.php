@@ -3103,4 +3103,15 @@ return array(
 	'Text on the page' => 'Tekst op de pagina',
 	'This text cannot be changed here (a product, a WooCommerce text or a text made of several parts). Click to select it instead.' => 'Deze tekst kan hier niet aangepast worden (een product, een WooCommerce-tekst of een tekst uit meerdere stukken). Klik hem aan om hem te selecteren.',
 	'Translate the Dutch into the other languages' => 'Vertaal het Nederlands naar de andere talen',
+
+	// 3.63: extra fabric for narrow fabrics
+	'%1$s, incl. %2$s cm extra for this fabric width' => '%1$s, incl. %2$s cm extra voor deze stofbreedte',
+	'Empty the extra cm to remove a row. After saving there are always two empty rows for new ones.' => 'Maak de extra cm leeg om een rij te verwijderen. Na het opslaan zijn er altijd twee lege rijen voor nieuwe.',
+	'Extra fabric for narrow fabrics' => 'Extra stof voor smalle stoffen',
+	'Fabric width (cm)' => 'Stofbreedte (cm)',
+	'Fabric width from' => 'Stofbreedte vanaf',
+	'Fabric width to' => 'Stofbreedte tot',
+	'For fabrics with a width in this band, these sizes need this much more fabric than their own length. The width is read from the fabric\'s "Fabric width" (e.g. "135 cm"). The first row that fits counts. Empty sizes: from the smallest or up to the largest.' => 'Voor stoffen met een breedte in deze marge hebben deze maten zoveel meer stof nodig dan hun eigen lengte. De breedte wordt gelezen uit "Stofbreedte" van de stof (bv. "135 cm"). De eerste rij die past telt. Lege maten: vanaf de kleinste of tot de grootste.',
+	'largest' => 'grootste',
+	'smallest' => 'kleinste',
 );

@@ -56,18 +56,9 @@ class AIMP_Product_Fields {
 		if ( '' === $design_key || ! $designs ) {
 			return;
 		}
-		$size_key   = '';
-		$size_order = array();
-		foreach ( $product->get_attributes() as $key => $attribute ) {
-			if ( $key === $design_key || ! $attribute instanceof WC_Product_Attribute || ! $attribute->get_variation() ) {
-				continue;
-			}
-			$size_key   = (string) $key;
-			$size_order = $attribute->is_taxonomy()
-				? wc_get_product_terms( $product->get_id(), $key, array( 'fields' => 'slugs' ) )
-				: array_map( 'sanitize_title', $attribute->get_options() );
-			break;
-		}
+		$size       = AIMP_Catalog::size_attribute( $product );
+		$size_key   = $size['key'];
+		$size_order = array_keys( $size['sizes'] );
 		$rows = array();
 		foreach ( $product->get_children() as $index => $child_id ) {
 			$variation = wc_get_product( $child_id );
@@ -899,7 +890,75 @@ class AIMP_Product_Fields {
 				<?php endforeach; ?>
 				<p class="description"><?php esc_html_e( 'Empty: the option is named after its items.', 'atelier-irisee-master-plugin' ); ?></p>
 			</fieldset>
+			<?php self::render_fabric_extra( $product, $design, $prefix ); ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * "Extra fabric for narrow fabrics": rows of a fabric width band, a range of sizes and the cm they need more.
+	 * The saved rows plus two empty ones (more after saving).
+	 *
+	 * @param WC_Product|null $product Pattern.
+	 * @param string          $design  Design slug, or ''.
+	 * @param string          $prefix  Field name prefix of the block.
+	 */
+	private static function render_fabric_extra( $product, $design, $prefix ) {
+		$rows   = AIMP_Notions::fabric_extra_rows( $product ? $product->get_id() : 0, $design );
+		$sizes  = $product ? AIMP_Catalog::size_attribute( $product )['sizes'] : array();
+		$rows[] = array();
+		$rows[] = array();
+		$select = function ( $name, $value, $empty ) use ( $sizes ) {
+			$html = '<select name="' . esc_attr( $name ) . '"><option value="">' . esc_html( $empty ) . '</option>';
+			foreach ( $sizes as $slug => $label ) {
+				$html .= '<option value="' . esc_attr( $slug ) . '"' . selected( $value, $slug, false ) . '>' . esc_html( $label ) . '</option>';
+			}
+			// A size that is no longer on the pattern stays as it was saved.
+			if ( '' !== $value && ! isset( $sizes[ $value ] ) ) {
+				$html .= '<option value="' . esc_attr( $value ) . '" selected>' . esc_html( $value ) . '</option>';
+			}
+			return $html . '</select>';
+		};
+		?>
+		<fieldset class="aimp-notion-rule-group aimp-fabric-extra">
+			<legend><?php esc_html_e( 'Extra fabric for narrow fabrics', 'atelier-irisee-master-plugin' ); ?></legend>
+			<p class="description"><?php esc_html_e( 'For fabrics with a width in this band, these sizes need this much more fabric than their own length. The width is read from the fabric\'s "Fabric width" (e.g. "135 cm"). The first row that fits counts. Empty sizes: from the smallest or up to the largest.', 'atelier-irisee-master-plugin' ); ?></p>
+			<table class="widefat striped aimp-fabric-extra-table">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Fabric width (cm)', 'atelier-irisee-master-plugin' ); ?></th>
+						<th><?php esc_html_e( 'Sizes', 'atelier-irisee-master-plugin' ); ?></th>
+						<th><?php esc_html_e( 'Extra fabric', 'atelier-irisee-master-plugin' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $rows as $i => $row ) : ?>
+						<?php $base = $prefix . '[fabric_extra][' . $i . ']'; ?>
+						<tr>
+							<td>
+								<input type="number" class="small-text" min="1" max="400" step="1" name="<?php echo esc_attr( $base . '[wmin]' ); ?>" value="<?php echo esc_attr( isset( $row['wmin'] ) && $row['wmin'] > 0 ? (string) $row['wmin'] : '' ); ?>" aria-label="<?php esc_attr_e( 'Fabric width from', 'atelier-irisee-master-plugin' ); ?>">
+								–
+								<input type="number" class="small-text" min="1" max="400" step="1" name="<?php echo esc_attr( $base . '[wmax]' ); ?>" value="<?php echo esc_attr( isset( $row['wmax'] ) && $row['wmax'] < 999 ? (string) $row['wmax'] : '' ); ?>" aria-label="<?php esc_attr_e( 'Fabric width to', 'atelier-irisee-master-plugin' ); ?>">
+							</td>
+							<td>
+								<?php
+								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $select.
+								echo $select( $base . '[from]', isset( $row['from'] ) ? $row['from'] : '', __( 'smallest', 'atelier-irisee-master-plugin' ) );
+								echo ' – ';
+								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $select.
+								echo $select( $base . '[to]', isset( $row['to'] ) ? $row['to'] : '', __( 'largest', 'atelier-irisee-master-plugin' ) );
+								?>
+							</td>
+							<td>
+								+ <input type="number" class="small-text" min="0" max="500" step="1" name="<?php echo esc_attr( $base . '[cm]' ); ?>" value="<?php echo esc_attr( isset( $row['cm'] ) ? (string) $row['cm'] : '' ); ?>" aria-label="<?php esc_attr_e( 'Extra fabric', 'atelier-irisee-master-plugin' ); ?>">
+								<?php esc_html_e( 'cm', 'atelier-irisee-master-plugin' ); ?>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<p class="description"><?php esc_html_e( 'Empty the extra cm to remove a row. After saving there are always two empty rows for new ones.', 'atelier-irisee-master-plugin' ); ?></p>
+		</fieldset>
 		<?php
 	}
 
@@ -966,6 +1025,26 @@ class AIMP_Product_Fields {
 			'on'     => ! empty( $lining['on'] ),
 			'amount' => isset( $lining['amount'] ) ? $number( $lining['amount'] ) : '',
 		);
+		// Extra fabric for narrow fabrics: rows with extra cm; an empty width bound has no limit.
+		$clean['fabric_extra'] = array();
+		foreach ( isset( $input['fabric_extra'] ) && is_array( $input['fabric_extra'] ) ? $input['fabric_extra'] : array() as $row ) {
+			$cm = is_array( $row ) && isset( $row['cm'] ) ? min( 500, max( 0, (int) round( (float) wc_clean( (string) $row['cm'] ) ) ) ) : 0;
+			if ( ! $cm ) {
+				continue;
+			}
+			$wmin = isset( $row['wmin'] ) && '' !== trim( (string) $row['wmin'] ) ? min( 400, max( 0, absint( $row['wmin'] ) ) ) : 0;
+			$wmax = isset( $row['wmax'] ) && '' !== trim( (string) $row['wmax'] ) ? min( 400, max( 0, absint( $row['wmax'] ) ) ) : 999;
+			if ( $wmin > $wmax ) {
+				list( $wmin, $wmax ) = array( $wmax, $wmin );
+			}
+			$clean['fabric_extra'][] = array(
+				'wmin' => $wmin,
+				'wmax' => $wmax,
+				'from' => isset( $row['from'] ) ? sanitize_title( (string) $row['from'] ) : '',
+				'to'   => isset( $row['to'] ) ? sanitize_title( (string) $row['to'] ) : '',
+				'cm'   => $cm,
+			);
+		}
 		return $clean;
 	}
 

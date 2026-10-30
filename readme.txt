@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.62.4
+Stable tag: 3.63.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.63.0 =
+* Patterns: "Extra fabric for narrow fabrics" in the haberdashery rules (per pattern or per design). Rows of a fabric width band (e.g. 130–139 cm), a range of sizes and the extra cm; a fabric whose "Fabric width" falls in the band needs that much more for those sizes. The fabric list, the overview and the cart use each fabric's own amount.
 
 = 3.62.4 =
 * Gift card page: "Preview your card" shows the amount chosen with ‹ › (it showed the standard amount).

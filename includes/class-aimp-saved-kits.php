@@ -139,7 +139,7 @@ class AIMP_Saved_Kits {
 	public static function load_kit() {
 		self::require_login();
 		$kit = self::find( get_current_user_id(), isset( $_POST['kit'] ) ? sanitize_key( wp_unslash( $_POST['kit'] ) ) : '' );
-		$req = $kit ? AIMP_Catalog::get_requirements( $kit['variation'] ) : null;
+		$req = $kit ? AIMP_Catalog::get_requirements( $kit['variation'], $kit['fabric'] ? $kit['fabric'] : null ) : null;
 		if ( ! $req ) {
 			self::fail( __( 'This kit is no longer available.', 'atelier-irisee-master-plugin' ), 404 );
 		}
@@ -150,7 +150,7 @@ class AIMP_Saved_Kits {
 		$fabric = null;
 		if ( $req['fabric_units'] > 0 ) {
 			$product = $kit['fabric'] ? wc_get_product( $kit['fabric'] ) : null;
-			$card    = $product && 'publish' === $product->get_status() ? AIMP_Catalog::material_card( $product, $req['fabric_units'] ) : null;
+			$card    = $product && 'publish' === $product->get_status() ? AIMP_Catalog::fabric_card( $product, $req ) : null;
 			if ( $card && $card['available'] ) {
 				$fabric = $card;
 			} else {
@@ -248,7 +248,7 @@ class AIMP_Saved_Kits {
 		$base         = ( $configurator && 'publish' === get_post_status( $configurator ) ) ? get_permalink( $configurator ) : '';
 		$cards        = '';
 		foreach ( self::kits( get_current_user_id() ) as $kit ) {
-			$req = AIMP_Catalog::get_requirements( $kit['variation'] );
+			$req = AIMP_Catalog::get_requirements( $kit['variation'], $kit['fabric'] ? $kit['fabric'] : null );
 			if ( ! $req || ! $base ) {
 				continue;
 			}

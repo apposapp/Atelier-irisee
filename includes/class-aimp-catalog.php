@@ -958,10 +958,11 @@ class AIMP_Catalog {
 	/**
 	 * Requirements stored on a size variation.
 	 *
-	 * @param int $variation_id Variation ID.
+	 * @param int                $variation_id Variation ID.
+	 * @param WC_Product|int|null $fabric      The chosen fabric: a narrow one can need more (see with_fabric()).
 	 * @return array|null Null when the variation is not a valid pattern size.
 	 */
-	public static function get_requirements( $variation_id ) {
+	public static function get_requirements( $variation_id, $fabric = null ) {
 		$variation = wc_get_product( absint( $variation_id ) );
 		if ( ! $variation || ! $variation->is_type( 'variation' ) || 'publish' !== $variation->get_status() ) {
 			return null;
@@ -1006,7 +1007,7 @@ class AIMP_Catalog {
 		$fabric_units = $materials['fabric'] > 0 ? (int) ceil( $materials['fabric'] / self::FABRIC_UNIT_CM ) : 0;
 		$lining_units = $materials['lining'] > 0 ? (int) ceil( $materials['lining'] / self::FABRIC_UNIT_CM ) : 0;
 
-		return array(
+		$req = array(
 			'variation'    => $variation,
 			'pattern'      => $pattern,
 			'size'         => self::size_label( $variation ),
@@ -1014,6 +1015,7 @@ class AIMP_Catalog {
 			'materials'    => $materials,
 			'fabric_units' => $fabric_units,
 			'fabric_cm'    => (float) $materials['fabric'],
+			'fabric_extra_cm' => 0,
 			'fabric_cats'  => $fabric_cats,
 			'lining_units' => $lining_units,
 			'lining_cm'    => (float) $materials['lining'],
@@ -1035,6 +1037,157 @@ class AIMP_Catalog {
 			'hip_to'        => (string) $variation->get_meta( self::META_HIP . '_to' ),
 			'inside_leg_to' => (string) $variation->get_meta( self::META_INSIDE_LEG . '_to' ),
 		);
+		return $fabric ? self::with_fabric( $req, $fabric ) : $req;
+	}
+
+	/**
+	 * The requirements for one fabric: a fabric whose width falls in a band of the pattern's "Extra fabric for
+	 * narrow fabrics" rows (for this size) needs those cm more.
+	 *
+	 * @param array          $req    Requirements (without a fabric).
+	 * @param WC_Product|int $fabric Fabric.
+	 * @return array
+	 */
+	public static function with_fabric( $req, $fabric ) {
+		$extra = $req['fabric_cm'] > 0 ? self::fabric_extra_cm( $req['pattern'], $req['variation'], $fabric ) : 0;
+		$req['fabric_extra_cm'] = $extra;
+		if ( $extra > 0 ) {
+			$req['fabric_cm']          += $extra;
+			$req['materials']['fabric'] = $req['fabric_cm'];
+			$req['fabric_units']        = (int) ceil( $req['fabric_cm'] / self::FABRIC_UNIT_CM );
+		}
+		return $req;
+	}
+
+	/**
+	 * The extra cm a size needs of a fabric of this width: the first row of the pattern (or design) whose width
+	 * band holds the fabric's width and whose sizes hold this size. 0 when none fits or the width is unknown.
+	 *
+	 * @param WC_Product           $pattern   Pattern.
+	 * @param WC_Product_Variation $variation Size.
+	 * @param WC_Product|int       $fabric    Fabric.
+	 * @return float
+	 */
+	public static function fabric_extra_cm( $pattern, $variation, $fabric ) {
+		$rows = AIMP_Notions::fabric_extra_rows( $pattern->get_id(), self::designs( $pattern ) ? self::variation_design( $variation ) : '' );
+		if ( ! $rows ) {
+			return 0;
+		}
+		$width = self::fabric_width( $fabric );
+		if ( $width <= 0 ) {
+			return 0;
+		}
+		$sizes    = array_keys( self::size_attribute( $pattern )['sizes'] );
+		$position = array_search( self::variation_size( $variation ), $sizes, true );
+		foreach ( $rows as $row ) {
+			if ( $width < $row['wmin'] || $width > $row['wmax'] ) {
+				continue;
+			}
+			// An empty or unknown size bound has no limit on that side.
+			$from = '' !== $row['from'] ? array_search( $row['from'], $sizes, true ) : false;
+			$to   = '' !== $row['to'] ? array_search( $row['to'], $sizes, true ) : false;
+			if ( false !== $from && false !== $to && $from > $to ) {
+				list( $from, $to ) = array( $to, $from );
+			}
+			if ( ( false !== $from || false !== $to ) && false === $position ) {
+				continue;
+			}
+			if ( ( false !== $from && $position < $from ) || ( false !== $to && $position > $to ) ) {
+				continue;
+			}
+			return (float) $row['cm'];
+		}
+		return 0;
+	}
+
+	/**
+	 * The width of a fabric in cm, read from its "Fabric width" text: "135 cm" → 135, "1,40 m" → 140,
+	 * "140-145 cm" → 140. 0 when there is no number in it.
+	 *
+	 * @param WC_Product|int $fabric Fabric.
+	 * @return int
+	 */
+	public static function fabric_width( $fabric ) {
+		$fabric = $fabric instanceof WC_Product ? $fabric : wc_get_product( $fabric );
+		return $fabric ? self::parse_width( (string) $fabric->get_meta( '_aimp_spec_width' ) ) : 0;
+	}
+
+	/**
+	 * A width text in cm (see fabric_width()). Metres: "m" after the number, or a number below 5 without unit.
+	 *
+	 * @param string $text Width text.
+	 * @return int
+	 */
+	public static function parse_width( $text ) {
+		if ( ! preg_match( '/(\d+(?:[.,]\d+)?)\s*(mm|cm|m\b|m$)?/iu', $text, $match ) ) {
+			return 0;
+		}
+		$number = (float) str_replace( ',', '.', $match[1] );
+		$unit   = isset( $match[2] ) ? strtolower( $match[2] ) : '';
+		if ( 'mm' === $unit ) {
+			$number /= 10;
+		} elseif ( 'm' === $unit || ( '' === $unit && $number < 5 ) ) {
+			$number *= 100;
+		}
+		return (int) round( $number );
+	}
+
+	/**
+	 * The size attribute of a pattern (its first variation attribute that is not the design): [ key, sizes ],
+	 * sizes as slug => name in the attribute's order.
+	 *
+	 * @param WC_Product|int $pattern Pattern.
+	 * @return array
+	 */
+	public static function size_attribute( $pattern ) {
+		static $cache = array();
+		$pattern = $pattern instanceof WC_Product ? $pattern : wc_get_product( $pattern );
+		$id      = $pattern ? $pattern->get_id() : 0;
+		if ( isset( $cache[ $id ] ) ) {
+			return $cache[ $id ];
+		}
+		$found = array(
+			'key'   => '',
+			'sizes' => array(),
+		);
+		$design_key = $pattern ? self::design_attribute( $pattern ) : '';
+		foreach ( $pattern ? $pattern->get_attributes() : array() as $key => $attribute ) {
+			if ( $key === $design_key || ! $attribute instanceof WC_Product_Attribute || ! $attribute->get_variation() ) {
+				continue;
+			}
+			$found['key'] = (string) $key;
+			if ( $attribute->is_taxonomy() ) {
+				foreach ( wc_get_product_terms( $pattern->get_id(), $key, array( 'fields' => 'all' ) ) as $term ) {
+					$found['sizes'][ $term->slug ] = wp_specialchars_decode( $term->name, ENT_QUOTES );
+				}
+			} else {
+				foreach ( $attribute->get_options() as $option ) {
+					$found['sizes'][ sanitize_title( $option ) ] = (string) $option;
+				}
+			}
+			break;
+		}
+		$cache[ $id ] = $found;
+		return $found;
+	}
+
+	/**
+	 * The size (slug of the size attribute) of a variation, or ''.
+	 *
+	 * @param WC_Product_Variation|int $variation Size.
+	 * @return string
+	 */
+	public static function variation_size( $variation ) {
+		$variation = $variation instanceof WC_Product ? $variation : wc_get_product( $variation );
+		if ( ! $variation || ! $variation->is_type( 'variation' ) ) {
+			return '';
+		}
+		$key = self::size_attribute( $variation->get_parent_id() )['key'];
+		if ( '' === $key ) {
+			return '';
+		}
+		$attributes = $variation->get_variation_attributes();
+		return isset( $attributes[ 'attribute_' . $key ] ) ? sanitize_title( (string) $attributes[ 'attribute_' . $key ] ) : '';
 	}
 
 	/**
@@ -1619,10 +1772,17 @@ class AIMP_Catalog {
 	public static function fabric_need_text( $req ) {
 		$cm = (float) $req['fabric_cm'];
 		if ( $cm <= 0 || ( $cm == $req['fabric_units'] * self::FABRIC_UNIT_CM ) ) {
-			return self::fabric_text( $req['fabric_units'] );
+			$text = self::fabric_text( $req['fabric_units'] );
+		} else {
+			/* translators: 1: length in cm, 2: units of 10 cm */
+			$text = sprintf( __( '%1$s cm (%2$d × 10 cm)', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $cm, floor( $cm ) == $cm ? 0 : 1 ), $req['fabric_units'] );
 		}
-		/* translators: 1: length in cm, 2: units of 10 cm */
-		return sprintf( __( '%1$s cm (%2$d × 10 cm)', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $cm, floor( $cm ) == $cm ? 0 : 1 ), $req['fabric_units'] );
+		$extra = isset( $req['fabric_extra_cm'] ) ? (float) $req['fabric_extra_cm'] : 0;
+		if ( $extra > 0 ) {
+			/* translators: 1: what is needed, e.g. "235 cm (24 × 10 cm)", 2: extra length in cm */
+			$text = sprintf( __( '%1$s, incl. %2$s cm extra for this fabric width', 'atelier-irisee-master-plugin' ), $text, AIMP_I18n::number( $extra, floor( $extra ) == $extra ? 0 : 1 ) );
+		}
+		return $text;
 	}
 
 	/**
@@ -1738,6 +1898,21 @@ class AIMP_Catalog {
 	 */
 	private static function is_available( $product, $qty ) {
 		return $product->is_purchasable() && $product->is_in_stock() && $product->has_enough_stock( $qty );
+	}
+
+	/**
+	 * A fabric's card for a size: its own amount (a narrow fabric can need more) and what that is in words.
+	 *
+	 * @param WC_Product $product Fabric.
+	 * @param array      $req     Requirements with this fabric (with_fabric()).
+	 * @return array
+	 */
+	public static function fabric_card( $product, $req ) {
+		$card                    = self::material_card( $product, $req['fabric_units'] );
+		$card['fabric_units']    = $req['fabric_units'];
+		$card['need_text']       = self::fabric_need_text( $req );
+		$card['fabric_extra_cm'] = $req['fabric_extra_cm'];
+		return $card;
 	}
 
 	/**
@@ -1931,13 +2106,17 @@ class AIMP_Catalog {
 			$ids = self::sort_by_category_priority( $ids, $priority );
 		}
 
+		// A narrow fabric can need more than the size's own length (with_fabric()).
+		$units_for = function ( $product ) use ( $req, $units, $lining ) {
+			return $lining ? $units : self::with_fabric( $req, $product )['fabric_units'];
+		};
 		if ( $args['in_stock'] ) {
 			$ids = array_values(
 				array_filter(
 					$ids,
-					function ( $id ) use ( $units ) {
+					function ( $id ) use ( $units_for ) {
 						$product = wc_get_product( $id );
-						return $product && self::is_available( $product, $units );
+						return $product && self::is_available( $product, $units_for( $product ) );
 					}
 				)
 			);
@@ -1954,7 +2133,7 @@ class AIMP_Catalog {
 		foreach ( array_slice( $ids, ( $page - 1 ) * $per_page, $per_page ) as $id ) {
 			$product = wc_get_product( $id );
 			if ( $product && $product->is_visible() ) {
-				$card = self::material_card( $product, $units );
+				$card = $lining ? self::material_card( $product, $units ) : self::fabric_card( $product, self::with_fabric( $req, $product ) );
 				if ( isset( $looks[ $id ] ) ) {
 					$card['gallery'] = array_merge( self::images( $product, array(), array( $looks[ $id ] ) ), $card['gallery'] );
 				}
