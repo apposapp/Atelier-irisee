@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.60.2
+Stable tag: 3.60.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.60.3 =
+* Cinzel (the theme's heading font) now comes from the plugin itself (WOFF2, 40 KB) instead of Google Fonts. Switch Divi's "Use Google Fonts" off afterwards.
 
 = 3.60.2 =
 * Favourites mosaic: optional section title like the other home blocks, in every language: [atelier_irisee_mosaic title="Onze favorieten | Nos favoris"].
