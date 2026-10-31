@@ -1603,12 +1603,14 @@
 		font-size: 13px;
 	}
 
-	/* All on one line: the numbers keep their size, the current step's name shortens with "…" if needed.
+	/* The steps on one line ("‹ Back" has its own line above them): the numbers keep their size, the current step's
+	   name takes the room that is left and shortens with "…" if needed. Never wider than the screen.
 	   (Customizer only: the checkout has its own step bar below.) */
 	.aimp-configurator:not(.aimp-checkout) .aimp-steps {
-		flex-wrap: nowrap;
+		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.6rem;
+		max-width: 100%;
 	}
 
 	.aimp-configurator:not(.aimp-checkout) .aimp-steps li {
@@ -1617,6 +1619,8 @@
 
 	.aimp-configurator:not(.aimp-checkout) .aimp-steps li.is-current {
 		flex: 0 1 auto;
+		/* Room for the other numbers on the same line. */
+		max-width: calc(100% - 8.5rem);
 		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;

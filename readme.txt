@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.66.0
+Stable tag: 3.66.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.66.1 =
+* Customizer on phones: from step 2 on the step bar ran past the right edge, so the page could move sideways and the menu tab was cut off. "‹ Back", the numbers and the current step now fit within the screen.
+* The welcome discount box: on phones the text sits next to the 10% badge.
 
 = 3.66.0 =
 * Login / register pop-up: opens by itself the first time a visitor opens a cart with something in it (once per device), no longer on the first page of a visit. Settings → Login: "When it opens automatically" can switch back to "On the first page of a visit".
