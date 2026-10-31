@@ -829,11 +829,14 @@
 		if (!cfg.autoOpen || !modal) {
 			return;
 		}
+		// On the cart: only the very first time on this device; otherwise once per visit.
 		try {
-			if (window.sessionStorage.getItem('aimp_el_auto')) {
+			var store = cfg.autoOpenOnce === 'device' ? window.localStorage : window.sessionStorage;
+			var key = cfg.autoOpenOnce === 'device' ? 'aimp_el_auto_cart' : 'aimp_el_auto';
+			if (store.getItem(key)) {
 				return;
 			}
-			window.sessionStorage.setItem('aimp_el_auto', '1');
+			store.setItem(key, '1');
 		} catch (e) {}
 		// Never two pop-ups at once: while the newsletter pop-up is open, wait until it is closed.
 		var tryOpen = function () {

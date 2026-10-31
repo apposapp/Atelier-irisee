@@ -233,8 +233,18 @@ class AIMP_Login_Settings {
 					),
 					'auto_open'             => array(
 						'type'    => 'checkbox',
-						'label'   => __( 'Open the popup automatically for logged-out visitors (once per visit)', 'atelier-irisee-master-plugin' ),
+						'label'   => __( 'Open the popup automatically for logged-out visitors', 'atelier-irisee-master-plugin' ),
 						'default' => 0,
+					),
+					'auto_open_when'        => array(
+						'type'    => 'select',
+						'label'   => __( 'When it opens automatically', 'atelier-irisee-master-plugin' ),
+						'default' => 'cart',
+						'options' => array(
+							'cart'  => __( 'The first time the cart is opened (once per device)', 'atelier-irisee-master-plugin' ),
+							'visit' => __( 'On the first page of a visit', 'atelier-irisee-master-plugin' ),
+						),
+						'desc'    => __( 'The pages below only count for "On the first page of a visit".', 'atelier-irisee-master-plugin' ),
 					),
 					'auto_open_form'        => array(
 						'type'    => 'select',

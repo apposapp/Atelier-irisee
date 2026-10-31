@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.65.0
+Stable tag: 3.66.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.66.0 =
+* Login / register pop-up: opens by itself the first time a visitor opens a cart with something in it (once per device), no longer on the first page of a visit. Settings → Login: "When it opens automatically" can switch back to "On the first page of a visit".
 
 = 3.65.0 =
 * Guests see the welcome discount for creating an account (Settings → Discounts, 10%): in the register pop-up (also the email step of the single-field login), as an extra text in the gold bar that opens the register form, and at the top of the cart and the checkout with a "Create an account" button. Not shown to logged-in customers, or when the welcome discount or registering is off.

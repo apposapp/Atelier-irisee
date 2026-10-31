@@ -343,7 +343,6 @@ return array(
 	'One-click link' => 'Link met één klik',
 	'Only placeholders inside the fields' => 'Alleen plaatshouders in de velden',
 	'Open automatically on these pages' => 'Automatisch openen op deze pagina\'s',
-	'Open the popup automatically for logged-out visitors (once per visit)' => 'De popup automatisch openen voor bezoekers die niet ingelogd zijn (één keer per bezoek)',
 	'Open the popup from the checkout "Log in" link' => 'De popup openen via de link "Inloggen" in de checkout',
 	'Options (one per line, optionally value|Label)' => 'Opties (één per regel, eventueel waarde|Label)',
 	'Password' => 'Wachtwoord',
@@ -3121,4 +3120,11 @@ return array(
 	'%s%% off your first order when you create an account' => '%s%% korting op je eerste bestelling als je een account aanmaakt',
 	'Create an account and get %s%% off your first order. Your personal code is waiting for you right after registering.' => 'Maak een account aan en krijg %s%% korting op je eerste bestelling. Je persoonlijke code staat meteen na het registreren voor je klaar.',
 	'New here? Create an account and get %s%% off your first order.' => 'Nieuw hier? Maak een account aan en krijg %s%% korting op je eerste bestelling.',
+
+	// 3.66: pop-up on the cart
+	'On the first page of a visit' => 'Op de eerste pagina van een bezoek',
+	'The first time the cart is opened (once per device)' => 'De eerste keer dat het winkelmandje geopend wordt (één keer per toestel)',
+	'When it opens automatically' => 'Wanneer hij vanzelf opent',
+	'Open the popup automatically for logged-out visitors' => 'De pop-up vanzelf openen voor bezoekers die niet ingelogd zijn',
+	'The pages below only count for "On the first page of a visit".' => 'De pagina\'s hieronder tellen alleen voor "Op de eerste pagina van een bezoek".',
 );

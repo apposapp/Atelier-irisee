@@ -441,6 +441,13 @@ class AIMP_Login {
 			$i18n[ $code ] = AIMP_I18n::with_language( $code, array( __CLASS__, 'strings' ) );
 		}
 		$auto_pages = array_map( 'absint', (array) self::opt( 'auto_open_pages' ) );
+		// "The first time the cart is opened": only on the cart with something in it, once per device.
+		$on_cart = 'visit' !== self::opt( 'auto_open_when' );
+		if ( $on_cart ) {
+			$auto = self::opt( 'auto_open' ) && ! is_user_logged_in() && function_exists( 'is_cart' ) && is_cart() && function_exists( 'WC' ) && WC()->cart && ! WC()->cart->is_empty();
+		} else {
+			$auto = self::opt( 'auto_open' ) && ! is_user_logged_in() && ( ! $auto_pages || is_page( $auto_pages ) ) && ! self::is_shopping_page() && ! self::is_account_screen();
+		}
 
 		return array(
 			'endpoint'        => WC_AJAX::get_endpoint( '%%endpoint%%' ),
@@ -448,9 +455,10 @@ class AIMP_Login {
 			'i18n'            => $i18n,
 			'singleField'     => (bool) self::opt( 'single_field' ),
 			'strengthMin'     => (int) self::opt( 'strength_min' ),
-			// Never on the cart, the checkout or the configurator, where it would interrupt a purchase, and never on the
-			// my account page: its own login form is there (the pop-up would cover it while someone logs in).
-			'autoOpen'        => self::opt( 'auto_open' ) && ! is_user_logged_in() && ( ! $auto_pages || is_page( $auto_pages ) ) && ! self::is_shopping_page() && ! self::is_account_screen(),
+			// "On the first page of a visit": never on the cart, the checkout or the configurator, where it would
+			// interrupt a purchase, and never on the my account page (its own login form is there).
+			'autoOpen'        => $auto,
+			'autoOpenOnce'    => $on_cart ? 'device' : 'visit',
 			'autoOpenForm'    => self::opt( 'auto_open_form' ),
 			'autoOpenDelay'   => (int) self::opt( 'auto_open_delay' ),
 			'checkoutPopup'   => (bool) self::opt( 'checkout_popup' ),

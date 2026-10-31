@@ -343,7 +343,6 @@ return array(
 	'One-click link' => 'Lien en un clic',
 	'Only placeholders inside the fields' => 'Uniquement des textes indicatifs dans les champs',
 	'Open automatically on these pages' => 'Ouvrir automatiquement sur ces pages',
-	'Open the popup automatically for logged-out visitors (once per visit)' => 'Ouvrir la fenêtre automatiquement pour les visiteurs non connectés (une fois par visite)',
 	'Open the popup from the checkout "Log in" link' => 'Ouvrir la fenêtre via le lien « Se connecter » de la page de commande',
 	'Options (one per line, optionally value|Label)' => 'Options (une par ligne, éventuellement valeur|Libellé)',
 	'Password' => 'Mot de passe',
@@ -3121,4 +3120,11 @@ return array(
 	'%s%% off your first order when you create an account' => '%s%% de réduction sur votre première commande en créant un compte',
 	'Create an account and get %s%% off your first order. Your personal code is waiting for you right after registering.' => 'Créez un compte et recevez %s%% de réduction sur votre première commande. Votre code personnel vous attend juste après l\'inscription.',
 	'New here? Create an account and get %s%% off your first order.' => 'Nouveau ici ? Créez un compte et recevez %s%% de réduction sur votre première commande.',
+
+	// 3.66: pop-up on the cart
+	'On the first page of a visit' => 'Sur la première page d\'une visite',
+	'The first time the cart is opened (once per device)' => 'La première fois que le panier est ouvert (une fois par appareil)',
+	'When it opens automatically' => 'Quand elle s\'ouvre automatiquement',
+	'Open the popup automatically for logged-out visitors' => 'Ouvrir la pop-up automatiquement pour les visiteurs non connectés',
+	'The pages below only count for "On the first page of a visit".' => 'Les pages ci-dessous ne comptent que pour « Sur la première page d\'une visite ».',
 );
