@@ -125,6 +125,11 @@ $aimp_d = function ( $part, $key, $default = null ) {
 					<?php $aimp_link = isset( $aimp_links[ $aimp_i ] ) ? esc_url( trim( $aimp_links[ $aimp_i ] ) ) : ''; ?>
 					<li><span class="aimp-info-bar-mark" aria-hidden="true">✦</span><?php if ( '' !== $aimp_link ) : ?><a href="<?php echo esc_url( $aimp_link ); ?>"><?php echo esc_html( $aimp_info ); ?></a><?php else : ?><?php echo esc_html( $aimp_info ); ?><?php endif; ?></li>
 				<?php endforeach; ?>
+				<?php // Guests: the welcome discount, opening the register form. ?>
+				<?php $aimp_offer = class_exists( 'AIMP_Coupons' ) ? AIMP_Coupons::offer_short() : ''; ?>
+				<?php if ( '' !== $aimp_offer ) : ?>
+					<li class="aimp-info-bar-offer"><span class="aimp-info-bar-mark" aria-hidden="true">✦</span><a class="aimp-reg-tgr" href="#aimp-register"><?php echo esc_html( $aimp_offer ); ?></a></li>
+				<?php endif; ?>
 			</ul>
 			<?php if ( class_exists( 'AIMP_Footer' ) && AIMP_Footer::social_opt( 'so_info' ) ) : ?>
 				<?php echo AIMP_Footer::socials_html( 'info' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in socials_html(). ?>

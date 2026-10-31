@@ -91,6 +91,81 @@
 }
 
 /* ------------------------------------------------------------------
+ * Guests: the welcome discount for creating an account (register form, cart, checkout)
+ * ------------------------------------------------------------------ */
+.aimp-welcome-offer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.6rem 0.9rem;
+	margin: 0 0 1.25rem;
+	padding: 0.8rem 1rem;
+	border: 1px solid color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 55%, transparent);
+	border-radius: 14px;
+	background: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 9%, #fff);
+	color: var(--aimp-site-brown, #613907);
+}
+
+.aimp-welcome-offer-badge {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 3rem;
+	height: 3rem;
+	border-radius: 50%;
+	background: var(--aimp-site-gold, #b38f4f);
+	color: #fff;
+	font-size: 0.95rem;
+	font-weight: 700;
+}
+
+.aimp-welcome-offer .aimp-welcome-offer-text {
+	flex: 1 1 14rem;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.45;
+}
+
+.aimp-welcome-offer-button {
+	flex: none;
+	padding: 0.55rem 1.1rem;
+	border: 1px solid var(--aimp-site-gold, #b38f4f);
+	border-radius: 100px;
+	background: #fff;
+	color: var(--aimp-site-brown, #613907);
+	font-size: 14px;
+	font-weight: 700;
+	text-decoration: none;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.aimp-welcome-offer-button:hover,
+.aimp-welcome-offer-button:focus-visible {
+	background: var(--aimp-site-gold, #b38f4f);
+	color: #fff;
+}
+
+/* In the register form: a little tighter, under the title. */
+.aimp-welcome-offer--register {
+	margin: 0 0 1rem;
+	padding: 0.65rem 0.85rem;
+}
+
+.aimp-welcome-offer--register .aimp-welcome-offer-badge {
+	width: 2.6rem;
+	height: 2.6rem;
+	font-size: 0.85rem;
+}
+
+.aimp-welcome-offer--register .aimp-welcome-offer-text {
+	font-size: 14px;
+}
+
+/* ------------------------------------------------------------------
  * Welcome popup with the personal discount code
  * ------------------------------------------------------------------ */
 .aimp-welcome {

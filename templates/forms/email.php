@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <h2 class="aimp-el-title"><?php esc_html_e( 'Log in or create an account', 'atelier-irisee-master-plugin' ); ?></h2>
+<?php echo class_exists( 'AIMP_Coupons' ) && AIMP_Login::registration_enabled() ? AIMP_Coupons::offer_html( 'register' ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in offer_html(). ?>
 <p class="aimp-el-help"><?php esc_html_e( 'Enter your email address to continue.', 'atelier-irisee-master-plugin' ); ?></p>
 <form class="aimp-el-form" data-aimp-form="check_email" novalidate>
 	<?php echo AIMP_Login::form_top(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

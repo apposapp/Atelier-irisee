@@ -36,6 +36,69 @@ class AIMP_Coupons {
 
 		// "Use in my cart" from the account page.
 		add_action( 'wp_loaded', array( __CLASS__, 'apply_from_link' ), 25 );
+
+		// Guests: the welcome discount at the top of the checkout (the cart and the register form show it in their
+		// templates, the gold bar in the header).
+		add_action( 'woocommerce_before_checkout_form', array( __CLASS__, 'checkout_offer' ), 5 );
+	}
+
+	/* ------------------------------------------------------------------
+	 * The welcome discount offered to guests
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * The welcome discount in percent for a visitor who can still get it: a guest, on a shop that lets people
+	 * register. 0 otherwise.
+	 *
+	 * @return int
+	 */
+	public static function offer_percent() {
+		$percent = (int) AIMP_Settings::get( 'welcome_discount' );
+		if ( $percent <= 0 || is_user_logged_in() ) {
+			return 0;
+		}
+		if ( class_exists( 'AIMP_Login' ) && ! AIMP_Login::registration_enabled() ) {
+			return 0;
+		}
+		return min( 90, $percent );
+	}
+
+	/**
+	 * "10% off your first order when you create an account" (the gold bar), or ''.
+	 *
+	 * @return string
+	 */
+	public static function offer_short() {
+		$percent = self::offer_percent();
+		/* translators: %s: percentage, e.g. 10 */
+		return $percent ? sprintf( __( '%s%% off your first order when you create an account', 'atelier-irisee-master-plugin' ), $percent ) : '';
+	}
+
+	/**
+	 * The offer as a box: the text and, outside the register form, a button that opens it. '' when not offered.
+	 *
+	 * @param string $context register, cart or checkout.
+	 * @return string
+	 */
+	public static function offer_html( $context ) {
+		$percent = self::offer_percent();
+		if ( ! $percent ) {
+			return '';
+		}
+		$text = 'register' === $context
+			/* translators: %s: percentage, e.g. 10 */
+			? sprintf( __( 'Create an account and get %s%% off your first order. Your personal code is waiting for you right after registering.', 'atelier-irisee-master-plugin' ), $percent )
+			/* translators: %s: percentage, e.g. 10 */
+			: sprintf( __( 'New here? Create an account and get %s%% off your first order.', 'atelier-irisee-master-plugin' ), $percent );
+		$html = '<div class="aimp-welcome-offer aimp-welcome-offer--' . esc_attr( $context ) . '"><span class="aimp-welcome-offer-badge" aria-hidden="true">' . esc_html( $percent . '%' ) . '</span><p class="aimp-welcome-offer-text">' . esc_html( $text ) . '</p>';
+		if ( 'register' !== $context ) {
+			$html .= '<a class="aimp-welcome-offer-button aimp-reg-tgr" href="#aimp-register">' . esc_html__( 'Create an account', 'atelier-irisee-master-plugin' ) . '</a>';
+		}
+		return $html . '</div>';
+	}
+
+	public static function checkout_offer() {
+		echo self::offer_html( 'checkout' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in offer_html().
 	}
 
 	/* ------------------------------------------------------------------

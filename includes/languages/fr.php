@@ -3116,4 +3116,9 @@ return array(
 
 	// 3.63.4: Divi texts kept in the draft
 	'Some texts typed in Divi could not be found in their page (or are in it more than once) and were not published. They stay in the draft.' => 'Certains textes saisis dans Divi n\'ont pas été trouvés dans leur page (ou y figurent plusieurs fois) et n\'ont pas été publiés. Ils restent dans le brouillon.',
+
+	// 3.65: welcome discount offer
+	'%s%% off your first order when you create an account' => '%s%% de réduction sur votre première commande en créant un compte',
+	'Create an account and get %s%% off your first order. Your personal code is waiting for you right after registering.' => 'Créez un compte et recevez %s%% de réduction sur votre première commande. Votre code personnel vous attend juste après l\'inscription.',
+	'New here? Create an account and get %s%% off your first order.' => 'Nouveau ici ? Créez un compte et recevez %s%% de réduction sur votre première commande.',
 );

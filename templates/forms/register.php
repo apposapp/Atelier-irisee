@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $aimp_terms = (int) AIMP_Login::opt( 'terms_page' );
 ?>
 <h2 class="aimp-el-title"><?php esc_html_e( 'Create an account', 'atelier-irisee-master-plugin' ); ?></h2>
+<?php echo class_exists( 'AIMP_Coupons' ) ? AIMP_Coupons::offer_html( 'register' ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in offer_html(). ?>
 <form class="aimp-el-form" data-aimp-form="register" enctype="multipart/form-data" novalidate>
 	<?php echo AIMP_Login::form_top(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 	<div class="aimp-el-fields">

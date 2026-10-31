@@ -21,6 +21,9 @@ defined( 'ABSPATH' ) || exit;
 
 	<?php wc_print_notices(); ?>
 
+	<?php // Guests: the welcome discount for creating an account. ?>
+	<?php echo ! $data['empty'] && class_exists( 'AIMP_Coupons' ) ? AIMP_Coupons::offer_html( 'cart' ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in offer_html(). ?>
+
 	<?php if ( $data['empty'] ) : ?>
 		<div class="aimp-cart-empty">
 			<p><?php esc_html_e( 'Your cart is empty.', 'atelier-irisee-master-plugin' ); ?></p>
