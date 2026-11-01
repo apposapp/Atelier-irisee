@@ -955,7 +955,7 @@ class AIMP_Notions {
 	 * ------------------------------------------------------------------ */
 
 	/**
-	 * The rules of a pattern (or of one of its designs): rule => [ on, min, max, label, type, amount, saved ].
+	 * The rules of a pattern (or of one of its designs): rule => [ on, min, max, label, type, amount, amount_to, saved ].
 	 * A rule that was never saved (patterns from before 3.6, or kinds added in 3.7) counts as on with any width, so
 	 * existing amounts keep working; "saved" tells the editor to show it as on only when a size has an amount for
 	 * it. The extra button groups are off until switched on. "label" names a button group ("Cuffs"), "type" is the
@@ -977,6 +977,8 @@ class AIMP_Notions {
 				'label'  => $row && isset( $row['label'] ) ? (string) $row['label'] : '',
 				'type'   => $row && isset( $row['type'] ) ? (string) $row['type'] : '',
 				'amount' => $row && isset( $row['amount'] ) && '' !== (string) $row['amount'] && (float) $row['amount'] > 0 ? (float) $row['amount'] : '',
+				// Zips: the top of a length range ("18–22 cm"), '' for one length.
+				'amount_to' => $row && isset( $row['amount_to'] ) && (float) $row['amount_to'] > 0 ? (float) $row['amount_to'] : '',
 				// Finish choice: '' (always needed), or option 'a' / 'b' of which the customer chooses one.
 				'finish' => $row && isset( $row['finish'] ) && in_array( $row['finish'], array( 'a', 'b' ), true ) ? $row['finish'] : '',
 				'saved'  => null !== $row,

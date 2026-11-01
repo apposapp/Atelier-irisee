@@ -18,18 +18,65 @@ class AIMP_Saved_Kits {
 	const MAX  = 20;
 
 	public static function init() {
-		foreach ( array( 'save_kit', 'load_kit', 'delete_kit' ) as $action ) {
+		foreach ( array( 'save_kit', 'load_kit', 'delete_kit', 'saved_kits' ) as $action ) {
 			add_action( 'wc_ajax_aimp_' . $action, array( __CLASS__, $action ) );
 		}
 	}
 
 	/**
+	 * The saved kits, newest first; the same kit saved more than once only counts once.
+	 *
 	 * @param int $user_id User.
 	 * @return array[]
 	 */
 	public static function kits( $user_id ) {
 		$kits = get_user_meta( $user_id, self::META, true );
-		return is_array( $kits ) ? array_values( array_filter( $kits, 'is_array' ) ) : array();
+		$seen = array();
+		$list = array();
+		foreach ( is_array( $kits ) ? $kits : array() as $kit ) {
+			if ( ! is_array( $kit ) ) {
+				continue;
+			}
+			$sign = self::signature( $kit );
+			if ( ! isset( $seen[ $sign ] ) ) {
+				$seen[ $sign ] = true;
+				$list[]        = $kit;
+			}
+		}
+		return $list;
+	}
+
+	/**
+	 * What a kit is made of (everything but its id and date): two kits with the same signature are the same kit.
+	 *
+	 * @param array $kit Kit.
+	 * @return string
+	 */
+	private static function signature( $kit ) {
+		$notions = isset( $kit['notions'] ) && is_array( $kit['notions'] ) ? array_filter( array_map( 'absint', $kit['notions'] ) ) : array();
+		ksort( $notions );
+		$own = isset( $kit['own_notions'] ) ? array_map( 'strval', (array) $kit['own_notions'] ) : array();
+		sort( $own );
+		$bandana = isset( $kit['bandana'] ) && is_array( $kit['bandana'] ) ? array_map( 'absint', $kit['bandana'] ) : array();
+		if ( empty( $bandana['on'] ) ) {
+			$bandana = array();
+		}
+		ksort( $bandana );
+		return md5(
+			wp_json_encode(
+				array(
+					isset( $kit['variation'] ) ? absint( $kit['variation'] ) : 0,
+					isset( $kit['fabric'] ) ? absint( $kit['fabric'] ) : 0,
+					isset( $kit['lining'] ) ? absint( $kit['lining'] ) : 0,
+					$notions,
+					empty( $kit['own_interfacing'] ) ? 0 : 1,
+					empty( $kit['own_lining'] ) ? 0 : 1,
+					$own,
+					isset( $kit['finish'] ) ? (string) $kit['finish'] : '',
+					$bandana,
+				)
+			)
+		);
 	}
 
 	private static function find( $user_id, $id ) {
@@ -102,12 +149,23 @@ class AIMP_Saved_Kits {
 			'date'      => time(),
 		);
 		$user_id = get_current_user_id();
-		$kits    = self::kits( $user_id );
+		$sign    = self::signature( $kit );
+		$known   = false;
+		$kits    = array();
+		// The same kit saved again: it moves to the top (with a new date) instead of being added twice.
+		foreach ( self::kits( $user_id ) as $saved ) {
+			if ( self::signature( $saved ) === $sign ) {
+				$known      = true;
+				$kit['id'] = $saved['id'];
+				continue;
+			}
+			$kits[] = $saved;
+		}
 		array_unshift( $kits, $kit );
 		update_user_meta( $user_id, self::META, array_slice( $kits, 0, self::MAX ) );
 		wp_send_json_success(
 			array(
-				'message' => __( 'Kit saved. Find it on your favorites page.', 'atelier-irisee-master-plugin' ),
+				'message' => $known ? __( 'This kit is already on your favorites page.', 'atelier-irisee-master-plugin' ) : __( 'Kit saved. Find it on your favorites page.', 'atelier-irisee-master-plugin' ),
 				'url'     => self::favorites_url(),
 			)
 		);
@@ -120,16 +178,34 @@ class AIMP_Saved_Kits {
 		}
 		$id      = isset( $_POST['kit'] ) ? sanitize_key( wp_unslash( $_POST['kit'] ) ) : '';
 		$user_id = get_current_user_id();
+		$kit     = self::find( $user_id, $id );
+		// Also its copies saved before 3.67 (the same kit with another id).
+		$sign    = $kit ? self::signature( $kit ) : '';
+		$stored  = get_user_meta( $user_id, self::META, true );
 		$kits    = array_values(
 			array_filter(
-				self::kits( $user_id ),
-				function ( $kit ) use ( $id ) {
-					return ! isset( $kit['id'] ) || $kit['id'] !== $id;
+				is_array( $stored ) ? array_filter( $stored, 'is_array' ) : array(),
+				function ( $kit ) use ( $id, $sign ) {
+					return ( ! isset( $kit['id'] ) || $kit['id'] !== $id ) && ( '' === $sign || self::signature( $kit ) !== $sign );
 				}
 			)
 		);
 		update_user_meta( $user_id, self::META, $kits );
-		wp_send_json_success( array( 'left' => count( $kits ) ) );
+		wp_send_json_success( array( 'left' => count( self::kits( $user_id ) ) ) );
+	}
+
+	/**
+	 * The "My saved sewing kits" section of the favorites page, loaded by favorites.js so a cached copy of the
+	 * page never shows kits that were removed. With a fresh nonce for the × buttons.
+	 */
+	public static function saved_kits() {
+		nocache_headers();
+		wp_send_json_success(
+			array(
+				'html'  => self::section_html(),
+				'nonce' => is_user_logged_in() ? wp_create_nonce( AIMP_Favorites::NONCE ) : '',
+			)
+		);
 	}
 
 	/**

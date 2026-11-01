@@ -222,8 +222,29 @@ class AIMP_Product_Fields {
 		if ( ! self::shown_lining( $pattern, $design )['on'] ) {
 			$off['lining'] = true;
 		}
-		$input = function ( $name, $label, $unit, $current ) use ( $loop, $off ) {
+		$zips  = array_flip( AIMP_Catalog::zip_materials() );
+		$input = function ( $name, $label, $unit, $current ) use ( $loop, $off, $zips, $variation ) {
 			$id = 'aimp_' . $name . '_' . $loop;
+			// Zips: a length from … to … (every zip within it fits); only "from" filled in is one length.
+			if ( isset( $zips[ $name ] ) ) {
+				$to = (string) $variation->get_meta( AIMP_Catalog::material_fields()[ $name ]['meta'] . '_to' );
+				printf(
+					'<label class="aimp-material-field aimp-measure-range" for="%1$s" data-material="%6$s"%7$s><span>%2$s</span><span class="aimp-material-input"><input type="number" min="0" step="0.5" id="%1$s" name="%3$s" value="%4$s" placeholder="%5$s" aria-label="%2$s %5$s"%8$s><em>–</em><input type="number" min="0" step="0.5" name="%9$s" value="%10$s" placeholder="%11$s" aria-label="%2$s %11$s"%8$s><em>%12$s</em></span></label>',
+					esc_attr( $id ),
+					esc_html( $label ),
+					esc_attr( 'aimp_material[' . $name . '][' . $loop . ']' ),
+					esc_attr( $current ),
+					esc_attr__( 'from', 'atelier-irisee-master-plugin' ),
+					esc_attr( $name ),
+					isset( $off[ $name ] ) ? ' hidden' : '',
+					isset( $off[ $name ] ) ? ' disabled' : '',
+					esc_attr( 'aimp_material[' . $name . '_to][' . $loop . ']' ),
+					esc_attr( '0' === $to ? '' : $to ),
+					esc_attr__( 'to', 'atelier-irisee-master-plugin' ),
+					esc_html__( 'cm', 'atelier-irisee-master-plugin' )
+				);
+				return;
+			}
 			printf(
 				'<label class="aimp-material-field" for="%1$s" data-material="%7$s"%8$s><span>%2$s</span><span class="aimp-material-input"><input type="number" min="0" step="%3$s" id="%1$s" name="%4$s" value="%5$s" placeholder="0"%9$s><em>%6$s</em></span></label>',
 				esc_attr( $id ),
@@ -329,6 +350,12 @@ class AIMP_Product_Fields {
 			$fields[ ltrim( $meta, '_' ) ]         = array( $meta, 'cm' );
 			$fields[ ltrim( $meta, '_' ) . '_to' ] = array( $meta . '_to', 'cm' );
 		}
+		// The top of a zip length range, switched off with its zip.
+		$tops = array();
+		foreach ( AIMP_Catalog::zip_materials() as $key ) {
+			$fields[ $key . '_to' ] = array( $fields[ $key ][0] . '_to', 'cm' );
+			$tops[ $key . '_to' ]   = $key;
+		}
 		// Haberdashery switched off on the Atelier Irisee tab (as on the screen, also before the pattern is saved).
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified by WooCommerce before this hook.
 		$on_list = isset( $_POST['aimp_notion_on'][ $i ] ) ? array_filter( explode( ',', sanitize_text_field( wp_unslash( $_POST['aimp_notion_on'][ $i ] ) ) ) ) : null;
@@ -345,7 +372,7 @@ class AIMP_Product_Fields {
 			$off['lining'] = true;
 		}
 		foreach ( $fields as $name => $field ) {
-			$value = isset( $off[ $name ] ) ? '' : $get( $name );
+			$value = isset( $off[ $name ] ) || ( isset( $tops[ $name ] ) && isset( $off[ $tops[ $name ] ] ) ) ? '' : $get( $name );
 			if ( '' === $value || (float) $value <= 0 ) {
 				$variation->delete_meta_data( $field[0] );
 				continue;
@@ -353,7 +380,8 @@ class AIMP_Product_Fields {
 			$variation->update_meta_data( $field[0], 'cm' === $field[1] ? wc_format_decimal( (float) $value, 1, true ) : (string) absint( $value ) );
 		}
 		// A "to" without a "from", or not above it, is no range.
-		foreach ( self::measurement_fields() as $meta => $label ) {
+		foreach ( array_merge( array_keys( self::measurement_fields() ), array_column( array_intersect_key( $fields, $tops ), 0 ) ) as $meta ) {
+			$meta = preg_replace( '/_to$/', '', $meta );
 			$from = (float) $variation->get_meta( $meta );
 			if ( $from <= 0 || (float) $variation->get_meta( $meta . '_to' ) <= $from ) {
 				$variation->delete_meta_data( $meta . '_to' );
@@ -863,7 +891,11 @@ class AIMP_Product_Fields {
 							<?php endif; ?>
 							<label class="aimp-notion-rule-amount">
 								<?php echo esc_html( 'zip' === $kind ? __( 'Length (all sizes)', 'atelier-irisee-master-plugin' ) : ( $is_cm ? __( 'Length (all sizes)', 'atelier-irisee-master-plugin' ) : __( 'Number (all sizes)', 'atelier-irisee-master-plugin' ) ) ); ?>
-								<input type="number" class="small-text" min="0" step="<?php echo $is_cm ? '0.5' : '1'; ?>" name="<?php echo esc_attr( $base . '[amount]' ); ?>" value="<?php echo esc_attr( (string) $rule['amount'] ); ?>">
+								<input type="number" class="small-text" min="0" step="<?php echo $is_cm ? '0.5' : '1'; ?>" name="<?php echo esc_attr( $base . '[amount]' ); ?>" value="<?php echo esc_attr( (string) $rule['amount'] ); ?>"<?php echo 'zip' === $kind ? ' placeholder="' . esc_attr__( 'from', 'atelier-irisee-master-plugin' ) . '"' : ''; ?>>
+								<?php if ( 'zip' === $kind ) : ?>
+									–
+									<input type="number" class="small-text" min="0" step="0.5" name="<?php echo esc_attr( $base . '[amount_to]' ); ?>" value="<?php echo esc_attr( (string) $rule['amount_to'] ); ?>" placeholder="<?php esc_attr_e( 'to', 'atelier-irisee-master-plugin' ); ?>">
+								<?php endif; ?>
 								<?php echo esc_html( $is_cm ? __( 'cm', 'atelier-irisee-master-plugin' ) : __( 'pcs', 'atelier-irisee-master-plugin' ) ); ?>
 							</label>
 							<label class="aimp-notion-rule-finish">
@@ -1000,6 +1032,8 @@ class AIMP_Product_Fields {
 				'type'   => AIMP_Notions::is_extra( $rule ) && isset( $button_types[ $type ] ) ? $type : '',
 				// Pieces are whole numbers; lengths in cm.
 				'amount' => '' !== $amount && 'cm' !== $fields[ $info[2] ]['unit'] ? (string) max( 1, (int) round( (float) $amount ) ) : $amount,
+				// Zips: a length range ("18–22 cm"); only a "to" above the "from" counts.
+				'amount_to' => 'zip' === $info[0] && '' !== $amount && isset( $row['amount_to'] ) && (float) $number( $row['amount_to'] ) > (float) $amount ? $number( $row['amount_to'] ) : '',
 				'finish' => isset( $row['finish'] ) && in_array( $row['finish'], array( 'a', 'b' ), true ) ? $row['finish'] : '',
 			);
 		}

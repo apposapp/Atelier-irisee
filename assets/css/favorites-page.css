@@ -167,6 +167,12 @@
 	cursor: pointer;
 }
 
+/* A kit that could not be removed. */
+.aimp-configurator.aimp-favorites .aimp-saved-kits-message {
+	margin: 0.8rem 0 0;
+	color: #a33a2a;
+}
+
 /* Phones: 2 per row (was 3) with bigger name and price. */
 @container aimp (max-width: 640px) {
 	.aimp-configurator.aimp-favorites .aimp-favorites-grid {

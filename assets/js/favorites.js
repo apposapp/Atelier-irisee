@@ -353,10 +353,62 @@
 })();
 
 /**
- * Favorites page: remove a saved sewing project kit (×).
+ * Favorites page: the saved sewing project kits (loaded fresh, so a cached page never shows removed kits) and
+ * removing one (×).
  */
 (function () {
 	'use strict';
+
+	var nonce = '';
+
+	function post(url, params) {
+		var body = new URLSearchParams();
+		Object.keys(params).forEach(function (key) {
+			body.append(key, params[key]);
+		});
+		return fetch(url, {
+			method: 'POST',
+			credentials: 'same-origin',
+			cache: 'no-store',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+			body: body.toString()
+		}).then(function (response) {
+			return response.json();
+		});
+	}
+
+	function load() {
+		var slot = document.querySelector('[data-aimp-saved-kits-slot]');
+		if (!slot) {
+			return;
+		}
+		post(slot.getAttribute('data-endpoint'), {})
+			.then(function (json) {
+				if (!json || !json.success) {
+					return;
+				}
+				nonce = json.data.nonce || '';
+				slot.innerHTML = json.data.html || '';
+				// "My favorites" under the kits, only when there are kits.
+				var heading = slot.nextElementSibling;
+				if (heading && heading.hasAttribute('data-aimp-favorites-title')) {
+					heading.hidden = !slot.querySelector('[data-aimp-saved-kit]');
+				}
+			})
+			.catch(function () {});
+	}
+
+	function fail(section, json) {
+		var cfg = window.aimpFavoritesConfig || {};
+		var box = section.querySelector('.aimp-saved-kits-message');
+		if (!box) {
+			box = document.createElement('p');
+			box.className = 'aimp-saved-kits-message';
+			box.setAttribute('role', 'alert');
+			section.appendChild(box);
+		}
+		box.textContent = json && json.data && json.data.errors ? json.data.errors[0] : (cfg.removeError || '');
+	}
 
 	document.addEventListener('click', function (e) {
 		var button = e.target.closest ? e.target.closest('[data-aimp-kit-remove]') : null;
@@ -365,35 +417,26 @@
 		}
 		var section = button.closest('[data-aimp-saved-kits]');
 		var cfg = window.aimpFavoritesConfig || {};
-		var body = new URLSearchParams();
-		body.append('kit', button.getAttribute('data-aimp-kit-remove'));
-		body.append('nonce', cfg.nonce || '');
 		button.disabled = true;
-		fetch(section.getAttribute('data-endpoint'), {
-			method: 'POST',
-			credentials: 'same-origin',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-			body: body.toString()
-		})
-			.then(function (response) {
-				return response.json();
-			})
+		post(section.getAttribute('data-endpoint'), { kit: button.getAttribute('data-aimp-kit-remove'), nonce: nonce || cfg.nonce || '' })
 			.then(function (json) {
 				if (!json || !json.success) {
 					button.disabled = false;
+					fail(section, json);
 					return;
 				}
-				button.closest('[data-aimp-saved-kit]').remove();
-				if (!section.querySelector('[data-aimp-saved-kit]')) {
-					var next = section.nextElementSibling;
-					if (next && next.classList.contains('aimp-saved-kits-title')) {
-						next.remove();
-					}
-					section.remove();
-				}
+				// The kits again as saved (copies of the same kit are removed with it).
+				load();
 			})
 			.catch(function () {
 				button.disabled = false;
+				fail(section, null);
 			});
 	});
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', load);
+	} else {
+		load();
+	}
 })();

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.66.1
+Stable tag: 3.67.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.67.0 =
+* Favorites page: the same sewing kit can only be saved once (saving it again moves it to the top). Copies saved before are shown once and removed together.
+* Favorites page: a removed kit no longer comes back after reloading. The saved kits are now loaded fresh instead of from a cached copy of the page, and a kit that cannot be removed shows a message.
+* Customizer on computers: choosing a size scrolls down so what the size needs, its price and "Confirm" are in view.
+* Zips in the pattern data: a length from … to … (per size, and in "Length (all sizes)" on the Atelier Irisee tab). Every zip with a length within the range is offered in the customizer, accepted in the cart and listed under "Fits these patterns". Only "from" filled in still means exactly that length.
 
 = 3.66.1 =
 * Customizer on phones: from step 2 on the step bar ran past the right edge, so the page could move sideways and the menu tab was cut off. "‹ Back", the numbers and the current step now fit within the screen.

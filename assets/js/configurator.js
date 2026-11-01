@@ -1273,9 +1273,18 @@
 			sheetBody.scrollTo({ top: Math.max(0, top), behavior: behavior });
 			return;
 		}
-		// Computers with the details beside the patterns: that panel already follows the page (sticky).
+		// Computers with the details beside the patterns: that panel follows the page (sticky); scroll down until
+		// what the size needs, its price and "Confirm" are in view (a panel taller than the screen moves up with the
+		// page until its bottom is 24 px above the screen's, ui.js).
 		var side = sizes.closest('.aimp-split-side');
 		if (side && window.getComputedStyle(side).position === 'sticky') {
+			window.requestAnimationFrame(function () {
+				var end = panel.querySelector('.aimp-actions') || panel;
+				var down = end.getBoundingClientRect().bottom - (window.innerHeight - 24);
+				if (down > 1) {
+					window.scrollBy({ top: down, behavior: behavior });
+				}
+			});
 			return;
 		}
 		var header = document.querySelector('.aimp-header');

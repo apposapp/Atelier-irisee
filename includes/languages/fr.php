@@ -3127,4 +3127,8 @@ return array(
 	'When it opens automatically' => 'Quand elle s\'ouvre automatiquement',
 	'Open the popup automatically for logged-out visitors' => 'Ouvrir la pop-up automatiquement pour les visiteurs non connectés',
 	'The pages below only count for "On the first page of a visit".' => 'Les pages ci-dessous ne comptent que pour « Sur la première page d\'une visite ».',
+
+	// 3.67: saved kits
+	'The kit could not be removed. Please reload the page and try again.' => 'Le kit n\'a pas pu être supprimé. Veuillez recharger la page et réessayer.',
+	'This kit is already on your favorites page.' => 'Ce kit figure déjà sur votre page de favoris.',
 );

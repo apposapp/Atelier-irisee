@@ -252,6 +252,12 @@ class AIMP_Product_Page {
 				}
 				$min   = min( $amounts );
 				$max   = max( $amounts );
+				// Zips with a length range: up to the longest that fits.
+				foreach ( $reqs as $req ) {
+					if ( ! empty( $req['materials_to'][ $key ] ) ) {
+						$max = max( $max, (float) $req['materials_to'][ $key ] );
+					}
+				}
 				$text  = $min === $max ? AIMP_Catalog::material_text( $key, $min ) : ( 'cm' === $field['unit']
 					/* translators: 1: smallest length, 2: largest length (in cm) */
 					? sprintf( __( '%1$s–%2$s cm', 'atelier-irisee-master-plugin' ), AIMP_I18n::number( $min, floor( $min ) == $min ? 0 : 1 ), AIMP_I18n::number( $max, floor( $max ) == $max ? 0 : 1 ) )
@@ -987,10 +993,13 @@ class AIMP_Product_Page {
 								continue;
 							}
 							$amount = (float) get_post_meta( $child_id, $fields[ $info[2] ]['meta'], true );
+							$top    = (float) get_post_meta( $child_id, $fields[ $info[2] ]['meta'] . '_to', true );
 							if ( $amount <= 0 && '' !== $rules[ $rule ]['amount'] ) {
 								$amount = (float) $rules[ $rule ]['amount'];
+								$top    = (float) $rules[ $rule ]['amount_to'];
 							}
-							if ( $amount > 0 && ( 'zip' !== $kind || abs( $amount - $length ) < 0.01 ) ) {
+							// Zips: a length within the pattern's range (one length: exactly that length).
+							if ( $amount > 0 && ( 'zip' !== $kind || ( $length >= $amount - 0.005 && $length <= max( $amount, $top ) + 0.005 ) ) ) {
 								$fits = true;
 								break 2;
 							}

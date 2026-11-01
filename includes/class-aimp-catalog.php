@@ -150,6 +150,34 @@ class AIMP_Catalog {
 	}
 
 	/**
+	 * The materials that are zips (a length that can be a range, "18–22 cm"): keys of material_fields().
+	 *
+	 * @return string[]
+	 */
+	public static function zip_materials() {
+		$keys = array();
+		foreach ( self::notion_types() as $info ) {
+			if ( 'zip' === $info['kind'] ) {
+				$keys[] = $info['material'];
+			}
+		}
+		return $keys;
+	}
+
+	/**
+	 * The zip length a size needs as text: "20 cm", or "18–22 cm" for a range.
+	 *
+	 * @param array  $req      Requirements.
+	 * @param string $material A zip material (key of material_fields()).
+	 * @return string
+	 */
+	public static function zip_text( $req, $material ) {
+		$from = isset( $req['materials'][ $material ] ) ? (float) $req['materials'][ $material ] : 0;
+		$to   = isset( $req['materials_to'][ $material ] ) ? (float) $req['materials_to'][ $material ] : 0;
+		return self::measure_text( $from, $to );
+	}
+
+	/**
 	 * A body measurement: "88 cm", or "88–92 cm" when a "to" above it is set.
 	 *
 	 * @param string|float $from From.
@@ -997,12 +1025,23 @@ class AIMP_Catalog {
 		// Haberdashery the pattern (or this size's design) does not use is not needed. The number or length set
 		// on the pattern counts for every size without its own.
 		$notion_rules = AIMP_Notions::pattern_rules( $pattern->get_id(), self::designs( $pattern ) ? self::variation_design( $variation ) : '' );
+		// Zips can have a length range ("18–22 cm"): the top of it, 0 for one length.
+		$materials_to = array();
+		foreach ( self::zip_materials() as $key ) {
+			$materials_to[ $key ] = $materials[ $key ] > 0 ? (float) $variation->get_meta( self::material_fields()[ $key ]['meta'] . '_to' ) : 0;
+		}
 		foreach ( AIMP_Notions::rules() as $rule => $info ) {
 			if ( empty( $notion_rules[ $rule ]['on'] ) ) {
 				$materials[ $info[2] ] = 0;
 			} elseif ( $materials[ $info[2] ] <= 0 && '' !== $notion_rules[ $rule ]['amount'] ) {
 				$materials[ $info[2] ] = (float) $notion_rules[ $rule ]['amount'];
+				if ( isset( $materials_to[ $info[2] ] ) ) {
+					$materials_to[ $info[2] ] = '' !== $notion_rules[ $rule ]['amount_to'] ? (float) $notion_rules[ $rule ]['amount_to'] : 0;
+				}
 			}
+		}
+		foreach ( $materials_to as $key => $to ) {
+			$materials_to[ $key ] = $materials[ $key ] > 0 && $to > $materials[ $key ] ? $to : 0;
 		}
 		// Lining: switched on or off on the pattern like the haberdashery, with a length for every size without its own.
 		$lining_rule = AIMP_Notions::lining_rule( $pattern->get_id(), self::designs( $pattern ) ? self::variation_design( $variation ) : '' );
@@ -1022,6 +1061,7 @@ class AIMP_Catalog {
 			'size'         => self::size_label( $variation ),
 			'design'       => self::design_label( $variation ),
 			'materials'    => $materials,
+			'materials_to' => $materials_to,
 			'fabric_units' => $fabric_units,
 			'fabric_cm'    => (float) $materials['fabric'],
 			'fabric_extra_cm' => 0,
@@ -1565,7 +1605,8 @@ class AIMP_Catalog {
 			return wc_get_product( absint( $product_id ) );
 		}
 		$product = self::get_material( $product_id, self::category_tree( self::notion_category( $type ) ) );
-		if ( $product && '' !== self::zip_length( $type, $req ) && ! self::zip_length_matches( $product, self::zip_length( $type, $req ) ) ) {
+		$range = self::zip_range( $type, $req );
+		if ( $product && $range && ! self::zip_length_fits( $product, $range ) ) {
 			return null;
 		}
 		$rule = self::notion_rule( $type, $req );
@@ -1593,19 +1634,25 @@ class AIMP_Catalog {
 	}
 
 	/**
-	 * The length a zip type needs ("22"), or '' for other types.
+	 * The zip lengths a zip type takes: [ from, to ] ("18", "22"; the same twice for one length), or null for
+	 * other types.
 	 *
 	 * @param string $type A key of notion_types().
 	 * @param array  $req  Requirements.
-	 * @return string
+	 * @return string[]|null
 	 */
-	public static function zip_length( $type, $req ) {
+	public static function zip_range( $type, $req ) {
 		$types = self::notion_types();
 		if ( ! isset( $types[ $type ] ) || 'zip' !== $types[ $type ]['kind'] ) {
-			return '';
+			return null;
 		}
-		$length = isset( $req['materials'][ $types[ $type ]['material'] ] ) ? (float) $req['materials'][ $types[ $type ]['material'] ] : 0;
-		return $length > 0 ? wc_format_decimal( $length, 2, true ) : '';
+		$material = $types[ $type ]['material'];
+		$from     = isset( $req['materials'][ $material ] ) ? (float) $req['materials'][ $material ] : 0;
+		if ( $from <= 0 ) {
+			return null;
+		}
+		$to = isset( $req['materials_to'][ $material ] ) ? (float) $req['materials_to'][ $material ] : 0;
+		return array( wc_format_decimal( $from, 2, true ), wc_format_decimal( max( $from, $to ), 2, true ) );
 	}
 
 	/**
@@ -1647,10 +1694,13 @@ class AIMP_Catalog {
 			}
 			$amount = (float) $req['materials'][ $info['material'] ];
 			if ( 'zip' === $info['kind'] ) {
-				/* translators: 1: number of zips, 2: length in cm */
-				$need = sprintf( __( '%1$d × zip of %2$s cm', 'atelier-irisee-master-plugin' ), 1, AIMP_I18n::number( $amount, floor( $amount ) == $amount ? 0 : 1 ) );
-				/* translators: 1: number of zips, 2: length in cm */
-				$will = sprintf( __( '%1$d zip(s) of %2$s cm will be added.', 'atelier-irisee-master-plugin' ), 1, AIMP_I18n::number( $amount, floor( $amount ) == $amount ? 0 : 1 ) );
+				// One length ("20") or a range ("18–22").
+				$length = self::zip_range( $type, $req );
+				$length = $length[0] === $length[1] ? AIMP_I18n::number( $amount, floor( $amount ) == $amount ? 0 : 1 ) : AIMP_I18n::number( (float) $length[0], floor( (float) $length[0] ) == (float) $length[0] ? 0 : 1 ) . '–' . AIMP_I18n::number( (float) $length[1], floor( (float) $length[1] ) == (float) $length[1] ? 0 : 1 );
+				/* translators: 1: number of zips, 2: length in cm (or a range, "18–22") */
+				$need = sprintf( __( '%1$d × zip of %2$s cm', 'atelier-irisee-master-plugin' ), 1, $length );
+				/* translators: 1: number of zips, 2: length in cm (or a range, "18–22") */
+				$will = sprintf( __( '%1$d zip(s) of %2$s cm will be added.', 'atelier-irisee-master-plugin' ), 1, $length );
 			} elseif ( 'length' === $info['kind'] ) {
 				// By length: in cm, with the width range of the pattern; the chosen product decides 10 cm units or rolls.
 				$range = self::range_fact( self::notion_rule( $type, $req ) );
@@ -1868,13 +1918,16 @@ class AIMP_Catalog {
 		return $cat;
 	}
 
-	private static function zip_length_matches( $product, $required ) {
-		$length = AIMP_Notions::number( $product, 'length' );
-		$length = $length > 0 ? $length : '';
-		if ( '' === (string) $length || '' === (string) $required ) {
-			return '' === (string) $required;
-		}
-		return abs( (float) $length - (float) $required ) < 0.01;
+	/**
+	 * Whether a zip's length is within a range of lengths ([ from, to ], zip_range()).
+	 *
+	 * @param WC_Product $product Zip.
+	 * @param array      $range   [ from, to ] in cm.
+	 * @return bool
+	 */
+	public static function zip_length_fits( $product, $range ) {
+		$length = (float) AIMP_Notions::number( $product, 'length' );
+		return $length > 0 && $length >= (float) $range[0] - 0.005 && $length <= (float) $range[1] + 0.005;
 	}
 
 	/**
@@ -2185,15 +2238,16 @@ class AIMP_Catalog {
 		}
 
 		$meta_query = array();
-		$zip_length = self::zip_length( $type, $req );
 		if ( 'zip' === $types[ $type ]['kind'] ) {
-			if ( '' === $zip_length ) {
+			$range = self::zip_range( $type, $req );
+			if ( ! $range ) {
 				return self::empty_page();
 			}
+			// Every zip with a length within the pattern's range (one length: exactly that length).
 			$meta_query[] = array(
 				'key'     => self::META_ZIP_LENGTH,
-				'value'   => wc_format_decimal( $zip_length, 2 ),
-				'compare' => '=',
+				'value'   => array( wc_format_decimal( $range[0], 2 ), wc_format_decimal( $range[1], 2 ) ),
+				'compare' => 'BETWEEN',
 				'type'    => 'DECIMAL(10,2)',
 			);
 		}

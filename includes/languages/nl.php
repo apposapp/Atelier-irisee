@@ -3127,4 +3127,8 @@ return array(
 	'When it opens automatically' => 'Wanneer hij vanzelf opent',
 	'Open the popup automatically for logged-out visitors' => 'De pop-up vanzelf openen voor bezoekers die niet ingelogd zijn',
 	'The pages below only count for "On the first page of a visit".' => 'De pagina\'s hieronder tellen alleen voor "Op de eerste pagina van een bezoek".',
+
+	// 3.67: saved kits
+	'The kit could not be removed. Please reload the page and try again.' => 'Het pakket kon niet verwijderd worden. Herlaad de pagina en probeer opnieuw.',
+	'This kit is already on your favorites page.' => 'Dit pakket staat al op je favorietenpagina.',
 );

@@ -199,6 +199,7 @@ class AIMP_Favorites {
 				'endpoint'        => WC_AJAX::get_endpoint( '%%endpoint%%' ),
 				'nonce'           => is_user_logged_in() ? wp_create_nonce( self::NONCE ) : '',
 				'favoritesUrl'    => $page ? get_permalink( $page ) : '',
+				'removeError'     => __( 'The kit could not be removed. Please reload the page and try again.', 'atelier-irisee-master-plugin' ),
 				'shopUrl'         => wc_get_page_permalink( 'shop' ),
 				'icon'            => self::icon(),
 				'defaultLanguage' => AIMP_I18n::default_language(),
@@ -371,9 +372,14 @@ class AIMP_Favorites {
 
 	public static function render_page() {
 		self::enqueue_card_styles();
-		$kits = class_exists( 'AIMP_Saved_Kits' ) ? AIMP_Saved_Kits::section_html() : '';
+		// The saved kits are loaded by favorites.js (a cached copy of the page would show removed kits again).
+		$kits = '';
+		if ( class_exists( 'AIMP_Saved_Kits' ) && is_user_logged_in() ) {
+			do_action( 'litespeed_control_set_nocache', 'aimp favorites page of a customer' );
+			$kits = '<div data-aimp-saved-kits-slot data-endpoint="' . esc_url( WC_AJAX::get_endpoint( 'aimp_saved_kits' ) ) . '"></div>' .
+				'<h2 class="aimp-saved-kits-title" data-aimp-favorites-title hidden>' . esc_html__( 'My favorites', 'atelier-irisee-master-plugin' ) . '</h2>';
+		}
 		return '<div class="aimp-configurator aimp-favorites">' . $kits .
-			( $kits ? '<h2 class="aimp-saved-kits-title">' . esc_html__( 'My favorites', 'atelier-irisee-master-plugin' ) . '</h2>' : '' ) .
 			'<div class="aimp-favorites-list" data-aimp-favorites-page><noscript>' .
 			esc_html__( 'Please enable JavaScript to see your favorites.', 'atelier-irisee-master-plugin' ) .
 			'</noscript></div></div>';
