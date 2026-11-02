@@ -260,7 +260,19 @@ The plugin speaks **Dutch**, **French** and **English**, independent of the Word
 - **Customers**: the configurator starts in that same language. Customers can switch at any time with the flags in the top right: 🇧🇪 Nederlands / 🇫🇷 Français / 🇬🇧 English.
   - Their choice is remembered in a cookie (`aimp_lang`).
   - The cart and checkout texts from this plugin use the same language.
-- Product names, descriptions and category names are your own shop content, so they are shown as you wrote them.
+- Shop content written only in Dutch gets French and English from [includes/languages/content-fr.php](includes/languages/content-fr.php) and [content-en.php](includes/languages/content-en.php) (`AIMP_Content_I18n`, since 3.68). This covers:
+  - product names, descriptions, categories, colours and product details;
+  - Divi page texts;
+  - the WordPress, WooCommerce and Divi texts that the Dutch site language shows in Dutch.
+- How that works:
+  - On a French or English page, every text between the tags is looked up as Dutch and replaced. So are the alt, title, placeholder and aria-label of a tag, and the answers of the shop's own `?wc-ajax=` requests.
+  - Lines are `'Dutch' => 'translation'`. `{n}` stands for a number and `{s}` for a text that is translated itself, as in `'Wees de eerste om "{s}" te beoordelen'`.
+  - A paragraph with only bold or italic inside is looked up as a whole. Its formatting is then not kept.
+  - A text without a line stays Dutch. Translations made in the Design studio come first.
+  - After changing a product text in Dutch, add its new wording to both files.
+- Page cache:
+  - LiteSpeed is asked to keep a cached copy per `aimp_lang` cookie.
+  - When a cached page still comes in another language than the visitor's choice, a small script in the page head loads it again with `?aimp_lang=…` (`AIMP_I18n::cached_language_guard()`).
 
 ### Adding or changing a text
 
@@ -300,6 +312,7 @@ To add another language:
 | `includes/class-aimp-updater.php` | Checks GitHub releases for updates |
 | `includes/class-aimp-i18n.php` | Picks the active language (Dutch/English) and translates the plugin's texts |
 | `includes/languages/nl.php`, `fr.php` | Dutch and French translations |
+| `includes/class-aimp-content-i18n.php`, `includes/languages/content-fr.php`, `content-en.php` | French and English for shop content written in Dutch |
 | `includes/class-aimp-shop.php` | Shop page shortcode, the `aimp_shop` endpoint and its cached filter options |
 | `includes/class-aimp-fabric-fields.php` | "Fabric texts" box on fabric products |
 | `includes/class-aimp-product-page.php` | Product page design, the product shortcode and the block template swap |

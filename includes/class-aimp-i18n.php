@@ -37,6 +37,39 @@ class AIMP_I18n {
 		add_filter( 'gettext_' . self::DOMAIN, array( __CLASS__, 'translate' ), 10, 2 );
 		add_filter( 'ngettext_' . self::DOMAIN, array( __CLASS__, 'translate_plural' ), 10, 4 );
 		add_action( 'template_redirect', array( __CLASS__, 'remember_link_choice' ) );
+		add_action( 'wp_head', array( __CLASS__, 'cached_language_guard' ), 0 );
+		// LiteSpeed Cache: a cached page per language cookie.
+		add_filter( 'litespeed_vary_cookies', array( __CLASS__, 'vary_cookie' ) );
+		add_filter( 'litespeed_vary_curr_cookies', array( __CLASS__, 'vary_cookie' ) );
+	}
+
+	/**
+	 * @param array $cookies Cookies the page cache varies on.
+	 * @return array
+	 */
+	public static function vary_cookie( $cookies ) {
+		$cookies   = (array) $cookies;
+		$cookies[] = self::COOKIE;
+		return array_values( array_unique( $cookies ) );
+	}
+
+	/**
+	 * A page from the page cache can be in another language than the visitor chose (the cache does not always tell the
+	 * language cookies apart): it then loads again with ?aimp_lang=…, which has its own cached copy. A link with
+	 * ?aimp_lang=… also sets the cookie here, as a cached page does not run remember_link_choice().
+	 */
+	public static function cached_language_guard() {
+		if ( is_admin() || ( class_exists( 'AIMP_Design' ) && AIMP_Design::is_preview() ) ) {
+			return;
+		}
+		printf(
+			'<script>(function(){try{var p=%1$s,s=/[?&]aimp_lang=([a-z]+)/.exec(location.search),c=/(?:^|;\s*)aimp_lang=([a-z]+)/.exec(document.cookie);' .
+			'if(s){document.cookie="aimp_lang="+s[1]+"; path=/; max-age=31536000; SameSite=Lax";return;}' .
+			'var w=c&&%2$s.indexOf(c[1])>-1?c[1]:%3$s;if(w!==p){var u=new URL(location.href);u.searchParams.set("aimp_lang",w);location.replace(u.toString());}}catch(e){}})();</script>' . "\n",
+			wp_json_encode( self::current() ),
+			wp_json_encode( array_keys( self::languages() ) ),
+			wp_json_encode( self::default_language() )
+		);
 	}
 
 	/**

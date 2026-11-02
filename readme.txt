@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.67.0
+Stable tag: 3.68.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,15 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.68.0 =
+* French and English everywhere on the site. Texts that were only written in Dutch now have French and English (870 texts):
+  * all 121 product names and descriptions (fabrics, patterns, buttons, zips and the rest), with categories, colours and product details;
+  * the terms and conditions, privacy statement and shipping & returns pages, plus the menu, footer and newsletter texts;
+  * the WordPress, WooCommerce and Divi texts that showed in Dutch, such as the cart, checkout, reviews, picture viewer, search and the page-not-found page.
+* The shop, customizer and cart data get the same translations, so what JavaScript draws matches. Filter values stay as they are, so filtering keeps working.
+* Language and the page cache: a cached page in the wrong language (the cache did not tell the language cookie apart) now loads once more in the visitor's language. LiteSpeed is also asked to keep a copy per language.
+* Translations made in the Design studio still come first.
 
 = 3.67.0 =
 * Favorites page: the same sewing kit can only be saved once (saving it again moves it to the top). Copies saved before are shown once and removed together.
