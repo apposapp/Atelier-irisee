@@ -30,7 +30,7 @@ class AIMP_Stats {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue' ), 5 );
 		add_action( 'wc_ajax_aimp_hit', array( __CLASS__, 'hit' ) );
 		add_action( self::CRON, array( __CLASS__, 'cleanup' ) );
-		add_action( 'admin_menu', array( __CLASS__, 'add_page' ), 30 );
+		add_action( 'admin_menu', array( __CLASS__, 'add_page' ), 72 ); // After the Atelier Irisee menu itself (60).
 	}
 
 	private static function table() {
