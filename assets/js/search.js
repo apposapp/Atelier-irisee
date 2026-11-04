@@ -92,6 +92,10 @@
 			if (q.length < 2) {
 				return;
 			}
+			// The shop's statistics: what was searched, and whether it found anything (-1: not known yet).
+			if (window.aimpStats) {
+				window.aimpStats.send('search', q, cache[q] ? cache[q].items.length + (cache[q].categories || []).length : -1);
+			}
 			var recent = recentList().filter(function (other) {
 				return other.toLowerCase() !== q.toLowerCase();
 			});

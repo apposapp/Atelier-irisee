@@ -1351,6 +1351,7 @@ class AIMP_Catalog {
 
 		$sizes            = array();
 		$variation_images = array();
+		$fabrics          = null;
 		foreach ( $pattern->get_children() as $child_id ) {
 			if ( '' !== $design && self::variation_design( $child_id ) !== $design ) {
 				continue;
@@ -1361,13 +1362,24 @@ class AIMP_Catalog {
 			}
 			$variation          = $req['variation'];
 			$variation_images[] = absint( $variation->get_image_id() );
+			$available          = $variation->is_purchasable() && $variation->is_in_stock();
+			// A size needing fabric: only when some allowed fabric has enough for it, the kit margin included.
+			$no_fabric = false;
+			if ( $available && $req['fabric_units'] > 0 ) {
+				if ( null === $fabrics ) {
+					$fabrics = self::allowed_fabric_ids( $req );
+				}
+				$no_fabric = ! self::size_has_fabric( $req, $fabrics );
+				$available = ! $no_fabric;
+			}
 			$sizes[]            = array(
 				'id'           => $variation->get_id(),
 				'label'        => $req['size'],
 				'image_id'     => absint( $variation->get_image_id() ),
 				'price'        => (float) wc_get_price_to_display( $variation ),
 				'price_html'   => $variation->get_price_html(),
-				'available'    => $variation->is_purchasable() && $variation->is_in_stock(),
+				'available'    => $available,
+				'unavailable_reason' => $no_fabric ? __( 'Not enough fabric in stock for this size', 'atelier-irisee-master-plugin' ) : '',
 				'bust'         => $req['bust'],
 				'waist'        => $req['waist'],
 				'height'       => $req['height'],
@@ -1968,6 +1980,60 @@ class AIMP_Catalog {
 	}
 
 	/**
+	 * The extra fabric (in units of 10 cm) that must stay in stock for a sewing kit (setting, 10 cm by default).
+	 *
+	 * @return int
+	 */
+	public static function fabric_margin_units() {
+		return (int) ceil( AIMP_Settings::get( 'kit_fabric_margin' ) / self::FABRIC_UNIT_CM );
+	}
+
+	/**
+	 * Whether a fabric has enough for a kit: the units it needs plus the margin.
+	 *
+	 * @param WC_Product $product Fabric.
+	 * @param int        $units   Units of 10 cm the size needs.
+	 * @return bool
+	 */
+	public static function fabric_stock_ok( $product, $units ) {
+		return self::is_available( $product, $units + ( $units > 0 ? self::fabric_margin_units() : 0 ) );
+	}
+
+	/**
+	 * Whether any fabric allowed for a size has enough for a kit, the margin included (narrow fabrics need more).
+	 *
+	 * @param array $req      Requirements of the size.
+	 * @param int[] $fabrics  Allowed fabrics in stock (allowed_fabric_ids()).
+	 * @return bool
+	 */
+	private static function size_has_fabric( $req, $fabrics ) {
+		foreach ( $fabrics as $id ) {
+			$product = wc_get_product( $id );
+			if ( $product && self::fabric_stock_ok( $product, self::with_fabric( $req, $product )['fabric_units'] ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * The fabrics in stock in a size's allowed categories (the same for every size of a pattern or design).
+	 *
+	 * @param array $req Requirements.
+	 * @return int[]
+	 */
+	private static function allowed_fabric_ids( $req ) {
+		if ( ! $req['fabric_cats'] ) {
+			return array();
+		}
+		$args                   = self::base_query_args( $req['fabric_cats'], 'simple', array() );
+		$args['posts_per_page'] = -1;
+		$args['no_found_rows']  = true;
+		$args['fields']         = 'ids';
+		return array_map( 'absint', ( new WP_Query( $args ) )->posts );
+	}
+
+	/**
 	 * A fabric's card for a size: its own amount (a narrow fabric can need more) and what that is in words.
 	 *
 	 * @param WC_Product $product Fabric.
@@ -1976,6 +2042,8 @@ class AIMP_Catalog {
 	 */
 	public static function fabric_card( $product, $req ) {
 		$card                    = self::material_card( $product, $req['fabric_units'] );
+		// A kit keeps a margin of the fabric in stock.
+		$card['available']       = self::fabric_stock_ok( $product, $req['fabric_units'] );
 		$card['fabric_units']    = $req['fabric_units'];
 		$card['need_text']       = self::fabric_need_text( $req );
 		$card['fabric_extra_cm'] = $req['fabric_extra_cm'];
@@ -2181,9 +2249,12 @@ class AIMP_Catalog {
 			$ids = array_values(
 				array_filter(
 					$ids,
-					function ( $id ) use ( $units_for ) {
+					function ( $id ) use ( $units_for, $lining ) {
 						$product = wc_get_product( $id );
-						return $product && self::is_available( $product, $units_for( $product ) );
+						if ( ! $product ) {
+							return false;
+						}
+						return $lining ? self::is_available( $product, $units_for( $product ) ) : self::fabric_stock_ok( $product, $units_for( $product ) );
 					}
 				)
 			);

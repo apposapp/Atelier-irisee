@@ -313,6 +313,7 @@ To add another language:
 | `includes/class-aimp-i18n.php` | Picks the active language (Dutch/English) and translates the plugin's texts |
 | `includes/languages/nl.php`, `fr.php` | Dutch and French translations |
 | `includes/class-aimp-content-i18n.php`, `includes/languages/content-fr.php`, `content-en.php` | French and English for shop content written in Dutch |
+| `includes/class-aimp-stats.php`, `assets/js/stats.js` | Atelier Irisee → Statistics: anonymous visit counting (`{prefix}aimp_stats`, per day, kept 25 months; no cookie, no IP kept) and the shop's sales, favorites, saved kits and sign-ups |
 | `includes/class-aimp-shop.php` | Shop page shortcode, the `aimp_shop` endpoint and its cached filter options |
 | `includes/class-aimp-fabric-fields.php` | "Fabric texts" box on fabric products |
 | `includes/class-aimp-product-page.php` | Product page design, the product shortcode and the block template swap |

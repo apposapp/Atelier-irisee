@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.68.0
+Stable tag: 3.69.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,16 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.69.0 =
+* Welcome code: a customer with an unused welcome code gets it added to the cart and checkout by itself (not when another code is in the cart, and not again after they take it out).
+* Sewing kits keep a margin of fabric in stock (setting "Extra fabric that must stay in stock for a sewing kit", 10 cm by default). A fabric is only offered for a size when it has what the size needs plus the margin; a size that no fabric has enough for can no longer be chosen ("Not enough fabric in stock for this size"). The cart checks the same. Buying fabric on its own is not affected.
+* New: Atelier Irisee → Statistics. Covers:
+  * visitors, page views and a chart per day; most visited pages and products; where visitors come from; language and screen; what people search for (also what found nothing);
+  * sales, best sellers, revenue per category, kits sold, discount codes and gift cards;
+  * the customizer's steps and the patterns, sizes and fabrics chosen most;
+  * favorites and saved kits; new accounts, newsletter sign-ups and back-in-stock requests.
+  * Visits are counted anonymously, without a cookie and without keeping IP addresses.
 
 = 3.68.0 =
 * French and English everywhere on the site. Texts that were only written in Dutch now have French and English (870 texts):

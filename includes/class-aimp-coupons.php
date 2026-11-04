@@ -37,6 +37,10 @@ class AIMP_Coupons {
 		// "Use in my cart" from the account page.
 		add_action( 'wp_loaded', array( __CLASS__, 'apply_from_link' ), 25 );
 
+		// The welcome code goes into the cart and checkout by itself (unless the customer took it out).
+		add_action( 'template_redirect', array( __CLASS__, 'auto_apply_welcome' ), 20 );
+		add_action( 'woocommerce_removed_coupon', array( __CLASS__, 'welcome_removed' ) );
+
 		// Guests: the welcome discount at the top of the checkout (the cart and the register form show it in their
 		// templates, the gold bar in the header).
 		add_action( 'woocommerce_before_checkout_form', array( __CLASS__, 'checkout_offer' ), 5 );
@@ -298,6 +302,64 @@ class AIMP_Coupons {
 			$html .= '</div><a class="aimp-account-button" href="' . esc_url( add_query_arg( 'aimp_coupon', rawurlencode( $coupon->get_code() ), wc_get_cart_url() ) ) . '">' . esc_html__( 'Use in my cart', 'atelier-irisee-master-plugin' ) . '</a></li>';
 		}
 		return $html . '</ul>';
+	}
+
+	/**
+	 * The customer's own welcome code, when they can still use it: the coupon, or null.
+	 *
+	 * @param WP_User $user User.
+	 * @return WC_Coupon|null
+	 */
+	private static function welcome_coupon( $user ) {
+		$id = (int) get_user_meta( $user->ID, self::META_COUPON, true );
+		if ( ! $id ) {
+			return null;
+		}
+		foreach ( self::personal_coupons( $user ) as $coupon ) {
+			if ( $coupon->get_id() === $id ) {
+				return $coupon;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Cart and checkout of a customer with a welcome code they have not used: the code is added by itself. Not when
+	 * another code is in the cart (only one code can be used), nor after the customer took it out.
+	 */
+	public static function auto_apply_welcome() {
+		if ( ! is_user_logged_in() || ! function_exists( 'WC' ) || ! WC()->cart || WC()->cart->is_empty() ) {
+			return;
+		}
+		if ( ! ( is_cart() || is_checkout() ) || is_wc_endpoint_url( 'order-received' ) || is_wc_endpoint_url( 'order-pay' ) ) {
+			return;
+		}
+		if ( WC()->cart->get_applied_coupons() || ( WC()->session && WC()->session->get( 'aimp_welcome_removed' ) ) ) {
+			return;
+		}
+		$coupon = self::welcome_coupon( wp_get_current_user() );
+		if ( ! $coupon ) {
+			return;
+		}
+		if ( WC()->cart->apply_coupon( $coupon->get_code() ) ) {
+			/* translators: %s: discount, e.g. 10% */
+			wc_add_notice( sprintf( __( 'Your %s welcome discount was added.', 'atelier-irisee-master-plugin' ), self::value_text( $coupon ) ), 'success' );
+		}
+	}
+
+	/**
+	 * The customer took their welcome code out of the cart: it is not added again during this visit.
+	 *
+	 * @param string $code Removed code.
+	 */
+	public static function welcome_removed( $code ) {
+		if ( ! is_user_logged_in() || ! WC()->session ) {
+			return;
+		}
+		$id = (int) get_user_meta( get_current_user_id(), self::META_COUPON, true );
+		if ( $id && wc_get_coupon_id_by_code( $code ) === $id ) {
+			WC()->session->set( 'aimp_welcome_removed', 1 );
+		}
 	}
 
 	/**

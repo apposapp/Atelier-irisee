@@ -1,0 +1,194 @@
+/* Atelier Irisee → Statistics. */
+.aimp-stats {
+	--aimp-stats-gold: #a8843f;
+	--aimp-stats-brown: #613907;
+	--aimp-stats-line: #e4ddd2;
+	max-width: 1280px;
+}
+
+.aimp-stats h2 {
+	margin: 2em 0 0.8em;
+	color: var(--aimp-stats-brown);
+	font-size: 1.35em;
+}
+
+.aimp-stats-periods {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 12px 0;
+}
+
+.aimp-stats-periods a {
+	padding: 6px 12px;
+	border: 1px solid var(--aimp-stats-line);
+	border-radius: 999px;
+	background: #fff;
+	color: #3c3c3c;
+	text-decoration: none;
+}
+
+.aimp-stats-periods a.is-current {
+	border-color: var(--aimp-stats-brown);
+	background: var(--aimp-stats-brown);
+	color: #fff;
+}
+
+.aimp-stats-note {
+	max-width: 80ch;
+	color: #6b6b6b;
+}
+
+.aimp-stats-tiles {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 12px;
+}
+
+.aimp-stats-tile {
+	display: grid;
+	gap: 4px;
+	padding: 14px 16px;
+	border: 1px solid var(--aimp-stats-line);
+	border-radius: 8px;
+	background: #fff;
+}
+
+.aimp-stats-tile strong {
+	color: var(--aimp-stats-brown);
+	font-size: 1.7em;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.2;
+}
+
+.aimp-stats-label {
+	color: #6b6b6b;
+	font-size: 12px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.aimp-stats-delta {
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.aimp-stats-delta.is-up {
+	color: #2e7d32;
+}
+
+.aimp-stats-delta.is-down {
+	color: #b23a2a;
+}
+
+.aimp-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.aimp-stats-box {
+	min-width: 0;
+	padding: 14px 16px;
+	border: 1px solid var(--aimp-stats-line);
+	border-radius: 8px;
+	background: #fff;
+}
+
+.aimp-stats-wide {
+	margin-top: 12px;
+}
+
+.aimp-stats-box h3 {
+	margin: 0 0 10px;
+	font-size: 14px;
+}
+
+.aimp-stats-empty {
+	margin: 0;
+	color: #8a8a8a;
+}
+
+.aimp-stats-list {
+	display: grid;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-stats-list li {
+	position: relative;
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 4px 8px;
+	overflow: hidden;
+	border-radius: 4px;
+}
+
+.aimp-stats-name {
+	position: relative;
+	z-index: 1;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.aimp-stats-num {
+	position: relative;
+	z-index: 1;
+	flex: none;
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+
+.aimp-stats-bar {
+	position: absolute;
+	inset: 0 auto 0 0;
+	background: color-mix(in srgb, var(--aimp-stats-gold) 18%, transparent);
+}
+
+.aimp-stats-chart {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.aimp-stats-chart .grid {
+	stroke: var(--aimp-stats-line);
+}
+
+.aimp-stats-chart .axis,
+.aimp-stats-chart .legend text {
+	fill: #6b6b6b;
+	font-size: 11px;
+}
+
+.aimp-stats-chart polyline {
+	fill: none;
+	stroke-width: 2;
+	stroke-linejoin: round;
+}
+
+.aimp-stats-chart .views {
+	stroke: var(--aimp-stats-gold);
+	fill: var(--aimp-stats-gold);
+}
+
+.aimp-stats-chart polyline.views {
+	fill: none;
+}
+
+.aimp-stats-chart .visitors {
+	stroke: var(--aimp-stats-brown);
+	fill: var(--aimp-stats-brown);
+}
+
+.aimp-stats-chart polyline.visitors {
+	fill: none;
+}
+
+.aimp-stats-chart .area {
+	fill: color-mix(in srgb, var(--aimp-stats-gold) 12%, transparent);
+}

@@ -158,7 +158,8 @@ class AIMP_Cart {
 
 		// Stock for every line, counting what is already in the cart.
 		foreach ( $lines as $line ) {
-			$message = self::stock_error( $line['product'], $line['qty'], $pending );
+			// The kit's fabric keeps the margin in stock (setting "Extra fabric that must stay in stock").
+			$message = self::stock_error( $line['product'], $line['qty'], $pending, 'fabric' === $line['role'] ? AIMP_Catalog::fabric_margin_units() : 0 );
 			if ( $message ) {
 				$errors->add( 'aimp_stock_' . $line['role'], $message );
 			}
@@ -223,9 +224,10 @@ class AIMP_Cart {
 	 * @param WC_Product $product Product.
 	 * @param int        $qty     Quantity to add.
 	 * @param array      $pending Quantities already claimed by earlier lines of this set (by stock ID).
+	 * @param int        $reserve Units that must stay in stock on top of it.
 	 * @return string
 	 */
-	private static function stock_error( $product, $qty, &$pending ) {
+	private static function stock_error( $product, $qty, &$pending, $reserve = 0 ) {
 		$name = wp_strip_all_tags( $product->get_name() );
 		if ( ! $product->is_purchasable() || ! $product->is_in_stock() ) {
 			/* translators: %s: product name */
@@ -237,12 +239,12 @@ class AIMP_Cart {
 		$already              = ( isset( $in_cart[ $stock_id ] ) ? $in_cart[ $stock_id ] : 0 ) + ( isset( $pending[ $stock_id ] ) ? $pending[ $stock_id ] : 0 );
 		$pending[ $stock_id ] = ( isset( $pending[ $stock_id ] ) ? $pending[ $stock_id ] : 0 ) + $qty;
 
-		if ( ! $product->has_enough_stock( $already + $qty ) ) {
+		if ( ! $product->has_enough_stock( $already + $qty + $reserve ) ) {
 			return sprintf(
 				/* translators: 1: product name, 2: stock quantity */
 				__( 'Not enough stock for "%1$s" (%2$d available, including what is already in your cart).', 'atelier-irisee-master-plugin' ),
 				$name,
-				max( 0, (int) $product->get_stock_quantity() - $already )
+				max( 0, (int) $product->get_stock_quantity() - $already - $reserve )
 			);
 		}
 		return '';

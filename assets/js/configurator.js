@@ -197,6 +197,13 @@
 
 	var scrollIntoViewIfNeeded = UI.scrollIntoViewIfNeeded;
 
+	// A step of the customizer for the shop's statistics (stats.js; not loaded for the shop's own staff).
+	function track(step, item) {
+		if (window.aimpStats) {
+			window.aimpStats.send('cz', step, item);
+		}
+	}
+
 	// Title of a details panel (the favorite heart sits on the picture, see galleryHtml).
 	function detailsTitle(name) {
 		return '<div class="aimp-details-head"><h3 class="aimp-details-title">' + esc(name) + '</h3></div>';
@@ -1038,6 +1045,12 @@
 			return;
 		}
 		s.pattern = item;
+		// Statistics: the first pattern of this visit starts a kit.
+		if (!this.statsStarted) {
+			this.statsStarted = true;
+			track('start', '');
+		}
+		track('pattern', item.id);
 		s.patternImage = 0;
 		s.sizesData = null;
 		s.size = null;
@@ -1136,7 +1149,7 @@
 			var active = size && size.id === sz.id;
 			html +=
 				'<button type="button" class="aimp-size' + (active ? ' is-active' : '') + '" data-size="' + esc(sz.id) + '" aria-pressed="' + (active ? 'true' : 'false') + '"' +
-				(sz.available ? '' : ' disabled title="' + esc(t.unavailable) + '"') + '>' +
+				(sz.available ? '' : ' disabled title="' + esc(sz.unavailable_reason || t.unavailable) + '"') + '>' +
 				esc(sz.label) +
 				'</button>';
 		});
@@ -1201,6 +1214,7 @@
 		if (confirm) {
 			confirm.addEventListener('click', function () {
 				if (s.size) {
+					track('size', s.pattern.id + '|' + s.size.label);
 					self.closeSheet(true);
 					self.next();
 				}
@@ -1701,6 +1715,9 @@
 			s[k + 'Image'] = i;
 		});
 		panel.querySelector('[data-action="confirm-fabric"]').addEventListener('click', function () {
+			if (k === 'fabric' && s.fabric) {
+				track('fabric', s.fabric.id);
+			}
 			self.closeSheet(true);
 			self.next();
 		});
@@ -2443,6 +2460,7 @@
 		secureRequest('add_to_cart', params)
 			.then(function (data) {
 				s.added = true;
+				track('cart', s.pattern ? s.pattern.id : '');
 				button.hidden = true;
 				back.hidden = true;
 				self.renderSteps();

@@ -82,6 +82,7 @@ class AIMP_Settings {
 			'return_days'               => 14,
 			'delivery_days'             => 4,
 			'low_stock'                 => 5,
+			'kit_fabric_margin'         => 10,
 			'checkout_company'          => 0,
 			'account_page'              => 0,
 			'overview_img_fabrics'      => 0,
@@ -426,6 +427,14 @@ class AIMP_Settings {
 			checked( 1, self::get( 'checkout_company' ), false ),
 			esc_html__( 'Ask for a company name at checkout', 'atelier-irisee-master-plugin' ),
 			esc_html__( 'Write the delivery time as "Dutch | French | English" or one text for all.', 'atelier-irisee-master-plugin' )
+		);
+		printf(
+			'<p><label>%1$s <input type="number" min="0" max="500" step="10" class="small-text" name="%2$s[kit_fabric_margin]" value="%3$d"> %4$s</label></p><p class="description">%5$s</p>',
+			esc_html__( 'Extra fabric that must stay in stock for a sewing kit', 'atelier-irisee-master-plugin' ),
+			esc_attr( self::OPTION ),
+			(int) self::get( 'kit_fabric_margin' ),
+			esc_html__( 'cm', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'A fabric is only offered in the customizer when it has what the size needs plus this much in stock; a size that no fabric has enough for cannot be chosen. 0 = no margin. Buying fabric on its own is not affected.', 'atelier-irisee-master-plugin' )
 		);
 		self::render_low_stock_categories();
 	}
@@ -841,6 +850,7 @@ class AIMP_Settings {
 		$sanitized['return_days']    = isset( $input['return_days'] ) ? min( 365, absint( $input['return_days'] ) ) : 14;
 		$sanitized['delivery_days']  = isset( $input['delivery_days'] ) ? min( 60, absint( $input['delivery_days'] ) ) : 4;
 		$sanitized['low_stock']      = isset( $input['low_stock'] ) ? min( 999, absint( $input['low_stock'] ) ) : 5;
+		$sanitized['kit_fabric_margin'] = isset( $input['kit_fabric_margin'] ) ? min( 500, absint( $input['kit_fabric_margin'] ) ) : 10;
 		$sanitized['checkout_company'] = empty( $input['checkout_company'] ) ? 0 : 1;
 		$sanitized['low_stock_cats']   = array();
 		foreach ( isset( $input['low_stock_cats'] ) && is_array( $input['low_stock_cats'] ) ? $input['low_stock_cats'] : array() as $term_id => $number ) {

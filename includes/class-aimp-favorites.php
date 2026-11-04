@@ -248,6 +248,9 @@ class AIMP_Favorites {
 		} else {
 			array_unshift( $ids, $id );
 			$favorite = true;
+			if ( class_exists( 'AIMP_Stats' ) && ! current_user_can( 'edit_posts' ) ) {
+				AIMP_Stats::count( 'fav', (string) $id );
+			}
 		}
 		self::save( $ids );
 
