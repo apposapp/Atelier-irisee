@@ -31,6 +31,10 @@ class AIMP_Stats {
 		add_action( 'wc_ajax_aimp_hit', array( __CLASS__, 'hit' ) );
 		add_action( self::CRON, array( __CLASS__, 'cleanup' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'add_page' ), 72 ); // After the Atelier Irisee menu itself (60).
+		// The sales numbers are counted again after any order change (also an order moved to the trash or back).
+		foreach ( array( 'woocommerce_order_status_changed', 'woocommerce_new_order', 'woocommerce_trash_order', 'woocommerce_untrash_order', 'woocommerce_delete_order', 'wp_trash_post', 'untrashed_post', 'deleted_post' ) as $hook ) {
+			add_action( $hook, array( __CLASS__, 'sales_changed' ) );
+		}
 	}
 
 	private static function table() {
@@ -311,7 +315,7 @@ class AIMP_Stats {
 	 * @return array
 	 */
 	private static function sales( $from, $to ) {
-		$key  = 'aimp_stats_sales_' . md5( $from . $to );
+		$key  = 'aimp_stats_sales_' . md5( $from . $to . '|' . get_option( 'aimp_stats_sales_v', 0 ) );
 		$data = get_transient( $key );
 		if ( is_array( $data ) ) {
 			return $data;
@@ -388,6 +392,11 @@ class AIMP_Stats {
 		arsort( $data['codes'] );
 		set_transient( $key, $data, HOUR_IN_SECONDS );
 		return $data;
+	}
+
+	/** Orders changed: the stored sales numbers are no longer used. */
+	public static function sales_changed() {
+		update_option( 'aimp_stats_sales_v', time(), false );
 	}
 
 	/**
