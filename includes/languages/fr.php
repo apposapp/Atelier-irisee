@@ -3242,4 +3242,6 @@ return array(
 	'%s comment' => '%s commentaire',
 	'%s comments' => '%s commentaires',
 	'more' => 'plus',
+	// 3.71.1: polaroids on a thread
+	'Polaroids: hang them on a gold thread with clips' => 'Polaroïds : les suspendre à un fil doré avec des pinces',
 );

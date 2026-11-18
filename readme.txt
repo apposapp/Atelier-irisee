@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.71.0
+Stable tag: 3.72.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.72.0 =
+* Instagram polaroids can hang on a gold thread: the stitched gold thread of the kit steps runs along each row, and each polaroid hangs from a small gold clip and swings a little under the mouse. On or off in the Design studio → Instagram → "Polaroids: hang them on a gold thread with clips", or on a page with string="yes" or string="no".
 
 = 3.71.0 =
 * Instagram block: the posts now look like Instagram post cards in the gold style of the site: the profile picture in a gold ring, the name and date, the picture, gold icons, the likes and comments (when Instagram gives them) and the start of the text. Four looks in the Design studio → Instagram → "Look of the posts": Instagram cards (standard), polaroids, on the picture, brown and gold cards, or only the pictures as before. On a page: style="polaroid" and so on.

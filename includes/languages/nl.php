@@ -3242,4 +3242,6 @@ return array(
 	'%s comment' => '%s reactie',
 	'%s comments' => '%s reacties',
 	'more' => 'meer',
+	// 3.71.1: polaroids on a thread
+	'Polaroids: hang them on a gold thread with clips' => 'Polaroids: hang ze aan een gouden draad met knijpers',
 );

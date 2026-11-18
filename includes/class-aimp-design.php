@@ -751,6 +751,7 @@ class AIMP_Design {
 				'ig_nodate'     => 'bool',
 				'ig_noactions'  => 'bool',
 				'ig_nocaption'  => 'bool',
+				'ig_string'     => 'bool',
 			),
 			'gp_opts'     => array(
 				'gp_layout' => array( 'select', array( '', 'amounts', 'designs' ) ),
@@ -4606,6 +4607,7 @@ class AIMP_Design {
 		self::check_box( 'ig_nodate', __( 'Cards: no date', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ig_noactions', __( 'Cards: no icons (like, comment, share, save)', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ig_nocaption', __( 'Cards: no text of the post', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ig_string', __( 'Polaroids: hang them on a gold thread with clips', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ig_notitle', __( 'No title', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ig_nobutton', __( 'No "Follow" button', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'The posts come from a Smash Balloon feed or your own token: Atelier Irisee → Instagram. Without posts the block stays hidden. On another page the shortcode can differ, e.g. [atelier_irisee_instagram count="8" columns="4" shape="portrait"] or style="polaroid".', 'atelier-irisee-master-plugin' ) . '</p>';

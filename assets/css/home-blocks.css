@@ -1240,7 +1240,8 @@
 }
 
 .aimp-ig-cards {
-	gap: var(--aimp-ig-gap, 1.5rem);
+	--ig-row-gap: var(--aimp-ig-gap, 1.5rem);
+	gap: var(--ig-row-gap);
 	align-items: start;
 }
 
@@ -1502,6 +1503,135 @@
 	-webkit-line-clamp: 1;
 }
 
+/* Polaroids on a gold thread (.has-string): the stitched thread of the kit steps runs along the top of each row,
+   dipping a little where a gold clip holds each polaroid. Each card draws its own piece, half a gap past its sides,
+   so the pieces join into one thread. The cards hang from their clip and swing a little under the mouse. */
+.aimp-home-instagram.has-string .aimp-ig-cards > li {
+	position: relative;
+	padding-top: 30px;
+}
+
+.aimp-ig-string {
+	position: absolute;
+	top: 0;
+	left: calc(var(--ig-row-gap) / -2);
+	z-index: 1;
+	width: calc(100% + var(--ig-row-gap));
+	height: 26px;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.aimp-ig-string path {
+	fill: none;
+	stroke: var(--hb-gold);
+	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
+}
+
+.aimp-ig-string-guide {
+	stroke-width: 1.4;
+	stroke-dasharray: 2 8;
+	opacity: 0.45;
+}
+
+.aimp-ig-string-sewn {
+	stroke-width: 2.2;
+	stroke-dasharray: 9 6;
+	opacity: 0.9;
+}
+
+/* The clip: the gold of the kit steps' needle, over the thread and the top of the frame. */
+.aimp-ig-peg {
+	position: absolute;
+	top: 6px;
+	left: 50%;
+	z-index: 3;
+	width: 14px;
+	height: 34px;
+	transform: translateX(-50%);
+	filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--hb-brown) 25%, transparent));
+	pointer-events: none;
+}
+
+.aimp-ig-peg-wood {
+	fill: #d9bd84;
+	stroke: var(--hb-gold-text);
+	stroke-width: 0.8;
+}
+
+.aimp-ig-peg-split,
+.aimp-ig-peg-spring {
+	fill: none;
+	stroke: var(--hb-gold-text);
+	stroke-width: 0.8;
+}
+
+.aimp-ig-peg-shine {
+	fill: none;
+	stroke: #fff;
+	stroke-width: 0.8;
+	stroke-linecap: round;
+	opacity: 0.75;
+}
+
+/* Hanging: turned around the clip, a little less than loose polaroids. */
+.aimp-home-instagram.has-string .aimp-ig-card {
+	transform-origin: 50% -12px;
+	transform: rotate(-2deg);
+}
+
+.aimp-home-instagram.has-string li:nth-child(even) .aimp-ig-card {
+	transform: rotate(1.6deg);
+}
+
+.aimp-home-instagram.has-string li:nth-child(3n) .aimp-ig-card {
+	transform: rotate(-0.8deg);
+}
+
+.aimp-home-instagram.has-string li .aimp-ig-card:is(:hover, :focus-within) {
+	transform: none;
+	animation: aimp-ig-swing 0.9s ease;
+}
+
+@keyframes aimp-ig-swing {
+	0% {
+		transform: rotate(-3deg);
+	}
+
+	35% {
+		transform: rotate(2.2deg);
+	}
+
+	65% {
+		transform: rotate(-1deg);
+	}
+
+	100% {
+		transform: none;
+	}
+}
+
+/* Their own shape (a mosaic in columns): no rows for a thread, only the clips. */
+.aimp-home-instagram.has-string.is-original .aimp-ig-string {
+	display: none;
+}
+
+.aimp-home-instagram.has-string.is-original .aimp-ig-cards > li {
+	padding-top: 16px;
+}
+
+.aimp-home-instagram.has-string.is-original .aimp-ig-peg {
+	top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-home-instagram.has-string li .aimp-ig-card {
+		transform: none;
+		animation: none;
+	}
+}
+
 /* On the picture: the picture is the card, the name above and the icons and text below on a brown veil. */
 .aimp-home-instagram.style-overlay .aimp-ig-card {
 	--ig-ink: #fff8ee;
@@ -1598,7 +1728,7 @@
 @media (max-width: 700px) {
 	.aimp-ig-cards {
 		grid-template-columns: repeat(var(--aimp-ig-cols-phone, 1), minmax(0, 1fr));
-		gap: min(var(--aimp-ig-gap, 1rem), 1rem);
+		--ig-row-gap: min(var(--aimp-ig-gap, 1rem), 1rem);
 	}
 
 	.aimp-home-instagram.has-cards.is-original .aimp-ig-cards {
@@ -1610,7 +1740,7 @@
 		display: flex;
 		align-items: flex-start;
 		columns: auto;
-		gap: 0.9rem;
+		--ig-row-gap: 0.9rem;
 		margin: 0 calc(-1 * var(--hb-pad-x, 1rem));
 		padding-top: 0.5rem;
 		padding-bottom: 1rem;

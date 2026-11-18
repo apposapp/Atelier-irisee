@@ -507,7 +507,7 @@ class AIMP_Home_Blocks {
 	 * of pictures linking to their posts, a title and a "Follow" button. Set in the Design studio → Instagram; a
 	 * page can differ with attributes: count, columns, columns_phone, shape (square|portrait|original), gap, radius,
 	 * hover (zoom|caption|none), title="no", button="no", style (classic|polaroid|overlay|luxe|grid), and for the cards
-	 * profile, date, actions and caption="no".
+	 * profile, date, actions and caption="no", and string="yes" (polaroids on a gold thread).
 	 *
 	 * @param array|string $atts Attributes.
 	 * @return string '' without posts (nothing connected yet, or Instagram failed).
@@ -530,6 +530,7 @@ class AIMP_Home_Blocks {
 				'date'          => '',
 				'actions'       => '',
 				'caption'       => '',
+				'string'        => '',
 			),
 			$atts,
 			'atelier_irisee_instagram'
@@ -624,6 +625,10 @@ class AIMP_Home_Blocks {
 		$dates   = $show( 'date', 'ig_nodate' );
 		$actions = $show( 'actions', 'ig_noactions' );
 		$caption = $show( 'caption', 'ig_nocaption' );
+		// Polaroids on a gold thread, each with a clip (Design studio, or string="yes" | "no").
+		$string  = 'polaroid' === $style && ( 'yes' === $atts['string'] || ( 'no' !== $atts['string'] && AIMP_Blocks::design( $part, 'ig_string' ) ) );
+		$hang    = $string ? '<svg class="aimp-ig-string" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="aimp-ig-string-guide" d="M0 3C25 5 40 12 50 14C60 12 75 5 100 3"/><path class="aimp-ig-string-sewn" d="M0 3C25 5 40 12 50 14C60 12 75 5 100 3"/></svg>' .
+			'<svg class="aimp-ig-peg" viewBox="0 0 14 34" aria-hidden="true" focusable="false"><rect class="aimp-ig-peg-wood" x="1.5" y="1" width="11" height="32" rx="3"/><path class="aimp-ig-peg-split" d="M7 16v17"/><path class="aimp-ig-peg-shine" d="M4 5v7"/><circle class="aimp-ig-peg-spring" cx="7" cy="11" r="3"/></svg>' : '';
 		$title   = $show( 'title', 'ig_notitle' );
 		$button  = $show( 'button', 'ig_nobutton' );
 
@@ -696,7 +701,7 @@ class AIMP_Home_Blocks {
 				$html .= '<p class="aimp-ig-text">' . ( $profile && '' !== $user && 'polaroid' !== $style ? '<a class="aimp-ig-user" href="' . esc_url( $account ) . '"' . $outside . ' tabindex="-1">' . esc_html( $user ) . '</a> ' : '' ) .
 					esc_html( $short ) . ( $more ? '… <a class="aimp-ig-more" href="' . $link . '"' . $outside . '>' . esc_html__( 'more', 'atelier-irisee-master-plugin' ) . '</a>' : '' ) . '</p>';
 			}
-			$cards .= '<li><article class="aimp-ig-card">' . $html . '</article></li>';
+			$cards .= '<li>' . $hang . '<article class="aimp-ig-card">' . $html . '</article></li>';
 		}
 		$follow = $button && '' !== $user ? '<p class="aimp-ig-follow"><a class="aimp-block-button" href="' . esc_url( $account ) . '"' . $outside . '>' . esc_html( str_replace( '{account}', '@' . $user, AIMP_Blocks::text( 'ig_button' ) ) ) . '</a></p>' : '';
 
@@ -708,6 +713,9 @@ class AIMP_Home_Blocks {
 		}
 		if ( $phone < 1 ) {
 			$classes[] = 'is-swipe';
+		}
+		if ( $string ) {
+			$classes[] = 'has-string';
 		}
 		$css = '--aimp-ig-cols:' . (int) $cols . ';' . ( $phone > 0 ? '--aimp-ig-cols-phone:' . (int) $phone . ';' : '' ) .
 			( $gap >= 0 ? '--aimp-ig-gap:' . (int) $gap . 'px;' : '' ) . ( $radius >= 0 ? '--aimp-ig-radius:' . (int) $radius . 'px;' : '' );
