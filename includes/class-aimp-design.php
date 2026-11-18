@@ -746,6 +746,11 @@ class AIMP_Design {
 				'ig_noicon'     => 'bool',
 				'ig_notitle'    => 'bool',
 				'ig_nobutton'   => 'bool',
+				'ig_style'      => array( 'select', array( '', 'polaroid', 'overlay', 'luxe', 'grid' ) ),
+				'ig_noprofile'  => 'bool',
+				'ig_nodate'     => 'bool',
+				'ig_noactions'  => 'bool',
+				'ig_nocaption'  => 'bool',
 			),
 			'gp_opts'     => array(
 				'gp_layout' => array( 'select', array( '', 'amounts', 'designs' ) ),
@@ -4554,9 +4559,20 @@ class AIMP_Design {
 		echo '</fieldset>';
 
 		$group( 'ig_opts', __( 'Instagram', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'ig_style',
+			__( 'Look of the posts', 'atelier-irisee-master-plugin' ),
+			array(
+				''         => __( 'Instagram cards: name, picture, icons and text (standard)', 'atelier-irisee-master-plugin' ),
+				'polaroid' => __( 'Polaroids: the picture in a wide cream frame', 'atelier-irisee-master-plugin' ),
+				'overlay'  => __( 'On the picture: name and text on a brown veil', 'atelier-irisee-master-plugin' ),
+				'luxe'     => __( 'Brown and gold cards', 'atelier-irisee-master-plugin' ),
+				'grid'     => __( 'Only the pictures, in a grid', 'atelier-irisee-master-plugin' ),
+			)
+		);
 		self::number( 'ig_count', __( 'Posts shown (0 = standard, 6)', 'atelier-irisee-master-plugin' ), 0, 24, '' );
-		self::number( 'ig_cols', __( 'Posts per row on computers (0 = standard, 6)', 'atelier-irisee-master-plugin' ), 0, 8, '' );
-		self::number( 'ig_cols_phone', __( 'Posts per row on phones (0 = standard, 3)', 'atelier-irisee-master-plugin' ), 0, 4, '' );
+		self::number( 'ig_cols', __( 'Posts per row on computers (0 = standard: 3 cards or 6 pictures)', 'atelier-irisee-master-plugin' ), 0, 8, '' );
+		self::number( 'ig_cols_phone', __( 'Posts per row on phones (0 = standard: cards to swipe, or 3 pictures)', 'atelier-irisee-master-plugin' ), 0, 4, '' );
 		self::choice(
 			'ig_shape',
 			__( 'Shape of the pictures', 'atelier-irisee-master-plugin' ),
@@ -4586,9 +4602,13 @@ class AIMP_Design {
 			)
 		);
 		self::check_box( 'ig_noicon', __( 'No video and album marks on the pictures', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ig_noprofile', __( 'Cards: no profile picture and name', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ig_nodate', __( 'Cards: no date', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ig_noactions', __( 'Cards: no icons (like, comment, share, save)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ig_nocaption', __( 'Cards: no text of the post', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ig_notitle', __( 'No title', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ig_nobutton', __( 'No "Follow" button', 'atelier-irisee-master-plugin' ) );
-		echo '<p class="description">' . esc_html__( 'The posts come from a Smash Balloon feed or your own token: Atelier Irisee → Instagram. Without posts the block stays hidden. On another page the shortcode can differ, e.g. [atelier_irisee_instagram count="8" columns="4" shape="portrait"].', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'The posts come from a Smash Balloon feed or your own token: Atelier Irisee → Instagram. Without posts the block stays hidden. On another page the shortcode can differ, e.g. [atelier_irisee_instagram count="8" columns="4" shape="portrait"] or style="polaroid".', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		$group( 'gp_opts', __( 'Gift card promo', 'atelier-irisee-master-plugin' ) );

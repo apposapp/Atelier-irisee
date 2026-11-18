@@ -47,6 +47,7 @@ class AIMP_Instagram {
 				'token'      => '',
 				'token_time' => 0,
 				'username'   => '',
+				'avatar'     => '',
 				'error'      => '',
 			)
 		);
@@ -104,6 +105,11 @@ class AIMP_Instagram {
 
 	public static function username() {
 		return (string) self::settings()['username'];
+	}
+
+	/** The saved profile picture ('' = none yet). */
+	public static function avatar() {
+		return (string) self::settings()['avatar'];
 	}
 
 	/**
@@ -179,7 +185,7 @@ class AIMP_Instagram {
 		$me = self::api(
 			'me',
 			array(
-				'fields'       => 'user_id,username',
+				'fields'       => 'user_id,username,profile_picture_url',
 				'access_token' => $token,
 			)
 		);
@@ -189,7 +195,7 @@ class AIMP_Instagram {
 		$media = self::api(
 			'me/media',
 			array(
-				'fields'       => 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp',
+				'fields'       => 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',
 				'limit'        => self::MAX,
 				'access_token' => $token,
 			)
@@ -207,10 +213,14 @@ class AIMP_Instagram {
 				'caption'   => isset( $post['caption'] ) ? (string) $post['caption'] : '',
 				'source'    => 'VIDEO' === $type ? ( isset( $post['thumbnail_url'] ) ? (string) $post['thumbnail_url'] : '' ) : ( isset( $post['media_url'] ) ? (string) $post['media_url'] : '' ),
 				'type'      => $type,
+				'time'      => isset( $post['timestamp'] ) ? (int) strtotime( (string) $post['timestamp'] ) : 0,
+				'likes'     => isset( $post['like_count'] ) ? (int) $post['like_count'] : -1,
+				'comments'  => isset( $post['comments_count'] ) ? (int) $post['comments_count'] : -1,
 			);
 		}
 		return array(
 			'username' => isset( $me['username'] ) ? (string) $me['username'] : '',
+			'avatar'   => isset( $me['profile_picture_url'] ) ? (string) $me['profile_picture_url'] : '',
 			'posts'    => $posts,
 		);
 	}
@@ -245,14 +255,32 @@ class AIMP_Instagram {
 		}
 
 		$username = '';
+		$avatar   = '';
 		$header   = json_decode( (string) $cache->get( 'header' ), true );
 		if ( is_array( $header ) && method_exists( 'SB_Instagram_Parse', 'get_username' ) ) {
 			$username = (string) SB_Instagram_Parse::get_username( $header );
 		}
-		if ( '' === $username ) {
+		if ( is_array( $header ) ) {
+			// Smash Balloon's own copy when it has one, else Instagram's address (not get_avatar(): with its GDPR
+			// setting on, that gives a grey placeholder).
+			foreach ( array( 'local_avatar_url', 'local_avatar' ) as $key ) {
+				if ( '' === $avatar && ! empty( $header[ $key ] ) && is_string( $header[ $key ] ) ) {
+					$avatar = $header[ $key ];
+				}
+			}
+			$avatar = '' !== $avatar ? $avatar : (string) SB_Instagram_Parse::get_avatar_url( $header );
+		}
+		if ( '' === $username || '' === $avatar ) {
 			global $wpdb;
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- the table name only.
-			$username = (string) $wpdb->get_var( "SELECT username FROM {$wpdb->prefix}sbi_sources ORDER BY last_updated DESC LIMIT 1" );
+			$row = $wpdb->get_row( "SELECT username, info FROM {$wpdb->prefix}sbi_sources ORDER BY last_updated DESC LIMIT 1", ARRAY_A );
+			if ( $row ) {
+				$username = '' !== $username ? $username : (string) $row['username'];
+				$info     = json_decode( (string) $row['info'], true );
+				if ( '' === $avatar && is_array( $info ) ) {
+					$avatar = (string) SB_Instagram_Parse::get_avatar_url( $info );
+				}
+			}
 		}
 
 		$posts = array();
@@ -266,10 +294,14 @@ class AIMP_Instagram {
 				'caption'   => (string) SB_Instagram_Parse::get_caption( $post, '' ),
 				'source'    => (string) SB_Instagram_Parse::get_media_url( $post, 'full' ),
 				'type'      => isset( $post['media_type'] ) ? strtoupper( (string) $post['media_type'] ) : 'IMAGE',
+				'time'      => (int) SB_Instagram_Parse::get_timestamp( $post ),
+				'likes'     => isset( $post['like_count'] ) ? (int) $post['like_count'] : -1,
+				'comments'  => isset( $post['comments_count'] ) ? (int) $post['comments_count'] : -1,
 			);
 		}
 		return array(
 			'username' => $username,
+			'avatar'   => $avatar,
 			'posts'    => $posts,
 		);
 	}
@@ -317,12 +349,26 @@ class AIMP_Instagram {
 				'width'     => $size ? (int) $size[0] : 0,
 				'height'    => $size ? (int) $size[1] : 0,
 				'type'      => $post['type'],
+				'time'      => isset( $post['time'] ) ? (int) $post['time'] : 0,
+				'likes'     => isset( $post['likes'] ) ? (int) $post['likes'] : -1,
+				'comments'  => isset( $post['comments'] ) ? (int) $post['comments'] : -1,
 			);
 		}
 		if ( ! $items ) {
 			self::update( array( 'error' => __( 'No pictures could be saved from the posts.', 'atelier-irisee-master-plugin' ) ) );
 			return;
 		}
+		// The profile picture, small, renewed once a day.
+		$avatar = '';
+		$fresh  = file_exists( $dir . 'avatar.jpg' ) && time() - (int) filemtime( $dir . 'avatar.jpg' ) < DAY_IN_SECONDS;
+		if ( ! empty( $result['avatar'] ) && ! $fresh ) {
+			self::save_picture( $result['avatar'], $dir . 'avatar.jpg', 150 );
+			clearstatcache();
+		}
+		if ( file_exists( $dir . 'avatar.jpg' ) ) {
+			$avatar = $url . 'avatar.jpg?v=' . (int) filemtime( $dir . 'avatar.jpg' );
+		}
+		$keep[] = 'avatar.jpg';
 		// Pictures of posts that are no longer among the newest.
 		foreach ( (array) glob( $dir . '*.jpg' ) as $old ) {
 			if ( ! in_array( basename( $old ), $keep, true ) ) {
@@ -341,6 +387,7 @@ class AIMP_Instagram {
 		self::update(
 			array(
 				'username' => sanitize_text_field( $result['username'] ),
+				'avatar'   => esc_url_raw( $avatar ),
 				'error'    => '',
 			)
 		);
@@ -351,9 +398,10 @@ class AIMP_Instagram {
 	 *
 	 * @param string $source Address.
 	 * @param string $path   File.
+	 * @param int    $max    Longest side.
 	 * @return bool
 	 */
-	private static function save_picture( $source, $path ) {
+	private static function save_picture( $source, $path, $max = 1080 ) {
 		if ( ! function_exists( 'download_url' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
@@ -364,7 +412,7 @@ class AIMP_Instagram {
 		$editor = wp_get_image_editor( $tmp );
 		$ok     = false;
 		if ( ! is_wp_error( $editor ) ) {
-			$editor->resize( 1080, 1080, false );
+			$editor->resize( $max, $max, false );
 			$editor->set_quality( 82 );
 			$ok = ! is_wp_error( $editor->save( $path, 'image/jpeg' ) );
 		}

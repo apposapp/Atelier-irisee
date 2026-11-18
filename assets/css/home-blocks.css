@@ -1220,6 +1220,429 @@
 	}
 }
 
+/* Instagram post cards (.has-cards): profile picture and name, the picture, gold icons, the counts and the start of
+   the text. style-classic (cream), style-luxe (brown and gold), style-polaroid (a wide frame), style-overlay (all
+   on the picture). */
+.aimp-home-instagram.has-cards {
+	--ig-card: #fffdf8;
+	--ig-ink: var(--hb-brown);
+	--ig-soft: color-mix(in srgb, var(--hb-brown) 62%, #fff);
+	--ig-icon: var(--hb-gold);
+	--ig-edge: color-mix(in srgb, var(--hb-gold) 45%, transparent);
+}
+
+.aimp-home-instagram.style-luxe {
+	--ig-card: color-mix(in srgb, var(--hb-brown) 92%, #000);
+	--ig-ink: #f3e3c3;
+	--ig-soft: color-mix(in srgb, #f3e3c3 70%, transparent);
+	--ig-icon: color-mix(in srgb, var(--hb-gold) 75%, #fff);
+	--ig-edge: var(--hb-gold);
+}
+
+.aimp-ig-cards {
+	gap: var(--aimp-ig-gap, 1.5rem);
+	align-items: start;
+}
+
+.aimp-ig-card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	border: 1px solid var(--ig-edge);
+	border-radius: var(--aimp-ig-radius, 14px);
+	background: var(--ig-card);
+	box-shadow: 0 6px 22px color-mix(in srgb, var(--hb-brown) 10%, transparent);
+	color: var(--ig-ink);
+	text-align: left;
+}
+
+.aimp-ig-card a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.aimp-ig-card a:focus-visible,
+.aimp-ig-card button:focus-visible {
+	outline: 2px solid var(--hb-gold);
+	outline-offset: 2px;
+}
+
+/* In a card the picture fills its width; the card has the corners. */
+.aimp-ig-card .aimp-ig-post {
+	border-radius: 0;
+}
+
+/* The header: a round picture in a gold ring, the name and the date. */
+.aimp-ig-head {
+	display: flex;
+	align-items: center;
+	gap: 0.7rem;
+	padding: 0.75rem 0.9rem;
+}
+
+.aimp-ig-avatar-link {
+	flex: none;
+	display: block;
+	padding: 2px;
+	border-radius: 50%;
+	background: conic-gradient(from 210deg, var(--hb-gold), color-mix(in srgb, var(--hb-gold) 40%, #fff), var(--hb-gold-text), var(--hb-gold));
+}
+
+.aimp-ig-avatar {
+	display: grid;
+	place-items: center;
+	box-sizing: border-box;
+	width: 36px;
+	height: 36px;
+	border: 2px solid var(--ig-card);
+	border-radius: 50%;
+	background: var(--ig-card);
+	object-fit: cover;
+}
+
+.aimp-ig-avatar.is-letter {
+	color: var(--hb-gold-text);
+	font-size: 15px;
+	font-weight: 700;
+}
+
+.aimp-ig-who {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	line-height: 1.25;
+}
+
+.aimp-ig-user {
+	overflow: hidden;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.aimp-ig-date {
+	color: var(--ig-soft);
+	font-size: 12px;
+	font-weight: 500;
+}
+
+/* The icons: like, comment and share on the left, save on the right. */
+.aimp-ig-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.2rem;
+	padding: 0.45rem 0.55rem 0.1rem;
+}
+
+.aimp-ig-action {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 38px;
+	height: 38px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	color: var(--ig-icon);
+	cursor: pointer;
+	transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.aimp-ig-action svg {
+	width: 24px;
+	height: 24px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.7;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+}
+
+.aimp-ig-action:hover {
+	background: color-mix(in srgb, var(--hb-gold) 14%, transparent);
+	transform: scale(1.08);
+}
+
+.aimp-ig-action.is-like.is-liked svg {
+	fill: currentColor;
+	animation: aimp-ig-pop 0.45s ease;
+}
+
+@keyframes aimp-ig-pop {
+	40% {
+		transform: scale(1.3);
+	}
+}
+
+.aimp-ig-action.is-save,
+.aimp-ig-actions .aimp-ig-date {
+	margin-left: auto;
+}
+
+.aimp-ig-actions .aimp-ig-date + .aimp-ig-action.is-save {
+	margin-left: 0.3rem;
+}
+
+/* "Link copied". */
+.aimp-ig-bubble {
+	position: absolute;
+	bottom: calc(100% + 6px);
+	left: 50%;
+	z-index: 3;
+	padding: 0.3rem 0.65rem;
+	border-radius: 999px;
+	background: var(--hb-brown);
+	color: #fff8ee;
+	font-size: 12px;
+	font-weight: 600;
+	white-space: nowrap;
+	transform: translateX(-50%);
+	animation: aimp-ig-fade 1.8s ease forwards;
+	pointer-events: none;
+}
+
+@keyframes aimp-ig-fade {
+	0%,
+	80% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}
+
+.aimp-ig-counts {
+	margin: 0;
+	padding: 0.1rem 0.95rem 0;
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.aimp-ig-text {
+	display: -webkit-box;
+	overflow: hidden;
+	margin: 0 0 0.95rem;
+	padding: 0.3rem 0.95rem 0;
+	font-size: 13.5px;
+	font-weight: 500;
+	line-height: 1.45;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+}
+
+.aimp-ig-text .aimp-ig-user {
+	margin-right: 0.15rem;
+}
+
+.aimp-ig-card .aimp-ig-more {
+	color: var(--ig-soft);
+}
+
+.aimp-ig-card > .aimp-ig-actions:last-child {
+	padding-bottom: 0.5rem;
+}
+
+/* Brown and gold: a thin gold edge around the picture. */
+.aimp-home-instagram.style-luxe .aimp-ig-card .aimp-ig-post {
+	margin: 0 0.75rem;
+	border: 1px solid var(--hb-gold);
+	border-radius: calc(var(--aimp-ig-radius, 14px) * 0.5);
+}
+
+.aimp-home-instagram.style-luxe .aimp-ig-card > .aimp-ig-post:first-child {
+	margin-top: 0.75rem;
+}
+
+.aimp-home-instagram.style-luxe .aimp-ig-avatar-link {
+	background: var(--hb-gold);
+}
+
+/* Polaroids: a wide cream frame, a slight tilt that straightens under the mouse. */
+.aimp-home-instagram.style-polaroid .aimp-ig-card {
+	padding: 0.8rem 0.8rem 0.4rem;
+	border-color: color-mix(in srgb, var(--hb-gold) 25%, transparent);
+	border-radius: 4px;
+	box-shadow: 0 10px 26px color-mix(in srgb, var(--hb-brown) 16%, transparent);
+	transform: rotate(-1.2deg);
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.aimp-home-instagram.style-polaroid li:nth-child(even) .aimp-ig-card {
+	transform: rotate(1deg);
+}
+
+.aimp-home-instagram.style-polaroid li:nth-child(3n) .aimp-ig-card {
+	transform: rotate(-0.4deg);
+}
+
+.aimp-home-instagram.style-polaroid li .aimp-ig-card:is(:hover, :focus-within) {
+	box-shadow: 0 14px 32px color-mix(in srgb, var(--hb-brown) 22%, transparent);
+	transform: none;
+}
+
+.aimp-home-instagram.style-polaroid .aimp-ig-card .aimp-ig-post {
+	border-radius: 2px;
+}
+
+.aimp-home-instagram.style-polaroid .aimp-ig-actions {
+	padding: 0.4rem 0 0;
+}
+
+.aimp-home-instagram.style-polaroid .aimp-ig-text {
+	margin-bottom: 0.5rem;
+	padding: 0.1rem 0.3rem 0;
+	color: var(--hb-gold-text);
+	font-family: Georgia, serif;
+	font-size: 15px;
+	font-style: italic;
+	-webkit-line-clamp: 1;
+}
+
+/* On the picture: the picture is the card, the name above and the icons and text below on a brown veil. */
+.aimp-home-instagram.style-overlay .aimp-ig-card {
+	--ig-ink: #fff8ee;
+	--ig-soft: color-mix(in srgb, #fff8ee 75%, transparent);
+	--ig-icon: color-mix(in srgb, var(--hb-gold) 55%, #fff);
+	display: grid;
+	grid-template-rows: 1fr auto auto auto;
+	border: 0;
+	background: var(--hb-tint);
+}
+
+.aimp-home-instagram.style-overlay .aimp-ig-head {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	z-index: 2;
+	padding-bottom: 1.6rem;
+	background: linear-gradient(to bottom, color-mix(in srgb, var(--hb-brown) 70%, transparent), transparent);
+	pointer-events: none;
+}
+
+.aimp-home-instagram.style-overlay .aimp-ig-head a {
+	pointer-events: auto;
+}
+
+.aimp-home-instagram.style-overlay .aimp-ig-card > .aimp-ig-post {
+	grid-row: 1 / -1;
+	grid-column: 1;
+}
+
+.aimp-home-instagram.style-overlay .aimp-ig-card > :is(.aimp-ig-actions, .aimp-ig-counts, .aimp-ig-text) {
+	position: relative;
+	z-index: 2;
+	grid-column: 1;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.aimp-home-instagram.style-overlay .aimp-ig-actions {
+	grid-row: 2;
+	padding-top: 2.5rem;
+	background: linear-gradient(to top, color-mix(in srgb, var(--hb-brown) 60%, transparent), transparent);
+}
+
+.aimp-home-instagram.style-overlay .aimp-ig-counts {
+	grid-row: 3;
+	background: color-mix(in srgb, var(--hb-brown) 60%, transparent);
+}
+
+.aimp-home-instagram.style-overlay .aimp-ig-text {
+	grid-row: 4;
+	background: color-mix(in srgb, var(--hb-brown) 60%, transparent);
+	-webkit-line-clamp: 2;
+}
+
+.aimp-home-instagram.style-overlay .aimp-ig-card:is(:hover, :focus-within) > :is(.aimp-ig-actions, .aimp-ig-counts, .aimp-ig-text) {
+	opacity: 1;
+}
+
+/* Touch screens have no mouse to show them. */
+@media (hover: none) {
+	.aimp-home-instagram.style-overlay .aimp-ig-card > :is(.aimp-ig-actions, .aimp-ig-counts, .aimp-ig-text) {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-home-instagram.style-polaroid li .aimp-ig-card {
+		transform: none;
+		transition: none;
+	}
+
+	.aimp-ig-action,
+	.aimp-ig-action.is-like.is-liked svg,
+	.aimp-home-instagram.style-overlay .aimp-ig-card > * {
+		transition: none;
+		animation: none;
+	}
+}
+
+/* Cards: at most three per row on tablets. */
+@media (max-width: 1024px) {
+	.aimp-ig-cards {
+		grid-template-columns: repeat(min(var(--aimp-ig-cols, 3), 3), minmax(0, 1fr));
+	}
+
+	.aimp-home-instagram.has-cards.is-original .aimp-ig-cards {
+		columns: min(var(--aimp-ig-cols, 3), 3);
+	}
+}
+
+/* Phones: the cards in a row to swipe, one and a bit in sight (or the phone setting). */
+@media (max-width: 700px) {
+	.aimp-ig-cards {
+		grid-template-columns: repeat(var(--aimp-ig-cols-phone, 1), minmax(0, 1fr));
+		gap: min(var(--aimp-ig-gap, 1rem), 1rem);
+	}
+
+	.aimp-home-instagram.has-cards.is-original .aimp-ig-cards {
+		columns: var(--aimp-ig-cols-phone, 1);
+	}
+
+	.aimp-home-instagram.is-swipe .aimp-ig-cards,
+	.aimp-home-instagram.is-swipe.is-original .aimp-ig-cards {
+		display: flex;
+		align-items: flex-start;
+		columns: auto;
+		gap: 0.9rem;
+		margin: 0 calc(-1 * var(--hb-pad-x, 1rem));
+		padding-top: 0.5rem;
+		padding-bottom: 1rem;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-padding: 0 var(--hb-pad-x, 1rem);
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+	}
+
+	.aimp-home-instagram.is-swipe .aimp-ig-cards::-webkit-scrollbar {
+		display: none;
+	}
+
+	.aimp-home-instagram.is-swipe .aimp-ig-cards > li {
+		flex: 0 0 80%;
+		margin: 0;
+		scroll-snap-align: start;
+	}
+
+	/* The gutter at both ends (the list itself can't have one: Divi's lists get padding-left: 0 !important). */
+	.aimp-home-instagram.is-swipe .aimp-ig-cards > li:first-child {
+		margin-left: var(--hb-pad-x, 1rem);
+	}
+
+	/* After the last card: the gap plus this 1 px. */
+	.aimp-home-instagram.is-swipe .aimp-ig-cards::after {
+		content: "";
+		flex: 0 0 1px;
+	}
+}
+
 /* ------------------------------------------------------------------ computers: 80 % wide blocks */
 /* New products, "Meet the maker" and the questions take 80 % of the screen, centred. */
 @media (min-width: 1025px) {

@@ -78,7 +78,53 @@
 		}
 	}
 
+	/**
+	 * Instagram cards: share opens the phone's share sheet, or copies the link on a computer (with a small "Link
+	 * copied" bubble), or else opens the post. The heart fills gold for a moment on its way to Instagram.
+	 */
+	function bubble(button, text) {
+		var tip = document.createElement('span');
+		tip.className = 'aimp-ig-bubble';
+		tip.setAttribute('role', 'status');
+		tip.textContent = text;
+		button.appendChild(tip);
+		window.setTimeout(function () {
+			tip.remove();
+		}, 1800);
+	}
+
+	function instagram(event) {
+		var share = event.target.closest('[data-aimp-ig-share]');
+		if (share) {
+			var url = share.getAttribute('data-aimp-ig-share');
+			var open = function () {
+				window.open(url, '_blank', 'noopener');
+			};
+			var touch = window.matchMedia && window.matchMedia('(hover: none)').matches;
+			if (navigator.share && touch) {
+				navigator.share({ url: url, text: share.getAttribute('data-text') || '' }).catch(function () {});
+			} else if (navigator.clipboard && window.isSecureContext) {
+				navigator.clipboard.writeText(url).then(function () {
+					bubble(share, share.getAttribute('data-copied') || '✓');
+				}, open);
+			} else {
+				open();
+			}
+			return;
+		}
+		var like = event.target.closest('.aimp-ig-action.is-like');
+		if (like) {
+			like.classList.add('is-liked');
+			window.setTimeout(function () {
+				like.classList.remove('is-liked');
+			}, 1200);
+		}
+	}
+
 	function start() {
+		if (document.querySelector('.aimp-ig-cards')) {
+			document.addEventListener('click', instagram);
+		}
 		scrollbar();
 		window.addEventListener('resize', scrollbar);
 		if (document.querySelector('.aimp-page-header')) {

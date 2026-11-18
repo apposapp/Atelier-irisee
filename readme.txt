@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.70.0
+Stable tag: 3.71.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.71.0 =
+* Instagram block: the posts now look like Instagram post cards in the gold style of the site: the profile picture in a gold ring, the name and date, the picture, gold icons, the likes and comments (when Instagram gives them) and the start of the text. Four looks in the Design studio → Instagram → "Look of the posts": Instagram cards (standard), polaroids, on the picture, brown and gold cards, or only the pictures as before. On a page: style="polaroid" and so on.
+* The icons work: like, comment and save open the post on Instagram (Instagram only allows those there); share opens the share sheet on phones and copies the link on computers. Each part of the card can be switched off.
+* Phones: the cards slide sideways, one and a bit in sight (or set a number of posts per row).
 
 = 3.70.0 =
 * Instagram without a Meta app: the posts can now come from a feed made in Smash Balloon Instagram Feed (Atelier Irisee → Instagram → "Posts come from"). Only its posts are used; they are shown in the site's own style by [atelier_irisee_instagram]. Your own access token still works as before.

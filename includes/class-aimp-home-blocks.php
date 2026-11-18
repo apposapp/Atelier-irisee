@@ -506,7 +506,8 @@ class AIMP_Home_Blocks {
 	 * The newest Instagram posts (AIMP_Instagram: a Smash Balloon feed or our own token) in the site's style: a grid
 	 * of pictures linking to their posts, a title and a "Follow" button. Set in the Design studio → Instagram; a
 	 * page can differ with attributes: count, columns, columns_phone, shape (square|portrait|original), gap, radius,
-	 * hover (zoom|caption|none), title="no", button="no".
+	 * hover (zoom|caption|none), title="no", button="no", style (classic|polaroid|overlay|luxe|grid), and for the cards
+	 * profile, date, actions and caption="no".
 	 *
 	 * @param array|string $atts Attributes.
 	 * @return string '' without posts (nothing connected yet, or Instagram failed).
@@ -524,6 +525,11 @@ class AIMP_Home_Blocks {
 				'hover'         => '',
 				'title'         => '',
 				'button'        => '',
+				'style'         => '',
+				'profile'       => '',
+				'date'          => '',
+				'actions'       => '',
+				'caption'       => '',
 			),
 			$atts,
 			'atelier_irisee_instagram'
@@ -543,6 +549,12 @@ class AIMP_Home_Blocks {
 			return '';
 		}
 		self::assets();
+		// '' = the classic Instagram card; 'grid' = only the pictures.
+		$style  = $pick( 'style', 'ig_style', array( 'polaroid', 'overlay', 'luxe', 'grid', 'classic' ) );
+		$style  = 'classic' === $style ? '' : $style;
+		if ( 'grid' !== $style ) {
+			return self::instagram_cards( $atts, $style, $num, $pick, $items );
+		}
 		$cols   = $num( 'columns', 'ig_cols', 1, 8, min( 6, count( $items ) ) );
 		$phone  = $num( 'columns_phone', 'ig_cols_phone', 1, 4, 3 );
 		$gap    = $num( 'gap', 'ig_gap', 0, 40, -1 );
@@ -582,6 +594,125 @@ class AIMP_Home_Blocks {
 			( $gap >= 0 ? '--aimp-ig-gap:' . (int) $gap . 'px;' : '' ) . ( $radius >= 0 ? '--aimp-ig-radius:' . (int) $radius . 'px;' : '' );
 		return '<section class="' . esc_attr( implode( ' ', $classes ) ) . '" style="' . esc_attr( $style ) . '">' . ( $title ? self::title( AIMP_Blocks::text( 'ig_title' ) ) : '' ) .
 			'<ul class="aimp-ig-grid">' . $cards . '</ul>' . $follow . '</section>';
+	}
+
+	/**
+	 * The posts as Instagram post cards in the site's colours: profile picture and name, the picture, the icons
+	 * (like, comment and save open the post on Instagram, which allows those only there; share uses the phone's
+	 * share sheet or copies the link), the counts when Instagram gives them, and the start of the text.
+	 *
+	 * @param array    $atts  Shortcode attributes.
+	 * @param string   $style '' (classic), polaroid, overlay or luxe.
+	 * @param callable $num   Number setting.
+	 * @param callable $pick  Choice setting.
+	 * @param array    $items Posts.
+	 * @return string
+	 */
+	private static function instagram_cards( $atts, $style, $num, $pick, $items ) {
+		$part    = 'home-instagram';
+		$show    = function ( $att, $key ) use ( $atts, $part ) {
+			return 'no' !== $atts[ $att ] && ! AIMP_Blocks::design( $part, $key );
+		};
+		$cols    = $num( 'columns', 'ig_cols', 1, 8, min( 3, count( $items ) ) );
+		$phone   = $num( 'columns_phone', 'ig_cols_phone', 1, 4, -1 ); // -1: a row to swipe.
+		$gap     = $num( 'gap', 'ig_gap', 0, 40, -1 );
+		$radius  = $num( 'radius', 'ig_radius', 0, 30, -1 );
+		$shape   = $pick( 'shape', 'ig_shape', array( 'portrait', 'original' ) );
+		$hover   = $pick( 'hover', 'ig_hover', array( 'caption', 'none' ) );
+		$marks   = ! AIMP_Blocks::design( $part, 'ig_noicon' );
+		$profile = $show( 'profile', 'ig_noprofile' ) && 'polaroid' !== $style;
+		$dates   = $show( 'date', 'ig_nodate' );
+		$actions = $show( 'actions', 'ig_noactions' );
+		$caption = $show( 'caption', 'ig_nocaption' );
+		$title   = $show( 'title', 'ig_notitle' );
+		$button  = $show( 'button', 'ig_nobutton' );
+
+		$user    = AIMP_Instagram::username();
+		$account = '' !== $user ? 'https://www.instagram.com/' . rawurlencode( $user ) . '/' : '';
+		$avatar  = AIMP_Instagram::avatar();
+		$picture = '' !== $avatar
+			? '<img class="aimp-ig-avatar" src="' . esc_url( $avatar ) . '" alt="" width="36" height="36" loading="lazy">'
+			: '<span class="aimp-ig-avatar is-letter" aria-hidden="true">' . esc_html( strtoupper( substr( '' !== $user ? $user : 'A', 0, 1 ) ) ) . '</span>';
+		$outside = ' target="_blank" rel="noopener"';
+		$svg     = function ( $path ) {
+			return '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="' . $path . '"/></svg>';
+		};
+		$icons = array(
+			'like'    => $svg( 'M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.8 4.5 7.1 4.5c2 0 3.6 1.1 4.9 2.9 1.3-1.8 2.9-2.9 4.9-2.9 3.3 0 5.5 3.1 4.3 6.6-1.7 4.8-9.2 9.4-9.2 9.4z' ),
+			'comment' => $svg( 'M20.5 11.6a8.4 8.4 0 0 1-12.3 7.5L3.5 20.5l1.4-4.6a8.4 8.4 0 1 1 15.6-4.3z' ),
+			'share'   => $svg( 'M21.5 2.5 10.6 13.4M21.5 2.5l-6.9 19-4-8.1-8.1-4z' ),
+			'save'    => $svg( 'M18.5 21.5 12 15.4l-6.5 6.1V3.5h13z' ),
+		);
+		$year  = wp_date( 'Y' );
+		$cards = '';
+		foreach ( $items as $item ) {
+			$link  = esc_url( $item['permalink'] );
+			$text  = trim( preg_replace( '/\s+/u', ' ', (string) $item['caption'] ) );
+			$limit = 'polaroid' === $style ? 60 : 110;
+			$short = function_exists( 'mb_substr' ) ? mb_substr( $text, 0, $limit ) : substr( $text, 0, $limit );
+			$more  = strlen( $short ) < strlen( $text );
+			$type  = isset( $item['type'] ) ? (string) $item['type'] : '';
+			$mark  = '';
+			if ( $marks && 'VIDEO' === $type ) {
+				$mark = '<span class="aimp-ig-video" aria-hidden="true"></span>';
+			} elseif ( $marks && 'CAROUSEL_ALBUM' === $type ) {
+				$mark = '<span class="aimp-ig-album" aria-hidden="true"></span>';
+			}
+			$time = ! empty( $item['time'] ) ? (int) $item['time'] : 0;
+			$date = $dates && $time ? '<time class="aimp-ig-date" datetime="' . esc_attr( gmdate( 'c', $time ) ) . '">' . esc_html( wp_date( wp_date( 'Y', $time ) === $year ? 'j M' : 'j M Y', $time ) ) . '</time>' : '';
+			$size = ! empty( $item['width'] ) && ! empty( $item['height'] ) ? ' width="' . (int) $item['width'] . '" height="' . (int) $item['height'] . '"' : '';
+
+			$html = '';
+			if ( $profile && '' !== $user ) {
+				$html .= '<header class="aimp-ig-head"><a class="aimp-ig-avatar-link" href="' . esc_url( $account ) . '"' . $outside . ' tabindex="-1" aria-hidden="true">' . $picture . '</a>' .
+					'<span class="aimp-ig-who"><a class="aimp-ig-user" href="' . esc_url( $account ) . '"' . $outside . '>' . esc_html( $user ) . '</a>' . $date . '</span></header>';
+			}
+			$html .= '<a class="aimp-ig-post" href="' . $link . '"' . $outside . '><img src="' . esc_url( $item['image'] ) . '" alt="' . esc_attr( $short ) . '"' . $size . ' loading="lazy">' . $mark . '</a>';
+			if ( $actions || ( $date && ! $profile ) ) {
+				$html .= '<div class="aimp-ig-actions">';
+				if ( $actions ) {
+					$html .= '<a class="aimp-ig-action is-like" href="' . $link . '"' . $outside . ' title="' . esc_attr__( 'Like on Instagram', 'atelier-irisee-master-plugin' ) . '" aria-label="' . esc_attr__( 'Like on Instagram', 'atelier-irisee-master-plugin' ) . '">' . $icons['like'] . '</a>' .
+						'<a class="aimp-ig-action is-comment" href="' . $link . '"' . $outside . ' title="' . esc_attr__( 'Comment on Instagram', 'atelier-irisee-master-plugin' ) . '" aria-label="' . esc_attr__( 'Comment on Instagram', 'atelier-irisee-master-plugin' ) . '">' . $icons['comment'] . '</a>' .
+						'<button type="button" class="aimp-ig-action is-share" data-aimp-ig-share="' . esc_attr( $item['permalink'] ) . '" data-text="' . esc_attr( function_exists( 'mb_substr' ) ? mb_substr( $text, 0, 80 ) : substr( $text, 0, 80 ) ) . '" data-copied="' . esc_attr__( 'Link copied', 'atelier-irisee-master-plugin' ) . '" title="' . esc_attr__( 'Share', 'atelier-irisee-master-plugin' ) . '" aria-label="' . esc_attr__( 'Share', 'atelier-irisee-master-plugin' ) . '">' . $icons['share'] . '</button>';
+				}
+				// Without the header the date goes here (the polaroid: on the right).
+				$html .= $date && ! $profile ? $date : '';
+				if ( $actions ) {
+					$html .= '<a class="aimp-ig-action is-save" href="' . $link . '"' . $outside . ' title="' . esc_attr__( 'Save on Instagram', 'atelier-irisee-master-plugin' ) . '" aria-label="' . esc_attr__( 'Save on Instagram', 'atelier-irisee-master-plugin' ) . '">' . $icons['save'] . '</a>';
+				}
+				$html .= '</div>';
+			}
+			$counts = array();
+			if ( isset( $item['likes'] ) && $item['likes'] > 0 ) {
+				$counts[] = sprintf( _n( '%s like', '%s likes', (int) $item['likes'], 'atelier-irisee-master-plugin' ), number_format_i18n( (int) $item['likes'] ) );
+			}
+			if ( isset( $item['comments'] ) && $item['comments'] > 0 ) {
+				$counts[] = sprintf( _n( '%s comment', '%s comments', (int) $item['comments'], 'atelier-irisee-master-plugin' ), number_format_i18n( (int) $item['comments'] ) );
+			}
+			if ( $actions && $counts ) {
+				$html .= '<p class="aimp-ig-counts">' . esc_html( implode( ' · ', $counts ) ) . '</p>';
+			}
+			if ( $caption && '' !== $short ) {
+				$html .= '<p class="aimp-ig-text">' . ( $profile && '' !== $user && 'polaroid' !== $style ? '<a class="aimp-ig-user" href="' . esc_url( $account ) . '"' . $outside . ' tabindex="-1">' . esc_html( $user ) . '</a> ' : '' ) .
+					esc_html( $short ) . ( $more ? '… <a class="aimp-ig-more" href="' . $link . '"' . $outside . '>' . esc_html__( 'more', 'atelier-irisee-master-plugin' ) . '</a>' : '' ) . '</p>';
+			}
+			$cards .= '<li><article class="aimp-ig-card">' . $html . '</article></li>';
+		}
+		$follow = $button && '' !== $user ? '<p class="aimp-ig-follow"><a class="aimp-block-button" href="' . esc_url( $account ) . '"' . $outside . '>' . esc_html( str_replace( '{account}', '@' . $user, AIMP_Blocks::text( 'ig_button' ) ) ) . '</a></p>' : '';
+
+		$classes   = array( 'aimp-home-block', 'aimp-home-instagram', 'has-cards', 'style-' . ( '' !== $style ? $style : 'classic' ) );
+		$classes[] = '' !== $shape ? 'is-' . $shape : 'is-square';
+		$classes[] = 'none' === $hover ? 'hover-none' : 'hover-zoom';
+		if ( 'narrow' === (string) AIMP_Blocks::design( $part, 'ig_width', '' ) ) {
+			$classes[] = 'is-narrow';
+		}
+		if ( $phone < 1 ) {
+			$classes[] = 'is-swipe';
+		}
+		$css = '--aimp-ig-cols:' . (int) $cols . ';' . ( $phone > 0 ? '--aimp-ig-cols-phone:' . (int) $phone . ';' : '' ) .
+			( $gap >= 0 ? '--aimp-ig-gap:' . (int) $gap . 'px;' : '' ) . ( $radius >= 0 ? '--aimp-ig-radius:' . (int) $radius . 'px;' : '' );
+		return '<section class="' . esc_attr( implode( ' ', $classes ) ) . '" style="' . esc_attr( $css ) . '">' . ( $title ? self::title( AIMP_Blocks::text( 'ig_title' ) ) : '' ) .
+			'<ul class="aimp-ig-grid aimp-ig-cards">' . $cards . '</ul>' . $follow . '</section>';
 	}
 
 	/* ------------------------------------------------------------------ brands */
