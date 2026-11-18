@@ -3341,4 +3341,6 @@ return array(
 	'No "More from" with other posts' => 'Geen "Meer van" met andere berichten',
 	'Keep Divi\'s sidebar next to the post' => 'Divi\'s zijbalk naast het bericht behouden',
 	'"All blog posts" goes to (standard: the page with the overview)' => '"Alle blogberichten" gaat naar (standaard: de pagina met het overzicht)',
+	// 3.73.1
+	'Not on blog posts (then Divi shows its own title and picture)' => 'Niet op blogberichten (dan toont Divi zijn eigen titel en afbeelding)',
 );

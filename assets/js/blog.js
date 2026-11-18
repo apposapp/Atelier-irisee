@@ -481,7 +481,15 @@
 				self.none.hidden = data.total > 0;
 				self.page = data.page;
 				markLiked(self.grid);
-				var params = new URLSearchParams(data.args || {}).toString();
+				// The page's own address arguments stay (e.g. ?page_id=… in a preview); the blog's are replaced.
+				var keep = new URLSearchParams(window.location.search);
+				['aimp_bcat', 'aimp_bq', 'aimp_bsort', 'aimp_bpage'].forEach(function (key) {
+					keep.delete(key);
+				});
+				Object.keys(data.args || {}).forEach(function (key) {
+					keep.set(key, data.args[key]);
+				});
+				var params = keep.toString();
 				window.history.replaceState(null, '', window.location.pathname + (params ? '?' + params : '') + window.location.hash);
 				if (scroll) {
 					self.root.scrollIntoView({ behavior: 'smooth', block: 'start' });

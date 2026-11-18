@@ -178,6 +178,10 @@ class AIMP_Page_Header {
 			$commerce = ( function_exists( 'is_cart' ) && is_cart() ) || ( function_exists( 'is_checkout' ) && is_checkout() ) || ( function_exists( 'is_account_page' ) && is_account_page() );
 			return $commerce ? ! self::design( 'nocommerce' ) : true;
 		}
+		// Blog posts: a setting of their own (their picture and title in the header).
+		if ( is_singular( 'post' ) ) {
+			return ! self::design( 'noposts' );
+		}
 		return ! self::design( 'noother' );
 	}
 

@@ -64,6 +64,7 @@ class AIMP_Blog_Builder {
 		}
 		remove_post_type_support( 'post', 'editor' );
 		add_action( 'add_meta_boxes_post', array( __CLASS__, 'add_box' ) );
+		add_action( 'edit_form_after_title', array( __CLASS__, 'after_title' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
 		// The excerpt is the text on the overview card: shown, not hidden under "Screen options".
 		add_filter(
@@ -75,7 +76,19 @@ class AIMP_Blog_Builder {
 	}
 
 	public static function add_box() {
-		add_meta_box( 'aimp-blog-layout', __( 'Blog layout', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'box' ), 'post', 'normal', 'high' );
+		// Right under the title, where the editor was (above boxes of other plugins, e.g. SEO).
+		add_meta_box( 'aimp-blog-layout', __( 'Blog layout', 'atelier-irisee-master-plugin' ), array( __CLASS__, 'box' ), 'post', 'aimp_top', 'high' );
+	}
+
+	/**
+	 * @param WP_Post $post Post.
+	 */
+	public static function after_title( $post ) {
+		if ( 'post' === $post->post_type ) {
+			echo '<div id="aimp-blog-top" class="aimp-bb-top">';
+			do_meta_boxes( get_current_screen(), 'aimp_top', $post );
+			echo '</div>';
+		}
 	}
 
 	/**

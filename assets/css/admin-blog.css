@@ -294,3 +294,8 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
+
+/* Right under the title (edit_form_after_title). */
+.aimp-bb-top {
+	margin-top: 20px;
+}

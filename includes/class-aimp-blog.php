@@ -54,6 +54,7 @@ class AIMP_Blog {
 		add_action( 'save_post', array( __CLASS__, 'flush' ) );
 		add_action( 'wc_ajax_aimp_blog', array( __CLASS__, 'ajax_list' ) );
 		add_action( 'wc_ajax_aimp_blog_like', array( __CLASS__, 'ajax_like' ) );
+		add_filter( 'posts_clauses', array( __CLASS__, 'order_clauses' ), 10, 2 );
 	}
 
 	/* ------------------------------------------------------------------
@@ -636,7 +637,7 @@ class AIMP_Blog {
 				/* translators: %s: category */
 				$title = $term ? sprintf( __( 'More from %s', 'atelier-irisee-master-plugin' ), $term->name ) : __( 'More posts', 'atelier-irisee-master-plugin' );
 				$html .= '<section class="aimp-home-block aimp-blog-related"><h2 class="aimp-block-title"><span>' . esc_html( $title ) . '</span></h2>' .
-					'<ul class="aimp-blog-grid layout-random" style="--bl-cols:' . count( $posts ) . ';--bl-cols-t:' . min( 2, count( $posts ) ) . '">';
+					'<ul class="aimp-blog-grid layout-random" style="--bl-cols:' . count( $posts ) . ';--bl-cols-t:' . min( 2, count( $posts ) ) . ';max-width:' . ( count( $posts ) * 420 ) . 'px;margin-inline:auto !important">';
 				foreach ( $posts as $post ) {
 					$html .= self::card( $post, $opts );
 				}
@@ -880,29 +881,32 @@ class AIMP_Blog {
 			$args['s'] = $state['q'];
 		}
 		if ( 'likes' === $state['sort'] || 'views' === $state['sort'] ) {
-			// Posts without a count yet come last (they count as 0).
-			$key                = 'likes' === $state['sort'] ? self::LIKES : self::VIEWS;
-			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery
-				'relation' => 'OR',
-				'counted'  => array(
-					'key'     => $key,
-					'compare' => 'EXISTS',
-					'type'    => 'NUMERIC',
-				),
-				array(
-					'key'     => $key,
-					'compare' => 'NOT EXISTS',
-				),
-			);
-			$args['orderby']    = array(
-				'counted' => 'DESC',
-				'date'    => 'DESC',
-			);
+			// Ordered in order_clauses(): posts without a count yet count as 0.
+			$args['aimp_blog_order'] = 'likes' === $state['sort'] ? self::LIKES : self::VIEWS;
 		} else {
 			$args['orderby'] = 'date';
 			$args['order']   = 'oldest' === $state['sort'] ? 'ASC' : 'DESC';
 		}
 		return new WP_Query( $args );
+	}
+
+	/**
+	 * Most liked / most viewed: the count joined on its own key (a meta query with "or not exists" does not order
+	 * reliably), the newest first among equal counts.
+	 *
+	 * @param array    $clauses Query clauses.
+	 * @param WP_Query $query   Query.
+	 * @return array
+	 */
+	public static function order_clauses( $clauses, $query ) {
+		$key = $query->get( 'aimp_blog_order' );
+		if ( ! in_array( $key, array( self::LIKES, self::VIEWS ), true ) ) {
+			return $clauses;
+		}
+		global $wpdb;
+		$clauses['join']   .= $wpdb->prepare( " LEFT JOIN {$wpdb->postmeta} AS aimp_bo ON ( aimp_bo.post_id = {$wpdb->posts}.ID AND aimp_bo.meta_key = %s )", $key );
+		$clauses['orderby'] = "CAST( COALESCE( aimp_bo.meta_value, '0' ) AS UNSIGNED ) DESC, {$wpdb->posts}.post_date DESC";
+		return $clauses;
 	}
 
 	/**

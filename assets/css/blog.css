@@ -992,8 +992,10 @@ a.aimp-blog-label:focus-visible {
 }
 
 .aimp-blog-lightbox img {
-	max-width: 100%;
-	max-height: 100%;
+	width: auto;
+	height: auto;
+	max-width: calc(100vw - 8vmin);
+	max-height: calc(100vh - 8vmin);
 	border: 5px double var(--hb-gold);
 	background: #fff;
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);

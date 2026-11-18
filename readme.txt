@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.73.0
+Stable tag: 3.73.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.73.1 =
+* Blog: sorting by most liked and most viewed now orders the posts (posts without a count yet come last). Blog posts get the page header with their picture and title also where the header is off on "other pages" (Design studio → Page header → "Not on blog posts" to switch it off). The blog layout box stands right under the title. A larger picture always fits the screen; "More from" with two posts no longer makes giant cards; filtering keeps the page’s own address (e.g. a preview).
 
 = 3.73.0 =
 * Blog: posts are made in rows instead of the editor (Posts → Add new → Blog layout). Each row holds up to three blocks: a title, a text, a picture (as it is, arch, round or rounded corners, with a gold frame and focal point, larger on a click) or a video (from the media library, or a YouTube or Vimeo link that only loads when played). A row with one block fills the width, in the middle. The post page gets the page header with its picture and title, the category, date and reading time, then like, share and views, the previous and next post and more of its category.
