@@ -3342,5 +3342,6 @@ return array(
 	'Keep Divi\'s sidebar next to the post' => 'Divi\'s zijbalk naast het bericht behouden',
 	'"All blog posts" goes to (standard: the page with the overview)' => '"Alle blogberichten" gaat naar (standaard: de pagina met het overzicht)',
 	// 3.73.1
-	'Not on blog posts (then Divi shows its own title and picture)' => 'Niet op blogberichten (dan toont Divi zijn eigen titel en afbeelding)',
+	// 3.74
+	'Mosaic: each picture its own height (standard)' => 'Mozaïek: elke foto een eigen hoogte (standaard)',
 );

@@ -291,6 +291,56 @@
 	window.addEventListener('scroll', closeMenu, { passive: true });
 
 	/* ---------------------------------------------------------------
+	 * Mosaic: each card spans as many 4 px rows as it is high, so the
+	 * cards close up under each other and still read from the newest at
+	 * the top left (not in the swipe row: no grid there).
+	 * ------------------------------------------------------------- */
+
+	var ROW = 4;
+
+	function pack(grid) {
+		if (window.getComputedStyle(grid).display !== 'grid') {
+			grid.classList.remove('is-packed');
+			return;
+		}
+		grid.classList.add('is-packed');
+		Array.prototype.forEach.call(grid.children, function (item) {
+			item.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil(item.getBoundingClientRect().height / ROW));
+		});
+	}
+
+	function watch(grid) {
+		if (grid.aimpPacked) {
+			return;
+		}
+		grid.aimpPacked = true;
+		var frame = 0;
+		var width = 0;
+		var later = function () {
+			window.cancelAnimationFrame(frame);
+			frame = window.requestAnimationFrame(function () {
+				pack(grid);
+			});
+		};
+		// Pictures and fonts change the heights; a new width the columns.
+		grid.addEventListener('load', later, true);
+		if (window.ResizeObserver) {
+			new window.ResizeObserver(function () {
+				if (grid.clientWidth !== width) {
+					width = grid.clientWidth;
+					later();
+				}
+			}).observe(grid);
+		} else {
+			window.addEventListener('resize', later);
+		}
+		if (document.fonts && document.fonts.ready) {
+			document.fonts.ready.then(later);
+		}
+		pack(grid);
+	}
+
+	/* ---------------------------------------------------------------
 	 * The overview: filters, sorting, more posts
 	 * ------------------------------------------------------------- */
 
@@ -481,6 +531,7 @@
 				self.none.hidden = data.total > 0;
 				self.page = data.page;
 				markLiked(self.grid);
+				pack(self.grid);
 				// The page's own address arguments stay (e.g. ?page_id=… in a preview); the blog's are replaced.
 				var keep = new URLSearchParams(window.location.search);
 				['aimp_bcat', 'aimp_bq', 'aimp_bsort', 'aimp_bpage'].forEach(function (key) {
@@ -510,6 +561,7 @@
 
 	function start() {
 		markLiked(document);
+		document.querySelectorAll('.aimp-blog-grid').forEach(watch);
 		document.querySelectorAll('[data-aimp-blog]').forEach(function (root) {
 			if (!root.aimpBlog) {
 				root.aimpBlog = new Overview(root);

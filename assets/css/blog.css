@@ -31,8 +31,8 @@
 	white-space: nowrap;
 }
 
-/* Divi: the post's title and picture are in the page header, not a second time above the text. */
-body.aimp-blog-has-header.single-post #left-area article > .et_post_meta_wrapper:first-child {
+/* Divi: no title, author line and picture of its own above the post (the post shows its title itself). */
+body.aimp-blog-single.single-post #left-area article > .et_post_meta_wrapper:first-child {
 	display: none;
 }
 
@@ -73,6 +73,27 @@ a.aimp-blog-label:focus-visible {
 .aimp-blog-post *::before,
 .aimp-blog-post *::after {
 	box-sizing: border-box;
+}
+
+/* The post's title, in the middle above its category, date and reading time. */
+.aimp-blog-post-title {
+	margin: 0 0 1rem;
+	padding: 0;
+	color: var(--hb-gold-text);
+	font-size: clamp(1.9rem, 4.2vw, 3rem);
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: 0.03em;
+	text-align: center;
+	text-wrap: balance;
+}
+
+.aimp-blog-post-title::after {
+	content: "";
+	display: block;
+	width: 4.5rem;
+	margin: 0.9rem auto 0;
+	border-top: 4px double var(--hb-gold);
 }
 
 .aimp-blog-meta {
@@ -695,6 +716,17 @@ a.aimp-blog-label:focus-visible {
 	padding-top: var(--bl-drop, 0px) !important;
 }
 
+/* Packed (blog.js): rows of 4 px, each card spans its own height, so shorter cards leave no gap under them (a
+   mosaic that still reads from the newest at the top left). The space between the rows is under each card. */
+.aimp-blog-grid.is-packed {
+	grid-auto-rows: 4px;
+	row-gap: 0;
+}
+
+.aimp-blog-grid.is-packed > .aimp-blog-item {
+	padding-bottom: calc(var(--bl-gap-x) * 0.8 + 0.75rem) !important;
+}
+
 .aimp-blog-card {
 	position: relative;
 	display: flex;
@@ -728,17 +760,22 @@ a.aimp-blog-label:focus-visible {
 .aimp-blog-card-photo {
 	display: block;
 	text-decoration: none;
-	aspect-ratio: 1;
+	/* Mosaic (standard): each post its own ratio (--bl-ratio from the post). */
+	aspect-ratio: var(--bl-ratio, 1);
 	overflow: hidden;
 	border-radius: 3px;
 	background: var(--hb-tint);
 }
 
-.aimp-blog.shape-portrait .aimp-blog-card-photo {
+.aimp-blog-grid.shape-square .aimp-blog-card-photo {
+	aspect-ratio: 1;
+}
+
+.aimp-blog-grid.shape-portrait .aimp-blog-card-photo {
 	aspect-ratio: 4 / 5;
 }
 
-.aimp-blog.shape-original .aimp-blog-card-photo {
+.aimp-blog-grid.shape-original .aimp-blog-card-photo {
 	aspect-ratio: auto;
 }
 
@@ -750,7 +787,7 @@ a.aimp-blog-label:focus-visible {
 	transition: transform 0.6s ease;
 }
 
-.aimp-blog.shape-original .aimp-blog-card-img {
+.aimp-blog-grid.shape-original .aimp-blog-card-img {
 	height: auto;
 }
 

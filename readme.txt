@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.73.1
+Stable tag: 3.74.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.74.0 =
+* Blog overview: the cards are a mosaic now: each picture its own height (the same on every visit), the cards close up under each other and still read from the newest at the top left. Design studio → Blog → "Shape of the pictures": mosaic (standard), square, upright or their own shape.
+* Blog posts: no picture or header at the top any more; the post starts with its title in the middle above its category, date and reading time. Divi’s own title, author line and picture are hidden.
 
 = 3.73.1 =
 * Blog: sorting by most liked and most viewed now orders the posts (posts without a count yet come last). Blog posts get the page header with their picture and title also where the header is off on "other pages" (Design studio → Page header → "Not on blog posts" to switch it off). The blog layout box stands right under the title. A larger picture always fits the screen; "More from" with two posts no longer makes giant cards; filtering keeps the page’s own address (e.g. a preview).

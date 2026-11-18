@@ -787,7 +787,6 @@ class AIMP_Design {
 				'ph_noproducts' => 'bool',
 				'ph_nocommerce' => 'bool',
 				'ph_noother'    => 'bool',
-				'ph_noposts'    => 'bool',
 				'ph_hideempty'  => 'bool',
 				'ph_height'   => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
 				'ph_pheight'  => array( 'select', array( '', 'small', 'medium', 'large', 'full' ) ),
@@ -1183,7 +1182,7 @@ class AIMP_Design {
 			'bl_count'       => array( 0, 48, 0 ),
 			'bl_pages'       => array( 'select', array( '', 'numbers' ) ),
 			'bl_sort'        => array( 'select', array( '', 'oldest', 'likes', 'views' ) ),
-			'bl_shape'       => array( 'select', array( '', 'portrait', 'original' ) ),
+			'bl_shape'       => array( 'select', array( '', 'square', 'portrait', 'original' ) ),
 			'bl_gap'         => array( 0, 80, -99 ),
 			'bl_nofilters'   => 'bool',
 			'bl_noexcerpt'   => 'bool',
@@ -4798,7 +4797,6 @@ class AIMP_Design {
 		self::check_box( 'ph_noproducts', __( 'Not on product pages', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ph_nocommerce', __( 'Not on the cart, checkout and my account', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ph_noother', __( 'Not on shop categories, blog and search results', 'atelier-irisee-master-plugin' ) );
-		self::check_box( 'ph_noposts', __( 'Not on blog posts (then Divi shows its own title and picture)', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ph_hideempty', __( 'Hide the header where no picture or video is chosen', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'Never on the home page and pages with the hero. A single page can be left out in its own block above.', 'atelier-irisee-master-plugin' ) . '</p>';
 		self::choice(
@@ -4904,7 +4902,8 @@ class AIMP_Design {
 			'bl_shape',
 			__( 'Shape of the pictures', 'atelier-irisee-master-plugin' ),
 			array(
-				''         => __( 'Square (standard)', 'atelier-irisee-master-plugin' ),
+				''         => __( 'Mosaic: each picture its own height (standard)', 'atelier-irisee-master-plugin' ),
+				'square'   => __( 'Square', 'atelier-irisee-master-plugin' ),
 				'portrait' => __( 'Upright (4:5)', 'atelier-irisee-master-plugin' ),
 				'original' => __( 'Their own shape', 'atelier-irisee-master-plugin' ),
 			)

@@ -533,9 +533,6 @@ class AIMP_Blog {
 	public static function body_class( $classes ) {
 		if ( is_singular( 'post' ) ) {
 			$classes[] = 'aimp-blog-single';
-			if ( AIMP_Page_Header::shows() ) {
-				$classes[] = 'aimp-blog-has-header';
-			}
 		}
 		return $classes;
 	}
@@ -556,7 +553,7 @@ class AIMP_Blog {
 		$rows       = self::rows( $id );
 		$body       = $rows ? self::render_rows( $rows ) : '<div class="aimp-blog-classic">' . $content . '</div>';
 		self::enqueue();
-		$html       = '<div class="aimp-blog-post" data-aimp-blog-post="' . $id . '">' . self::meta( $id ) . $body . self::after( $id ) . '</div>';
+		$html       = '<div class="aimp-blog-post" data-aimp-blog-post="' . $id . '">' . '<h1 class="aimp-blog-post-title">' . esc_html( wp_strip_all_tags( get_the_title( $id ) ) ) . '</h1>' . self::meta( $id ) . $body . self::after( $id ) . '</div>';
 		self::$busy = false;
 		return $html;
 	}
@@ -637,7 +634,7 @@ class AIMP_Blog {
 				/* translators: %s: category */
 				$title = $term ? sprintf( __( 'More from %s', 'atelier-irisee-master-plugin' ), $term->name ) : __( 'More posts', 'atelier-irisee-master-plugin' );
 				$html .= '<section class="aimp-home-block aimp-blog-related"><h2 class="aimp-block-title"><span>' . esc_html( $title ) . '</span></h2>' .
-					'<ul class="aimp-blog-grid layout-random" style="--bl-cols:' . count( $posts ) . ';--bl-cols-t:' . min( 2, count( $posts ) ) . ';max-width:' . ( count( $posts ) * 420 ) . 'px;margin-inline:auto !important">';
+					'<ul class="aimp-blog-grid layout-random shape-' . esc_attr( $opts['shape'] ) . '" style="--bl-cols:' . count( $posts ) . ';--bl-cols-t:' . min( 2, count( $posts ) ) . ';max-width:' . ( count( $posts ) * 420 ) . 'px;margin-inline:auto !important">';
 				foreach ( $posts as $post ) {
 					$html .= self::card( $post, $opts );
 				}
@@ -757,6 +754,11 @@ class AIMP_Blog {
 		} else {
 			$style = '--bl-drop:' . round( self::chance( $id, 1 ) * 70 * $play ) . 'px;--bl-tilt:' . round( $tilt * 2 * $play, 2 ) . 'deg';
 		}
+		// Mosaic (standard): each picture its own height, the same on every visit.
+		if ( 'mosaic' === $opts['shape'] ) {
+			$ratios = array( '1/1', '4/5', '3/4', '2/3', '4/3', '5/4' );
+			$style .= ';--bl-ratio:' . $ratios[ (int) floor( self::chance( $id, 4 ) * 5.999 ) ];
+		}
 		$picture = self::picture( $id );
 		$image   = $picture ? wp_get_attachment_image( $picture, 'medium_large', false, array( 'class' => 'aimp-blog-card-img', 'loading' => 'lazy', 'alt' => '', 'sizes' => '(max-width: 700px) 85vw, 420px' ) ) : '';
 		if ( '' === $image ) {
@@ -815,7 +817,7 @@ class AIMP_Blog {
 			'play'    => $play >= 0 ? $play / 100 : 1,
 			'tilt'    => ! self::design( 'bl_notilt' ),
 			'gap'     => $gap >= 0 ? $gap : -1,
-			'shape'   => $in( (string) self::design( 'bl_shape', '' ), array( 'portrait', 'original' ) ),
+			'shape'   => $in( (string) self::design( 'bl_shape', '' ), array( 'square', 'portrait', 'original' ) ) ?: 'mosaic',
 			'pages'   => 'numbers' === self::design( 'bl_pages', '' ) ? 'numbers' : 'more',
 			'filters' => 'no' !== $att( 'filters' ) && ! self::design( 'bl_nofilters' ),
 			'lock'    => $lock,
@@ -1068,7 +1070,6 @@ class AIMP_Blog {
 
 		$classes = array( 'aimp-home-block', 'aimp-configurator', 'aimp-blog', 'is-filters-closed', 'layout-' . $opts['layout'] );
 		$classes[] = 'phone-' . ( '' !== $opts['phone'] ? $opts['phone'] : '1' );
-		$classes[] = 'shape-' . ( '' !== $opts['shape'] ? $opts['shape'] : 'square' );
 		$style = '--bl-cols:' . $opts['cols'] . ';--bl-cols-t:' . min( $opts['cols'], $opts['cols_t'] ) . ';--bl-play:' . $opts['play'] . ( $opts['gap'] >= 0 ? ';--bl-gap:' . $opts['gap'] . 'px' : '' );
 		$config = array(
 			'atts'  => $atts,
@@ -1083,7 +1084,7 @@ class AIMP_Blog {
 			$html .= self::wave_css( $id, $opts );
 		}
 		$grid = '<div class="aimp-shop-summary" data-role="summary" aria-live="polite">' . self::summary( $state, $facets, $total ) . '</div>' .
-			'<ul class="aimp-blog-grid layout-' . esc_attr( $opts['layout'] ) . '" data-role="grid">' . self::cards( $query, $opts ) . '</ul>' .
+			'<ul class="aimp-blog-grid layout-' . esc_attr( $opts['layout'] ) . ' shape-' . esc_attr( $opts['shape'] ) . '" data-role="grid">' . self::cards( $query, $opts ) . '</ul>' .
 			'<p class="aimp-blog-none" data-role="none"' . ( $total ? ' hidden' : '' ) . '>' . esc_html__( 'No posts found.', 'atelier-irisee-master-plugin' ) . '</p>' .
 			'<div class="aimp-blog-more" data-role="more">' . self::more( $state, $opts, $pages ) . '</div>';
 

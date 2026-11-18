@@ -143,10 +143,6 @@ class AIMP_Page_Header {
 		if ( is_404() ) {
 			return array( 'other', __( 'Page not found', 'atelier-irisee-master-plugin' ), false );
 		}
-		// Blog posts: their title as the main heading (Divi's own title is hidden then, AIMP_Blog), their picture.
-		if ( is_singular( 'post' ) ) {
-			return array( 'post', get_the_title( get_queried_object_id() ), true );
-		}
 		if ( is_singular() ) {
 			return array( 'other', get_the_title( get_queried_object_id() ), false );
 		}
@@ -178,9 +174,9 @@ class AIMP_Page_Header {
 			$commerce = ( function_exists( 'is_cart' ) && is_cart() ) || ( function_exists( 'is_checkout' ) && is_checkout() ) || ( function_exists( 'is_account_page' ) && is_account_page() );
 			return $commerce ? ! self::design( 'nocommerce' ) : true;
 		}
-		// Blog posts: a setting of their own (their picture and title in the header).
+		// Blog posts: no header; the post shows its title above its category, date and reading time (AIMP_Blog).
 		if ( is_singular( 'post' ) ) {
-			return ! self::design( 'noposts' );
+			return false;
 		}
 		return ! self::design( 'noother' );
 	}
@@ -249,10 +245,6 @@ class AIMP_Page_Header {
 		);
 		$mode    = (string) self::design( 'mode', '', $page );
 		$picture = (int) self::design( 'img', 0, $page );
-		// A blog post: its featured image (or the first picture in its rows).
-		if ( 'post' === $page && ! $picture && class_exists( 'AIMP_Blog' ) ) {
-			$picture = AIMP_Blog::picture( (int) get_queried_object_id() );
-		}
 		$phone   = (int) self::design( 'pimg', 0, $page );
 		$video   = (int) self::design( 'video', 0, $page );
 		$pvideo  = (int) self::design( 'pvideo', 0, $page );

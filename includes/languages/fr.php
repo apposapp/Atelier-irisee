@@ -3342,5 +3342,6 @@ return array(
 	'Keep Divi\'s sidebar next to the post' => 'Garder la barre latérale de Divi à côté de l\'article',
 	'"All blog posts" goes to (standard: the page with the overview)' => '« Tous les articles du blog » mène à (standard : la page avec l\'aperçu)',
 	// 3.73.1
-	'Not on blog posts (then Divi shows its own title and picture)' => 'Pas sur les articles du blog (Divi affiche alors son propre titre et son image)',
+	// 3.74
+	'Mosaic: each picture its own height (standard)' => 'Mosaïque : chaque image a sa propre hauteur (standard)',
 );
