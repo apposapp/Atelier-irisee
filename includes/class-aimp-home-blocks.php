@@ -503,31 +503,85 @@ class AIMP_Home_Blocks {
 	/* ------------------------------------------------------------------ Instagram */
 
 	/**
-	 * The newest Instagram posts in a square grid, each linking to its post, with a "Follow" button.
+	 * The newest Instagram posts (AIMP_Instagram: a Smash Balloon feed or our own token) in the site's style: a grid
+	 * of pictures linking to their posts, a title and a "Follow" button. Set in the Design studio → Instagram; a
+	 * page can differ with attributes: count, columns, columns_phone, shape (square|portrait|original), gap, radius,
+	 * hover (zoom|caption|none), title="no", button="no".
 	 *
-	 * @param array|string $atts count.
-	 * @return string '' without posts (no token yet, or Instagram failed).
+	 * @param array|string $atts Attributes.
+	 * @return string '' without posts (nothing connected yet, or Instagram failed).
 	 */
 	public static function instagram( $atts = array() ) {
-		$part  = 'home-instagram';
-		$atts  = shortcode_atts( array( 'count' => '' ), $atts, 'atelier_irisee_instagram' );
-		$count = (int) ( '' !== $atts['count'] ? $atts['count'] : AIMP_Blocks::design( $part, 'ig_count', 0 ) );
-		$count = $count > 0 ? min( AIMP_Instagram::MAX, $count ) : 6;
-		$items = array_slice( AIMP_Instagram::items(), 0, $count );
+		$part = 'home-instagram';
+		$atts = shortcode_atts(
+			array(
+				'count'         => '',
+				'columns'       => '',
+				'columns_phone' => '',
+				'shape'         => '',
+				'gap'           => '',
+				'radius'        => '',
+				'hover'         => '',
+				'title'         => '',
+				'button'        => '',
+			),
+			$atts,
+			'atelier_irisee_instagram'
+		);
+		// An attribute, else the studio's setting, else the standard.
+		$num = function ( $att, $key, $min, $max, $standard ) use ( $atts, $part ) {
+			$value = '' !== $atts[ $att ] ? (int) $atts[ $att ] : (int) AIMP_Blocks::design( $part, $key, -99 );
+			return ( -99 === $value || $value < $min || ( 0 === $value && $min > 0 ) ) ? $standard : min( $max, $value );
+		};
+		$pick = function ( $att, $key, $allowed ) use ( $atts, $part ) {
+			$value = '' !== $atts[ $att ] ? sanitize_key( $atts[ $att ] ) : (string) AIMP_Blocks::design( $part, $key, '' );
+			return in_array( $value, $allowed, true ) ? $value : '';
+		};
+		$count  = $num( 'count', 'ig_count', 1, AIMP_Instagram::MAX, 6 );
+		$items  = array_slice( AIMP_Instagram::items(), 0, $count );
 		if ( ! $items ) {
 			return '';
 		}
 		self::assets();
+		$cols   = $num( 'columns', 'ig_cols', 1, 8, min( 6, count( $items ) ) );
+		$phone  = $num( 'columns_phone', 'ig_cols_phone', 1, 4, 3 );
+		$gap    = $num( 'gap', 'ig_gap', 0, 40, -1 );
+		$radius = $num( 'radius', 'ig_radius', 0, 30, -1 );
+		$shape  = $pick( 'shape', 'ig_shape', array( 'portrait', 'original' ) );
+		$hover  = $pick( 'hover', 'ig_hover', array( 'caption', 'none' ) );
+		$narrow = 'narrow' === (string) AIMP_Blocks::design( $part, 'ig_width', '' );
+		$icons  = ! AIMP_Blocks::design( $part, 'ig_noicon' );
+		$title  = 'no' !== $atts['title'] && ! AIMP_Blocks::design( $part, 'ig_notitle' );
+		$button = 'no' !== $atts['button'] && ! AIMP_Blocks::design( $part, 'ig_nobutton' );
+
 		$user  = AIMP_Instagram::username();
 		$cards = '';
 		foreach ( $items as $item ) {
-			$caption = function_exists( 'mb_substr' ) ? mb_substr( (string) $item['caption'], 0, 120 ) : substr( (string) $item['caption'], 0, 120 );
-			$cards  .= '<li><a class="aimp-ig-post" href="' . esc_url( $item['permalink'] ) . '" target="_blank" rel="noopener"><img src="' . esc_url( $item['image'] ) . '" alt="' . esc_attr( $caption ) . '" loading="lazy">' .
-				( 'VIDEO' === $item['type'] ? '<span class="aimp-ig-video" aria-hidden="true"></span>' : '' ) . '</a></li>';
+			$text    = trim( preg_replace( '/\s+/u', ' ', (string) $item['caption'] ) );
+			$short   = function_exists( 'mb_substr' ) ? mb_substr( $text, 0, 120 ) : substr( $text, 0, 120 );
+			$type    = isset( $item['type'] ) ? (string) $item['type'] : '';
+			$mark    = '';
+			if ( $icons && 'VIDEO' === $type ) {
+				$mark = '<span class="aimp-ig-video" aria-hidden="true"></span>';
+			} elseif ( $icons && 'CAROUSEL_ALBUM' === $type ) {
+				$mark = '<span class="aimp-ig-album" aria-hidden="true"></span>';
+			}
+			$size    = ! empty( $item['width'] ) && ! empty( $item['height'] ) ? ' width="' . (int) $item['width'] . '" height="' . (int) $item['height'] . '"' : '';
+			$cards  .= '<li><a class="aimp-ig-post" href="' . esc_url( $item['permalink'] ) . '" target="_blank" rel="noopener"><img src="' . esc_url( $item['image'] ) . '" alt="' . esc_attr( $short ) . '"' . $size . ' loading="lazy">' . $mark .
+				( 'caption' === $hover && '' !== $short ? '<span class="aimp-ig-caption">' . esc_html( $short . ( strlen( $text ) > strlen( $short ) ? '…' : '' ) ) . '</span>' : '' ) . '</a></li>';
 		}
-		$follow = '' !== $user ? '<p class="aimp-ig-follow"><a class="aimp-block-button" href="' . esc_url( 'https://www.instagram.com/' . rawurlencode( $user ) . '/' ) . '" target="_blank" rel="noopener">' . esc_html( str_replace( '{account}', '@' . $user, AIMP_Blocks::text( 'ig_button' ) ) ) . '</a></p>' : '';
-		return '<section class="aimp-home-block aimp-home-instagram">' . self::title( AIMP_Blocks::text( 'ig_title' ) ) .
-			'<ul class="aimp-ig-grid" style="--aimp-ig-count:' . (int) min( 6, count( $items ) ) . '">' . $cards . '</ul>' . $follow . '</section>';
+		$follow = $button && '' !== $user ? '<p class="aimp-ig-follow"><a class="aimp-block-button" href="' . esc_url( 'https://www.instagram.com/' . rawurlencode( $user ) . '/' ) . '" target="_blank" rel="noopener">' . esc_html( str_replace( '{account}', '@' . $user, AIMP_Blocks::text( 'ig_button' ) ) ) . '</a></p>' : '';
+
+		$classes = array( 'aimp-home-block', 'aimp-home-instagram' );
+		$classes[] = '' !== $shape ? 'is-' . $shape : 'is-square';
+		$classes[] = '' !== $hover ? 'hover-' . $hover : 'hover-zoom';
+		if ( $narrow ) {
+			$classes[] = 'is-narrow';
+		}
+		$style = '--aimp-ig-cols:' . (int) $cols . ';--aimp-ig-cols-phone:' . (int) $phone . ';' .
+			( $gap >= 0 ? '--aimp-ig-gap:' . (int) $gap . 'px;' : '' ) . ( $radius >= 0 ? '--aimp-ig-radius:' . (int) $radius . 'px;' : '' );
+		return '<section class="' . esc_attr( implode( ' ', $classes ) ) . '" style="' . esc_attr( $style ) . '">' . ( $title ? self::title( AIMP_Blocks::text( 'ig_title' ) ) : '' ) .
+			'<ul class="aimp-ig-grid">' . $cards . '</ul>' . $follow . '</section>';
 	}
 
 	/* ------------------------------------------------------------------ brands */

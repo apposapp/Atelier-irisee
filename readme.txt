@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.69.2
+Stable tag: 3.70.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.70.0 =
+* Instagram without a Meta app: the posts can now come from a feed made in Smash Balloon Instagram Feed (Atelier Irisee → Instagram → "Posts come from"). Only its posts are used; they are shown in the site's own style by [atelier_irisee_instagram]. Your own access token still works as before.
+* Instagram block: new settings in the Design studio → Instagram: number of posts (up to 24), posts per row on computers and phones, the shape of the pictures (square, upright 4:5 or their own shape as a mosaic), space between them, rounded corners, width, what happens on hover (glow, the post's text, or nothing), video and album marks, and the title and "Follow" button on or off. A page can differ with attributes, e.g. [atelier_irisee_instagram count="8" columns="4" shape="portrait"].
+* Instagram pictures are saved larger (1080 px) and in their own shape.
 
 = 3.69.2 =
 * Statistics: sales are counted again as soon as an order changes, so orders moved to the trash (or back) are left out straight away instead of after an hour. Orders in the trash never count.

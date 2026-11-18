@@ -1045,14 +1045,28 @@
 }
 
 /* ------------------------------------------------------------------ Instagram */
-/* Square pictures in one row on computers (up to 6), three per row on tablets and phones. */
+/* A grid of the newest posts. Columns, space, corners and shape come from the Design studio (or the shortcode) as
+   --aimp-ig-cols, --aimp-ig-cols-phone, --aimp-ig-gap, --aimp-ig-radius and the is-square / is-portrait /
+   is-original class. */
+.aimp-home-instagram.is-narrow .aimp-ig-grid,
+.aimp-home-instagram.is-narrow .aimp-ig-follow {
+	max-width: 1100px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
 .aimp-ig-grid {
 	display: grid;
-	grid-template-columns: repeat(var(--aimp-ig-count, 6), minmax(0, 1fr));
-	gap: 0.75rem;
+	grid-template-columns: repeat(var(--aimp-ig-cols, 6), minmax(0, 1fr));
+	gap: var(--aimp-ig-gap, 0.75rem);
 	margin: 0;
 	padding: 0;
 	list-style: none;
+}
+
+.aimp-ig-grid > li {
+	margin: 0;
+	padding: 0;
 }
 
 .aimp-ig-post {
@@ -1060,7 +1074,28 @@
 	display: block;
 	overflow: hidden;
 	aspect-ratio: 1;
-	border-radius: 14px;
+	border-radius: var(--aimp-ig-radius, 14px);
+	background: var(--hb-tint);
+}
+
+.aimp-home-instagram.is-portrait .aimp-ig-post {
+	aspect-ratio: 4 / 5;
+}
+
+/* Their own shape: a mosaic in columns, each picture as tall as it is. */
+.aimp-home-instagram.is-original .aimp-ig-grid {
+	display: block;
+	columns: var(--aimp-ig-cols, 6);
+	column-gap: var(--aimp-ig-gap, 0.75rem);
+}
+
+.aimp-home-instagram.is-original .aimp-ig-grid > li {
+	margin-bottom: var(--aimp-ig-gap, 0.75rem);
+	break-inside: avoid;
+}
+
+.aimp-home-instagram.is-original .aimp-ig-post {
+	aspect-ratio: auto;
 }
 
 .aimp-ig-post img {
@@ -1071,6 +1106,11 @@
 	transition: transform 0.4s ease;
 }
 
+.aimp-home-instagram.is-original .aimp-ig-post img {
+	height: auto;
+}
+
+/* Standard: the picture grows a little under a soft gold glow. */
 .aimp-ig-post::after {
 	content: "";
 	position: absolute;
@@ -1078,30 +1118,66 @@
 	background: color-mix(in srgb, var(--hb-gold) 35%, transparent);
 	opacity: 0;
 	transition: opacity 0.3s ease;
+	pointer-events: none;
 }
 
-.aimp-ig-post:hover img,
-.aimp-ig-post:focus-visible img {
+.aimp-home-instagram.hover-zoom .aimp-ig-post:is(:hover, :focus-visible) img,
+.aimp-home-instagram.hover-caption .aimp-ig-post:is(:hover, :focus-visible) img {
 	transform: scale(1.05);
 }
 
-.aimp-ig-post:hover::after,
-.aimp-ig-post:focus-visible::after {
+.aimp-home-instagram.hover-zoom .aimp-ig-post:is(:hover, :focus-visible)::after {
 	opacity: 1;
 }
 
-/* Videos: a small white play mark in the corner. */
-.aimp-ig-video {
+.aimp-home-instagram.hover-none .aimp-ig-post::after {
+	display: none;
+}
+
+/* The post's text on the picture: cream text on a brown veil, in the site's own font. */
+.aimp-ig-caption {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	display: flex;
+	align-items: flex-end;
+	padding: 0.9rem;
+	background: linear-gradient(to top, color-mix(in srgb, var(--hb-brown) 88%, transparent), color-mix(in srgb, var(--hb-brown) 20%, transparent) 70%);
+	color: #fff8ee;
+	font-size: 0.85rem;
+	line-height: 1.4;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.aimp-ig-post:is(:hover, :focus-visible) .aimp-ig-caption {
+	opacity: 1;
+}
+
+/* Videos: a small white play mark in the corner; albums: two stacked squares. */
+.aimp-ig-video,
+.aimp-ig-album {
 	position: absolute;
 	top: 0.6rem;
 	right: 0.6rem;
-	z-index: 1;
+	z-index: 2;
+	filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+}
+
+.aimp-ig-video {
 	width: 0;
 	height: 0;
 	border-top: 0.45rem solid transparent;
 	border-bottom: 0.45rem solid transparent;
 	border-left: 0.75rem solid #fff;
-	filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+}
+
+.aimp-ig-album {
+	width: 0.8rem;
+	height: 0.8rem;
+	border: 2px solid #fff;
+	border-radius: 2px;
+	box-shadow: 3px -3px 0 -1px rgba(0, 0, 0, 0.15), 4px -4px 0 0 #fff;
 }
 
 .aimp-ig-follow {
@@ -1109,9 +1185,38 @@
 	text-align: center;
 }
 
+@media (prefers-reduced-motion: reduce) {
+	.aimp-ig-post img,
+	.aimp-ig-post::after,
+	.aimp-ig-caption {
+		transition: none;
+	}
+}
+
+/* Tablets: at most four per row; phones: the phone setting (standard 3). */
 @media (max-width: 1024px) {
 	.aimp-ig-grid {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(min(var(--aimp-ig-cols, 6), 4), minmax(0, 1fr));
+	}
+
+	.aimp-home-instagram.is-original .aimp-ig-grid {
+		columns: min(var(--aimp-ig-cols, 6), 4);
+	}
+}
+
+@media (max-width: 700px) {
+	.aimp-ig-grid {
+		grid-template-columns: repeat(var(--aimp-ig-cols-phone, 3), minmax(0, 1fr));
+		gap: min(var(--aimp-ig-gap, 0.5rem), 0.75rem);
+	}
+
+	.aimp-home-instagram.is-original .aimp-ig-grid {
+		columns: var(--aimp-ig-cols-phone, 3);
+	}
+
+	/* Too small for text: the glow instead. */
+	.aimp-ig-caption {
+		display: none;
 	}
 }
 

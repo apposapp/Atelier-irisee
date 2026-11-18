@@ -735,7 +735,17 @@ class AIMP_Design {
 				'fq_url'   => 'url',
 			),
 			'ig_opts'     => array(
-				'ig_count' => array( 0, 12, 0 ),
+				'ig_count'      => array( 0, 24, 0 ),
+				'ig_cols'       => array( 0, 8, 0 ),
+				'ig_cols_phone' => array( 0, 4, 0 ),
+				'ig_shape'      => array( 'select', array( '', 'portrait', 'original' ) ),
+				'ig_gap'        => array( 0, 40, -99 ),
+				'ig_radius'     => array( 0, 30, -99 ),
+				'ig_width'      => array( 'select', array( '', 'narrow' ) ),
+				'ig_hover'      => array( 'select', array( '', 'caption', 'none' ) ),
+				'ig_noicon'     => 'bool',
+				'ig_notitle'    => 'bool',
+				'ig_nobutton'   => 'bool',
 			),
 			'gp_opts'     => array(
 				'gp_layout' => array( 'select', array( '', 'amounts', 'designs' ) ),
@@ -4544,8 +4554,41 @@ class AIMP_Design {
 		echo '</fieldset>';
 
 		$group( 'ig_opts', __( 'Instagram', 'atelier-irisee-master-plugin' ) );
-		self::number( 'ig_count', __( 'Posts shown (0 = standard, 6)', 'atelier-irisee-master-plugin' ), 0, 12, '' );
-		echo '<p class="description">' . esc_html__( 'Connect your account under Atelier Irisee → Instagram. Without a connection the block stays hidden.', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::number( 'ig_count', __( 'Posts shown (0 = standard, 6)', 'atelier-irisee-master-plugin' ), 0, 24, '' );
+		self::number( 'ig_cols', __( 'Posts per row on computers (0 = standard, 6)', 'atelier-irisee-master-plugin' ), 0, 8, '' );
+		self::number( 'ig_cols_phone', __( 'Posts per row on phones (0 = standard, 3)', 'atelier-irisee-master-plugin' ), 0, 4, '' );
+		self::choice(
+			'ig_shape',
+			__( 'Shape of the pictures', 'atelier-irisee-master-plugin' ),
+			array(
+				''         => __( 'Square (standard)', 'atelier-irisee-master-plugin' ),
+				'portrait' => __( 'Upright, like Instagram (4:5)', 'atelier-irisee-master-plugin' ),
+				'original' => __( 'Their own shape (a mosaic)', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::number( 'ig_gap', __( 'Space between the pictures', 'atelier-irisee-master-plugin' ), 0, 40, 'px' );
+		self::number( 'ig_radius', __( 'Rounded corners', 'atelier-irisee-master-plugin' ), 0, 30, 'px' );
+		self::choice(
+			'ig_width',
+			__( 'Width', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'The whole width of its place (standard)', 'atelier-irisee-master-plugin' ),
+				'narrow' => __( 'Narrower, in the middle', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'ig_hover',
+			__( 'When the mouse is on a picture', 'atelier-irisee-master-plugin' ),
+			array(
+				''        => __( 'It grows a little, with a gold glow (standard)', 'atelier-irisee-master-plugin' ),
+				'caption' => __( 'The text of the post appears on it', 'atelier-irisee-master-plugin' ),
+				'none'    => __( 'Nothing', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::check_box( 'ig_noicon', __( 'No video and album marks on the pictures', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ig_notitle', __( 'No title', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'ig_nobutton', __( 'No "Follow" button', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The posts come from a Smash Balloon feed or your own token: Atelier Irisee → Instagram. Without posts the block stays hidden. On another page the shortcode can differ, e.g. [atelier_irisee_instagram count="8" columns="4" shape="portrait"].', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		$group( 'gp_opts', __( 'Gift card promo', 'atelier-irisee-master-plugin' ) );
