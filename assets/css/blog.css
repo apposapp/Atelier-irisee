@@ -1,0 +1,1159 @@
+/* Atelier Irisee blog (class-aimp-blog.php): the post page built from rows, and [atelier_irisee_blog], the overview
+   of polaroids with the shop's filter bar. Builds on home-blocks.css (full width, titles, buttons) and shop.css
+   (the filter bar). */
+.aimp-blog,
+.aimp-blog-post,
+.aimp-blog-related,
+.aimp-blog-share-menu,
+.aimp-blog-lightbox {
+	--hb-gold: var(--aimp-site-gold, #b38f4f);
+	--hb-gold-text: var(--aimp-site-gold-text, #8a6a33);
+	--hb-brown: var(--aimp-site-brown, #613907);
+	--hb-tint: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 9%, #fff);
+	--hb-radius: 24px;
+	--bl-card: #fffdf8;
+	--bl-soft: color-mix(in srgb, var(--aimp-site-brown, #613907) 62%, #fff);
+	--bl-edge: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 30%, transparent);
+	--bl-radius: 5px;
+}
+
+/* Labels for screen readers only (the theme does not hide this WordPress class). */
+:is(.aimp-blog-post, .aimp-blog-related) .screen-reader-text {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	border: 0;
+	white-space: nowrap;
+}
+
+/* Divi: the post's title and picture are in the page header, not a second time above the text. */
+body.aimp-blog-has-header.single-post #left-area article > .et_post_meta_wrapper:first-child {
+	display: none;
+}
+
+/* ------------------------------------------------------------------
+ * Category label
+ * ------------------------------------------------------------------ */
+.aimp-blog-label {
+	display: inline-block;
+	padding: 0.28rem 0.75rem;
+	border-radius: 100px;
+	background: var(--bl-cat, var(--hb-gold));
+	color: var(--bl-cat-ink, #fff);
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.3;
+	letter-spacing: 0.08em;
+	text-decoration: none;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+a.aimp-blog-label:hover,
+a.aimp-blog-label:focus-visible {
+	color: var(--bl-cat-ink, #fff);
+	filter: brightness(1.08);
+}
+
+/* ------------------------------------------------------------------
+ * The post page
+ * ------------------------------------------------------------------ */
+.aimp-blog-post {
+	color: var(--hb-brown);
+	font-size: 16px;
+	line-height: 1.75;
+}
+
+.aimp-blog-post *,
+.aimp-blog-post *::before,
+.aimp-blog-post *::after {
+	box-sizing: border-box;
+}
+
+.aimp-blog-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem 0.7rem;
+	margin: 0 0 clamp(1.75rem, 4vw, 3rem);
+	color: var(--hb-gold-text);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.aimp-blog-dot {
+	color: var(--hb-gold);
+}
+
+/* Rows: one block fills the width in the middle; two or three side by side. */
+.aimp-blog-row {
+	display: grid;
+	align-items: center;
+	gap: clamp(1.25rem, 3.5vw, 3rem);
+	margin: clamp(1.75rem, 4vw, 3rem) 0 0;
+}
+
+.aimp-blog-rows > .aimp-blog-row:first-child {
+	margin-top: 0;
+}
+
+.aimp-blog-row.is-space-small {
+	margin-top: 0.75rem;
+}
+
+.aimp-blog-row.is-space-large {
+	margin-top: clamp(3rem, 8vw, 6rem);
+}
+
+.aimp-blog-row.is-cols-1 {
+	justify-items: center;
+	text-align: center;
+}
+
+.aimp-blog-row.is-cols-2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.aimp-blog-row.is-cols-2.is-w-12 {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+.aimp-blog-row.is-cols-2.is-w-21 {
+	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+.aimp-blog-row.is-cols-3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.aimp-blog-row.is-v-top {
+	align-items: start;
+}
+
+.aimp-blog-row.is-v-bottom {
+	align-items: end;
+}
+
+.aimp-blog-row.has-bg {
+	padding: clamp(1.5rem, 4vw, 3rem);
+	border-radius: var(--hb-radius);
+	background: var(--hb-tint);
+}
+
+.aimp-blog-block {
+	width: 100%;
+	min-width: 0;
+}
+
+.aimp-blog-title {
+	margin: 0;
+	padding: 0;
+	color: var(--hb-gold-text);
+	font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+	font-weight: 700;
+	line-height: 1.2;
+	letter-spacing: 0.03em;
+	text-wrap: balance;
+}
+
+.aimp-blog-title.is-h3 {
+	color: var(--hb-brown);
+	font-size: clamp(1.2rem, 2.2vw, 1.5rem);
+	letter-spacing: 0.02em;
+}
+
+/* A large title: a short gold double line under it. */
+.aimp-blog-title.is-h2::after {
+	content: "";
+	display: block;
+	width: 4.5rem;
+	margin: 0.8rem 0 0;
+	border-top: 4px double var(--hb-gold);
+}
+
+.aimp-blog-title.is-h2.is-align-center::after {
+	margin-inline: auto;
+}
+
+.aimp-blog-title.is-h2.is-align-right::after {
+	margin-left: auto;
+}
+
+.is-align-left {
+	text-align: left;
+}
+
+.is-align-center {
+	text-align: center;
+}
+
+.is-align-right {
+	text-align: right;
+}
+
+.aimp-blog-text {
+	text-wrap: pretty;
+}
+
+.aimp-blog-row.is-cols-1 .aimp-blog-text {
+	max-width: 46rem;
+	margin-inline: auto;
+}
+
+.aimp-blog-text :is(p, ul, ol, blockquote) {
+	margin: 0 0 1em;
+	padding-bottom: 0;
+}
+
+.aimp-blog-text > :last-child {
+	margin-bottom: 0;
+}
+
+.aimp-blog-text :is(ul, ol) {
+	padding-left: 1.4em;
+	text-align: left;
+}
+
+.aimp-blog-text a {
+	color: var(--hb-gold-text);
+	text-decoration: underline;
+	text-decoration-color: var(--hb-gold);
+	text-underline-offset: 3px;
+}
+
+.aimp-blog-text blockquote {
+	padding: 0.2rem 0 0.2rem 1.2rem;
+	border-left: 4px double var(--hb-gold);
+	color: var(--hb-gold-text);
+	font-family: Georgia, serif;
+	font-size: 1.1em;
+	font-style: italic;
+}
+
+.aimp-blog-text :is(h2, h3, h4) {
+	margin: 1.2em 0 0.4em;
+	padding: 0;
+	color: var(--hb-gold-text);
+	line-height: 1.3;
+}
+
+/* Pictures: the shapes of the About page (arch, round, rounded corners) or as they are. */
+.aimp-blog-image {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.6rem;
+	margin: 0;
+}
+
+.aimp-blog-frame {
+	position: relative;
+	display: block;
+	width: 100%;
+	overflow: hidden;
+	background: var(--hb-tint);
+}
+
+.aimp-blog-image.has-frame .aimp-blog-frame {
+	border: 5px double var(--hb-gold);
+}
+
+.aimp-blog-img-link {
+	display: block;
+	height: 100%;
+}
+
+.aimp-blog-img-link[data-aimp-zoom] {
+	cursor: zoom-in;
+}
+
+.aimp-blog-img {
+	display: block;
+	width: 100%;
+	height: auto;
+	transition: transform 0.6s ease;
+}
+
+.aimp-blog-img-link:hover .aimp-blog-img {
+	transform: scale(1.03);
+}
+
+.aimp-blog-image:is(.is-arch, .is-round, .is-square) .aimp-blog-img {
+	height: 100%;
+	object-fit: cover;
+}
+
+.aimp-blog-image.is-arch .aimp-blog-frame {
+	width: min(100%, 30rem);
+	aspect-ratio: 4 / 5;
+	border-radius: 999px 999px var(--hb-radius) var(--hb-radius);
+}
+
+.aimp-blog-image.is-round .aimp-blog-frame {
+	width: min(100%, 30rem);
+	aspect-ratio: 1;
+	border-radius: 50%;
+}
+
+.aimp-blog-image.is-square .aimp-blog-frame {
+	aspect-ratio: 4 / 3;
+	border-radius: var(--hb-radius);
+}
+
+.aimp-blog-image.is-plain .aimp-blog-frame {
+	border-radius: 4px;
+}
+
+/* Alone in its row: as it is, but never higher than the screen. */
+.aimp-blog-row.is-cols-1 .aimp-blog-image.is-plain .aimp-blog-frame {
+	width: auto;
+	max-width: 100%;
+}
+
+.aimp-blog-row.is-cols-1 .aimp-blog-image.is-plain .aimp-blog-img {
+	width: auto;
+	max-width: 100%;
+	max-height: 85vh;
+}
+
+.aimp-blog-row.is-cols-1 .aimp-blog-image.is-square .aimp-blog-frame {
+	width: min(100%, 60rem);
+}
+
+:is(.aimp-blog-image, .aimp-blog-video) figcaption {
+	color: var(--bl-soft);
+	font-family: Georgia, serif;
+	font-size: 14px;
+	font-style: italic;
+	font-weight: 400;
+	line-height: 1.5;
+	text-align: center;
+}
+
+/* Videos: a YouTube or Vimeo link as a picture with a gold play button until it is played. */
+.aimp-blog-video {
+	width: 100%;
+	margin: 0;
+}
+
+.aimp-blog-row.is-cols-1 .aimp-blog-video {
+	max-width: 60rem;
+	margin-inline: auto;
+}
+
+.aimp-blog-video-frame {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	background: var(--hb-brown);
+}
+
+.aimp-blog-video.is-rounded .aimp-blog-video-frame {
+	border-radius: var(--hb-radius);
+}
+
+.aimp-blog-video-frame iframe,
+.aimp-blog-play {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+
+.aimp-blog-video-frame:has(> video) {
+	aspect-ratio: auto;
+}
+
+.aimp-blog-video-file {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.aimp-blog-play {
+	margin: 0;
+	padding: 0;
+	background: linear-gradient(135deg, var(--hb-brown), var(--hb-gold));
+	cursor: pointer;
+}
+
+.aimp-blog-play img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.6s ease, filter 0.3s ease;
+}
+
+.aimp-blog-play:hover img,
+.aimp-blog-play:focus-visible img {
+	filter: brightness(0.88);
+	transform: scale(1.03);
+}
+
+.aimp-blog-play-icon {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	display: grid;
+	place-items: center;
+	width: 76px;
+	height: 76px;
+	border: 4px double #fff;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--hb-gold) 92%, transparent);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+	transform: translate(-50%, -50%);
+	transition: transform 0.3s ease;
+}
+
+.aimp-blog-play:hover .aimp-blog-play-icon,
+.aimp-blog-play:focus-visible .aimp-blog-play-icon {
+	transform: translate(-50%, -50%) scale(1.08);
+}
+
+.aimp-blog-play-icon svg {
+	width: 30px;
+	height: 30px;
+	margin-left: 4px;
+	fill: #fff;
+}
+
+.aimp-blog-play:focus-visible {
+	outline: 3px solid var(--hb-gold);
+	outline-offset: 3px;
+}
+
+.aimp-blog-video-link {
+	margin: 0;
+	text-align: center;
+}
+
+/* Under the post: like, share and views in a gold pill; previous and next. */
+.aimp-blog-post-actions {
+	display: flex;
+	justify-content: center;
+	margin: clamp(2.5rem, 6vw, 4rem) 0 1.5rem;
+}
+
+.aimp-blog-post-actions .aimp-blog-actions {
+	gap: 1.6rem;
+	margin: 0;
+	padding: 0.65rem 1.5rem;
+	border: 1px solid color-mix(in srgb, var(--hb-gold) 50%, transparent);
+	border-radius: 100px;
+	background: var(--bl-card);
+	box-shadow: 0 6px 20px color-mix(in srgb, var(--hb-brown) 8%, transparent);
+}
+
+.aimp-blog-post-actions .aimp-blog-views {
+	margin-left: 0;
+}
+
+.aimp-blog-post-actions .aimp-blog-action {
+	font-size: 14px;
+}
+
+.aimp-blog-nav {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+	margin: 1.5rem 0 0;
+}
+
+.aimp-blog-nav-link {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--bl-edge);
+	border-radius: 14px;
+	background: var(--bl-card);
+	color: var(--hb-brown);
+	text-decoration: none;
+	transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.aimp-blog-nav-link:hover,
+.aimp-blog-nav-link:focus-visible {
+	border-color: var(--hb-gold);
+	background: var(--hb-tint);
+	color: var(--hb-brown);
+}
+
+.aimp-blog-nav-link span {
+	color: var(--hb-gold-text);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.aimp-blog-nav-link strong {
+	line-height: 1.35;
+}
+
+.aimp-blog-nav-link.is-next {
+	grid-column: 2;
+	text-align: right;
+}
+
+.aimp-blog-related {
+	margin-top: clamp(2rem, 5vw, 3rem);
+}
+
+.aimp-blog-back {
+	margin: 1.5rem 0 0;
+	text-align: center;
+}
+
+.aimp-blog-back.aimp-home-block {
+	width: auto;
+	margin: 1.5rem 0 0;
+	padding: 0;
+}
+
+@media (max-width: 760px) {
+	.aimp-blog-row.is-cols-2,
+	.aimp-blog-row.is-cols-2:is(.is-w-12, .is-w-21),
+	.aimp-blog-row.is-cols-3 {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-blog-nav {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-blog-nav-link.is-next {
+		grid-column: auto;
+	}
+}
+
+/* ------------------------------------------------------------------
+ * The overview: the filter bar of the shop
+ * ------------------------------------------------------------------ */
+.aimp-configurator.aimp-blog {
+	/* Not a size container itself: the filter drawer on phones is fixed to the screen. */
+	container-type: normal;
+	margin-top: 0;
+	margin-bottom: 0;
+	padding-top: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.aimp-blog .aimp-shop-topbar {
+	margin-bottom: 1rem;
+}
+
+.aimp-blog.is-filters-open .aimp-shop-toggle {
+	background-color: var(--aimp-gold);
+	color: #fff;
+}
+
+.aimp-blog.is-filters-open .aimp-shop-toggle .aimp-shop-count {
+	background: #fff;
+	color: var(--aimp-gold-text, var(--aimp-site-gold-text, #8a6a33));
+}
+
+.aimp-blog.is-filters-closed .aimp-shop-layout {
+	grid-template-columns: 0 minmax(0, 1fr);
+	column-gap: 0;
+}
+
+.aimp-blog.is-filters-closed .aimp-shop-sidebar {
+	opacity: 0;
+	transform: translateX(-1.5rem);
+	transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear 0.35s;
+	visibility: hidden;
+}
+
+.aimp-blog-swatch {
+	display: inline-block;
+	flex: none;
+	width: 0.85em;
+	height: 0.85em;
+	margin-right: 0.15em;
+	border: 1.5px solid #fff;
+	border-radius: 50%;
+	background: var(--bl-cat, var(--hb-gold));
+	vertical-align: -0.1em;
+}
+
+.aimp-blog-content {
+	container-type: inline-size;
+	container-name: aimpblog;
+	min-width: 0;
+}
+
+.aimp-blog-related {
+	container-type: inline-size;
+	container-name: aimpblog;
+}
+
+.aimp-blog.is-loading .aimp-blog-grid {
+	opacity: 0.45;
+	pointer-events: none;
+	transition: opacity 0.2s ease;
+}
+
+@media (max-width: 999px) {
+	.aimp-blog .aimp-shop-layout,
+	.aimp-blog.is-filters-closed .aimp-shop-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-blog .aimp-shop-sidebar,
+	.aimp-blog.is-filters-closed .aimp-shop-sidebar {
+		display: flex;
+		flex-direction: column;
+		position: fixed;
+		top: var(--aimp-header-offset, 0px);
+		bottom: 0;
+		left: 0;
+		z-index: 999;
+		width: min(340px, 88vw);
+		max-height: none;
+		padding-top: 1.25rem;
+		padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+		border-radius: 0 var(--aimp-panel-radius) var(--aimp-panel-radius) 0;
+		opacity: 0;
+		transform: translateX(-105%);
+		transition: transform 0.35s ease, opacity 0.35s ease, visibility 0s linear 0.35s;
+		visibility: hidden;
+	}
+
+	.aimp-blog.is-filters-open .aimp-shop-sidebar {
+		opacity: 1;
+		transform: none;
+		transition: transform 0.35s ease, opacity 0.35s ease, visibility 0s linear 0s;
+		visibility: visible;
+	}
+
+	.aimp-blog [data-role="filters"] {
+		flex: 1 1 auto;
+	}
+}
+
+@media (max-width: 700px) {
+	.aimp-blog .aimp-shop-sidebar,
+	.aimp-blog.is-filters-closed .aimp-shop-sidebar {
+		bottom: var(--aimp-tabbar-h, 0px);
+	}
+
+	/* The Filters button floats at the bottom of the screen, as in the shop. */
+	.aimp-configurator.aimp-blog .aimp-shop-toggle {
+		position: fixed;
+		bottom: calc(var(--aimp-tabbar-h, env(safe-area-inset-bottom, 0px)) + 1rem);
+		left: 50%;
+		z-index: 900;
+		background: #fff;
+		box-shadow: 0 6px 18px color-mix(in srgb, var(--aimp-site-brown, #613907) 18%, transparent);
+		transform: translateX(-50%);
+	}
+
+	.aimp-configurator.aimp-blog.is-filters-open .aimp-shop-toggle {
+		background: var(--aimp-gold);
+	}
+}
+
+/* ------------------------------------------------------------------
+ * The cards: polaroids, each a little lower and turned (random, wave or
+ * scattered: --bl-drop, --bl-tilt and --bl-shift come from the post)
+ * ------------------------------------------------------------------ */
+.aimp-blog-grid {
+	--bl-gap-x: var(--bl-gap, clamp(1.25rem, 3vw, 2.5rem));
+	display: grid;
+	grid-template-columns: repeat(var(--bl-cols, 3), minmax(0, 1fr));
+	align-items: start;
+	gap: calc(var(--bl-gap-x) * 0.8 + 0.75rem) var(--bl-gap-x);
+	margin: 0 !important;
+	padding: 0 0 1.5rem !important;
+	list-style: none !important;
+}
+
+.aimp-blog-grid > li {
+	margin: 0;
+	padding-left: 0;
+	list-style: none !important;
+}
+
+.aimp-blog-grid > li::marker {
+	content: none;
+}
+
+.aimp-blog-item {
+	position: relative;
+	min-width: 0;
+	padding-top: var(--bl-drop, 0px) !important;
+}
+
+.aimp-blog-card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 0.65rem;
+	padding: 0.8rem 0.8rem 0.7rem;
+	border: 1px solid var(--bl-edge);
+	border-radius: var(--bl-radius);
+	background: var(--bl-card);
+	box-shadow: 0 10px 26px color-mix(in srgb, var(--hb-brown) 14%, transparent);
+	color: var(--hb-brown);
+	text-align: left;
+	transform: translateX(var(--bl-shift, 0px)) rotate(var(--bl-tilt, 0deg));
+	transform-origin: 50% 20%;
+	transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.aimp-blog-item:is(:hover, :focus-within) {
+	z-index: 2;
+}
+
+.aimp-blog-item:is(:hover, :focus-within) .aimp-blog-card {
+	box-shadow: 0 16px 34px color-mix(in srgb, var(--hb-brown) 22%, transparent);
+	transform: translateY(-4px);
+}
+
+.aimp-blog-card-media {
+	position: relative;
+}
+
+.aimp-blog-card-photo {
+	display: block;
+	text-decoration: none;
+	aspect-ratio: 1;
+	overflow: hidden;
+	border-radius: 3px;
+	background: var(--hb-tint);
+}
+
+.aimp-blog.shape-portrait .aimp-blog-card-photo {
+	aspect-ratio: 4 / 5;
+}
+
+.aimp-blog.shape-original .aimp-blog-card-photo {
+	aspect-ratio: auto;
+}
+
+.aimp-blog-card-img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.6s ease;
+}
+
+.aimp-blog.shape-original .aimp-blog-card-img {
+	height: auto;
+}
+
+.aimp-blog-card:hover .aimp-blog-card-img {
+	transform: scale(1.04);
+}
+
+.aimp-blog-card-empty {
+	display: grid;
+	place-items: center;
+	height: 100%;
+	min-height: 10rem;
+	background: radial-gradient(circle at 30% 25%, #fff, var(--hb-tint) 70%);
+	color: var(--hb-gold);
+	font-family: Georgia, serif;
+	font-size: 4rem;
+	font-style: italic;
+}
+
+.aimp-blog-card-media .aimp-blog-label {
+	position: absolute;
+	top: 0.6rem;
+	left: 0.6rem;
+	z-index: 2;
+	max-width: calc(100% - 1.2rem);
+	overflow: hidden;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	text-overflow: ellipsis;
+}
+
+.aimp-blog-card-body {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	padding: 0.15rem 0.25rem 0;
+}
+
+.aimp-blog-card-title {
+	margin: 0 !important;
+	padding: 0 !important;
+	color: var(--hb-brown);
+	font-size: 1.1rem;
+	font-weight: 700;
+	line-height: 1.3;
+	text-wrap: balance;
+}
+
+.aimp-blog-card-title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+/* The whole card opens the post; the icons stay their own buttons. */
+.aimp-blog-card-title a::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+.aimp-blog-card-title a:focus-visible {
+	outline: none;
+}
+
+.aimp-blog-card:has(.aimp-blog-card-title a:focus-visible) {
+	outline: 2px solid var(--hb-gold);
+	outline-offset: 3px;
+}
+
+.aimp-blog-card-date {
+	color: var(--hb-gold-text);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+/* Two selectors: stronger than the shop's "normal text" (.aimp-configurator p). */
+.aimp-blog-card .aimp-blog-card-text {
+	display: -webkit-box;
+	margin: 0.15rem 0 0 !important;
+	padding: 0 !important;
+	overflow: hidden;
+	color: var(--bl-soft);
+	font-family: Georgia, serif;
+	font-size: 14px;
+	font-style: italic;
+	font-weight: 400;
+	line-height: 1.5;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+}
+
+/* Like, share, views. */
+.aimp-blog-actions {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-top: 0.4rem;
+	padding-top: 0.55rem;
+	border-top: 1px dashed color-mix(in srgb, var(--hb-gold) 45%, transparent);
+}
+
+.aimp-blog-action {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--hb-gold-text);
+	font: inherit;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: normal;
+	text-transform: none;
+	cursor: pointer;
+}
+
+.aimp-blog-action svg {
+	width: 22px;
+	height: 22px;
+	fill: none;
+	stroke: var(--hb-gold);
+	stroke-width: 1.7;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	transition: fill 0.2s ease, transform 0.2s ease;
+}
+
+.aimp-blog-action:focus-visible {
+	border-radius: 4px;
+	outline: 2px solid var(--hb-gold);
+	outline-offset: 3px;
+}
+
+.aimp-blog-like:hover svg,
+.aimp-blog-share:hover svg {
+	transform: scale(1.12);
+}
+
+.aimp-blog-like.is-liked svg {
+	fill: var(--hb-gold);
+}
+
+.aimp-blog-like.is-popping svg {
+	animation: aimp-blog-pop 0.6s ease;
+}
+
+.aimp-blog-like.is-busy {
+	cursor: progress;
+}
+
+@keyframes aimp-blog-pop {
+	30% {
+		transform: scale(1.4);
+	}
+
+	60% {
+		transform: scale(0.9);
+	}
+
+	100% {
+		transform: none;
+	}
+}
+
+.aimp-blog-views {
+	margin-left: auto;
+	color: var(--bl-soft);
+	cursor: default;
+}
+
+.aimp-blog-views svg {
+	stroke: color-mix(in srgb, var(--hb-gold) 75%, #fff);
+}
+
+/* Share menu (computers) and the larger picture. */
+.aimp-blog-share-menu {
+	position: fixed;
+	z-index: 100000;
+	display: flex;
+	flex-direction: column;
+	min-width: 200px;
+	padding: 0.4rem;
+	border: 1px solid color-mix(in srgb, var(--hb-gold) 45%, transparent);
+	border-radius: 12px;
+	background: var(--bl-card);
+	box-shadow: 0 14px 34px color-mix(in srgb, var(--hb-brown) 22%, transparent);
+	font-size: 14px;
+}
+
+.aimp-blog-share-menu :is(a, button) {
+	display: flex;
+	align-items: center;
+	gap: 0.65rem;
+	padding: 0.55rem 0.75rem;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: var(--hb-brown);
+	font: inherit;
+	font-weight: 600;
+	text-align: left;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.aimp-blog-share-menu :is(a, button):is(:hover, :focus-visible) {
+	outline: none;
+	background: var(--hb-tint);
+}
+
+.aimp-blog-share-menu svg {
+	flex: none;
+	width: 18px;
+	height: 18px;
+	fill: var(--hb-gold);
+	color: var(--hb-gold);
+}
+
+.aimp-blog-lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: 100001;
+	display: grid;
+	place-items: center;
+	padding: 4vmin;
+	background: color-mix(in srgb, #2b1803 88%, transparent);
+	cursor: zoom-out;
+	animation: aimp-blog-fade 0.25s ease;
+}
+
+.aimp-blog-lightbox img {
+	max-width: 100%;
+	max-height: 100%;
+	border: 5px double var(--hb-gold);
+	background: #fff;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+	object-fit: contain;
+}
+
+.aimp-blog-lightbox-close {
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border: 2px solid #fff;
+	border-radius: 50%;
+	background: transparent;
+	color: #fff;
+	font-size: 28px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+html.aimp-blog-zoomed {
+	overflow: hidden;
+}
+
+@keyframes aimp-blog-fade {
+	from {
+		opacity: 0;
+	}
+}
+
+/* Under the cards: more posts, page numbers, nothing found. */
+.aimp-blog-more {
+	display: flex;
+	justify-content: center;
+	padding: 0.5rem 0 1rem;
+}
+
+.aimp-blog-more:empty {
+	display: none;
+}
+
+.aimp-blog-pages {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.4rem;
+}
+
+.aimp-blog-pages :is(a, span) {
+	display: grid;
+	place-items: center;
+	min-width: 2.4rem;
+	height: 2.4rem;
+	padding: 0 0.6rem;
+	border: 1px solid var(--hb-gold);
+	border-radius: 100px;
+	color: var(--hb-brown);
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.aimp-blog-pages a:hover,
+.aimp-blog-pages a:focus-visible {
+	background: var(--hb-tint);
+}
+
+.aimp-blog-pages span[aria-current] {
+	background: var(--hb-gold);
+	color: #fff;
+}
+
+.aimp-blog-none,
+.aimp-blog-error {
+	margin: 2rem 0;
+	color: var(--bl-soft);
+	font-family: Georgia, serif;
+	font-style: italic;
+	text-align: center;
+}
+
+/* Fewer cards per row where there is less room (the filter column open, tablets, phones). */
+@container aimpblog (max-width: 860px) {
+	.aimp-blog-grid {
+		grid-template-columns: repeat(var(--bl-cols-t, 2), minmax(0, 1fr));
+	}
+}
+
+@container aimpblog (max-width: 540px) {
+	.aimp-blog-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-blog-item {
+		padding-top: calc(var(--bl-drop, 0px) * 0.5) !important;
+	}
+
+	.aimp-blog.phone-2 .aimp-blog-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1.25rem 0.75rem;
+	}
+
+	.aimp-blog.phone-2 .aimp-blog-card {
+		padding: 0.5rem 0.5rem 0.45rem;
+	}
+
+	.aimp-blog.phone-2 .aimp-blog-card-title {
+		font-size: 0.95rem;
+	}
+
+	.aimp-blog.phone-2 :is(.aimp-blog-card-text, .aimp-blog-views) {
+		display: none;
+	}
+
+	.aimp-blog.phone-2 .aimp-blog-actions {
+		gap: 0.75rem;
+	}
+
+	/* Swipe: one row of polaroids to slide through, still at their own height. */
+	.aimp-blog.phone-swipe .aimp-blog-grid {
+		display: flex;
+		gap: 1rem;
+		overflow-x: auto;
+		padding: 0.75rem 0.75rem 1.75rem !important;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+	}
+
+	.aimp-blog.phone-swipe .aimp-blog-grid::-webkit-scrollbar {
+		display: none;
+	}
+
+	.aimp-blog.phone-swipe .aimp-blog-item {
+		flex: 0 0 78%;
+		scroll-snap-align: center;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-blog-card,
+	.aimp-blog-item:is(:hover, :focus-within) .aimp-blog-card {
+		transform: none;
+		transition: none;
+	}
+
+	.aimp-blog-card-img,
+	.aimp-blog-img,
+	.aimp-blog-play img,
+	.aimp-blog-action svg {
+		transition: none;
+	}
+
+	.aimp-blog-like.is-popping svg,
+	.aimp-blog-lightbox {
+		animation: none;
+	}
+
+	.aimp-blog .aimp-shop-sidebar,
+	.aimp-blog .aimp-shop-layout {
+		transition: none;
+	}
+}

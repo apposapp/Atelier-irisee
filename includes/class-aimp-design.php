@@ -94,6 +94,7 @@ class AIMP_Design {
 		$home    = __( 'Home page blocks', 'atelier-irisee-master-plugin' );
 		$about   = __( 'About page', 'atelier-irisee-master-plugin' );
 		$pagehead = __( 'Page header', 'atelier-irisee-master-plugin' );
+		$blog     = __( 'Blog', 'atelier-irisee-master-plugin' );
 		$list    = array(
 			'header'          => array( $header, __( 'Header (whole)', 'atelier-irisee-master-plugin' ), '.aimp-header-inner' ),
 			'header-logo'     => array( $header, __( 'Logo', 'atelier-irisee-master-plugin' ), '.aimp-header-brand' ),
@@ -179,6 +180,8 @@ class AIMP_Design {
 			'about-chapter'   => array( $about, __( 'Story chapters', 'atelier-irisee-master-plugin' ), '.aimp-about-chapter' ),
 			'about-values'    => array( $about, __( 'What we stand for', 'atelier-irisee-master-plugin' ), '.aimp-about-values' ),
 			'about-closing'   => array( $about, __( 'Closing and signature', 'atelier-irisee-master-plugin' ), '.aimp-about-closing' ),
+			'blog'            => array( $blog, __( 'Blog overview', 'atelier-irisee-master-plugin' ), '.aimp-blog' ),
+			'blog-post'       => array( $blog, __( 'Blog post', 'atelier-irisee-master-plugin' ), '.aimp-blog-post' ),
 		);
 		// Which settings a part has: every part can be moved, sized, spaced, hidden, coloured and calmed down; boxes
 		// also get rounded corners, and parts with pictures a picture and focal point.
@@ -227,6 +230,8 @@ class AIMP_Design {
 			'about'           => array( 'ab_opts' ),
 			'about-chapter'   => array( 'ab_chapters' ),
 			'about-closing'   => array( 'ab_closing' ),
+			'blog'            => array( 'bl_opts' ),
+			'blog-post'       => array( 'bl_post' ),
 		) as $id => $more ) {
 			if ( isset( $elements[ $id ] ) ) {
 				$elements[ $id ]['controls'] = array_merge( $elements[ $id ]['controls'], $more );
@@ -797,6 +802,14 @@ class AIMP_Design {
 				'ph_size'     => array( 0, 120, 0 ),
 			),
 			'ab_closing'  => array( 'ab_sign_img' => 'image' ),
+			'bl_opts'     => self::blog_fields(),
+			'bl_post'     => array(
+				'bl_notime'    => 'bool',
+				'bl_nonav'     => 'bool',
+				'bl_norelated' => 'bool',
+				'bl_sidebar'   => 'bool',
+				'bl_back'      => 'url',
+			),
 			'cz_summary'  => array(
 				'cz_nosave'   => 'bool',
 				'cz_discount' => array( 'select', array( '', 'total', 'badge' ) ),
@@ -1154,6 +1167,61 @@ class AIMP_Design {
 	}
 
 	/**
+	 * The blog overview: the places of the cards, cards per row, what is on a card, and a colour per category.
+	 *
+	 * @return array
+	 */
+	private static function blog_fields() {
+		$fields = array(
+			'bl_layout'      => array( 'select', array( '', 'wave', 'scatter' ) ),
+			'bl_play'        => array( 0, 100, -1 ),
+			'bl_notilt'      => 'bool',
+			'bl_cols'        => array( 0, 6, 0 ),
+			'bl_cols_tablet' => array( 0, 4, 0 ),
+			'bl_cols_phone'  => array( 'select', array( '', '2', 'swipe' ) ),
+			'bl_count'       => array( 0, 48, 0 ),
+			'bl_pages'       => array( 'select', array( '', 'numbers' ) ),
+			'bl_sort'        => array( 'select', array( '', 'oldest', 'likes', 'views' ) ),
+			'bl_shape'       => array( 'select', array( '', 'portrait', 'original' ) ),
+			'bl_gap'         => array( 0, 80, -99 ),
+			'bl_nofilters'   => 'bool',
+			'bl_noexcerpt'   => 'bool',
+			'bl_nodate'      => 'bool',
+			'bl_nolabel'     => 'bool',
+			'bl_nolikes'     => 'bool',
+			'bl_noviews'     => 'bool',
+		);
+		foreach ( self::blog_categories() as $id => $name ) {
+			$fields[ 'bl_cat_' . $id ] = 'color';
+		}
+		return $fields;
+	}
+
+	/**
+	 * The categories of the blog posts: id => name.
+	 *
+	 * @return array
+	 */
+	private static function blog_categories() {
+		if ( ! function_exists( 'taxonomy_exists' ) || ! taxonomy_exists( 'category' ) ) {
+			return array();
+		}
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'category',
+				'hide_empty' => false,
+				'orderby'    => 'name',
+				'number'     => 40,
+			)
+		);
+		$list  = array();
+		foreach ( is_array( $terms ) ? $terms : array() as $term ) {
+			$list[ (int) $term->term_id ] = $term->name;
+		}
+		return $list;
+	}
+
+	/**
 	 * The story chapters of the About page, per chapter: a picture with its focal point and shape, the address of its
 	 * button, and hidden.
 	 *
@@ -1289,7 +1357,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'gp_opts', 'ig_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look' );
+		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'gp_opts', 'ig_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look', 'bl_opts', 'bl_post' );
 	}
 
 	/**
@@ -4786,6 +4854,79 @@ class AIMP_Design {
 		$group( 'ab_closing', __( 'Closing', 'atelier-irisee-master-plugin' ) );
 		self::picture_field( 'ab_sign_img', __( 'Small round picture next to the signature (e.g. Klaus)', 'atelier-irisee-master-plugin' ) );
 		echo $texts_note; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+		echo '</fieldset>';
+
+		$group( 'bl_opts', __( 'Blog overview', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'bl_layout',
+			__( 'Place of the cards', 'atelier-irisee-master-plugin' ),
+			array(
+				''        => __( 'Random: each a little lower and turned (standard)', 'atelier-irisee-master-plugin' ),
+				'wave'    => __( 'Wave: a calm, fixed rhythm per column', 'atelier-irisee-master-plugin' ),
+				'scatter' => __( 'Scattered on a table: more playful', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::number( 'bl_play', __( 'How playful (0 = straight in rows, standard 100)', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
+		self::check_box( 'bl_notilt', __( 'Cards not turned', 'atelier-irisee-master-plugin' ) );
+		self::number( 'bl_cols', __( 'Cards per row on computers (0 = standard, 3)', 'atelier-irisee-master-plugin' ), 0, 6, '' );
+		self::number( 'bl_cols_tablet', __( 'Cards per row on tablets (0 = standard, 2)', 'atelier-irisee-master-plugin' ), 0, 4, '' );
+		self::choice(
+			'bl_cols_phone',
+			__( 'On phones', 'atelier-irisee-master-plugin' ),
+			array(
+				''      => __( 'One card per row (standard)', 'atelier-irisee-master-plugin' ),
+				'2'     => __( 'Two small cards per row', 'atelier-irisee-master-plugin' ),
+				'swipe' => __( 'One row to swipe through', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::number( 'bl_count', __( 'Posts at a time (0 = standard, 12)', 'atelier-irisee-master-plugin' ), 0, 48, '' );
+		self::choice(
+			'bl_pages',
+			__( 'More posts', 'atelier-irisee-master-plugin' ),
+			array(
+				''        => __( 'A "Load more posts" button (standard)', 'atelier-irisee-master-plugin' ),
+				'numbers' => __( 'Page numbers', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'bl_sort',
+			__( 'Order at first', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Newest first (standard)', 'atelier-irisee-master-plugin' ),
+				'oldest' => __( 'Oldest first', 'atelier-irisee-master-plugin' ),
+				'likes'  => __( 'Most liked', 'atelier-irisee-master-plugin' ),
+				'views'  => __( 'Most viewed', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'bl_shape',
+			__( 'Shape of the pictures', 'atelier-irisee-master-plugin' ),
+			array(
+				''         => __( 'Square (standard)', 'atelier-irisee-master-plugin' ),
+				'portrait' => __( 'Upright (4:5)', 'atelier-irisee-master-plugin' ),
+				'original' => __( 'Their own shape', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::number( 'bl_gap', __( 'Space between the cards', 'atelier-irisee-master-plugin' ), 0, 80, 'px' );
+		self::check_box( 'bl_nofilters', __( 'No filter bar', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_noexcerpt', __( 'Cards: no text', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_nodate', __( 'Cards: no date', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_nolabel', __( 'Cards: no category label', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_nolikes', __( 'No likes (heart)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_noviews', __( 'No view count', 'atelier-irisee-master-plugin' ) );
+		$sub( __( 'Colour of each category (its label)', 'atelier-irisee-master-plugin' ) );
+		foreach ( self::blog_categories() as $id => $name ) {
+			self::color( 'bl_cat_' . $id, $name );
+		}
+		echo '<p class="description">' . esc_html__( 'The overview is the shortcode [atelier_irisee_blog] on a page. On another page it can differ, e.g. [atelier_irisee_blog category="irisee-focus" count="6" filters="no"] or layout="wave". The posts are made under Posts → Add new, in rows.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'bl_post', __( 'Blog post', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_notime', __( 'No reading time', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_nonav', __( 'No previous and next post', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_norelated', __( 'No "More from" with other posts', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_sidebar', __( 'Keep Divi\'s sidebar next to the post', 'atelier-irisee-master-plugin' ) );
+		$field( 'bl_back', __( '"All blog posts" goes to (standard: the page with the overview)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
 		echo '</fieldset>';
 	}
 

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.72.0
+Stable tag: 3.73.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.73.0 =
+* Blog: posts are made in rows instead of the editor (Posts → Add new → Blog layout). Each row holds up to three blocks: a title, a text, a picture (as it is, arch, round or rounded corners, with a gold frame and focal point, larger on a click) or a video (from the media library, or a YouTube or Vimeo link that only loads when played). A row with one block fills the width, in the middle. The post page gets the page header with its picture and title, the category, date and reading time, then like, share and views, the previous and next post and more of its category.
+* [atelier_irisee_blog]: all posts as polaroids, newest first, with the filter bar of the shop (categories, search) and sorting by newest, oldest, most liked or most viewed. The cards are placed playfully: random (standard), a wave or scattered on a table. Hearts count once per visitor, views once a day per visitor (not the shop’s own people). Settings and a colour per category: Design studio → Blog. The categories Irisée Focus, Irisée Inspired, Irisée Moments and Atelier Irisée are made if missing.
 
 = 3.72.0 =
 * Instagram polaroids can hang on a gold thread: the stitched gold thread of the kit steps runs along each row, and each polaroid hangs from a small gold clip and swings a little under the mouse. On or off in the Design studio → Instagram → "Polaroids: hang them on a gold thread with clips", or on a page with string="yes" or string="no".

@@ -145,6 +145,31 @@ class AIMP_Stats {
 	}
 
 	/**
+	 * Whether this visitor does something (e.g. reads a blog post) for the first time today; remembered for today
+	 * only, anonymously like new_visitor().
+	 *
+	 * @param string $what What.
+	 * @return bool
+	 */
+	public static function once_today( $what ) {
+		$today = current_time( 'Y-m-d' );
+		$salt  = get_option( 'aimp_stats_salt' );
+		if ( ! is_array( $salt ) || ! isset( $salt['day'], $salt['salt'] ) || $salt['day'] !== $today ) {
+			$salt = array(
+				'day'  => $today,
+				'salt' => wp_generate_password( 32, true, true ),
+			);
+			update_option( 'aimp_stats_salt', $salt, false );
+		}
+		$ip   = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		$ua   = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
+		$hash = substr( hash( 'sha256', $salt['salt'] . '|' . $ip . '|' . $ua . '|' . $what ), 0, 16 );
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return 1 === (int) $wpdb->query( $wpdb->prepare( 'INSERT IGNORE INTO ' . self::seen_table() . ' (day, hash) VALUES (%s, %s)', $today, $hash ) );
+	}
+
+	/**
 	 * Where a visit came from: Google, Instagram, … , another site's address, or "direct".
 	 *
 	 * @param string $host Referrer host ('' = typed in or a bookmark).
@@ -217,6 +242,13 @@ class AIMP_Stats {
 			}
 		} elseif ( 'search' === $kind && '' !== $item ) {
 			self::search( $item, (int) self::param( 'x', 6 ) );
+		} elseif ( 'blog' === $kind && class_exists( 'AIMP_Blog' ) ) {
+			// A blog post was read: its view count, once a day per visitor.
+			$post = absint( $item );
+			if ( $post && self::once_today( 'blog' . $post ) ) {
+				AIMP_Blog::viewed( $post );
+				self::count( 'blog', (string) $post );
+			}
 		} elseif ( 'cz' === $kind && in_array( 'cz_' . $item, self::STEPS, true ) ) {
 			self::count( 'cz_' . $item, 'cz_start' === 'cz_' . $item ? '' : self::param( 'x', 120 ) );
 		}

@@ -1,0 +1,296 @@
+/* Atelier Irisee blog layout on the post edit screen (admin-blog.js). */
+#aimp-blog-layout .inside {
+	margin: 0;
+	padding: 12px;
+}
+
+.aimp-bb {
+	--bb-gold: #b38f4f;
+	--bb-gold-text: #8a6a33;
+	--bb-tint: #f8f3ea;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.aimp-bb-empty,
+.aimp-bb-help {
+	margin: 0;
+	color: #646970;
+}
+
+.aimp-bb-row {
+	border: 1px solid #dcc9a5;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.aimp-bb-row.has-bg {
+	background: var(--bb-tint);
+}
+
+.aimp-bb-row-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 14px;
+	padding: 8px 10px;
+	border-bottom: 1px solid #eee2cc;
+	border-radius: 8px 8px 0 0;
+	background: linear-gradient(90deg, #f6efe2, #fbf8f2);
+}
+
+.aimp-bb-row-bar strong {
+	color: var(--bb-gold-text);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.aimp-bb-tools {
+	display: inline-flex;
+	gap: 4px;
+	margin-left: auto;
+}
+
+.aimp-bb-tool {
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid #dcc9a5;
+	border-radius: 50%;
+	background: #fff;
+	color: var(--bb-gold-text);
+	font-size: 15px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.aimp-bb-tool:hover:not(:disabled),
+.aimp-bb-tool:focus-visible {
+	border-color: var(--bb-gold);
+	background: var(--bb-gold);
+	color: #fff;
+}
+
+.aimp-bb-tool:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+/* The blocks side by side, as on the site (½–½, ⅓–⅔, ⅔–⅓, three equal). */
+.aimp-bb-blocks {
+	display: grid;
+	grid-template-columns: repeat(var(--bb-n, 1), minmax(0, 1fr)) auto;
+	gap: 10px;
+	padding: 10px;
+}
+
+.aimp-bb-blocks.is-n-1 {
+	--bb-n: 1;
+}
+
+.aimp-bb-blocks.is-n-2 {
+	--bb-n: 2;
+}
+
+.aimp-bb-blocks.is-n-3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.aimp-bb-blocks.is-n-2.is-w-12 {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+}
+
+.aimp-bb-blocks.is-n-2.is-w-21 {
+	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+}
+
+.aimp-bb-block {
+	min-width: 0;
+	border: 1px dashed #dcc9a5;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.aimp-bb-block-bar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 8px;
+	border-bottom: 1px dashed #eee2cc;
+}
+
+.aimp-bb-type {
+	font-weight: 600;
+}
+
+.aimp-bb-block-body {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px;
+}
+
+.aimp-bb-add-block {
+	align-self: stretch;
+	min-width: 90px;
+	border: 1px dashed var(--bb-gold);
+	border-radius: 6px;
+	background: transparent;
+	color: var(--bb-gold-text);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-bb-add-block:hover,
+.aimp-bb-add-block:focus-visible {
+	background: var(--bb-tint);
+}
+
+.aimp-bb-title-input {
+	width: 100%;
+	font-size: 22px;
+	font-weight: 600;
+}
+
+.aimp-bb-title-input.is-h3 {
+	font-size: 17px;
+}
+
+.aimp-bb-fields {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 14px;
+}
+
+.aimp-bb-field {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.aimp-bb-field.is-wide {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 2px;
+}
+
+.aimp-bb-field > span {
+	color: #50575e;
+	font-size: 12px;
+}
+
+.aimp-bb-field select {
+	max-width: 100%;
+}
+
+.aimp-bb-check {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.aimp-bb-buttons,
+.aimp-bb-hint,
+.aimp-bb-file {
+	margin: 0;
+}
+
+.aimp-bb-hint {
+	color: #646970;
+	font-size: 12px;
+}
+
+/* The picture in its shape, with the focal point (a click moves it). */
+.aimp-bb-image {
+	position: relative;
+	width: min(100%, 240px);
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	background: var(--bb-tint);
+	cursor: crosshair;
+}
+
+.aimp-bb-image img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	pointer-events: none;
+}
+
+.aimp-bb-image.is-plain {
+	aspect-ratio: auto;
+}
+
+.aimp-bb-image.is-plain img {
+	height: auto;
+}
+
+.aimp-bb-image.is-arch {
+	aspect-ratio: 4 / 5;
+	width: min(100%, 200px);
+	border-radius: 999px 999px 14px 14px;
+}
+
+.aimp-bb-image.is-round {
+	aspect-ratio: 1;
+	width: min(100%, 200px);
+	border-radius: 50%;
+}
+
+.aimp-bb-image.is-square {
+	border-radius: 14px;
+}
+
+.aimp-bb-image.has-frame {
+	border: 5px double var(--bb-gold);
+}
+
+.aimp-bb-dot {
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	margin: -7px 0 0 -7px;
+	border: 2px solid #fff;
+	border-radius: 50%;
+	background: var(--bb-gold);
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+	pointer-events: none;
+}
+
+.aimp-bb-poster {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+}
+
+.aimp-bb-poster img {
+	width: 64px;
+	height: 40px;
+	border-radius: 4px;
+	object-fit: cover;
+}
+
+.aimp-bb-block .wp-editor-wrap {
+	min-width: 0;
+}
+
+.aimp-bb-add {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+/* Narrow screens: the blocks under each other. */
+@media (max-width: 1100px) {
+	.aimp-bb-blocks,
+	.aimp-bb-blocks.is-n-3,
+	.aimp-bb-blocks.is-n-2.is-w-12,
+	.aimp-bb-blocks.is-n-2.is-w-21 {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
