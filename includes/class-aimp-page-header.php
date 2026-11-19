@@ -168,7 +168,8 @@ class AIMP_Page_Header {
 			$id      = (int) get_queried_object_id();
 			$content = (string) get_post_field( 'post_content', $id );
 			// The home page hero is a header of its own.
-			if ( false !== strpos( $content, '[atelier_irisee_hero' ) || self::design( 'off', false, $id ) ) {
+			// The blog overview starts with its filter bar and cards, without a header.
+			if ( false !== strpos( $content, '[atelier_irisee_hero' ) || false !== strpos( $content, '[atelier_irisee_blog' ) || self::design( 'off', false, $id ) ) {
 				return false;
 			}
 			$commerce = ( function_exists( 'is_cart' ) && is_cart() ) || ( function_exists( 'is_checkout' ) && is_checkout() ) || ( function_exists( 'is_account_page' ) && is_account_page() );

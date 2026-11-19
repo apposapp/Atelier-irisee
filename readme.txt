@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.74.0
+Stable tag: 3.75.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.75.0 =
+* Blog layout: a row now has up to three columns, and each column can hold blocks under each other ("+ Block underneath"), so a title, text and picture can stack next to another picture without a new row. Blocks move up and down in their column, columns move left and right. Per row a choice of space between the stacked blocks, per block its own space above. Older posts keep their look.
+* Design studio → Blog post → "Blocks in the posts: spacing and text": space between rows, between blocks side by side and under each other (also what "little" and "much" mean), sizes and colours of the post title, large and small titles, text and captions, thickness of the titles, line height, the width of a lone text and the gold line under large titles. Sizes and spaces shrink a little on phones by themselves.
+* Blog overview: the cards are pinned on the page. Design studio → Blog → "Pinned on the page with": a round pin (standard), a flat gold thumbtack, washi tape, a paper clip, a heart pin, a playful mix, or nothing; in the colour of the category or one colour for all.
+* The blog overview page has no page header.
 
 = 3.74.0 =
 * Blog overview: the cards are a mosaic now: each picture its own height (the same on every visit), the cards close up under each other and still read from the newest at the top left. Design studio → Blog → "Shape of the pictures": mosaic (standard), square, upright or their own shape.

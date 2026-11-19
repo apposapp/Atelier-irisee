@@ -114,24 +114,38 @@ a.aimp-blog-label:focus-visible {
 	color: var(--hb-gold);
 }
 
-/* Rows: one block fills the width in the middle; two or three side by side. */
+/* Rows: columns side by side, each with its blocks under each other; one column fills the width in the middle.
+ * The spaces can be set in the Design studio (--blp-…, smaller on phones). */
 .aimp-blog-row {
+	--blp-st: var(--blp-stack, clamp(1rem, 2.5vw, 1.75rem));
 	display: grid;
 	align-items: center;
-	gap: clamp(1.25rem, 3.5vw, 3rem);
-	margin: clamp(1.75rem, 4vw, 3rem) 0 0;
+	gap: var(--blp-col, clamp(1.25rem, 3.5vw, 3rem));
+	margin: var(--blp-row, clamp(1.75rem, 4vw, 3rem)) 0 0;
 }
 
 .aimp-blog-rows > .aimp-blog-row:first-child {
 	margin-top: 0;
 }
 
-.aimp-blog-row.is-space-small {
-	margin-top: 0.75rem;
+.aimp-blog-rows > .aimp-blog-row.is-space-small:not(:first-child) {
+	margin-top: var(--blp-row-s, 0.75rem);
 }
 
-.aimp-blog-row.is-space-large {
-	margin-top: clamp(3rem, 8vw, 6rem);
+.aimp-blog-rows > .aimp-blog-row.is-space-large:not(:first-child) {
+	margin-top: var(--blp-row-l, clamp(3rem, 8vw, 6rem));
+}
+
+.aimp-blog-row.is-stack-none {
+	--blp-st: 0px;
+}
+
+.aimp-blog-row.is-stack-small {
+	--blp-st: var(--blp-stack-s, 0.5rem);
+}
+
+.aimp-blog-row.is-stack-large {
+	--blp-st: var(--blp-stack-l, clamp(2rem, 5vw, 3.5rem));
 }
 
 .aimp-blog-row.is-cols-1 {
@@ -167,6 +181,33 @@ a.aimp-blog-label:focus-visible {
 	padding: clamp(1.5rem, 4vw, 3rem);
 	border-radius: var(--hb-radius);
 	background: var(--hb-tint);
+}
+
+.aimp-blog-col {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	min-width: 0;
+}
+
+.aimp-blog-row.is-cols-1 .aimp-blog-col {
+	align-items: center;
+}
+
+.aimp-blog-col > .aimp-blog-block + .aimp-blog-block {
+	margin-top: var(--blp-st);
+}
+
+.aimp-blog-col > .aimp-blog-block.is-gap-none {
+	margin-top: 0;
+}
+
+.aimp-blog-col > .aimp-blog-block.is-gap-small {
+	margin-top: var(--blp-stack-s, 0.5rem);
+}
+
+.aimp-blog-col > .aimp-blog-block.is-gap-large {
+	margin-top: var(--blp-stack-l, clamp(2rem, 5vw, 3.5rem));
 }
 
 .aimp-blog-block {
@@ -746,6 +787,81 @@ a.aimp-blog-label:focus-visible {
 
 .aimp-blog-item:is(:hover, :focus-within) {
 	z-index: 2;
+}
+
+/* Pins: each card held on the page by a pin, tack, tape, paper clip or heart (Design studio → Blog). The colour is
+ * the category's (--bl-pin), or one chosen for all; the tack and clip are gold metal. */
+.aimp-blog-card.has-pin {
+	--bl-pc: var(--bl-pin, var(--hb-gold, #b38f4f));
+	margin-top: 18px;
+}
+
+.aimp-blog-card.has-pin::before {
+	content: "";
+	position: absolute;
+	top: -10px;
+	left: 50%;
+	z-index: 3;
+	pointer-events: none;
+	transform: translateX(-50%);
+}
+
+.aimp-blog-card.pin-pin::before {
+	top: -11px;
+	width: 23px;
+	height: 23px;
+	border-radius: 50%;
+	background:
+		radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.75) 0 1.5px, rgba(255, 255, 255, 0) 4px),
+		radial-gradient(circle at 50% 45%, var(--bl-pc) 0 50%, color-mix(in srgb, var(--bl-pc) 65%, #000) 100%);
+	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.32), 4px 7px 6px -3px rgba(0, 0, 0, 0.2);
+}
+
+.aimp-blog-card.pin-tack::before {
+	top: -11px;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background:
+		radial-gradient(circle at 36% 32%, rgba(255, 255, 255, 0.8) 0 1.5px, rgba(255, 255, 255, 0) 5px),
+		radial-gradient(circle, #e7cf98 0 20%, #b38f4f 26% 60%, #7d5f2a 66% 72%, #c9a55f 78%);
+	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3), 3px 4px 5px -2px rgba(0, 0, 0, 0.18);
+}
+
+.aimp-blog-card.pin-tape::before {
+	top: -14px;
+	width: 96px;
+	height: 28px;
+	background:
+		repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.22) 0 5px, rgba(255, 255, 255, 0) 5px 10px),
+		color-mix(in srgb, var(--bl-pc) 68%, transparent);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+	transform: translateX(-50%) rotate(var(--bl-pin-turn, -4deg));
+	-webkit-mask: linear-gradient(90deg, transparent 0 2px, #000 2px calc(100% - 2px), transparent calc(100% - 2px));
+	mask: linear-gradient(90deg, transparent 0 2px, #000 2px calc(100% - 2px), transparent calc(100% - 2px));
+}
+
+.aimp-blog-card.pin-clip::before {
+	top: -19px;
+	left: 26%;
+	width: 20px;
+	height: 50px;
+	background: linear-gradient(90deg, #7d5f2a, #ecd7a6 45%, #b38f4f);
+	transform: rotate(var(--bl-pin-turn, 4deg));
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 40'%3E%3Cpath d='M5 12v18a3 3 0 0 0 6 0V8a5 5 0 0 0-10 0v23a7 7 0 0 0 14 0V12' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 40'%3E%3Cpath d='M5 12v18a3 3 0 0 0 6 0V8a5 5 0 0 0-10 0v23a7 7 0 0 0 14 0V12' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+
+.aimp-blog-card.pin-heart::before {
+	top: -13px;
+	width: 30px;
+	height: 28px;
+	background:
+		radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.7) 0 1.5px, rgba(255, 255, 255, 0) 5px),
+		radial-gradient(circle at 50% 40%, var(--bl-pc) 0 45%, color-mix(in srgb, var(--bl-pc) 65%, #000) 100%);
+	transform: translateX(-50%) rotate(var(--bl-pin-turn, 0deg));
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M12 21.5S1.5 15 1.5 7.6A5.6 5.6 0 0 1 12 4.6a5.6 5.6 0 0 1 10.5 3c0 7.4-10.5 13.9-10.5 13.9z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M12 21.5S1.5 15 1.5 7.6A5.6 5.6 0 0 1 12 4.6a5.6 5.6 0 0 1 10.5 3c0 7.4-10.5 13.9-10.5 13.9z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
 }
 
 .aimp-blog-item:is(:hover, :focus-within) .aimp-blog-card {

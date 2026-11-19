@@ -245,7 +245,7 @@ class AIMP_Blog {
 			}
 		}
 		$rows = json_decode( (string) get_post_meta( $id, self::ROWS, true ), true );
-		return is_array( $rows ) ? $rows : array();
+		return is_array( $rows ) ? array_map( array( __CLASS__, 'upgrade_row' ), $rows ) : array();
 	}
 
 	/**
@@ -263,7 +263,46 @@ class AIMP_Blog {
 	}
 
 	/**
-	 * Rows as the builder sends them, made safe: at most 60 rows of 3 blocks, every value checked.
+	 * A row of before 3.75 (a flat list of blocks side by side) as columns of one block each.
+	 *
+	 * @param mixed $row Row.
+	 * @return array
+	 */
+	public static function upgrade_row( $row ) {
+		if ( ! is_array( $row ) ) {
+			return array( 'cols' => array() );
+		}
+		if ( ! isset( $row['cols'] ) || ! is_array( $row['cols'] ) ) {
+			$row['cols'] = array();
+			foreach ( isset( $row['blocks'] ) && is_array( $row['blocks'] ) ? $row['blocks'] : array() as $block ) {
+				$row['cols'][] = array( $block );
+			}
+		}
+		unset( $row['blocks'] );
+		return $row;
+	}
+
+	/**
+	 * All blocks of a row, column after column.
+	 *
+	 * @param array $row Row.
+	 * @return array
+	 */
+	public static function row_blocks( $row ) {
+		$blocks = array();
+		foreach ( self::upgrade_row( $row )['cols'] as $col ) {
+			foreach ( is_array( $col ) ? $col : array() as $block ) {
+				if ( is_array( $block ) ) {
+					$blocks[] = $block;
+				}
+			}
+		}
+		return $blocks;
+	}
+
+	/**
+	 * Rows as the builder sends them, made safe: at most 60 rows of 3 columns of 8 blocks under each other, every
+	 * value checked.
 	 *
 	 * @param mixed $rows Rows.
 	 * @return array
@@ -284,51 +323,62 @@ class AIMP_Blog {
 			if ( ! is_array( $row ) ) {
 				continue;
 			}
-			$blocks = array();
-			foreach ( array_slice( isset( $row['blocks'] ) && is_array( $row['blocks'] ) ? $row['blocks'] : array(), 0, 3 ) as $block ) {
-				if ( ! is_array( $block ) ) {
-					continue;
+			$row  = self::upgrade_row( $row );
+			$cols = array();
+			foreach ( array_slice( $row['cols'], 0, 3 ) as $col ) {
+				$blocks = array();
+				foreach ( array_slice( is_array( $col ) ? $col : array(), 0, 8 ) as $block ) {
+					if ( ! is_array( $block ) ) {
+						continue;
+					}
+					$get  = function ( $key, $default = '' ) use ( $block ) {
+						return isset( $block[ $key ] ) ? $block[ $key ] : $default;
+					};
+					$type = $pick( $get( 't' ), array( 'text', 'title', 'image', 'video' ) );
+					$item = array(
+						't'   => $type,
+						'gap' => $pick( $get( 'gap' ), array( '', 'none', 'small', 'large' ) ),
+					);
+					if ( 'title' === $type ) {
+						$item['text']  = $text( $get( 'text' ) );
+						$item['size']  = $pick( $get( 'size' ), array( 'h2', 'h3' ) );
+						$item['align'] = $pick( $get( 'align' ), array( '', 'left', 'center', 'right' ) );
+					} elseif ( 'text' === $type ) {
+						$item['html']  = wp_kses_post( is_string( $get( 'html' ) ) ? $get( 'html' ) : '' );
+						$item['align'] = $pick( $get( 'align' ), array( '', 'left', 'center', 'right' ) );
+					} elseif ( 'image' === $type ) {
+						$item['id']      = absint( $get( 'id', 0 ) );
+						$item['shape']   = $pick( $get( 'shape' ), array( '', 'arch', 'round', 'square' ) );
+						$item['frame']   = $get( 'frame' ) ? 1 : 0;
+						$item['fx']      = max( -1, min( 100, (int) $get( 'fx', -1 ) ) );
+						$item['fy']      = max( -1, min( 100, (int) $get( 'fy', -1 ) ) );
+						$item['caption'] = $text( $get( 'caption' ) );
+						$item['link']    = esc_url_raw( is_string( $get( 'link' ) ) ? trim( $get( 'link' ) ) : '' );
+						$item['zoom']    = $get( 'zoom', 1 ) ? 1 : 0;
+					} else {
+						$item['id']      = absint( $get( 'id', 0 ) );
+						$item['url']     = esc_url_raw( is_string( $get( 'url' ) ) ? trim( $get( 'url' ) ) : '' );
+						$item['poster']  = absint( $get( 'poster', 0 ) );
+						$item['auto']    = $get( 'auto' ) ? 1 : 0;
+						$item['shape']   = $pick( $get( 'shape' ), array( '', 'plain' ) );
+						$item['caption'] = $text( $get( 'caption' ) );
+					}
+					$blocks[] = $item;
 				}
-				$get  = function ( $key, $default = '' ) use ( $block ) {
-					return isset( $block[ $key ] ) ? $block[ $key ] : $default;
-				};
-				$type = $pick( $get( 't' ), array( 'text', 'title', 'image', 'video' ) );
-				$item = array( 't' => $type );
-				if ( 'title' === $type ) {
-					$item['text']  = $text( $get( 'text' ) );
-					$item['size']  = $pick( $get( 'size' ), array( 'h2', 'h3' ) );
-					$item['align'] = $pick( $get( 'align' ), array( '', 'left', 'center', 'right' ) );
-				} elseif ( 'text' === $type ) {
-					$item['html']  = wp_kses_post( is_string( $get( 'html' ) ) ? $get( 'html' ) : '' );
-					$item['align'] = $pick( $get( 'align' ), array( '', 'left', 'center', 'right' ) );
-				} elseif ( 'image' === $type ) {
-					$item['id']      = absint( $get( 'id', 0 ) );
-					$item['shape']   = $pick( $get( 'shape' ), array( '', 'arch', 'round', 'square' ) );
-					$item['frame']   = $get( 'frame' ) ? 1 : 0;
-					$item['fx']      = max( -1, min( 100, (int) $get( 'fx', -1 ) ) );
-					$item['fy']      = max( -1, min( 100, (int) $get( 'fy', -1 ) ) );
-					$item['caption'] = $text( $get( 'caption' ) );
-					$item['link']    = esc_url_raw( is_string( $get( 'link' ) ) ? trim( $get( 'link' ) ) : '' );
-					$item['zoom']    = $get( 'zoom', 1 ) ? 1 : 0;
-				} else {
-					$item['id']      = absint( $get( 'id', 0 ) );
-					$item['url']     = esc_url_raw( is_string( $get( 'url' ) ) ? trim( $get( 'url' ) ) : '' );
-					$item['poster']  = absint( $get( 'poster', 0 ) );
-					$item['auto']    = $get( 'auto' ) ? 1 : 0;
-					$item['shape']   = $pick( $get( 'shape' ), array( '', 'plain' ) );
-					$item['caption'] = $text( $get( 'caption' ) );
+				if ( $blocks ) {
+					$cols[] = $blocks;
 				}
-				$blocks[] = $item;
 			}
 			$get     = function ( $key ) use ( $row ) {
 				return isset( $row[ $key ] ) ? $row[ $key ] : '';
 			};
 			$clean[] = array(
-				'w'      => $pick( $get( 'w' ), array( '', '12', '21' ) ),
-				'v'      => $pick( $get( 'v' ), array( '', 'top', 'bottom' ) ),
-				'space'  => $pick( $get( 'space' ), array( '', 'small', 'large' ) ),
-				'bg'     => $get( 'bg' ) ? 1 : 0,
-				'blocks' => $blocks,
+				'w'     => $pick( $get( 'w' ), array( '', '12', '21' ) ),
+				'v'     => $pick( $get( 'v' ), array( '', 'top', 'bottom' ) ),
+				'space' => $pick( $get( 'space' ), array( '', 'small', 'large' ) ),
+				'stack' => $pick( $get( 'stack' ), array( '', 'none', 'small', 'large' ) ),
+				'bg'    => $get( 'bg' ) ? 1 : 0,
+				'cols'  => $cols,
 			);
 		}
 		return $clean;
@@ -355,7 +405,8 @@ class AIMP_Blog {
 	}
 
 	/**
-	 * The rows as HTML. A row with one block (left) fills the width, in the middle.
+	 * The rows as HTML: columns side by side, each with its blocks under each other. A row with one column (left)
+	 * fills the width, in the middle.
 	 *
 	 * @param array $rows Rows.
 	 * @return string
@@ -363,11 +414,28 @@ class AIMP_Blog {
 	public static function render_rows( $rows ) {
 		$html = '';
 		foreach ( $rows as $row ) {
-			$blocks = array_values( array_filter( isset( $row['blocks'] ) ? (array) $row['blocks'] : array(), array( __CLASS__, 'filled' ) ) );
-			$count  = count( $blocks );
+			$row  = self::upgrade_row( $row );
+			$cols = array();
+			foreach ( $row['cols'] as $col ) {
+				$col = array_values( array_filter( is_array( $col ) ? $col : array(), array( __CLASS__, 'filled' ) ) );
+				if ( $col ) {
+					$cols[] = $col;
+				}
+			}
+			$count = count( $cols );
 			if ( ! $count ) {
 				continue;
 			}
+			$row = array_merge(
+				array(
+					'w'     => '',
+					'v'     => '',
+					'space' => '',
+					'stack' => '',
+					'bg'    => 0,
+				),
+				$row
+			);
 			$classes = array( 'aimp-blog-row', 'is-cols-' . $count );
 			if ( 2 === $count && in_array( $row['w'], array( '12', '21' ), true ) ) {
 				$classes[] = 'is-w-' . $row['w'];
@@ -376,12 +444,20 @@ class AIMP_Blog {
 			if ( in_array( $row['space'], array( 'small', 'large' ), true ) ) {
 				$classes[] = 'is-space-' . $row['space'];
 			}
+			if ( in_array( $row['stack'], array( 'none', 'small', 'large' ), true ) ) {
+				$classes[] = 'is-stack-' . $row['stack'];
+			}
 			if ( ! empty( $row['bg'] ) ) {
 				$classes[] = 'has-bg';
 			}
 			$html .= '<section class="' . esc_attr( implode( ' ', $classes ) ) . '">';
-			foreach ( $blocks as $block ) {
-				$html .= '<div class="aimp-blog-block is-' . esc_attr( $block['t'] ) . '">' . self::block( $block, 1 === $count ) . '</div>';
+			foreach ( $cols as $col ) {
+				$html .= '<div class="aimp-blog-col">';
+				foreach ( $col as $i => $block ) {
+					$gap   = $i && isset( $block['gap'] ) && in_array( $block['gap'], array( 'none', 'small', 'large' ), true ) ? ' is-gap-' . $block['gap'] : '';
+					$html .= '<div class="aimp-blog-block is-' . esc_attr( $block['t'] ) . $gap . '">' . self::block( $block, 1 === $count ) . '</div>';
+				}
+				$html .= '</div>';
 			}
 			$html .= '</section>';
 		}
@@ -702,8 +778,8 @@ class AIMP_Blog {
 			return $thumb;
 		}
 		foreach ( self::rows( $id ) as $row ) {
-			foreach ( $row['blocks'] as $block ) {
-				if ( 'image' === $block['t'] && ! empty( $block['id'] ) ) {
+			foreach ( self::row_blocks( $row ) as $block ) {
+				if ( isset( $block['t'] ) && 'image' === $block['t'] && ! empty( $block['id'] ) ) {
 					return (int) $block['id'];
 				}
 			}
@@ -766,7 +842,18 @@ class AIMP_Blog {
 			$image = '<span class="aimp-blog-card-empty" aria-hidden="true">' . esc_html( $first ) . '</span>';
 		}
 		$term = $opts['label'] ? self::category( $id ) : null;
-		$html = '<li class="aimp-blog-item" style="' . esc_attr( $style ) . '"><article class="aimp-blog-card">' .
+		// The pin that holds the card on the page: its style (a mix: one per post), in the colour of the category.
+		$pin   = isset( $opts['pin'] ) ? $opts['pin'] : 'none';
+		$pin   = 'mix' === $pin ? array( 'pin', 'tape', 'tack', 'pin', 'heart' )[ (int) floor( self::chance( $id, 5 ) * 4.999 ) ] : $pin;
+		$card  = '';
+		$cardc = 'aimp-blog-card';
+		if ( 'none' !== $pin ) {
+			$cat    = self::category( $id );
+			$color  = '' !== $opts['pin_rgb'] ? $opts['pin_rgb'] : ( $cat ? self::color( $cat ) : '' );
+			$cardc .= ' has-pin pin-' . $pin;
+			$card   = ' style="' . esc_attr( ( '' !== $color ? '--bl-pin:' . $color . ';' : '' ) . '--bl-pin-turn:' . round( ( self::chance( $id, 6 ) * 2 - 1 ) * 8, 1 ) . 'deg' ) . '"';
+		}
+		$html = '<li class="aimp-blog-item" style="' . esc_attr( $style ) . '"><article class="' . $cardc . '"' . $card . '>' .
 			'<div class="aimp-blog-card-media"><a class="aimp-blog-card-photo" href="' . esc_url( $url ) . '" tabindex="-1" aria-hidden="true">' . $image . '</a>' . ( $term ? self::label( $term ) : '' ) . '</div>' .
 			'<div class="aimp-blog-card-body"><h3 class="aimp-blog-card-title"><a href="' . esc_url( $url ) . '">' . esc_html( wp_strip_all_tags( $title ) ) . '</a></h3>';
 		if ( $opts['date'] ) {
@@ -818,6 +905,8 @@ class AIMP_Blog {
 			'tilt'    => ! self::design( 'bl_notilt' ),
 			'gap'     => $gap >= 0 ? $gap : -1,
 			'shape'   => $in( (string) self::design( 'bl_shape', '' ), array( 'square', 'portrait', 'original' ) ) ?: 'mosaic',
+			'pin'     => $in( (string) self::design( 'bl_pin', '' ), array( 'tack', 'tape', 'clip', 'heart', 'mix', 'none' ) ) ?: 'pin',
+			'pin_rgb' => (string) self::design( 'bl_pin_color', '' ),
 			'pages'   => 'numbers' === self::design( 'bl_pages', '' ) ? 'numbers' : 'more',
 			'filters' => 'no' !== $att( 'filters' ) && ! self::design( 'bl_nofilters' ),
 			'lock'    => $lock,

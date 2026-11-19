@@ -231,7 +231,7 @@ class AIMP_Design {
 			'about-chapter'   => array( 'ab_chapters' ),
 			'about-closing'   => array( 'ab_closing' ),
 			'blog'            => array( 'bl_opts' ),
-			'blog-post'       => array( 'bl_post' ),
+			'blog-post'       => array( 'bl_post', 'bl_look' ),
 		) as $id => $more ) {
 			if ( isset( $elements[ $id ] ) ) {
 				$elements[ $id ]['controls'] = array_merge( $elements[ $id ]['controls'], $more );
@@ -810,6 +810,30 @@ class AIMP_Design {
 				'bl_sidebar'   => 'bool',
 				'bl_back'      => 'url',
 			),
+			// The blocks of a post: spacing and text (CSS only, opts_css).
+			'bl_look'     => array(
+				'bl_row'      => array( 0, 240, -1 ),
+				'bl_row_s'    => array( 0, 240, -1 ),
+				'bl_row_l'    => array( 0, 240, -1 ),
+				'bl_colgap'   => array( 0, 160, -1 ),
+				'bl_stack'    => array( 0, 160, -1 ),
+				'bl_stack_s'  => array( 0, 160, -1 ),
+				'bl_stack_l'  => array( 0, 160, -1 ),
+				'bl_pt_size'  => array( 0, 120, 0 ),
+				'bl_pt_color' => 'color',
+				'bl_h2_size'  => array( 0, 120, 0 ),
+				'bl_h2_color' => 'color',
+				'bl_h2_noline' => 'bool',
+				'bl_h3_size'  => array( 0, 80, 0 ),
+				'bl_h3_color' => 'color',
+				'bl_t_weight' => array( 'select', array( '', '400', '600', '700' ) ),
+				'bl_tx_size'  => array( 0, 40, 0 ),
+				'bl_tx_lh'    => array( 'select', array( '', '1.4', '1.6', '1.8', '2', '2.2' ) ),
+				'bl_tx_color' => 'color',
+				'bl_tx_width' => array( 0, 1400, 0 ),
+				'bl_cap_size' => array( 0, 30, 0 ),
+				'bl_cap_color' => 'color',
+			),
 			'cz_summary'  => array(
 				'cz_nosave'   => 'bool',
 				'cz_discount' => array( 'select', array( '', 'total', 'badge' ) ),
@@ -1183,6 +1207,8 @@ class AIMP_Design {
 			'bl_pages'       => array( 'select', array( '', 'numbers' ) ),
 			'bl_sort'        => array( 'select', array( '', 'oldest', 'likes', 'views' ) ),
 			'bl_shape'       => array( 'select', array( '', 'square', 'portrait', 'original' ) ),
+			'bl_pin'         => array( 'select', array( '', 'tack', 'tape', 'clip', 'heart', 'mix', 'none' ) ),
+			'bl_pin_color'   => 'color',
 			'bl_gap'         => array( 0, 80, -99 ),
 			'bl_nofilters'   => 'bool',
 			'bl_noexcerpt'   => 'bool',
@@ -2531,6 +2557,64 @@ class AIMP_Design {
 	}
 
 	/**
+	 * The look of the blocks in blog posts (Design studio, Blog post: spacing and text).
+	 *
+	 * @param callable $get Saved value of a part's setting.
+	 * @return string
+	 */
+	public static function blog_post_css( $get ) {
+		$post = 'html body .aimp-blog-post';
+		// A size that is reached on wide screens and becomes smaller on narrow ones (to $least of it).
+		$fluid = function ( $px, $least ) {
+			return 'clamp(' . round( $px * $least, 1 ) . 'px,' . round( $px / 12, 3 ) . 'vw,' . $px . 'px)';
+		};
+		$vars  = '';
+		foreach ( array(
+			'bl_row'     => '--blp-row',
+			'bl_row_s'   => '--blp-row-s',
+			'bl_row_l'   => '--blp-row-l',
+			'bl_colgap'  => '--blp-col',
+			'bl_stack'   => '--blp-stack',
+			'bl_stack_s' => '--blp-stack-s',
+			'bl_stack_l' => '--blp-stack-l',
+		) as $key => $var ) {
+			$value = $get( 'blog-post', $key );
+			if ( null !== $value && '' !== $value && (int) $value >= 0 ) {
+				$vars .= $var . ':' . ( (int) $value ? $fluid( (int) $value, 0.6 ) : '0px' ) . ';';
+			}
+		}
+		$css = '' !== $vars ? $post . '{' . $vars . '}' : '';
+		// Text: size (px, smaller on phones), colour, and more.
+		$rule = function ( $selector, $size, $least, $color, $more = '' ) use ( $get, $fluid ) {
+			$out = '';
+			if ( $size && (int) $get( 'blog-post', $size ) > 0 ) {
+				$out .= 'font-size:' . $fluid( (int) $get( 'blog-post', $size ), $least ) . ';';
+			}
+			if ( $color && $get( 'blog-post', $color ) ) {
+				$out .= 'color:' . $get( 'blog-post', $color ) . ';';
+			}
+			$out .= $more;
+			return '' !== $out ? $selector . '{' . $out . '}' : '';
+		};
+		$weight = (string) $get( 'blog-post', 'bl_t_weight' );
+		$weight = in_array( $weight, array( '400', '600', '700' ), true ) ? 'font-weight:' . $weight . ';' : '';
+		$lh     = (string) $get( 'blog-post', 'bl_tx_lh' );
+		$css   .= $rule( $post . ' .aimp-blog-post-title', 'bl_pt_size', 0.65, 'bl_pt_color', $weight );
+		$css   .= $rule( $post . ' .aimp-blog-title.is-h2', 'bl_h2_size', 0.7, 'bl_h2_color', $weight );
+		$css   .= $rule( $post . ' .aimp-blog-title.is-h3', 'bl_h3_size', 0.8, 'bl_h3_color', $weight );
+		$css   .= $rule( $post . ' .aimp-blog-text', 'bl_tx_size', 0.85, '', in_array( $lh, array( '1.4', '1.6', '1.8', '2', '2.2' ), true ) ? 'line-height:' . $lh . ';' : '' );
+		$css   .= $rule( $post . ' .aimp-blog-text :is(p,li,blockquote),' . $post . ' .aimp-blog-text', '', 0, 'bl_tx_color' );
+		$css   .= $rule( $post . ' .aimp-blog-block figcaption', 'bl_cap_size', 0.85, 'bl_cap_color' );
+		if ( $get( 'blog-post', 'bl_h2_noline' ) ) {
+			$css .= $post . ' .aimp-blog-title.is-h2::after{display:none}';
+		}
+		if ( (int) $get( 'blog-post', 'bl_tx_width' ) > 0 ) {
+			$css .= $post . ' .aimp-blog-row.is-cols-1 .aimp-blog-text{max-width:' . (int) $get( 'blog-post', 'bl_tx_width' ) . 'px}';
+		}
+		return $css;
+	}
+
+	/**
 	 * The CSS of the header, menu and hero settings (phase 3) that are styling only.
 	 *
 	 * @param array $styles Styles.
@@ -2745,6 +2829,8 @@ class AIMP_Design {
 		} elseif ( 'flat' === $ph_dir ) {
 			$css .= 'html body .aimp-page-header.has-media::after{background:var(--ph-tint)!important}';
 		}
+		$css .= self::blog_post_css( $get );
+
 		if ( $get( 'kit-steps', 'ks_thread' ) ) {
 			$css .= 'html body .aimp-kit-steps .ks-seam-sewn{stroke:' . $get( 'kit-steps', 'ks_thread' ) . '!important}html body .aimp-kit-steps .ks-seam-guide{stroke:color-mix(in srgb,' . $get( 'kit-steps', 'ks_thread' ) . ' 35%,transparent)!important}';
 		}
@@ -4908,6 +4994,20 @@ class AIMP_Design {
 				'original' => __( 'Their own shape', 'atelier-irisee-master-plugin' ),
 			)
 		);
+		self::choice(
+			'bl_pin',
+			__( 'Pinned on the page with', 'atelier-irisee-master-plugin' ),
+			array(
+				''      => __( 'A round pin (standard)', 'atelier-irisee-master-plugin' ),
+				'tack'  => __( 'A flat gold thumbtack', 'atelier-irisee-master-plugin' ),
+				'tape'  => __( 'A strip of washi tape', 'atelier-irisee-master-plugin' ),
+				'clip'  => __( 'A paper clip', 'atelier-irisee-master-plugin' ),
+				'heart' => __( 'A heart pin', 'atelier-irisee-master-plugin' ),
+				'mix'   => __( 'A playful mix (pins, tape, hearts)', 'atelier-irisee-master-plugin' ),
+				'none'  => __( 'Nothing', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::color( 'bl_pin_color', __( 'Colour of the pins, tape and hearts (empty = the colour of the category)', 'atelier-irisee-master-plugin' ) );
 		self::number( 'bl_gap', __( 'Space between the cards', 'atelier-irisee-master-plugin' ), 0, 80, 'px' );
 		self::check_box( 'bl_nofilters', __( 'No filter bar', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'bl_noexcerpt', __( 'Cards: no text', 'atelier-irisee-master-plugin' ) );
@@ -4928,6 +5028,54 @@ class AIMP_Design {
 		self::check_box( 'bl_norelated', __( 'No "More from" with other posts', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'bl_sidebar', __( 'Keep Divi\'s sidebar next to the post', 'atelier-irisee-master-plugin' ) );
 		$field( 'bl_back', __( '"All blog posts" goes to (standard: the page with the overview)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
+		echo '</fieldset>';
+
+		$group( 'bl_look', __( 'Blocks in the posts: spacing and text', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'For all posts at once. Spaces: empty = standard, 0 = no space. Sizes: 0 = standard. On phones the sizes and spaces become a little smaller by themselves. Per row and per block a post can still choose little or much space.', 'atelier-irisee-master-plugin' ) . '</p>';
+		$sub( __( 'Spacing', 'atelier-irisee-master-plugin' ) );
+		self::number( 'bl_row', __( 'Space between rows', 'atelier-irisee-master-plugin' ), 0, 240, 'px' );
+		self::number( 'bl_row_s', __( 'Space between rows: "small"', 'atelier-irisee-master-plugin' ), 0, 240, 'px' );
+		self::number( 'bl_row_l', __( 'Space between rows: "large"', 'atelier-irisee-master-plugin' ), 0, 240, 'px' );
+		self::number( 'bl_colgap', __( 'Space between blocks side by side', 'atelier-irisee-master-plugin' ), 0, 160, 'px' );
+		self::number( 'bl_stack', __( 'Space between blocks under each other', 'atelier-irisee-master-plugin' ), 0, 160, 'px' );
+		self::number( 'bl_stack_s', __( 'Space between blocks under each other: "small"', 'atelier-irisee-master-plugin' ), 0, 160, 'px' );
+		self::number( 'bl_stack_l', __( 'Space between blocks under each other: "large"', 'atelier-irisee-master-plugin' ), 0, 160, 'px' );
+		$sub( __( 'Titles', 'atelier-irisee-master-plugin' ) );
+		self::number( 'bl_pt_size', __( 'Title of the post at the top (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 120, 'px' );
+		self::color( 'bl_pt_color', __( 'Colour of the title at the top', 'atelier-irisee-master-plugin' ) );
+		self::number( 'bl_h2_size', __( 'Large titles (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 120, 'px' );
+		self::color( 'bl_h2_color', __( 'Colour of the large titles', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_h2_noline', __( 'No gold double line under large titles', 'atelier-irisee-master-plugin' ) );
+		self::number( 'bl_h3_size', __( 'Small titles (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 80, 'px' );
+		self::color( 'bl_h3_color', __( 'Colour of the small titles', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'bl_t_weight',
+			__( 'Thickness of the titles', 'atelier-irisee-master-plugin' ),
+			array(
+				''    => __( 'Standard', 'atelier-irisee-master-plugin' ),
+				'400' => __( 'Normal', 'atelier-irisee-master-plugin' ),
+				'600' => __( 'Half bold', 'atelier-irisee-master-plugin' ),
+				'700' => __( 'Bold', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		$sub( __( 'Text', 'atelier-irisee-master-plugin' ) );
+		self::number( 'bl_tx_size', __( 'Text size (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 40, 'px' );
+		self::choice(
+			'bl_tx_lh',
+			__( 'Line height', 'atelier-irisee-master-plugin' ),
+			array(
+				''    => __( 'Standard', 'atelier-irisee-master-plugin' ),
+				'1.4' => __( 'Tight (1.4)', 'atelier-irisee-master-plugin' ),
+				'1.6' => '1.6',
+				'1.8' => '1.8',
+				'2'   => '2',
+				'2.2' => __( 'Airy (2.2)', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::color( 'bl_tx_color', __( 'Colour of the text', 'atelier-irisee-master-plugin' ) );
+		self::number( 'bl_tx_width', __( 'Width of a text alone in its row (0 = standard, 740)', 'atelier-irisee-master-plugin' ), 0, 1400, 'px' );
+		self::number( 'bl_cap_size', __( 'Captions under pictures and videos (0 = standard)', 'atelier-irisee-master-plugin' ), 0, 30, 'px' );
+		self::color( 'bl_cap_color', __( 'Colour of the captions', 'atelier-irisee-master-plugin' ) );
 		echo '</fieldset>';
 	}
 

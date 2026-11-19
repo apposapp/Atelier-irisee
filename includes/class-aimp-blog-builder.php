@@ -100,7 +100,7 @@ class AIMP_Blog_Builder {
 	private static function rows( $post ) {
 		$rows = json_decode( (string) get_post_meta( $post->ID, AIMP_Blog::ROWS, true ), true );
 		if ( is_array( $rows ) && $rows ) {
-			return $rows;
+			return array_map( array( 'AIMP_Blog', 'upgrade_row' ), $rows );
 		}
 		$content = trim( (string) $post->post_content );
 		if ( '' !== $content && 0 !== strpos( $content, '<!-- aimp-blog' ) ) {
@@ -129,7 +129,7 @@ class AIMP_Blog_Builder {
 		$rows = self::rows( $post );
 		echo '<div id="aimp-blog-builder" class="aimp-bb"></div>';
 		echo '<textarea name="content" id="content" class="aimp-bb-content" hidden>' . esc_textarea( '<!-- aimp-blog:' . base64_encode( (string) wp_json_encode( $rows ) ) . ' -->' ) . '</textarea>'; // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- the builder's own data.
-		echo '<p class="description aimp-bb-help">' . esc_html__( 'The picture of the post (featured image) is shown at the top and on the overview card; the excerpt is the text on the card. A row with one block fills the whole width, in the middle.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '<p class="description aimp-bb-help">' . esc_html__( 'The picture of the post (featured image) is shown on the overview card and when the post is shared; the excerpt is the text on the card. A row has up to three columns side by side, each with blocks under each other; a row with one column fills the whole width, in the middle.', 'atelier-irisee-master-plugin' ) . '</p>';
 	}
 
 	/**
@@ -141,7 +141,7 @@ class AIMP_Blog_Builder {
 	private static function media( $rows ) {
 		$list = array();
 		foreach ( $rows as $row ) {
-			foreach ( isset( $row['blocks'] ) ? (array) $row['blocks'] : array() as $block ) {
+			foreach ( AIMP_Blog::row_blocks( $row ) as $block ) {
 				foreach ( array( 'id', 'poster' ) as $key ) {
 					$id = isset( $block[ $key ] ) ? (int) $block[ $key ] : 0;
 					if ( $id && ! isset( $list[ $id ] ) ) {
@@ -183,6 +183,13 @@ class AIMP_Blog_Builder {
 					'addTextRow'  => __( '+ Text', 'atelier-irisee-master-plugin' ),
 					'addPicText'  => __( '+ Picture and text', 'atelier-irisee-master-plugin' ),
 					'addBlock'    => __( '+ Block', 'atelier-irisee-master-plugin' ),
+					'addColumn'   => __( '+ Column', 'atelier-irisee-master-plugin' ),
+					'addUnder'    => __( '+ Block underneath', 'atelier-irisee-master-plugin' ),
+					'column'      => __( 'Column', 'atelier-irisee-master-plugin' ),
+					'removeCol'   => __( 'Remove this column', 'atelier-irisee-master-plugin' ),
+					'stack'       => __( 'Space between blocks under each other', 'atelier-irisee-master-plugin' ),
+					'gap'         => __( 'Space above this block', 'atelier-irisee-master-plugin' ),
+					'spaceNone'   => __( 'None', 'atelier-irisee-master-plugin' ),
 					'empty'       => __( 'No rows yet. Start with a title, a text, or a picture with text next to it.', 'atelier-irisee-master-plugin' ),
 					'up'          => __( 'Move up', 'atelier-irisee-master-plugin' ),
 					'down'        => __( 'Move down', 'atelier-irisee-master-plugin' ),

@@ -105,6 +105,40 @@
 	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
 }
 
+/* A column: its blocks under each other, and "+ Block underneath". */
+.aimp-bb-col {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+}
+
+.aimp-bb-col-bar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--bb-gold-text);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.aimp-bb-add-under {
+	padding: 6px 10px;
+	border: 1px dashed var(--bb-gold);
+	border-radius: 6px;
+	background: transparent;
+	color: var(--bb-gold-text);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-bb-add-under:hover,
+.aimp-bb-add-under:focus-visible {
+	background: var(--bb-tint);
+}
+
 .aimp-bb-block {
 	min-width: 0;
 	border: 1px dashed #dcc9a5;
