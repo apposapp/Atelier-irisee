@@ -757,6 +757,16 @@ a.aimp-blog-label:focus-visible {
 	padding-top: var(--bl-drop, 0px) !important;
 }
 
+/* The first row (blog.js): all cards start at the same height, turned around the middle of their top edge so the
+ * tops stay in line; the rows after it drop at random. */
+.aimp-blog-grid > .aimp-blog-item.is-top {
+	padding-top: 0 !important;
+}
+
+.aimp-blog-grid > .aimp-blog-item.is-top .aimp-blog-card {
+	transform-origin: 50% 0;
+}
+
 /* Packed (blog.js): rows of 4 px, each card spans its own height, so shorter cards leave no gap under them (a
    mosaic that still reads from the newest at the top left). The space between the rows is under each card. */
 .aimp-blog-grid.is-packed {

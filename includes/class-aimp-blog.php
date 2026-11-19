@@ -35,7 +35,6 @@ class AIMP_Blog {
 		'irisee-focus'    => array( 'Irisée Focus', '#b38f4f' ),
 		'irisee-inspired' => array( 'Irisée Inspired', '#c48b84' ),
 		'irisee-moments'  => array( 'Irisée Moments', '#7d9a82' ),
-		'atelier-irisee'  => array( 'Atelier Irisée', '#613907' ),
 	);
 
 	/** The content filter is running (an excerpt inside it must not start it again). */

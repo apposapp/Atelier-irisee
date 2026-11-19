@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.75.0
+Stable tag: 3.75.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.75.1 =
+* Blog overview: the first row of cards starts in line (the same height, the tops level, pins in a row); the cards keep their own heights and the rows after it still drop at random.
+* Blog: "Atelier Irisée" is no longer one of the blog's own categories (the three Irisée categories stay).
 
 = 3.75.0 =
 * Blog layout: a row now has up to three columns, and each column can hold blocks under each other ("+ Block underneath"), so a title, text and picture can stack next to another picture without a new row. Blocks move up and down in their column, columns move left and right. Per row a choice of space between the stacked blocks, per block its own space above. Older posts keep their look.

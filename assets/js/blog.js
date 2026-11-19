@@ -299,10 +299,19 @@
 	var ROW = 4;
 
 	function pack(grid) {
-		if (window.getComputedStyle(grid).display !== 'grid') {
+		var style = window.getComputedStyle(grid);
+		if (style.display !== 'grid') {
 			grid.classList.remove('is-packed');
+			Array.prototype.forEach.call(grid.children, function (item) {
+				item.classList.remove('is-top');
+			});
 			return;
 		}
+		// The first row starts in line: as many cards as there are columns (they fill the first row in order).
+		var cols = style.gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+		Array.prototype.forEach.call(grid.children, function (item, i) {
+			item.classList.toggle('is-top', i < cols);
+		});
 		grid.classList.add('is-packed');
 		Array.prototype.forEach.call(grid.children, function (item) {
 			item.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil(item.getBoundingClientRect().height / ROW));
