@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.75.1
+Stable tag: 3.75.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.75.2 =
+* Blog posts: "Text and spacing of this post" in the blog layout box, above the rows: the spaces, title sizes and colours, text size, line height and colour, captions and more for this one post (empty = as in Design studio → Blog post, which stays the standard for all posts). The preview shows them too.
+* Blog overview: the cards stand straight. Design studio → Blog → "Cards turned a little" turns them again.
 
 = 3.75.1 =
 * Blog overview: the first row of cards starts in line (the same height, the tops level, pins in a row); the cards keep their own heights and the rows after it still drop at random.

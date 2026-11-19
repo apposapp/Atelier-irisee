@@ -3384,4 +3384,8 @@ return array(
 	'Colour of the captions' => 'Couleur des légendes',
 	// Blog 3.75: spacing help
 	'For all posts at once. Spaces: empty = standard, 0 = no space. Sizes: 0 = standard. On phones the sizes and spaces become a little smaller by themselves. Per row and per block a post can still choose little or much space.' => 'Pour tous les articles à la fois. Espaces : vide = standard, 0 = aucun espace. Tailles : 0 = standard. Sur téléphone, les tailles et les espaces se réduisent un peu d\'eux-mêmes. Chaque rangée et chaque bloc d\'un article peut encore choisir peu ou beaucoup d\'espace.',
+	// Blog 3.75.2: per-post look, straight cards
+	'Text and spacing of this post' => 'Texte et espacement de cet article',
+	'Empty = as for all posts (Design studio → Blog post). Spaces: 0 = no space. On phones the sizes and spaces become a little smaller by themselves.' => 'Vide = comme pour tous les articles (Studio de design → Article de blog). Espaces : 0 = aucun espace. Sur téléphone, les tailles et les espaces se réduisent un peu d\'eux-mêmes.',
+	'Cards turned a little (standard: straight)' => 'Cartes légèrement inclinées (standard : droites)',
 );

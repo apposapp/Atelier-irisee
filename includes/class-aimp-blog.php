@@ -25,6 +25,7 @@ class AIMP_Blog {
 
 	const TAG    = 'atelier_irisee_blog';
 	const ROWS   = '_aimp_blog_rows';
+	const LOOK   = '_aimp_blog_look';
 	const LIKES  = '_aimp_likes';
 	const VIEWS  = '_aimp_views';
 	const COOKIE = 'aimp_blog_likes';
@@ -35,6 +36,34 @@ class AIMP_Blog {
 		'irisee-focus'    => array( 'Irisée Focus', '#b38f4f' ),
 		'irisee-inspired' => array( 'Irisée Inspired', '#c48b84' ),
 		'irisee-moments'  => array( 'Irisée Moments', '#7d9a82' ),
+	);
+
+	/**
+	 * The text and spacing of one post (the builder; empty = the Design studio's): key => [ kind, maximum or choices ].
+	 * The same settings as Design studio → Blog post (bl_ + key).
+	 */
+	const LOOK_FIELDS = array(
+		'row'       => array( 'px', 240 ),
+		'row_s'     => array( 'px', 240 ),
+		'row_l'     => array( 'px', 240 ),
+		'colgap'    => array( 'px', 160 ),
+		'stack'     => array( 'px', 160 ),
+		'stack_s'   => array( 'px', 160 ),
+		'stack_l'   => array( 'px', 160 ),
+		'pt_size'   => array( 'px', 120 ),
+		'pt_color'  => array( 'color', 0 ),
+		'h2_size'   => array( 'px', 120 ),
+		'h2_color'  => array( 'color', 0 ),
+		'h2_noline' => array( 'bool', 0 ),
+		'h3_size'   => array( 'px', 80 ),
+		'h3_color'  => array( 'color', 0 ),
+		't_weight'  => array( 'select', array( '400', '600', '700' ) ),
+		'tx_size'   => array( 'px', 40 ),
+		'tx_lh'     => array( 'select', array( '1.4', '1.6', '1.8', '2', '2.2' ) ),
+		'tx_color'  => array( 'color', 0 ),
+		'tx_width'  => array( 'px', 1400 ),
+		'cap_size'  => array( 'px', 30 ),
+		'cap_color' => array( 'color', 0 ),
 	);
 
 	/** The content filter is running (an excerpt inside it must not start it again). */
@@ -254,11 +283,112 @@ class AIMP_Blog {
 	 * @return array|null Null when the content is something else.
 	 */
 	public static function from_content( $content ) {
+		$payload = self::payload( $content );
+		return null === $payload ? null : $payload['rows'];
+	}
+
+	/**
+	 * The builder's data in the content field: the rows, and the post's own text and spacing (look). Before 3.75.2 the
+	 * field held the rows alone.
+	 *
+	 * @param string $content Content.
+	 * @return array|null [ 'rows' => array, 'look' => array ], null when the content is something else.
+	 */
+	public static function payload( $content ) {
 		if ( ! preg_match( '/^\s*<!-- aimp-blog:([A-Za-z0-9+\/=]*) -->\s*$/', (string) $content, $found ) ) {
 			return null;
 		}
-		$rows = json_decode( (string) base64_decode( $found[1] ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- the builder's own data.
-		return is_array( $rows ) ? $rows : array();
+		$data = json_decode( (string) base64_decode( $found[1] ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- the builder's own data.
+		if ( is_array( $data ) && isset( $data['rows'] ) ) {
+			return array(
+				'rows' => is_array( $data['rows'] ) ? $data['rows'] : array(),
+				'look' => isset( $data['look'] ) && is_array( $data['look'] ) ? $data['look'] : array(),
+			);
+		}
+		return array(
+			'rows' => is_array( $data ) ? $data : array(),
+			'look' => array(),
+		);
+	}
+
+	/**
+	 * The content field for the builder: its rows and look.
+	 *
+	 * @param array $rows Rows.
+	 * @param array $look Look.
+	 * @return string
+	 */
+	public static function encode( $rows, $look ) {
+		$data = $look ? array(
+			'rows' => $rows,
+			'look' => $look,
+		) : $rows;
+		return '<!-- aimp-blog:' . base64_encode( (string) wp_json_encode( $data ) ) . ' -->'; // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- the builder's own data.
+	}
+
+	/**
+	 * A post's own text and spacing, made safe (only what differs from the Design studio).
+	 *
+	 * @param mixed $look Look.
+	 * @return array
+	 */
+	public static function clean_look( $look ) {
+		$clean = array();
+		foreach ( self::LOOK_FIELDS as $key => $field ) {
+			if ( ! is_array( $look ) || ! isset( $look[ $key ] ) || '' === $look[ $key ] || ! is_scalar( $look[ $key ] ) ) {
+				continue;
+			}
+			$value = (string) $look[ $key ];
+			if ( 'px' === $field[0] && is_numeric( $value ) ) {
+				$clean[ $key ] = max( 0, min( $field[1], (int) $value ) );
+			} elseif ( 'color' === $field[0] && preg_match( '/^#[0-9a-fA-F]{6}$/', $value ) ) {
+				$clean[ $key ] = strtolower( $value );
+			} elseif ( 'bool' === $field[0] && $value && '0' !== $value ) {
+				$clean[ $key ] = 1;
+			} elseif ( 'select' === $field[0] && in_array( $value, $field[1], true ) ) {
+				$clean[ $key ] = $value;
+			}
+		}
+		return $clean;
+	}
+
+	/**
+	 * A post's own text and spacing. In a preview: those of its preview copy.
+	 *
+	 * @param int $id Post.
+	 * @return array
+	 */
+	public static function look( $id ) {
+		if ( is_preview() && function_exists( 'wp_get_post_autosave' ) ) {
+			$autosave = wp_get_post_autosave( $id, get_current_user_id() );
+			if ( $autosave ) {
+				$payload = self::payload( $autosave->post_content );
+				if ( null !== $payload ) {
+					return self::clean_look( $payload['look'] );
+				}
+			}
+		}
+		$look = json_decode( (string) get_post_meta( $id, self::LOOK, true ), true );
+		return is_array( $look ) ? self::clean_look( $look ) : array();
+	}
+
+	/**
+	 * The CSS of a post's own text and spacing (over the Design studio's).
+	 *
+	 * @param int $id Post.
+	 * @return string A <style> element, or ''.
+	 */
+	private static function look_css( $id ) {
+		$look = self::look( $id );
+		if ( ! $look || ! class_exists( 'AIMP_Design' ) ) {
+			return '';
+		}
+		$get = function ( $part, $key ) use ( $look ) {
+			$key = (string) substr( $key, 3 );
+			return isset( $look[ $key ] ) ? $look[ $key ] : null;
+		};
+		$css = AIMP_Design::blog_post_css( $get, 'html body .aimp-blog-post[data-aimp-blog-post="' . (int) $id . '"]' );
+		return '' !== $css ? '<style id="aimp-blog-look-' . (int) $id . '">' . $css . '</style>' : '';
 	}
 
 	/**
@@ -628,7 +758,7 @@ class AIMP_Blog {
 		$rows       = self::rows( $id );
 		$body       = $rows ? self::render_rows( $rows ) : '<div class="aimp-blog-classic">' . $content . '</div>';
 		self::enqueue();
-		$html       = '<div class="aimp-blog-post" data-aimp-blog-post="' . $id . '">' . '<h1 class="aimp-blog-post-title">' . esc_html( wp_strip_all_tags( get_the_title( $id ) ) ) . '</h1>' . self::meta( $id ) . $body . self::after( $id ) . '</div>';
+		$html       = self::look_css( $id ) . '<div class="aimp-blog-post" data-aimp-blog-post="' . $id . '">' . '<h1 class="aimp-blog-post-title">' . esc_html( wp_strip_all_tags( get_the_title( $id ) ) ) . '</h1>' . self::meta( $id ) . $body . self::after( $id ) . '</div>';
 		self::$busy = false;
 		return $html;
 	}
@@ -901,7 +1031,7 @@ class AIMP_Blog {
 			'cols_t'  => (int) self::design( 'bl_cols_tablet', 0 ) ?: 2,
 			'phone'   => $in( (string) self::design( 'bl_cols_phone', '' ), array( '2', 'swipe' ) ),
 			'play'    => $play >= 0 ? $play / 100 : 1,
-			'tilt'    => ! self::design( 'bl_notilt' ),
+			'tilt'    => (bool) self::design( 'bl_tilt' ),
 			'gap'     => $gap >= 0 ? $gap : -1,
 			'shape'   => $in( (string) self::design( 'bl_shape', '' ), array( 'square', 'portrait', 'original' ) ) ?: 'mosaic',
 			'pin'     => $in( (string) self::design( 'bl_pin', '' ), array( 'tack', 'tape', 'clip', 'heart', 'mix', 'none' ) ) ?: 'pin',

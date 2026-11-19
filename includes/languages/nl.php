@@ -3384,4 +3384,8 @@ return array(
 	'Colour of the captions' => 'Kleur van de onderschriften',
 	// Blog 3.75: spacing help
 	'For all posts at once. Spaces: empty = standard, 0 = no space. Sizes: 0 = standard. On phones the sizes and spaces become a little smaller by themselves. Per row and per block a post can still choose little or much space.' => 'Voor alle berichten tegelijk. Ruimtes: leeg = standaard, 0 = geen ruimte. Groottes: 0 = standaard. Op telefoons worden de groottes en ruimtes vanzelf iets kleiner. Per rij en per blok kan een bericht nog altijd voor weinig of veel ruimte kiezen.',
+	// Blog 3.75.2: per-post look, straight cards
+	'Text and spacing of this post' => 'Tekst en ruimte van dit bericht',
+	'Empty = as for all posts (Design studio → Blog post). Spaces: 0 = no space. On phones the sizes and spaces become a little smaller by themselves.' => 'Leeg = zoals voor alle berichten (Designstudio → Blogbericht). Ruimtes: 0 = geen ruimte. Op telefoons worden de groottes en ruimtes vanzelf iets kleiner.',
+	'Cards turned a little (standard: straight)' => 'Kaarten een beetje gedraaid (standaard: recht)',
 );

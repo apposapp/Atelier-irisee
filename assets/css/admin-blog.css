@@ -333,3 +333,66 @@
 .aimp-bb-top {
 	margin-top: 20px;
 }
+
+/* "Text and spacing of this post". */
+.aimp-bb-look {
+	border: 1px solid #dcc9a5;
+	border-radius: 8px;
+	background: #fbf8f2;
+}
+
+.aimp-bb-look > summary {
+	padding: 10px 12px;
+	color: var(--bb-gold-text);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-bb-look-count {
+	display: inline-block;
+	min-width: 18px;
+	margin-left: 4px;
+	padding: 0 5px;
+	border-radius: 9px;
+	background: var(--bb-gold);
+	color: #fff;
+	font-size: 11px;
+	line-height: 18px;
+	text-align: center;
+}
+
+.aimp-bb-look > .aimp-bb-hint {
+	padding: 0 12px;
+}
+
+.aimp-bb-look-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 10px 18px;
+	padding: 10px 12px 14px;
+}
+
+.aimp-bb-look-head {
+	grid-column: 1 / -1;
+	margin: 6px 0 0;
+	color: var(--bb-gold-text);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.aimp-bb-look-num,
+.aimp-bb-look-pick {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.aimp-bb-look-num input {
+	width: 90px;
+}
+
+.aimp-bb-look-pick input.is-unset {
+	opacity: 0.4;
+}

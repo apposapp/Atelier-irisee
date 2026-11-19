@@ -18,6 +18,9 @@
 	}
 
 	var uid = 0;
+	// The post's own text and spacing (empty = as in the Design studio), and whether its panel is open.
+	var look = {};
+	var lookOpen = false;
 	var rows = read();
 
 	function esc(value) {
@@ -30,6 +33,10 @@
 		var found = /<!-- aimp-blog:([A-Za-z0-9+\/=]*) -->/.exec(field.value);
 		try {
 			var list = found ? JSON.parse(decodeURIComponent(escape(window.atob(found[1])))) : [];
+			if (list && !Array.isArray(list) && Array.isArray(list.rows)) {
+				look = list.look && typeof list.look === 'object' ? list.look : {};
+				list = list.rows;
+			}
 			return Array.isArray(list) ? list.map(upgrade) : [];
 		} catch (e) {
 			return [];
@@ -50,7 +57,8 @@
 	}
 
 	function write() {
-		field.value = '<!-- aimp-blog:' + window.btoa(unescape(encodeURIComponent(JSON.stringify(rows)))) + ' -->';
+		var data = Object.keys(look).length ? { rows: rows, look: look } : rows;
+		field.value = '<!-- aimp-blog:' + window.btoa(unescape(encodeURIComponent(JSON.stringify(data)))) + ' -->';
 	}
 
 	function newBlock(type, from) {
@@ -275,10 +283,37 @@
 			'</div></div>';
 	}
 
+	// "Text and spacing of this post": the settings of Design studio → Blog post, for this post only.
+	function lookHtml() {
+		var count = Object.keys(look).length;
+		var html = '<details class="aimp-bb-look"' + (lookOpen ? ' open' : '') + '><summary>' + esc(t.lookTitle) + (count ? ' <span class="aimp-bb-look-count">' + count + '</span>' : '') + '</summary>' +
+			'<p class="aimp-bb-hint">' + esc(t.lookHelp) + '</p><div class="aimp-bb-look-grid">';
+		(cfg.look || []).forEach(function (f) {
+			var key = f[0];
+			var kind = f[1];
+			var value = look[key] === undefined ? '' : look[key];
+			if (kind === 'head') {
+				html += '<p class="aimp-bb-look-head">' + esc(f[2]) + '</p>';
+			} else if (kind === 'bool') {
+				html += '<label class="aimp-bb-check"><input type="checkbox" data-look="' + key + '"' + (value ? ' checked' : '') + '> ' + esc(f[2]) + '</label>';
+			} else if (kind === 'select') {
+				html += '<label class="aimp-bb-field is-wide"><span>' + esc(f[2]) + '</span><select data-look="' + key + '">' + f[3].map(function (o) {
+					return '<option value="' + esc(o[0]) + '"' + (String(value) === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
+				}).join('') + '</select></label>';
+			} else if (kind === 'color') {
+				html += '<label class="aimp-bb-field is-wide aimp-bb-look-color"><span>' + esc(f[2]) + '</span><span class="aimp-bb-look-pick"><input type="color" data-look="' + key + '" value="' + esc(value || '#613907') + '"' + (value ? '' : ' class="is-unset"') + '>' +
+					(value ? '<button type="button" class="button-link" data-act="look-clear" data-key="' + key + '">' + esc(t.lookReset) + '</button>' : '<em>' + esc(t.standard) + '</em>') + '</span></label>';
+			} else {
+				html += '<label class="aimp-bb-field is-wide"><span>' + esc(f[2]) + '</span><span class="aimp-bb-look-num"><input type="number" min="0" max="' + f[3] + '" step="1" data-look="' + key + '" value="' + esc(value) + '" placeholder="' + esc(t.standard) + '"> px</span></label>';
+			}
+		});
+		return html + '</div></details>';
+	}
+
 	function render() {
 		sync();
 		destroyEditors();
-		var html = rows.length ? '' : '<p class="aimp-bb-empty">' + esc(t.empty) + '</p>';
+		var html = lookHtml() + (rows.length ? '' : '<p class="aimp-bb-empty">' + esc(t.empty) + '</p>');
 		rows.forEach(function (row, r) {
 			html += rowHtml(row, r);
 		});
@@ -328,6 +363,22 @@
 
 	function onField(e) {
 		var el = e.target;
+		var lk = el.getAttribute && el.getAttribute('data-look');
+		if (lk) {
+			var v = el.type === 'checkbox' ? (el.checked ? 1 : '') : String(el.value).trim();
+			if (v === '') {
+				delete look[lk];
+			} else {
+				look[lk] = v;
+			}
+			// A colour or tick shows "Back to standard" and the count: build again; typing only saves.
+			if (e.type === 'change' && (el.type === 'color' || el.type === 'checkbox' || el.tagName === 'SELECT')) {
+				render();
+			} else {
+				write();
+			}
+			return;
+		}
 		var key = el.getAttribute && el.getAttribute('data-k');
 		if (!key) {
 			return;
@@ -359,6 +410,12 @@
 	}
 
 	root.addEventListener('input', onField);
+	// The panel stays open or closed when the rows are built again.
+	root.addEventListener('toggle', function (e) {
+		if (e.target.classList && e.target.classList.contains('aimp-bb-look')) {
+			lookOpen = e.target.open;
+		}
+	}, true);
 	root.addEventListener('change', onField);
 
 	function move(list, from, to) {
@@ -388,6 +445,9 @@
 		e.preventDefault();
 		sync();
 		switch (act) {
+			case 'look-clear':
+				delete look[el.getAttribute('data-key')];
+				break;
 			case 'add-row':
 				var kind = el.getAttribute('data-kind');
 				rows.push(newRow(kind === 'pictext' ? ['image', 'text'] : [kind || 'text']));

@@ -19,6 +19,9 @@ class AIMP_Blog_Builder {
 	/** The rows of the post being saved (between wp_insert_post_data and save_post). */
 	private static $pending = null;
 
+	/** Its own text and spacing. */
+	private static $pending_look = array();
+
 	public static function init() {
 		// The classic edit screen for posts: the rows replace the block editor.
 		add_filter( 'use_block_editor_for_post_type', array( __CLASS__, 'classic' ), 100, 2 );
@@ -128,8 +131,70 @@ class AIMP_Blog_Builder {
 	public static function box( $post ) {
 		$rows = self::rows( $post );
 		echo '<div id="aimp-blog-builder" class="aimp-bb"></div>';
-		echo '<textarea name="content" id="content" class="aimp-bb-content" hidden>' . esc_textarea( '<!-- aimp-blog:' . base64_encode( (string) wp_json_encode( $rows ) ) . ' -->' ) . '</textarea>'; // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- the builder's own data.
+		echo '<textarea name="content" id="content" class="aimp-bb-content" hidden>' . esc_textarea( AIMP_Blog::encode( $rows, AIMP_Blog::look( $post->ID ) ) ) . '</textarea>';
 		echo '<p class="description aimp-bb-help">' . esc_html__( 'The picture of the post (featured image) is shown on the overview card and when the post is shared; the excerpt is the text on the card. A row has up to three columns side by side, each with blocks under each other; a row with one column fills the whole width, in the middle.', 'atelier-irisee-master-plugin' ) . '</p>';
+	}
+
+	/**
+	 * The settings of "Text and spacing of this post" for the builder (AIMP_Blog::LOOK_FIELDS, with the labels of the
+	 * Design studio): [ key, kind, label, maximum or choices ], or [ '', 'head', title ].
+	 *
+	 * @return array
+	 */
+	private static function look_fields() {
+		$standard = __( 'Standard', 'atelier-irisee-master-plugin' );
+		$labels   = array(
+			'head1'     => __( 'Spacing', 'atelier-irisee-master-plugin' ),
+			'row'       => __( 'Space between rows', 'atelier-irisee-master-plugin' ),
+			'row_s'     => __( 'Space between rows: "small"', 'atelier-irisee-master-plugin' ),
+			'row_l'     => __( 'Space between rows: "large"', 'atelier-irisee-master-plugin' ),
+			'colgap'    => __( 'Space between blocks side by side', 'atelier-irisee-master-plugin' ),
+			'stack'     => __( 'Space between blocks under each other', 'atelier-irisee-master-plugin' ),
+			'stack_s'   => __( 'Space between blocks under each other: "small"', 'atelier-irisee-master-plugin' ),
+			'stack_l'   => __( 'Space between blocks under each other: "large"', 'atelier-irisee-master-plugin' ),
+			'head2'     => __( 'Titles', 'atelier-irisee-master-plugin' ),
+			'pt_size'   => __( 'Title of the post at the top (0 = standard)', 'atelier-irisee-master-plugin' ),
+			'pt_color'  => __( 'Colour of the title at the top', 'atelier-irisee-master-plugin' ),
+			'h2_size'   => __( 'Large titles (0 = standard)', 'atelier-irisee-master-plugin' ),
+			'h2_color'  => __( 'Colour of the large titles', 'atelier-irisee-master-plugin' ),
+			'h2_noline' => __( 'No gold double line under large titles', 'atelier-irisee-master-plugin' ),
+			'h3_size'   => __( 'Small titles (0 = standard)', 'atelier-irisee-master-plugin' ),
+			'h3_color'  => __( 'Colour of the small titles', 'atelier-irisee-master-plugin' ),
+			't_weight'  => __( 'Thickness of the titles', 'atelier-irisee-master-plugin' ),
+			'head3'     => __( 'Text', 'atelier-irisee-master-plugin' ),
+			'tx_size'   => __( 'Text size (0 = standard)', 'atelier-irisee-master-plugin' ),
+			'tx_lh'     => __( 'Line height', 'atelier-irisee-master-plugin' ),
+			'tx_color'  => __( 'Colour of the text', 'atelier-irisee-master-plugin' ),
+			'tx_width'  => __( 'Width of a text alone in its row (0 = standard, 740)', 'atelier-irisee-master-plugin' ),
+			'cap_size'  => __( 'Captions under pictures and videos (0 = standard)', 'atelier-irisee-master-plugin' ),
+			'cap_color' => __( 'Colour of the captions', 'atelier-irisee-master-plugin' ),
+		);
+		$choices  = array(
+			't_weight' => array(
+				array( '', $standard ),
+				array( '400', __( 'Normal', 'atelier-irisee-master-plugin' ) ),
+				array( '600', __( 'Half bold', 'atelier-irisee-master-plugin' ) ),
+				array( '700', __( 'Bold', 'atelier-irisee-master-plugin' ) ),
+			),
+			'tx_lh'    => array(
+				array( '', $standard ),
+				array( '1.4', __( 'Tight (1.4)', 'atelier-irisee-master-plugin' ) ),
+				array( '1.6', '1.6' ),
+				array( '1.8', '1.8' ),
+				array( '2', '2' ),
+				array( '2.2', __( 'Airy (2.2)', 'atelier-irisee-master-plugin' ) ),
+			),
+		);
+		$list     = array();
+		foreach ( $labels as $key => $label ) {
+			if ( 0 === strpos( $key, 'head' ) ) {
+				$list[] = array( '', 'head', $label, 0 );
+				continue;
+			}
+			$field  = AIMP_Blog::LOOK_FIELDS[ $key ];
+			$list[] = array( $key, $field[0], $label, 'select' === $field[0] ? $choices[ $key ] : $field[1] );
+		}
+		return $list;
 	}
 
 	/**
@@ -176,6 +241,7 @@ class AIMP_Blog_Builder {
 			'aimpBlogBuilder',
 			array(
 				'media' => $post ? self::media( self::rows( $post ) ) : array(),
+				'look'  => self::look_fields(),
 				'i18n'  => array(
 					'row'         => __( 'Row', 'atelier-irisee-master-plugin' ),
 					'addRow'      => __( '+ Row', 'atelier-irisee-master-plugin' ),
@@ -183,6 +249,10 @@ class AIMP_Blog_Builder {
 					'addTextRow'  => __( '+ Text', 'atelier-irisee-master-plugin' ),
 					'addPicText'  => __( '+ Picture and text', 'atelier-irisee-master-plugin' ),
 					'addBlock'    => __( '+ Block', 'atelier-irisee-master-plugin' ),
+					'lookTitle'   => __( 'Text and spacing of this post', 'atelier-irisee-master-plugin' ),
+					'lookHelp'    => __( 'Empty = as for all posts (Design studio → Blog post). Spaces: 0 = no space. On phones the sizes and spaces become a little smaller by themselves.', 'atelier-irisee-master-plugin' ),
+					'lookReset'   => __( 'Back to standard', 'atelier-irisee-master-plugin' ),
+					'standard'    => __( 'Standard', 'atelier-irisee-master-plugin' ),
 					'addColumn'   => __( '+ Column', 'atelier-irisee-master-plugin' ),
 					'addUnder'    => __( '+ Block underneath', 'atelier-irisee-master-plugin' ),
 					'column'      => __( 'Column', 'atelier-irisee-master-plugin' ),
@@ -260,19 +330,21 @@ class AIMP_Blog_Builder {
 	 * @return array
 	 */
 	public static function content( $data, $postarr ) {
-		$rows = AIMP_Blog::from_content( wp_unslash( (string) $data['post_content'] ) );
-		if ( null === $rows ) {
+		$payload = AIMP_Blog::payload( wp_unslash( (string) $data['post_content'] ) );
+		if ( null === $payload ) {
 			return $data;
 		}
-		$rows = AIMP_Blog::clean_rows( $rows );
+		$rows = AIMP_Blog::clean_rows( $payload['rows'] );
+		$look = AIMP_Blog::clean_look( $payload['look'] );
 		if ( 'revision' === $data['post_type'] ) {
-			$data['post_content'] = wp_slash( '<!-- aimp-blog:' . base64_encode( (string) wp_json_encode( $rows ) ) . ' -->' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+			$data['post_content'] = wp_slash( AIMP_Blog::encode( $rows, $look ) );
 			return $data;
 		}
 		if ( 'post' !== $data['post_type'] ) {
 			return $data;
 		}
 		self::$pending        = $rows;
+		self::$pending_look   = $look;
 		$data['post_content'] = wp_slash( AIMP_Blog::content_copy( $rows ) );
 		return $data;
 	}
@@ -286,6 +358,12 @@ class AIMP_Blog_Builder {
 			return;
 		}
 		update_post_meta( $post_id, AIMP_Blog::ROWS, wp_slash( (string) wp_json_encode( self::$pending ) ) );
-		self::$pending = null;
+		if ( self::$pending_look ) {
+			update_post_meta( $post_id, AIMP_Blog::LOOK, wp_slash( (string) wp_json_encode( self::$pending_look ) ) );
+		} else {
+			delete_post_meta( $post_id, AIMP_Blog::LOOK );
+		}
+		self::$pending      = null;
+		self::$pending_look = array();
 	}
 }

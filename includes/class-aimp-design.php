@@ -1199,7 +1199,7 @@ class AIMP_Design {
 		$fields = array(
 			'bl_layout'      => array( 'select', array( '', 'wave', 'scatter' ) ),
 			'bl_play'        => array( 0, 100, -1 ),
-			'bl_notilt'      => 'bool',
+			'bl_tilt'        => 'bool',
 			'bl_cols'        => array( 0, 6, 0 ),
 			'bl_cols_tablet' => array( 0, 4, 0 ),
 			'bl_cols_phone'  => array( 'select', array( '', '2', 'swipe' ) ),
@@ -2559,11 +2559,11 @@ class AIMP_Design {
 	/**
 	 * The look of the blocks in blog posts (Design studio, Blog post: spacing and text).
 	 *
-	 * @param callable $get Saved value of a part's setting.
+	 * @param callable $get  Saved value of a part's setting.
+	 * @param string   $post Selector of the posts (one post: its own settings from the builder).
 	 * @return string
 	 */
-	public static function blog_post_css( $get ) {
-		$post = 'html body .aimp-blog-post';
+	public static function blog_post_css( $get, $post = 'html body .aimp-blog-post' ) {
 		// A size that is reached on wide screens and becomes smaller on narrow ones (to $least of it).
 		$fluid = function ( $px, $least ) {
 			return 'clamp(' . round( $px * $least, 1 ) . 'px,' . round( $px / 12, 3 ) . 'vw,' . $px . 'px)';
@@ -4953,7 +4953,7 @@ class AIMP_Design {
 			)
 		);
 		self::number( 'bl_play', __( 'How playful (0 = straight in rows, standard 100)', 'atelier-irisee-master-plugin' ), 0, 100, '%' );
-		self::check_box( 'bl_notilt', __( 'Cards not turned', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'bl_tilt', __( 'Cards turned a little (standard: straight)', 'atelier-irisee-master-plugin' ) );
 		self::number( 'bl_cols', __( 'Cards per row on computers (0 = standard, 3)', 'atelier-irisee-master-plugin' ), 0, 6, '' );
 		self::number( 'bl_cols_tablet', __( 'Cards per row on tablets (0 = standard, 2)', 'atelier-irisee-master-plugin' ), 0, 4, '' );
 		self::choice(
