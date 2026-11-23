@@ -236,9 +236,9 @@
 	function shop(block) {
 		var pills = Array.prototype.slice.call(block.querySelectorAll('.aimp-spotlight-size'));
 		var button = block.querySelector('[data-add]');
-		var price = block.querySelector('[data-price]');
-		var regular = block.querySelector('[data-regular]');
-		var need = block.querySelector('[data-need]');
+		var price = block.querySelector('.aimp-spotlight-price [data-price]');
+		var regular = block.querySelector('.aimp-spotlight-price [data-regular]');
+		var need = block.querySelector('.aimp-spotlight-need');
 		var message = block.querySelector('.aimp-spotlight-message');
 		var note = block.querySelector('.aimp-spotlight-note');
 		var chosen = 0;

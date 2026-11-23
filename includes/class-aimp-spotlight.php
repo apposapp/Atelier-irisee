@@ -260,16 +260,20 @@ class AIMP_Spotlight {
 			}
 			$kit   = self::kit_lines( $spot, $req );
 			$total = 0;
+			$kitp  = 0;
 			foreach ( $kit['lines'] as $line ) {
-				$total += (float) wc_get_price_to_display( $line[0] ) * $line[1];
+				$price  = (float) wc_get_price_to_display( $line[0] );
+				$total += $price * $line[1];
+				// As the cart: the discount per line, each line rounded (AIMP_Cart::apply_kit_discount()).
+				$kitp += round( round( $price * ( 100 - $discount ) / 100, 4 ) * $line[1], wc_get_price_decimals() );
 			}
 			$sizes[] = array(
 				'id'        => (int) $size['id'],
 				'label'     => (string) $size['label'],
 				'available' => '' === $kit['reason'],
 				'reason'    => $kit['reason'],
-				'amount'    => $total * ( 100 - $discount ) / 100,
-				'price'     => '' === $kit['reason'] ? wp_strip_all_tags( wc_price( $total * ( 100 - $discount ) / 100 ) ) : '',
+				'amount'    => $kitp,
+				'price'     => '' === $kit['reason'] ? wp_strip_all_tags( wc_price( $kitp ) ) : '',
 				'regular'   => '' === $kit['reason'] && $discount > 0 ? wp_strip_all_tags( wc_price( $total ) ) : '',
 				'fabric'    => $req['fabric_units'] > 0 ? AIMP_Catalog::fabric_need_text( $req ) : '',
 			);
@@ -666,7 +670,7 @@ class AIMP_Spotlight {
 		}
 		$first   = $reqs[0];
 		$name    = function ( $id ) {
-			return wp_strip_all_tags( get_the_title( $id ) );
+			return html_entity_decode( wp_strip_all_tags( get_the_title( $id ) ), ENT_QUOTES, 'UTF-8' );
 		};
 		$fabrics = array();
 		if ( $first['fabric_cats'] ) {
@@ -726,7 +730,7 @@ class AIMP_Spotlight {
 				$result = AIMP_Catalog::get_notions( $req['variation']->get_id(), $type, $page );
 				foreach ( $result ? $result['items'] : array() as $item ) {
 					if ( empty( $seen[ $item['id'] ] ) ) {
-						$items[]               = array( 'id' => (int) $item['id'], 'name' => $item['name'] );
+						$items[]               = array( 'id' => (int) $item['id'], 'name' => html_entity_decode( $item['name'], ENT_QUOTES, 'UTF-8' ) );
 						$seen[ $item['id'] ] = true;
 					}
 				}
