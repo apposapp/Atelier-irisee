@@ -926,6 +926,23 @@ class AIMP_Blog {
 	 * @return string
 	 */
 	private static function excerpt( $post ) {
+		if ( ! has_excerpt( $post ) ) {
+			// A post made with the blog layout: its titles and texts, a space between the blocks (not the captions).
+			$parts = array();
+			foreach ( self::rows( $post->ID ) as $row ) {
+				foreach ( self::row_blocks( $row ) as $block ) {
+					$type = isset( $block['t'] ) ? $block['t'] : '';
+					if ( 'title' === $type && ! empty( $block['text'] ) ) {
+						$parts[] = (string) $block['text'];
+					} elseif ( 'text' === $type && ! empty( $block['html'] ) ) {
+						$parts[] = preg_replace( '~</?(?:p|h[1-6]|div|li|ul|ol|blockquote|br)[^>]*>~i', ' $0 ', (string) $block['html'] );
+					}
+				}
+			}
+			if ( $parts ) {
+				return wp_trim_words( wp_strip_all_tags( implode( ' ', $parts ) ), 24, '…' );
+			}
+		}
 		$text = has_excerpt( $post ) ? $post->post_excerpt : strip_shortcodes( $post->post_content );
 		// A space around every block tag: the blocks of a post (a title, then a text) do not run into each other.
 		$text = preg_replace( '~</?(?:p|h[1-6]|div|section|li|ul|ol|figure|figcaption|blockquote|br|hr|img)[^>]*>~i', ' $0 ', $text );
