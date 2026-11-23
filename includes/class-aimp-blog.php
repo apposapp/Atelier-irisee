@@ -927,6 +927,8 @@ class AIMP_Blog {
 	 */
 	private static function excerpt( $post ) {
 		$text = has_excerpt( $post ) ? $post->post_excerpt : strip_shortcodes( $post->post_content );
+		// A space around every block tag: the blocks of a post (a title, then a text) do not run into each other.
+		$text = preg_replace( '~</?(?:p|h[1-6]|div|section|li|ul|ol|figure|figcaption|blockquote|br|hr|img)[^>]*>~i', ' $0 ', $text );
 		return wp_trim_words( wp_strip_all_tags( $text ), 24, '…' );
 	}
 

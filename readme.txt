@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.76.2
+Stable tag: 3.76.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.76.3 =
+* Blog: the short text of a post (cards, newest blog post) no longer runs a title and the next text together ("natuurWhat if").
 
 = 3.76.2 =
 * Kit spotlight: picking a size no longer changes the label of the first size button; the price is worked out per line as in the cart (no cent difference); names with dashes read well in the kit spotlight lists.
