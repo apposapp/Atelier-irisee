@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.76.0
+Stable tag: 3.76.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.76.1 =
+* Atelier Irisee → Kit spotlights opens again (the page was added before its menu existed).
 
 = 3.76.0 =
 * Kit spotlight [atelier_irisee_kit_spotlight id="…"]: a ready-made sewing kit on the home page (Atelier Irisee → Kit spotlights). You choose the pattern, fabric, lining, finish and haberdashery and a picture; the visitor only picks a size and adds the kit to the cart exactly as the customizer does (same lines, kit discount, locked quantities). Sizes that cannot be made (stock, an item that does not fit) are crossed out. Around the picture float three elements (pattern, fabric, haberdashery) as photo medallions, gold line drawings or hanging paper tags, and a gold needle sews a running stitch round it, over and under the elements. Elements floating, still or hidden; the needle on or off, with its speed.

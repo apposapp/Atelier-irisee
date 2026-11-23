@@ -36,7 +36,7 @@ class AIMP_Spotlight {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
 		add_action( 'wc_ajax_aimp_spotlight_add', array( __CLASS__, 'add_to_cart' ) );
-		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 30 );
+		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 65 ); // After the Atelier Irisee menu itself (60).
 		add_action( 'admin_post_aimp_spotlight_save', array( __CLASS__, 'save' ) );
 		add_action( 'admin_post_aimp_spotlight_delete', array( __CLASS__, 'delete' ) );
 		add_action( 'wp_ajax_aimp_spotlight_choices', array( __CLASS__, 'ajax_choices' ) );
