@@ -1055,6 +1055,23 @@
 	margin-left: auto;
 }
 
+/* 80% of the screen (Design studio → Instagram → Width): out of the column, in the middle of the screen. */
+.aimp-home-instagram.is-w80 {
+	width: 80vw;
+	max-width: 80vw;
+	margin-right: calc(50% - 40vw) !important;
+	margin-left: calc(50% - 40vw) !important;
+}
+
+@media (max-width: 700px) {
+	.aimp-home-instagram.is-w80 {
+		width: auto;
+		max-width: none;
+		margin-right: 0 !important;
+		margin-left: 0 !important;
+	}
+}
+
 .aimp-ig-grid {
 	display: grid;
 	grid-template-columns: repeat(var(--aimp-ig-cols, 6), minmax(0, 1fr));
@@ -1466,7 +1483,7 @@
 .aimp-home-instagram.style-polaroid .aimp-ig-card {
 	padding: 0.8rem 0.8rem 0.4rem;
 	border-color: color-mix(in srgb, var(--hb-gold) 25%, transparent);
-	border-radius: 4px;
+	border-radius: var(--aimp-ig-radius, 4px);
 	box-shadow: 0 10px 26px color-mix(in srgb, var(--hb-brown) 16%, transparent);
 	transform: rotate(-1.2deg);
 	transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -1486,7 +1503,8 @@
 }
 
 .aimp-home-instagram.style-polaroid .aimp-ig-card .aimp-ig-post {
-	border-radius: 2px;
+	/* The picture's corners follow the frame's, a little smaller. */
+	border-radius: calc(var(--aimp-ig-radius, 4px) * 0.6);
 }
 
 .aimp-home-instagram.style-polaroid .aimp-ig-actions {
@@ -1634,6 +1652,7 @@
 
 /* On the picture: the picture is the card, the name above and the icons and text below on a brown veil. */
 .aimp-home-instagram.style-overlay .aimp-ig-card {
+	border-radius: var(--aimp-ig-radius, 14px);
 	--ig-ink: #fff8ee;
 	--ig-soft: color-mix(in srgb, #fff8ee 75%, transparent);
 	--ig-icon: color-mix(in srgb, var(--hb-gold) 55%, #fff);
@@ -1889,4 +1908,33 @@
 /* A link to the questions (footer "Veelgestelde vragen") lands below the sticky header. */
 #veelgestelde-vragen {
 	scroll-margin-top: calc(var(--aimp-header-offset, 0px) + 1rem);
+}
+
+/* The size of the posts (Design studio → Instagram, 60–160 %): each post at most that size (100 % = 260 px for cards,
+   160 px for pictures), the row in the middle. Computers and tablets; phones keep their own layout. */
+@media (min-width: 701px) {
+	.aimp-home-instagram.has-size .aimp-ig-grid {
+		grid-template-columns: repeat(var(--aimp-ig-cols, 6), minmax(0, calc(160px * var(--aimp-ig-scale, 1))));
+		justify-content: center;
+	}
+
+	.aimp-home-instagram.has-size .aimp-ig-cards {
+		grid-template-columns: repeat(var(--aimp-ig-cols, 3), minmax(0, calc(260px * var(--aimp-ig-scale, 1))));
+	}
+
+	.aimp-home-instagram.has-size.is-original .aimp-ig-grid {
+		max-width: calc((160px * var(--aimp-ig-scale, 1) + var(--aimp-ig-gap, 0.75rem)) * var(--aimp-ig-cols, 6));
+		margin-right: auto;
+		margin-left: auto;
+	}
+
+	.aimp-home-instagram.has-size.has-cards.is-original .aimp-ig-cards {
+		max-width: calc((260px * var(--aimp-ig-scale, 1) + var(--aimp-ig-gap, 1.5rem)) * var(--aimp-ig-cols, 3));
+	}
+}
+
+@media (min-width: 701px) and (max-width: 1024px) {
+	.aimp-home-instagram.has-size .aimp-ig-cards {
+		grid-template-columns: repeat(min(var(--aimp-ig-cols, 3), 3), minmax(0, calc(260px * var(--aimp-ig-scale, 1))));
+	}
 }

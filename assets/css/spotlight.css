@@ -629,3 +629,112 @@
 	0%, 100% { transform: translate(-6px, 0); }
 	50% { transform: translate(34px, 18px); }
 }
+/* The size chart under the sizes (AIMP_Spotlight::chart()): the customizer's table, only the chosen size's row
+   (gold with white text). */
+.aimp-spotlight-chart {
+	width: 100%;
+	margin: 0.2rem 0 1rem;
+}
+
+.aimp-spotlight-chart[hidden] {
+	display: none;
+}
+
+.aimp-spotlight-chart-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.3rem 1rem;
+	margin-bottom: 0.45rem;
+}
+
+.aimp-spotlight .aimp-spotlight-chart-title {
+	margin: 0;
+	color: var(--aimp-site-brown, #613907);
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.aimp-spotlight .aimp-spotlight-measure {
+	color: var(--aimp-site-gold-text, #8a6a35);
+	font-size: 0.85rem;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.aimp-spotlight .aimp-size-chart {
+	width: 100%;
+	margin: 0;
+	border: 1px solid color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 45%, transparent);
+	border-collapse: collapse;
+	border-radius: 8px;
+	overflow: hidden;
+	font-size: 0.92rem;
+}
+
+.aimp-spotlight .aimp-size-chart :is(th, td) {
+	padding: 0.5rem 0.6rem;
+	border: 0;
+	border-bottom: 1px solid color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 30%, transparent);
+	text-align: center;
+	white-space: nowrap;
+}
+
+.aimp-spotlight .aimp-size-chart thead th {
+	background: color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 12%, #fff);
+	color: var(--aimp-site-brown, #613907);
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.aimp-spotlight .aimp-size-chart tr.is-selected :is(th, td) {
+	border-bottom: 0;
+	background: var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+	color: #fff;
+	font-weight: 600;
+}
+
+/* Phones: a card, each value with its label above it (as the customizer's size chart on phones). */
+@media (max-width: 700px) {
+	.aimp-spotlight .aimp-size-chart thead {
+		display: none;
+	}
+
+	.aimp-spotlight .aimp-size-chart,
+	.aimp-spotlight .aimp-size-chart tbody {
+		display: block;
+	}
+
+	.aimp-spotlight .aimp-size-chart tbody tr:not([hidden]) {
+		display: flex;
+		flex-wrap: wrap;
+		background: var(--aimp-gold, var(--aimp-site-gold, #b38f4f));
+	}
+
+	.aimp-spotlight .aimp-size-chart tbody :is(th, td) {
+		display: flex;
+		flex: 1 1 5.5rem;
+		flex-direction: column;
+		gap: 0.15rem;
+		background: transparent;
+	}
+
+	.aimp-spotlight .aimp-size-chart tbody th {
+		flex: 1 0 100%;
+		font-size: 1rem;
+	}
+
+	.aimp-spotlight .aimp-size-chart tbody td[data-label]::before {
+		content: attr(data-label);
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		opacity: 0.85;
+		text-transform: uppercase;
+	}
+}

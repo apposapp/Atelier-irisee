@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.77.1
+Stable tag: 3.78.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.78.0 =
+* Kit spotlight: once a size is picked, the size chart under the sizes shows that size's measurements, in the design of the customizer's size chart, with "How to measure". Design studio → Kit spotlight: "No size chart under the sizes".
+* Instagram: width "80% of the width of the screen, in the middle"; "Size of the posts on computers" (60–160%); rounded corners now also work for polaroids (frame and picture) and posts on the picture.
+* Newest blog post: the wide picture's cream card can be an arch; its date is shown in a stamp on the card (as on the diary page); "Colour of the date stamp" for both looks.
 
 = 3.77.1 =
 * Blog: the short text of a post made with the blog layout comes from its titles and texts, with a space between them (no photo captions).

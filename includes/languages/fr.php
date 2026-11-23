@@ -3469,4 +3469,11 @@ return array(
 	// 3.77: an element per item of the kit spotlight
 	'Elements around the picture' => 'Éléments autour de la photo',
 	'Each item of the kit has its own element. Tick the ones to show around the picture (all of them are always listed next to it).' => 'Chaque article du kit a son propre élément. Cochez ceux à afficher autour de la photo (à côté, ils sont toujours tous dans la liste).',
+	// 3.78.0: Instagram size and width, latest post arch and stamp, spotlight size chart
+	'80% of the width of the screen, in the middle' => '80 % de la largeur de l\'écran, au centre',
+	'Size of the posts on computers (0 = standard: they fill the row; 60–160%)' => 'Taille des publications sur ordinateur (0 = standard : elles remplissent la rangée ; 60–160 %)',
+	'Wide picture: shape of the cream card' => 'Grande photo : forme de la carte crème',
+	'Rectangle (standard)' => 'Rectangle (standard)',
+	'Colour of the date stamp (wide picture and diary page)' => 'Couleur du tampon de date (grande photo et page de journal)',
+	'The kits themselves: Atelier Irisee → Kit spotlights. Once a size is picked, the size chart shows the measurements of that size.' => 'Les kits eux-mêmes : Atelier Irisee → Kit spotlights. Dès qu\'une taille est choisie, le tableau des tailles montre les mesures de cette taille.',
 );

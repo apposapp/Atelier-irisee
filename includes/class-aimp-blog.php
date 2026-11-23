@@ -1106,16 +1106,20 @@ class AIMP_Blog {
 			}
 		}
 
-		$classes = 'aimp-home-block aimp-home-latest style-' . $style . ( $opt( 'lp_right' ) ? ' is-photo-right' : '' );
-		$html    = '<section class="' . esc_attr( $classes ) . '" aria-label="' . esc_attr( '' !== $kicker ? $kicker : $title ) . '"><div class="aimp-latest-inner">';
+		// Luxe: the cream card as a rectangle or an arch. The date stamp (journal and luxe) in its own colour.
+		$arch    = 'luxe' === $style && 'arch' === (string) $opt( 'lp_shape', '' );
+		$stamp   = in_array( $style, array( 'journal', 'luxe' ), true ) && ! $opt( 'lp_nodate' );
+		$ink     = class_exists( 'AIMP_Design' ) ? AIMP_Design::clean_color( (string) $opt( 'lp_stamp_color', '' ) ) : '';
+		$classes = 'aimp-home-block aimp-home-latest style-' . $style . ( $opt( 'lp_right' ) ? ' is-photo-right' : '' ) . ( $arch ? ' is-arch' : '' );
+		$html    = '<section class="' . esc_attr( $classes ) . '"' . ( '' !== $ink ? ' style="' . esc_attr( '--lp-stamp:' . $ink ) . '"' : '' ) . ' aria-label="' . esc_attr( '' !== $kicker ? $kicker : $title ) . '"><div class="aimp-latest-inner">';
 		$html   .= '<a class="aimp-latest-media" href="' . esc_url( $url ) . '" tabindex="-1" aria-hidden="true"><span class="' . esc_attr( $frame ) . '"' . $fstyle . '>' . $image;
 		if ( 'polaroid' === $style ) {
 			$html .= '<span class="aimp-latest-caption">' . esc_html( $title ) . '</span>';
 		}
 		$html .= '</span></a><div class="aimp-latest-body">';
-		if ( 'journal' === $style ) {
-			// A round date stamp, as if stamped on the diary page.
-			$html .= '<span class="aimp-latest-stamp" aria-hidden="true"><b>' . esc_html( get_the_date( 'j', $post ) ) . '</b><span>' . esc_html( get_the_date( 'M', $post ) ) . '</span><small>' . esc_html( get_the_date( 'Y', $post ) ) . '</small></span>';
+		if ( $stamp ) {
+			// A round date stamp, as if stamped on the diary page or the cream card.
+			$html .= '<time class="aimp-latest-stamp" datetime="' . esc_attr( get_the_date( 'c', $post ) ) . '" aria-label="' . esc_attr( get_the_date( 'j F Y', $post ) ) . '"><b aria-hidden="true">' . esc_html( get_the_date( 'j', $post ) ) . '</b><span aria-hidden="true">' . esc_html( get_the_date( 'M', $post ) ) . '</span><small aria-hidden="true">' . esc_html( get_the_date( 'Y', $post ) ) . '</small></time>';
 		}
 		if ( '' !== $kicker ) {
 			$html .= '<p class="aimp-latest-kicker">' . esc_html( $kicker ) . '</p>';
@@ -1125,7 +1129,8 @@ class AIMP_Blog {
 		}
 		$html .= '<h2 class="aimp-latest-title"><a href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a></h2>';
 		$meta  = array();
-		if ( ! $opt( 'lp_nodate' ) ) {
+		// Luxe: the date is in the stamp.
+		if ( ! $opt( 'lp_nodate' ) && 'luxe' !== $style ) {
 			$meta[] = '<time datetime="' . esc_attr( get_the_date( 'c', $post ) ) . '">' . esc_html( get_the_date( 'j F Y', $post ) ) . '</time>';
 		}
 		$minutes = self::minutes( $id );

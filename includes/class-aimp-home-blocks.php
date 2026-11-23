@@ -562,7 +562,7 @@ class AIMP_Home_Blocks {
 		$radius = $num( 'radius', 'ig_radius', 0, 30, -1 );
 		$shape  = $pick( 'shape', 'ig_shape', array( 'portrait', 'original' ) );
 		$hover  = $pick( 'hover', 'ig_hover', array( 'caption', 'none' ) );
-		$narrow = 'narrow' === (string) AIMP_Blocks::design( $part, 'ig_width', '' );
+		$narrow = (string) AIMP_Blocks::design( $part, 'ig_width', '' );
 		$icons  = ! AIMP_Blocks::design( $part, 'ig_noicon' );
 		$title  = 'no' !== $atts['title'] && ! AIMP_Blocks::design( $part, 'ig_notitle' );
 		$button = 'no' !== $atts['button'] && ! AIMP_Blocks::design( $part, 'ig_nobutton' );
@@ -588,13 +588,30 @@ class AIMP_Home_Blocks {
 		$classes = array( 'aimp-home-block', 'aimp-home-instagram' );
 		$classes[] = '' !== $shape ? 'is-' . $shape : 'is-square';
 		$classes[] = '' !== $hover ? 'hover-' . $hover : 'hover-zoom';
-		if ( $narrow ) {
+		if ( 'narrow' === $narrow ) {
 			$classes[] = 'is-narrow';
+		} elseif ( 'wide80' === $narrow ) {
+			$classes[] = 'is-w80';
+		}
+		$scale = self::instagram_scale( $part );
+		if ( $scale ) {
+			$classes[] = 'has-size';
 		}
 		$style = '--aimp-ig-cols:' . (int) $cols . ';--aimp-ig-cols-phone:' . (int) $phone . ';' .
-			( $gap >= 0 ? '--aimp-ig-gap:' . (int) $gap . 'px;' : '' ) . ( $radius >= 0 ? '--aimp-ig-radius:' . (int) $radius . 'px;' : '' );
+			( $gap >= 0 ? '--aimp-ig-gap:' . (int) $gap . 'px;' : '' ) . ( $radius >= 0 ? '--aimp-ig-radius:' . (int) $radius . 'px;' : '' ) . ( $scale ? '--aimp-ig-scale:' . $scale . ';' : '' );
 		return '<section class="' . esc_attr( implode( ' ', $classes ) ) . '" style="' . esc_attr( $style ) . '">' . ( $title ? self::title( AIMP_Blocks::text( 'ig_title' ) ) : '' ) .
 			'<ul class="aimp-ig-grid">' . $cards . '</ul>' . $follow . '</section>';
+	}
+
+	/**
+	 * The size of the posts (Design studio → Instagram "Size of the posts", 60–160 %) as a factor, 0 = standard.
+	 *
+	 * @param string $part Design part.
+	 * @return float|int
+	 */
+	private static function instagram_scale( $part ) {
+		$size = (int) AIMP_Blocks::design( $part, 'ig_size', 0 );
+		return $size >= 60 && $size <= 160 ? round( $size / 100, 2 ) : 0;
 	}
 
 	/**
@@ -708,8 +725,15 @@ class AIMP_Home_Blocks {
 		$classes   = array( 'aimp-home-block', 'aimp-home-instagram', 'has-cards', 'style-' . ( '' !== $style ? $style : 'classic' ) );
 		$classes[] = '' !== $shape ? 'is-' . $shape : 'is-square';
 		$classes[] = 'none' === $hover ? 'hover-none' : 'hover-zoom';
-		if ( 'narrow' === (string) AIMP_Blocks::design( $part, 'ig_width', '' ) ) {
+		$width = (string) AIMP_Blocks::design( $part, 'ig_width', '' );
+		if ( 'narrow' === $width ) {
 			$classes[] = 'is-narrow';
+		} elseif ( 'wide80' === $width ) {
+			$classes[] = 'is-w80';
+		}
+		$scale = self::instagram_scale( $part );
+		if ( $scale ) {
+			$classes[] = 'has-size';
 		}
 		if ( $phone < 1 ) {
 			$classes[] = 'is-swipe';
@@ -718,7 +742,7 @@ class AIMP_Home_Blocks {
 			$classes[] = 'has-string';
 		}
 		$css = '--aimp-ig-cols:' . (int) $cols . ';' . ( $phone > 0 ? '--aimp-ig-cols-phone:' . (int) $phone . ';' : '' ) .
-			( $gap >= 0 ? '--aimp-ig-gap:' . (int) $gap . 'px;' : '' ) . ( $radius >= 0 ? '--aimp-ig-radius:' . (int) $radius . 'px;' : '' );
+			( $gap >= 0 ? '--aimp-ig-gap:' . (int) $gap . 'px;' : '' ) . ( $radius >= 0 ? '--aimp-ig-radius:' . (int) $radius . 'px;' : '' ) . ( $scale ? '--aimp-ig-scale:' . $scale . ';' : '' );
 		return '<section class="' . esc_attr( implode( ' ', $classes ) ) . '" style="' . esc_attr( $css ) . '">' . ( $title ? self::title( AIMP_Blocks::text( 'ig_title' ) ) : '' ) .
 			'<ul class="aimp-ig-grid aimp-ig-cards">' . $cards . '</ul>' . $follow . '</section>';
 	}

@@ -241,6 +241,7 @@
 		var need = block.querySelector('.aimp-spotlight-need');
 		var message = block.querySelector('.aimp-spotlight-message');
 		var note = block.querySelector('.aimp-spotlight-note');
+		var chart = block.querySelector('[data-chart]');
 		var chosen = 0;
 		if (!button) {
 			return;
@@ -274,6 +275,13 @@
 					var text = pill.getAttribute('data-need') || '';
 					need.textContent = text ? '(' + text + ')' : '';
 					need.hidden = !text;
+				}
+				// The size chart: only the chosen size's row.
+				if (chart) {
+					chart.querySelectorAll('[data-size-row]').forEach(function (row) {
+						row.hidden = parseInt(row.getAttribute('data-size-row'), 10) !== chosen;
+					});
+					chart.hidden = false;
 				}
 				button.disabled = false;
 				button.textContent = button.getAttribute('data-label');

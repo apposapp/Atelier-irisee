@@ -230,6 +230,7 @@ class AIMP_Design {
 			'home-giftcards'  => array( 'gp_opts' ),
 			'home-instagram'  => array( 'ig_opts' ),
 			'home-latest'     => array( 'lp_opts' ),
+			'home-spotlight'  => array( 'sp_opts' ),
 			'about'           => array( 'ab_opts' ),
 			'about-chapter'   => array( 'ab_chapters' ),
 			'about-closing'   => array( 'ab_closing' ),
@@ -752,7 +753,8 @@ class AIMP_Design {
 				'ig_shape'      => array( 'select', array( '', 'portrait', 'original' ) ),
 				'ig_gap'        => array( 0, 40, -99 ),
 				'ig_radius'     => array( 0, 30, -99 ),
-				'ig_width'      => array( 'select', array( '', 'narrow' ) ),
+				'ig_width'      => array( 'select', array( '', 'narrow', 'wide80' ) ),
+				'ig_size'       => array( 0, 160, 0 ),
 				'ig_hover'      => array( 'select', array( '', 'caption', 'none' ) ),
 				'ig_noicon'     => 'bool',
 				'ig_notitle'    => 'bool',
@@ -773,6 +775,11 @@ class AIMP_Design {
 				'lp_nodate'    => 'bool',
 				'lp_noexcerpt' => 'bool',
 				'lp_noall'     => 'bool',
+				'lp_shape'     => array( 'select', array( '', 'arch' ) ),
+				'lp_stamp_color' => 'color',
+			),
+			'sp_opts'     => array(
+				'sp_nochart' => 'bool',
 			),
 			'gp_opts'     => array(
 				'gp_layout' => array( 'select', array( '', 'amounts', 'designs' ) ),
@@ -1399,7 +1406,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'gp_opts', 'ig_opts', 'lp_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look', 'bl_opts', 'bl_post' );
+		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'gp_opts', 'ig_opts', 'lp_opts', 'sp_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look', 'bl_opts', 'bl_post' );
 	}
 
 	/**
@@ -4765,8 +4772,10 @@ class AIMP_Design {
 			array(
 				''       => __( 'The whole width of its place (standard)', 'atelier-irisee-master-plugin' ),
 				'narrow' => __( 'Narrower, in the middle', 'atelier-irisee-master-plugin' ),
+				'wide80' => __( '80% of the width of the screen, in the middle', 'atelier-irisee-master-plugin' ),
 			)
 		);
+		self::number( 'ig_size', __( 'Size of the posts on computers (0 = standard: they fill the row; 60–160%)', 'atelier-irisee-master-plugin' ), 0, 160, '%' );
 		self::choice(
 			'ig_hover',
 			__( 'When the mouse is on a picture', 'atelier-irisee-master-plugin' ),
@@ -4809,6 +4818,15 @@ class AIMP_Design {
 				'none'  => __( 'No pin', 'atelier-irisee-master-plugin' ),
 			)
 		);
+		self::choice(
+			'lp_shape',
+			__( 'Wide picture: shape of the cream card', 'atelier-irisee-master-plugin' ),
+			array(
+				''     => __( 'Rectangle (standard)', 'atelier-irisee-master-plugin' ),
+				'arch' => __( 'Arch', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::color( 'lp_stamp_color', __( 'Colour of the date stamp (wide picture and diary page)', 'atelier-irisee-master-plugin' ) );
 		$field( 'lp_cat', __( 'Only posts of this category (its slug, e.g. irisee-focus; empty = all)', 'atelier-irisee-master-plugin' ), 'text', '' );
 		self::check_box( 'lp_right', __( 'The picture on the right', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'lp_nolabel', __( 'Without the category', 'atelier-irisee-master-plugin' ) );
@@ -4817,6 +4835,11 @@ class AIMP_Design {
 		self::check_box( 'lp_noall', __( 'Without the link to all posts', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'Shortcode: [atelier_irisee_latest_post]. The block stays hidden while there is no published post. A look per block: style="polaroid", "luxe" or "journal".', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo $texts_note; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+		echo '</fieldset>';
+
+		$group( 'sp_opts', __( 'Kit spotlight', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'sp_nochart', __( 'No size chart under the sizes', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'The kits themselves: Atelier Irisee → Kit spotlights. Once a size is picked, the size chart shows the measurements of that size.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
 		$group( 'gp_opts', __( 'Gift card promo', 'atelier-irisee-master-plugin' ) );

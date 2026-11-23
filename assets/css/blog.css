@@ -1518,6 +1518,36 @@ html.aimp-blog-zoomed {
 	justify-content: center;
 }
 
+/* Luxe as an arch (Design studio → Newest blog post → Shape of the card): the top a half circle, the double frame and
+   the cream edge follow it; more room at the top so the text stays inside the curve. */
+.style-luxe.is-arch .aimp-latest-body {
+	padding-top: clamp(4.6rem, 9vw, 7rem);
+	border-radius: 50% 50% 0 0 / 15rem 15rem 0 0;
+}
+
+/* Luxe: the date stamp on the top corner of the card, over the frame (with the arch: on top of the curve). */
+.style-luxe .aimp-latest-stamp {
+	top: -1.9rem;
+	right: -1.6rem;
+	z-index: 2;
+	background: #fffdf8;
+	box-shadow: inset 0 0 0 4px #fffdf8, inset 0 0 0 5px color-mix(in srgb, var(--lp-stamp, #a14a3f) 55%, transparent), 0 6px 14px rgba(0, 0, 0, 0.14);
+	opacity: 1;
+}
+
+.style-luxe.is-arch .aimp-latest-stamp {
+	top: -2.9rem;
+	right: auto;
+	left: calc(50% - 2.7rem);
+	transform: rotate(-8deg);
+}
+
+.style-luxe.is-photo-right:not(.is-arch) .aimp-latest-stamp {
+	right: auto;
+	left: -1.6rem;
+	transform: rotate(-12deg);
+}
+
 /* Journal: lined paper with a red margin line, the picture taped on, a round date stamp. */
 .style-journal .aimp-latest-inner {
 	padding: clamp(1.5rem, 4vw, 3rem) clamp(1.2rem, 4vw, 3rem) clamp(1.5rem, 4vw, 3rem) clamp(2.2rem, 6vw, 4.5rem);
@@ -1574,10 +1604,11 @@ html.aimp-blog-zoomed {
 	place-content: center;
 	width: 5.4rem;
 	height: 5.4rem;
-	border: 2px solid color-mix(in srgb, #a14a3f 75%, transparent);
+	/* Its ink: Design studio → Newest blog post → Colour of the date stamp (--lp-stamp). */
+	border: 2px solid color-mix(in srgb, var(--lp-stamp, #a14a3f) 75%, transparent);
 	border-radius: 50%;
-	box-shadow: inset 0 0 0 4px #fffdf6, inset 0 0 0 5px color-mix(in srgb, #a14a3f 55%, transparent);
-	color: color-mix(in srgb, #a14a3f 85%, transparent);
+	box-shadow: inset 0 0 0 4px #fffdf6, inset 0 0 0 5px color-mix(in srgb, var(--lp-stamp, #a14a3f) 55%, transparent);
+	color: color-mix(in srgb, var(--lp-stamp, #a14a3f) 85%, transparent);
 	line-height: 1;
 	text-align: center;
 	text-transform: uppercase;
@@ -1642,6 +1673,24 @@ html.aimp-blog-zoomed {
 	.style-luxe.is-photo-right .aimp-latest-body {
 		width: auto;
 		margin: -3rem 0.8rem 0;
+	}
+
+	.style-luxe .aimp-latest-stamp,
+	.style-luxe.is-photo-right:not(.is-arch) .aimp-latest-stamp {
+		right: -0.4rem;
+		left: auto;
+		width: 4.6rem;
+		height: 4.6rem;
+	}
+
+	.style-luxe.is-arch .aimp-latest-stamp {
+		right: auto;
+		left: calc(50% - 2.3rem);
+	}
+
+	.style-luxe.is-arch .aimp-latest-body {
+		padding-top: 4.4rem;
+		border-radius: 50% 50% 0 0 / 10rem 10rem 0 0;
 	}
 }
 

@@ -273,6 +273,11 @@ class AIMP_Spotlight {
 				'regular'   => '' === $kit['reason'] && $discount > 0 ? wp_strip_all_tags( wc_price( $total ) ) : '',
 				'fabric'    => $req['fabric_units'] > 0 ? AIMP_Catalog::fabric_need_text( $req ) : '',
 			);
+			// The measurements for the size chart (as the customizer's: AIMP_Catalog::get_sizes()).
+			foreach ( array( 'bust', 'waist', 'hip', 'inside_leg', 'height' ) as $measure ) {
+				$sizes[ count( $sizes ) - 1 ][ $measure ]         = isset( $size[ $measure ] ) ? (string) $size[ $measure ] : '';
+				$sizes[ count( $sizes ) - 1 ][ $measure . '_to' ] = isset( $size[ $measure . '_to' ] ) ? (string) $size[ $measure . '_to' ] : '';
+			}
 		}
 		return $sizes;
 	}
@@ -502,6 +507,7 @@ class AIMP_Spotlight {
 			);
 		}
 		$html .= '</div></fieldset>';
+		$html .= self::chart( $sizes );
 
 		// Before a size is chosen: "from" the lowest price.
 		$from = '';
@@ -526,6 +532,64 @@ class AIMP_Spotlight {
 		$html .= '<p class="aimp-spotlight-note" hidden><a href="' . esc_url( wc_get_cart_url() ) . '">' . esc_html__( 'View cart', 'atelier-irisee-master-plugin' ) . '</a></p>';
 		$html .= '</div></section>';
 		return $html;
+	}
+
+	/**
+	 * The size chart in the customizer's design, one row per size; spotlight.js shows the chosen size's row once a
+	 * size is picked. Only the measurements the pattern has. Empty with Design studio → Kit spotlight "No size chart".
+	 *
+	 * @param array $sizes sizes().
+	 * @return string
+	 */
+	public static function chart( $sizes ) {
+		if ( class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'home-spotlight', 'sp_nochart', false ) ) {
+			return '';
+		}
+		$labels   = array(
+			'bust'       => __( 'Bust', 'atelier-irisee-master-plugin' ),
+			'waist'      => __( 'Waist', 'atelier-irisee-master-plugin' ),
+			'hip'        => __( 'Hip', 'atelier-irisee-master-plugin' ),
+			'inside_leg' => __( 'Inside leg', 'atelier-irisee-master-plugin' ),
+			'height'     => __( 'Height', 'atelier-irisee-master-plugin' ),
+		);
+		$measures = array();
+		foreach ( $labels as $key => $label ) {
+			foreach ( $sizes as $size ) {
+				if ( isset( $size[ $key ] ) && '' !== $size[ $key ] ) {
+					$measures[ $key ] = $label;
+					break;
+				}
+			}
+		}
+		if ( ! $measures ) {
+			return '';
+		}
+		$decimal = function_exists( 'wc_get_price_decimal_separator' ) ? wc_get_price_decimal_separator() : '.';
+		$value   = function ( $from, $to ) use ( $decimal ) {
+			if ( '' === $from ) {
+				return '–';
+			}
+			$text = str_replace( '.', $decimal, $from );
+			if ( '' !== $to && (float) $to > (float) $from ) {
+				$text .= '–' . str_replace( '.', $decimal, $to );
+			}
+			return $text . ' ' . __( 'cm', 'atelier-irisee-master-plugin' );
+		};
+		$html  = '<div class="aimp-spotlight-chart" data-chart hidden><div class="aimp-spotlight-chart-head"><p class="aimp-spotlight-chart-title">' . esc_html__( 'Size chart', 'atelier-irisee-master-plugin' ) . '</p>';
+		$html .= '<a class="aimp-spotlight-measure" href="' . esc_url( AIMP_PLUGIN_URL . 'assets/images/lichaamsmaten.png' ) . '" target="_blank" rel="noopener">' . esc_html__( 'How to measure your body measurements', 'atelier-irisee-master-plugin' ) . '</a></div>';
+		$html .= '<table class="aimp-size-chart"><thead><tr><th>' . esc_html__( 'Size', 'atelier-irisee-master-plugin' ) . '</th>';
+		foreach ( $measures as $label ) {
+			$html .= '<th>' . esc_html( $label ) . '</th>';
+		}
+		$html .= '</tr></thead><tbody>';
+		foreach ( $sizes as $size ) {
+			$html .= '<tr class="is-selected" data-size-row="' . (int) $size['id'] . '" hidden><th scope="row">' . esc_html( $size['label'] ) . '</th>';
+			foreach ( $measures as $key => $label ) {
+				$html .= '<td data-label="' . esc_attr( $label ) . '">' . esc_html( $value( $size[ $key ], $size[ $key . '_to' ] ) ) . '</td>';
+			}
+			$html .= '</tr>';
+		}
+		return $html . '</tbody></table></div>';
 	}
 
 	/**
