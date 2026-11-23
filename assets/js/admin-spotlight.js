@@ -33,8 +33,11 @@
 		var finish = form.querySelector('[data-finish]');
 		var notions = form.querySelector('[data-notions]');
 		var sizes = form.querySelector('[data-sizes]');
+		var shown = form.querySelector('[data-shown]');
+		var listed = form.querySelector('[data-listed]');
 		var current = JSON.parse(form.getAttribute('data-current') || '{}');
 		current.notions = current.notions || {};
+		current.hide = current.hide || [];
 
 		function row(name, show) {
 			var tr = form.querySelector('[data-row="' + name + '"]');
@@ -53,6 +56,59 @@
 			});
 		}
 
+		function chosenText(select) {
+			var option = select.options[select.selectedIndex];
+			return option ? option.textContent : '';
+		}
+
+		// One tick box per item of the kit (as AIMP_Spotlight::elements()): ticked = shown around the picture.
+		function renderShown() {
+			var items = [];
+			if (parseInt(pattern.value, 10)) {
+				items.push(['pattern', t.pattern || 'Pattern', chosenText(pattern)]);
+			}
+			var fabricRow = form.querySelector('[data-row="fabric"]');
+			if (parseInt(fabric.value, 10) && fabricRow && !fabricRow.hidden) {
+				items.push(['fabric', t.fabric || 'Fabric', chosenText(fabric)]);
+			}
+			var liningRow = form.querySelector('[data-row="lining"]');
+			if (parseInt(lining.value, 10) && liningRow && !liningRow.hidden) {
+				items.push(['lining', t.lining || 'Lining', chosenText(lining)]);
+			}
+			notions.querySelectorAll('select').forEach(function (select) {
+				if (parseInt(select.value, 10)) {
+					var label = select.parentNode.querySelector('span');
+					items.push(['n_' + select.getAttribute('data-type'), label ? label.textContent : '', chosenText(select)]);
+				}
+			});
+			shown.innerHTML = '';
+			items.forEach(function (item) {
+				var box = document.createElement('label');
+				box.className = 'aimp-sp-shown-item';
+				var input = document.createElement('input');
+				input.type = 'checkbox';
+				input.name = 'spot[show][]';
+				input.value = item[0];
+				input.checked = current.hide.indexOf(item[0]) === -1;
+				input.addEventListener('change', function () {
+					current.hide = current.hide.filter(function (key) {
+						return key !== item[0];
+					});
+					if (!input.checked) {
+						current.hide.push(item[0]);
+					}
+				});
+				var strong = document.createElement('strong');
+				strong.textContent = item[1];
+				box.appendChild(input);
+				box.appendChild(strong);
+				box.appendChild(document.createTextNode(' ' + item[2]));
+				shown.appendChild(box);
+			});
+			listed.value = items.map(function (item) {
+				return item[0];
+			}).join(',');
+		}
 		function fill(choices) {
 			if (!choices) {
 				row('fabric', false);
@@ -60,6 +116,7 @@
 				row('finish', false);
 				notions.innerHTML = '';
 				sizes.textContent = '';
+				renderShown();
 				return;
 			}
 			fillSelect(fabric, choices.fabrics, current.fabric, true);
@@ -83,6 +140,7 @@
 				notions.appendChild(label);
 			});
 			sizes.textContent = choices.sizes ? (sizes.getAttribute('data-label') || '') + choices.sizes : '';
+			renderShown();
 		}
 
 		function load() {
@@ -113,11 +171,17 @@
 		fill(JSON.parse(form.getAttribute('data-choices') || 'null'));
 		pattern.addEventListener('change', function () {
 			// Another pattern: start from scratch.
-			current = { notions: {} };
+			current = { notions: {}, hide: [] };
 			fabric.value = '0';
 			load();
 		});
 		fabric.addEventListener('change', load);
+		// Another lining or haberdashery item: its element in the list.
+		form.addEventListener('change', function (event) {
+			if (event.target === lining || event.target.closest('[data-notions]')) {
+				renderShown();
+			}
+		});
 	}
 
 	function setupPictures() {

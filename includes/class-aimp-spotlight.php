@@ -25,12 +25,8 @@ class AIMP_Spotlight {
 	const STYLES = array( 'medallion', 'drawing', 'tag' );
 	const MOVES  = array( 'move', 'still', 'off' );
 
-	/** Where the elements sit on the needle's circle (degrees, 0 = right, clockwise) and which way the thread goes. */
-	const SPOTS = array(
-		'pattern' => array( -138, 'under' ),
-		'fabric'  => array( -18, 'over' ),
-		'notions' => array( 108, 'under' ),
-	);
+	/** Where the first element sits on the needle's circle (degrees, 0 = right, clockwise); the others follow evenly. */
+	const START = -138;
 
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
@@ -92,7 +88,7 @@ class AIMP_Spotlight {
 	public static function clean( $spot ) {
 		$texts = array();
 		foreach ( array_keys( AIMP_I18n::languages() ) as $code ) {
-			foreach ( array( 'kicker', 'title', 'text', 'button', 'l_pattern', 'l_fabric', 'l_notions' ) as $key ) {
+			foreach ( array( 'kicker', 'title', 'text', 'button', 'l_pattern', 'l_fabric' ) as $key ) {
 				$value = isset( $spot['texts'][ $key . '_' . $code ] ) ? (string) $spot['texts'][ $key . '_' . $code ] : '';
 				$texts[ $key . '_' . $code ] = 'text' === $key ? sanitize_textarea_field( $value ) : sanitize_text_field( $value );
 			}
@@ -125,7 +121,8 @@ class AIMP_Spotlight {
 			'style'       => isset( $spot['style'] ) && in_array( $spot['style'], self::STYLES, true ) ? $spot['style'] : 'medallion',
 			'img_pattern' => $int( 'img_pattern' ),
 			'img_fabric'  => $int( 'img_fabric' ),
-			'img_notions' => $int( 'img_notions' ),
+			// Elements not shown around the picture (keys of elements()).
+			'hide'        => isset( $spot['hide'] ) && is_array( $spot['hide'] ) ? array_values( array_filter( array_map( 'sanitize_key', $spot['hide'] ) ) ) : array(),
 			'move'        => isset( $spot['move'] ) && in_array( $spot['move'], self::MOVES, true ) ? $spot['move'] : 'move',
 			'needle'      => ! isset( $spot['needle'] ) || ! empty( $spot['needle'] ) ? 1 : 0,
 			'speed'       => $int( 'speed', 25, 300, 100 ),
@@ -137,7 +134,7 @@ class AIMP_Spotlight {
 	 * A text of a spotlight in the visitor's language, else the standard text.
 	 *
 	 * @param array  $spot Spotlight.
-	 * @param string $key  kicker, title, text, button, l_pattern, l_fabric, l_notions.
+	 * @param string $key  kicker, title, text, button, l_pattern, l_fabric.
 	 * @return string
 	 */
 	public static function text( $spot, $key ) {
@@ -162,7 +159,6 @@ class AIMP_Spotlight {
 			'button'    => __( 'Add the kit to the cart', 'atelier-irisee-master-plugin' ),
 			'l_pattern' => __( 'Pattern', 'atelier-irisee-master-plugin' ),
 			'l_fabric'  => __( 'Fabric', 'atelier-irisee-master-plugin' ),
-			'l_notions' => __( 'Haberdashery', 'atelier-irisee-master-plugin' ),
 		);
 	}
 
@@ -282,66 +278,108 @@ class AIMP_Spotlight {
 	}
 
 	/**
-	 * The three elements: [ key => [ name, url, image (attachment id or URL), names (all of them) ] ].
+	 * The elements of the kit, one per item, in the order of the kit: pattern, fabric, lining, then each haberdashery
+	 * item. key (pattern, fabric, lining, n_{type}) => [ label, name, url, image (attachment id), kind (its drawing) ].
 	 *
 	 * @param array $spot Spotlight.
 	 * @return array
 	 */
 	public static function elements( $spot ) {
-		$req = $spot['size'] ? AIMP_Catalog::get_requirements( $spot['size'] ) : null;
+		$req = $spot['size'] ? self::requirements( $spot, $spot['size'] ) : null;
 		if ( ! $req ) {
 			return array();
 		}
 		$list = array();
 		$name = implode( ' – ', array_filter( array( wp_strip_all_tags( $req['pattern']->get_name() ), $req['design'] ) ) );
 		$list['pattern'] = array(
+			'label' => self::text( $spot, 'l_pattern' ),
 			'name'  => $name,
 			'url'   => $req['pattern']->get_permalink(),
 			'image' => $spot['img_pattern'] ? $spot['img_pattern'] : AIMP_Catalog::kit_image_id( $req ),
-			'names' => array( $name ),
+			'kind'  => 'pattern',
 		);
-		$fabric = $spot['fabric'] ? wc_get_product( $spot['fabric'] ) : null;
-		if ( $fabric && 'publish' === $fabric->get_status() ) {
+		$product = function ( $id ) {
+			$product = $id ? wc_get_product( $id ) : null;
+			return $product && 'publish' === $product->get_status() ? $product : null;
+		};
+		$fabric = $product( $spot['fabric'] );
+		if ( $fabric ) {
 			$list['fabric'] = array(
+				'label' => self::text( $spot, 'l_fabric' ),
 				'name'  => wp_strip_all_tags( $fabric->get_name() ),
 				'url'   => $fabric->get_permalink(),
 				'image' => $spot['img_fabric'] ? $spot['img_fabric'] : (int) $fabric->get_image_id(),
-				'names' => array( wp_strip_all_tags( $fabric->get_name() ) ),
+				'kind'  => 'fabric',
 			);
 		}
-		$notions = array();
-		$lining  = $spot['lining'] ? wc_get_product( $spot['lining'] ) : null;
-		if ( $lining && 'publish' === $lining->get_status() && $req['lining_units'] > 0 ) {
-			$notions[] = $lining;
+		$fields = AIMP_Catalog::material_fields();
+		$lining = $req['lining_units'] > 0 ? $product( $spot['lining'] ) : null;
+		if ( $lining ) {
+			$list['lining'] = array(
+				'label' => $fields['lining']['label'],
+				'name'  => wp_strip_all_tags( $lining->get_name() ),
+				'url'   => $lining->get_permalink(),
+				'image' => (int) $lining->get_image_id(),
+				'kind'  => 'lining',
+			);
 		}
-		foreach ( $spot['notions'] as $id ) {
-			$product = wc_get_product( $id );
-			if ( $product && 'publish' === $product->get_status() ) {
-				$notions[] = $product;
+		// Each haberdashery item the kit holds (not the other finish option's).
+		$types = AIMP_Catalog::notion_types();
+		foreach ( $types as $type => $info ) {
+			$item = isset( $spot['notions'][ $type ] ) ? $product( $spot['notions'][ $type ] ) : null;
+			if ( ! $item || AIMP_Catalog::notion_count( $type, $req ) <= 0 ) {
+				continue;
 			}
-		}
-		if ( $notions ) {
-			// The first haberdashery item (not the lining) stands for all of them.
-			$first = count( $notions ) > 1 && $lining && $notions[0]->get_id() === $lining->get_id() ? $notions[1] : $notions[0];
-			$list['notions'] = array(
-				'name'  => wp_strip_all_tags( $first->get_name() ),
-				'url'   => $first->get_permalink(),
-				'image' => $spot['img_notions'] ? $spot['img_notions'] : (int) $first->get_image_id(),
-				'names' => array_map(
-					function ( $product ) {
-						return wp_strip_all_tags( $product->get_name() );
-					},
-					$notions
-				),
-				'links' => array_map(
-					function ( $product ) {
-						return $product->get_permalink();
-					},
-					$notions
-				),
+			$list[ 'n_' . $type ] = array(
+				'label' => isset( $fields[ $info['material'] ] ) ? $fields[ $info['material'] ]['label'] : __( 'Haberdashery', 'atelier-irisee-master-plugin' ),
+				'name'  => wp_strip_all_tags( $item->get_name() ),
+				'url'   => $item->get_permalink(),
+				'image' => (int) $item->get_image_id(),
+				'kind'  => (string) $info['notion_kind'],
 			);
 		}
 		return $list;
+	}
+
+	/**
+	 * A line drawing for an element (viewBox 0 0 120 90, gold lines): the kit steps bar's pattern and fabric, and one
+	 * for each kind of haberdashery.
+	 *
+	 * @param string $kind pattern, fabric, lining, button, zip, ribbon, bias, elastic, interfacing.
+	 * @return string SVG.
+	 */
+	public static function drawing( $kind ) {
+		if ( in_array( $kind, array( 'pattern', 'fabric' ), true ) ) {
+			return AIMP_Kit_Steps::drawing( $kind );
+		}
+		if ( 'lining' === $kind ) {
+			return AIMP_Kit_Steps::drawing( 'fabric' );
+		}
+		$parts = array(
+			// A large four-hole button sewn on with a cross of thread, and a small one dropping in.
+			'button'      => '<g class="sp-turn"><circle cx="52" cy="46" r="26"/><circle cx="52" cy="46" r="20"/><path class="ks-cut" d="M44 38l16 16M60 38L44 54"/>' .
+				'<circle cx="44" cy="38" r="3"/><circle cx="60" cy="38" r="3"/><circle cx="44" cy="54" r="3"/><circle cx="60" cy="54" r="3"/></g>' .
+				'<g class="ks-button ks-button--2"><circle cx="94" cy="24" r="10"/><circle cx="91" cy="24" r="1.5"/><circle cx="97" cy="24" r="1.5"/></g>',
+			// A zip with its teeth, the slider and its long pull tab going up and down.
+			'zip'         => '<path class="ks-sheet" d="M24 8h32v74H24z"/><path class="ks-sheet" d="M64 8h32v74H64z"/><path d="M60 8v74"/><path class="ks-teeth" d="M56 12h4M60 18h4M56 24h4M60 30h4M56 36h4M60 42h4M56 48h4M60 54h4M56 60h4M60 66h4M56 72h4M60 78h4"/>' .
+				'<g class="ks-slider"><path d="M54 37h12l-2 9h-8z"/><g class="ks-pull"><path d="M58.2 46h3.6v15.5a1.8 1.8 0 0 1-3.6 0z"/><circle cx="60" cy="58" r="1"/></g></g>',
+			// A ribbon tied in a bow, the tails fluttering.
+			'ribbon'      => '<g class="sp-sway"><path d="M60 40c-10-16-34-20-32-4s22 10 32 4z"/><path d="M60 40c10-16 34-20 32-4s-22 10-32 4z"/><circle cx="60" cy="40" r="5"/>' .
+				'<path d="M57 44l-14 30 8-3 4 7 6-33M63 44l14 30-8-3-4 7-6-33"/></g>',
+			// A roll of bias tape, a folded tail unrolling from it.
+			'bias'        => '<circle class="ks-roll" cx="42" cy="44" r="22"/><circle cx="42" cy="44" r="8"/><path class="ks-roll-spiral" d="M42 44m-14 0a14 14 0 1 1 28 0"/>' .
+				'<path d="M60 58c10 4 24 2 40-6"/><path class="ks-cut" d="M62 64c10 4 24 2 38-6"/>',
+			// A band of elastic with its ribs, stretching.
+			'elastic'     => '<g class="sp-stretch"><rect x="16" y="34" width="88" height="22" rx="3"/><path d="M24 36v18M32 36v18M40 36v18M48 36v18M56 36v18M64 36v18M72 36v18M80 36v18M88 36v18M96 36v18"/></g>',
+			// A sheet of interfacing with its dots of glue and a folded corner, a little iron passing over it.
+			'interfacing' => '<path class="ks-paper" d="M22 14h60l16 16v48H22z"/><path class="ks-paper" d="M82 14v16h16"/>' .
+				'<g class="ks-print"><circle cx="34" cy="30" r="1.2"/><circle cx="46" cy="30" r="1.2"/><circle cx="58" cy="30" r="1.2"/><circle cx="40" cy="42" r="1.2"/><circle cx="52" cy="42" r="1.2"/><circle cx="64" cy="42" r="1.2"/><circle cx="76" cy="42" r="1.2"/><circle cx="34" cy="54" r="1.2"/><circle cx="46" cy="54" r="1.2"/><circle cx="58" cy="54" r="1.2"/><circle cx="70" cy="54" r="1.2"/><circle cx="82" cy="54" r="1.2"/><circle cx="40" cy="66" r="1.2"/><circle cx="52" cy="66" r="1.2"/><circle cx="64" cy="66" r="1.2"/><circle cx="76" cy="66" r="1.2"/></g>' .
+				'<g class="sp-iron"><path d="M30 50c0-10 8-16 22-16h18v16z"/><path d="M44 34c0-6 4-8 10-8h10"/></g>',
+		);
+		if ( ! isset( $parts[ $kind ] ) ) {
+			return AIMP_Kit_Steps::drawing( 'notions' );
+		}
+		return '<svg class="aimp-kit-steps-drawing sp-' . esc_attr( $kind ) . '" viewBox="0 0 120 90" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $parts[ $kind ] . '</svg>';
 	}
 
 	/* ------------------------------------------------------------------ the block */
@@ -402,12 +440,16 @@ class AIMP_Spotlight {
 		if ( $spot['needle'] ) {
 			$html .= '<svg class="aimp-spotlight-layer is-back" aria-hidden="true" focusable="false"></svg>';
 		}
-		if ( 'off' !== $spot['move'] && $elements ) {
-			$html .= '<ul class="aimp-spotlight-elements">';
-			foreach ( self::SPOTS as $key => $place ) {
-				if ( isset( $elements[ $key ] ) ) {
-					$html .= self::element( $key, $place, $elements[ $key ], $spot );
-				}
+		$shown = array_diff_key( $elements, array_flip( $spot['hide'] ) );
+		if ( 'off' !== $spot['move'] && $shown ) {
+			// Evenly round the circle, the thread going under and over them in turn; smaller when there are many.
+			$count = count( $shown );
+			$width = $count <= 3 ? 24 : ( 4 === $count ? 21 : ( 5 === $count ? 19 : 17 ) );
+			$html .= '<ul class="aimp-spotlight-elements is-' . $count . '" style="--sp-w:' . $width . '%">';
+			$n     = 0;
+			foreach ( $shown as $key => $element ) {
+				$html .= self::element( $key, self::START + $n * 360 / $count, $n % 2 ? 'over' : 'under', $element, $spot );
+				$n++;
 			}
 			$html .= '</ul>';
 		}
@@ -429,16 +471,8 @@ class AIMP_Spotlight {
 			$html .= '<div class="aimp-spotlight-text">' . wpautop( esc_html( $text ) ) . '</div>';
 		}
 		$html .= '<p class="aimp-spotlight-in">' . esc_html__( 'In this kit', 'atelier-irisee-master-plugin' ) . '</p><ul class="aimp-spotlight-list">';
-		foreach ( array( 'pattern', 'fabric', 'notions' ) as $key ) {
-			if ( ! isset( $elements[ $key ] ) ) {
-				continue;
-			}
-			$links = array();
-			foreach ( $elements[ $key ]['names'] as $n => $name ) {
-				$url     = isset( $elements[ $key ]['links'][ $n ] ) ? $elements[ $key ]['links'][ $n ] : $elements[ $key ]['url'];
-				$links[] = '<a href="' . esc_url( $url ) . '">' . esc_html( $name ) . '</a>';
-			}
-			$html .= '<li class="aimp-spotlight-item aimp-spotlight-item--' . esc_attr( $key ) . '"><span class="aimp-spotlight-item-label">' . esc_html( self::text( $spot, 'l_' . $key ) ) . '</span> ' . implode( ', ', $links );
+		foreach ( $elements as $key => $element ) {
+			$html .= '<li class="aimp-spotlight-item aimp-spotlight-item--' . esc_attr( $element['kind'] ) . '"><span class="aimp-spotlight-item-label">' . esc_html( $element['label'] ) . '</span> <a href="' . esc_url( $element['url'] ) . '">' . esc_html( $element['name'] ) . '</a>';
 			if ( 'fabric' === $key ) {
 				$html .= ' <span class="aimp-spotlight-need" data-need hidden></span>';
 			}
@@ -487,7 +521,7 @@ class AIMP_Spotlight {
 		if ( ! $open ) {
 			$html .= '<p class="aimp-spotlight-soldout">' . esc_html__( 'This kit is sold out for now.', 'atelier-irisee-master-plugin' ) . '</p>';
 		}
-		$html .= '<button type="button" class="aimp-spotlight-button" data-add disabled data-label="' . esc_attr( self::text( $spot, 'button' ) ) . '" data-busy="' . esc_attr__( 'Adding…', 'atelier-irisee-master-plugin' ) . '" data-error="' . esc_attr__( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ) . '"data-pick="' . esc_attr__( 'Choose your size first', 'atelier-irisee-master-plugin' ) . '">' . esc_html( $open ? __( 'Choose your size first', 'atelier-irisee-master-plugin' ) : self::text( $spot, 'button' ) ) . '</button>';
+		$html .= '<button type="button" class="aimp-spotlight-button" data-add disabled data-label="' . esc_attr( self::text( $spot, 'button' ) ) . '" data-busy="' . esc_attr__( 'Adding…', 'atelier-irisee-master-plugin' ) . '" data-error="' . esc_attr__( 'Something went wrong. Please try again.', 'atelier-irisee-master-plugin' ) . '" data-pick="' . esc_attr__( 'Choose your size first', 'atelier-irisee-master-plugin' ) . '">' . esc_html( $open ? __( 'Choose your size first', 'atelier-irisee-master-plugin' ) : self::text( $spot, 'button' ) ) . '</button>';
 		$html .= '<div class="aimp-spotlight-message" role="status" aria-live="polite" hidden></div>';
 		$html .= '<p class="aimp-spotlight-note" hidden><a href="' . esc_url( wc_get_cart_url() ) . '">' . esc_html__( 'View cart', 'atelier-irisee-master-plugin' ) . '</a></p>';
 		$html .= '</div></section>';
@@ -497,36 +531,38 @@ class AIMP_Spotlight {
 	/**
 	 * One floating element.
 	 *
-	 * @param string $key     pattern, fabric, notions.
-	 * @param array  $place   [ angle, under|over ].
+	 * @param string $key     Its key (elements()).
+	 * @param float  $degrees Its place on the circle (0 = right, clockwise).
+	 * @param string $layer   under or over: the thread goes under or over it.
 	 * @param array  $element From elements().
 	 * @param array  $spot    Spotlight.
 	 * @return string
 	 */
-	private static function element( $key, $place, $element, $spot ) {
+	private static function element( $key, $degrees, $layer, $element, $spot ) {
 		// On the needle's circle (the same circle as spotlight.js: 42% of the stage from its centre).
-		$angle = deg2rad( $place[0] );
+		$angle = deg2rad( $degrees );
 		$x     = round( 50 + 42 * cos( $angle ), 2 );
 		$y     = round( 50 + 42 * sin( $angle ), 2 );
-		$label = self::text( $spot, 'l_' . $key );
+		$label = $element['label'];
 		$image = '';
 		if ( 'drawing' !== $spot['style'] && $element['image'] ) {
-			$image = is_numeric( $element['image'] ) ? wp_get_attachment_image_url( (int) $element['image'], 'woocommerce_thumbnail' ) : (string) $element['image'];
+			$image = (string) wp_get_attachment_image_url( (int) $element['image'], 'woocommerce_thumbnail' );
 		}
-		$drawing = AIMP_Kit_Steps::drawing( $key );
-		$inner   = '';
+		$drawing = self::drawing( $element['kind'] );
 		if ( 'medallion' === $spot['style'] ) {
 			$inner = '<span class="aimp-sp-disc">' . ( $image ? '<img src="' . esc_url( $image ) . '" alt="" loading="lazy">' : $drawing ) . '</span>' .
 				'<span class="aimp-sp-ribbon">' . esc_html( $label ) . '</span>';
 		} elseif ( 'drawing' === $spot['style'] ) {
 			$inner = '<span class="aimp-sp-badge">' . $drawing . '</span><span class="aimp-sp-caption">' . esc_html( $label ) . '</span>';
 		} else {
-			// A kraft paper label on a string: the drawing (or the photo) and the product's name.
+			// A kraft paper label on a string: the photo (or the drawing) and the product's name.
 			$inner = '<span class="aimp-sp-string"></span><span class="aimp-sp-tag"><span class="aimp-sp-hole"></span>' .
 				( $image ? '<img src="' . esc_url( $image ) . '" alt="" loading="lazy">' : $drawing ) .
 				'<span class="aimp-sp-tag-label">' . esc_html( $label ) . '</span><span class="aimp-sp-tag-name">' . esc_html( $element['name'] ) . '</span></span>';
 		}
-		return '<li class="aimp-sp-el aimp-sp-el--' . esc_attr( $key ) . ' is-' . esc_attr( $place[1] ) . '" data-el="' . esc_attr( $key ) . '" style="--sp-x:' . $x . '%;--sp-y:' . $y . '%">' .
+		// A little delay of its own, so the elements never float in step.
+		$delay = round( -( crc32( $key ) % 70 ) / 10, 1 );
+		return '<li class="aimp-sp-el aimp-sp-el--' . esc_attr( $element['kind'] ) . ' is-' . esc_attr( $layer ) . '" data-el="' . esc_attr( $key ) . '" style="--sp-x:' . $x . '%;--sp-y:' . $y . '%;--sp-delay:' . $delay . 's">' .
 			'<a class="aimp-sp-float" href="' . esc_url( $element['url'] ) . '" title="' . esc_attr( $label . ': ' . $element['name'] ) . '">' . $inner . '</a></li>';
 	}
 
@@ -607,6 +643,9 @@ class AIMP_Spotlight {
 						'none'    => __( '— None —', 'atelier-irisee-master-plugin' ),
 						'loading' => __( 'Loading…', 'atelier-irisee-master-plugin' ),
 						'pick'    => __( 'Choose a picture', 'atelier-irisee-master-plugin' ),
+						'pattern' => __( 'Pattern', 'atelier-irisee-master-plugin' ),
+						'fabric'  => __( 'Fabric', 'atelier-irisee-master-plugin' ),
+						'lining'  => __( 'Lining', 'atelier-irisee-master-plugin' ),
 						'copied'  => __( 'Copied', 'atelier-irisee-master-plugin' ),
 					),
 				)
@@ -777,6 +816,10 @@ class AIMP_Spotlight {
 			$id = $list ? max( array_map( 'absint', array_keys( $list ) ) ) + 1 : 1;
 		}
 		$post['needle']  = empty( $post['needle'] ) ? 0 : 1;
+		// The elements that were listed with a tick box: the ones without a tick are hidden.
+		$listed          = isset( $post['listed'] ) ? array_filter( explode( ',', (string) $post['listed'] ) ) : array();
+		$show            = isset( $post['show'] ) && is_array( $post['show'] ) ? $post['show'] : array();
+		$post['hide']    = array_values( array_diff( $listed, $show ) );
 		$list[ $id ]     = self::clean( $post );
 		update_option( self::OPTION, $list, false );
 		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE . '&edit=' . $id . '&saved=1' ) );
@@ -890,7 +933,7 @@ class AIMP_Spotlight {
 		};
 		?>
 		<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::PAGE ) ); ?>">← <?php esc_html_e( 'All kit spotlights', 'atelier-irisee-master-plugin' ); ?></a></p>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="aimp-sp-form" data-choices="<?php echo esc_attr( wp_json_encode( $choices ) ); ?>" data-current="<?php echo esc_attr( wp_json_encode( array( 'fabric' => $spot['fabric'], 'lining' => $spot['lining'], 'finish' => $spot['finish'], 'notions' => (object) $spot['notions'] ) ) ); ?>">
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="aimp-sp-form" data-choices="<?php echo esc_attr( wp_json_encode( $choices ) ); ?>" data-current="<?php echo esc_attr( wp_json_encode( array( 'fabric' => $spot['fabric'], 'lining' => $spot['lining'], 'finish' => $spot['finish'], 'notions' => (object) $spot['notions'], 'hide' => $spot['hide'] ) ) ); ?>">
 			<input type="hidden" name="action" value="aimp_spotlight_save">
 			<input type="hidden" name="id" value="<?php echo (int) $id; ?>">
 			<?php wp_nonce_field( 'aimp_spotlight_save' ); ?>
@@ -941,6 +984,10 @@ class AIMP_Spotlight {
 					);
 					?>
 				</td></tr>
+				<tr><th><?php esc_html_e( 'Elements around the picture', 'atelier-irisee-master-plugin' ); ?></th><td>
+					<div class="aimp-sp-shown" data-shown></div><input type="hidden" name="<?php echo esc_attr( $f( 'listed' ) ); ?>" value="" data-listed>
+					<p class="description"><?php esc_html_e( 'Each item of the kit has its own element. Tick the ones to show around the picture (all of them are always listed next to it).', 'atelier-irisee-master-plugin' ); ?></p>
+				</td></tr>
 				<tr><th><?php esc_html_e( 'Needle', 'atelier-irisee-master-plugin' ); ?></th><td>
 					<label><input type="checkbox" name="<?php echo esc_attr( $f( 'needle' ) ); ?>" value="1" <?php checked( $spot['needle'] ); ?>> <?php esc_html_e( 'A needle sews a circle round the picture, through the elements', 'atelier-irisee-master-plugin' ); ?></label>
 					<p><label><?php esc_html_e( 'Speed', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="25" max="300" step="5" name="<?php echo esc_attr( $f( 'speed' ) ); ?>" value="<?php echo (int) $spot['speed']; ?>" class="small-text"> %</label></p>
@@ -950,7 +997,6 @@ class AIMP_Spotlight {
 				foreach ( array(
 					'img_pattern' => __( 'Picture of the pattern element', 'atelier-irisee-master-plugin' ),
 					'img_fabric'  => __( 'Picture of the fabric element', 'atelier-irisee-master-plugin' ),
-					'img_notions' => __( 'Picture of the haberdashery element', 'atelier-irisee-master-plugin' ),
 				) as $key => $label ) {
 					echo '<tr><th>' . esc_html( $label ) . '</th><td>' . self::picture( $f( $key ), $spot[ $key ], __( 'Standard: the product picture', 'atelier-irisee-master-plugin' ) ) . '</td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in picture().
 				}
@@ -972,7 +1018,6 @@ class AIMP_Spotlight {
 				'button'    => __( 'Button', 'atelier-irisee-master-plugin' ),
 				'l_pattern' => __( 'Label of the pattern element', 'atelier-irisee-master-plugin' ),
 				'l_fabric'  => __( 'Label of the fabric element', 'atelier-irisee-master-plugin' ),
-				'l_notions' => __( 'Label of the haberdashery element', 'atelier-irisee-master-plugin' ),
 			);
 			$defaults = array();
 			foreach ( array_keys( AIMP_I18n::languages() ) as $code ) {

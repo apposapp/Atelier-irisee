@@ -57,3 +57,13 @@
 .aimp-sp-texts th[scope="row"] {
 	width: 220px;
 }
+
+.aimp-sp-shown {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.aimp-sp-shown-item strong {
+	margin-right: 2px;
+}

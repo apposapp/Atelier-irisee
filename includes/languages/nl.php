@@ -3466,4 +3466,7 @@ return array(
 	'Label of the fabric element' => 'Label van het stof-element',
 	'Label of the haberdashery element' => 'Label van het fournituren-element',
 	'Save kit spotlight' => 'Kit in de kijker opslaan',
+	// 3.77: an element per item of the kit spotlight
+	'Elements around the picture' => 'Elementen rond de foto',
+	'Each item of the kit has its own element. Tick the ones to show around the picture (all of them are always listed next to it).' => 'Elk onderdeel van de kit heeft een eigen element. Vink aan welke rond de foto getoond worden (ernaast staan ze altijd allemaal in de lijst).',
 );

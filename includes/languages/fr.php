@@ -3466,4 +3466,7 @@ return array(
 	'Label of the fabric element' => 'Étiquette de l\'élément tissu',
 	'Label of the haberdashery element' => 'Étiquette de l\'élément mercerie',
 	'Save kit spotlight' => 'Enregistrer le kit à l\'honneur',
+	// 3.77: an element per item of the kit spotlight
+	'Elements around the picture' => 'Éléments autour de la photo',
+	'Each item of the kit has its own element. Tick the ones to show around the picture (all of them are always listed next to it).' => 'Chaque article du kit a son propre élément. Cochez ceux à afficher autour de la photo (à côté, ils sont toujours tous dans la liste).',
 );

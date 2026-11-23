@@ -113,7 +113,8 @@
 	position: absolute;
 	top: var(--sp-y);
 	left: var(--sp-x);
-	width: 24%;
+	/* Smaller when the kit has more elements (AIMP_Spotlight::render()). */
+	width: var(--sp-w, 24%);
 	margin: 0;
 	transform: translate(-50%, -50%);
 	pointer-events: auto;
@@ -126,17 +127,9 @@
 	align-items: center;
 	color: inherit;
 	text-decoration: none;
-	animation: sp-float 6.5s ease-in-out infinite;
-}
-
-.aimp-sp-el--fabric .aimp-sp-float {
-	animation-duration: 7.5s;
-	animation-delay: -2.4s;
-}
-
-.aimp-sp-el--notions .aimp-sp-float {
-	animation-duration: 7s;
-	animation-delay: -4.6s;
+	animation: sp-float 6.8s ease-in-out infinite;
+	/* Each element its own moment, so they never float in step. */
+	animation-delay: var(--sp-delay, 0s);
 }
 
 .aimp-sp-float:focus-visible {
@@ -229,7 +222,7 @@
 
 /* A kraft paper label on a string, swinging like a price tag. */
 .style-tag .aimp-sp-el {
-	width: 23%;
+	width: calc(var(--sp-w, 24%) * 0.96);
 }
 
 .style-tag .aimp-sp-float {
@@ -568,11 +561,11 @@
 	}
 
 	.aimp-sp-el {
-		width: 27%;
+		width: calc(var(--sp-w, 24%) * 1.12);
 	}
 
 	.style-tag .aimp-sp-el {
-		width: 26%;
+		width: calc(var(--sp-w, 24%) * 1.08);
 	}
 
 	.aimp-spotlight-photo {
@@ -587,4 +580,52 @@
 		animation: none !important;
 		transition: none !important;
 	}
+}
+
+/* The drawings of the haberdashery (AIMP_Spotlight::drawing()): a button that turns, a bow that sways, elastic that
+   stretches, an iron that passes over the interfacing. The zip, buttons and bias roll move as in the kit steps bar. */
+.sp-turn {
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: sp-turn 9s linear infinite;
+}
+
+.sp-sway {
+	transform-box: fill-box;
+	transform-origin: 50% 30%;
+	animation: sp-sway 3.2s ease-in-out infinite;
+}
+
+.sp-stretch {
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: sp-stretch 3s ease-in-out infinite;
+}
+
+.sp-iron {
+	fill: #fff;
+	animation: sp-iron 4.5s ease-in-out infinite;
+}
+
+.sp-bias .ks-roll-spiral {
+	transform-origin: 42px 44px;
+}
+
+@keyframes sp-turn {
+	to { transform: rotate(360deg); }
+}
+
+@keyframes sp-sway {
+	0%, 100% { transform: rotate(-6deg); }
+	50% { transform: rotate(6deg); }
+}
+
+@keyframes sp-stretch {
+	0%, 100% { transform: scaleX(0.82); }
+	50% { transform: scaleX(1.04); }
+}
+
+@keyframes sp-iron {
+	0%, 100% { transform: translate(-6px, 0); }
+	50% { transform: translate(34px, 18px); }
 }

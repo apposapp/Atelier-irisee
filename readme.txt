@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.76.3
+Stable tag: 3.77.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.77.0 =
+* Kit spotlight: every item of the kit has its own element round the picture: the pattern, the fabric, the lining and each haberdashery item (buttons, a ribbon, a zip, …), each with its own photo or its own drawing. They spread evenly round the picture and get smaller when there are many. Kit spotlights → "Elements around the picture": tick which ones are shown (the list next to the picture always names them all).
 
 = 3.76.3 =
 * Blog: the short text of a post (cards, newest blog post) no longer runs a title and the next text together ("natuurWhat if").
