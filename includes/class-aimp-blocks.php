@@ -130,6 +130,10 @@ class AIMP_Blocks {
 			'ig_title'        => __( 'Follow us on Instagram', 'atelier-irisee-master-plugin' ),
 			/* translators: {account} stays as it is: it becomes the Instagram account, e.g. @atelier.irisee */
 			'ig_button'       => __( 'Follow {account}', 'atelier-irisee-master-plugin' ),
+			// Newest blog post.
+			'lp_kicker'       => __( 'New on the blog', 'atelier-irisee-master-plugin' ),
+			'lp_button'       => __( 'Read more', 'atelier-irisee-master-plugin' ),
+			'lp_all'          => __( 'All blog posts', 'atelier-irisee-master-plugin' ),
 			// About page (the owner's own story; an empty line between paragraphs).
 			'ab_kicker'       => __( 'About us', 'atelier-irisee-master-plugin' ),
 			'ab_title'        => __( 'The story behind Atelier Irisée', 'atelier-irisee-master-plugin' ),

@@ -127,10 +127,20 @@ class AIMP_Favorites {
 		);
 	}
 
+	/**
+	 * The heart on a product picture, with the share button under it (AIMP_Share; Design studio → Product page).
+	 *
+	 * @param int $product_id Product ID.
+	 * @return string
+	 */
+	public static function overlay_html( $product_id ) {
+		return self::button_html( $product_id, 'aimp-fav--overlay' ) . ( class_exists( 'AIMP_Share' ) ? AIMP_Share::product_button( $product_id ) : '' );
+	}
+
 	public static function loop_button() {
 		global $product;
 		if ( $product instanceof WC_Product ) {
-			echo self::button_html( $product->get_id(), 'aimp-fav--overlay' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button_html().
+			echo self::overlay_html( $product->get_id() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in overlay_html().
 		}
 	}
 
@@ -147,7 +157,7 @@ class AIMP_Favorites {
 		if ( ! $product_id || 'product' !== get_post_type( $product_id ) || '' === trim( $content ) ) {
 			return $content;
 		}
-		return '<div class="aimp-fav-wrap">' . $content . self::button_html( $product_id, 'aimp-fav--overlay' ) . '</div>';
+		return '<div class="aimp-fav-wrap">' . $content . self::overlay_html( $product_id ) . '</div>';
 	}
 
 	/* ------------------------------------------------------------------
@@ -311,7 +321,7 @@ class AIMP_Favorites {
 			$suffix, // Escaped above.
 			$badge, // Escaped above.
 			esc_html__( 'View product', 'atelier-irisee-master-plugin' ),
-			self::button_html( $product->get_id(), 'aimp-fav--overlay' )
+			self::overlay_html( $product->get_id() )
 		);
 	}
 

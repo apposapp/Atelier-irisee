@@ -956,6 +956,15 @@
 				selectedId: s.selected ? s.selected.id : null,
 				emptyText: this.activeCount() ? t.noMatch : t.noProducts,
 				compact: false,
+				// A share button on each card (share.js), unless switched off (Design studio → Product page).
+				extra: function (item) {
+					if (!item.permalink || !window.aimpShare || design.noshare) {
+						return '';
+					}
+					var label = esc(window.aimpShare.share || 'Share');
+					return '<button type="button" class="aimp-share-btn aimp-share-btn--overlay" data-aimp-share="' + esc(item.permalink) + '" data-title="' + esc(item.name) + '" data-image="' + esc(item.image || '') + '" aria-haspopup="true" aria-expanded="false" aria-label="' + label + '" title="' + label + '">' +
+						'<svg class="aimp-share-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 3 10.2 13.8M21 3l-6.8 18-4-7.2L3 9.8z"/></svg></button>';
+				},
 				onSelect: function (item) {
 					// Design studio: no quick view, straight to the product page.
 					if (design.noquick && item.permalink) {

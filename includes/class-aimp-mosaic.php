@@ -347,7 +347,7 @@ class AIMP_Mosaic {
 				esc_html( wp_strip_all_tags( $product->get_name() ) ),
 				wp_kses_post( $product->get_price_html() ),
 				'' !== $suffix ? ' <small>' . esc_html( $suffix ) . '</small>' : '',
-				AIMP_Favorites::button_html( $product->get_id(), 'aimp-fav--overlay' )
+				AIMP_Favorites::overlay_html( $product->get_id() )
 			);
 		}
 		$mosaic = '<div class="aimp-configurator aimp-mosaic"><ul class="aimp-mosaic-grid" data-mosaic-type="' . esc_attr( $type ) . '">' . $html . '</ul></div>';

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.75.2
+Stable tag: 3.76.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.76.0 =
+* Kit spotlight [atelier_irisee_kit_spotlight id="…"]: a ready-made sewing kit on the home page (Atelier Irisee → Kit spotlights). You choose the pattern, fabric, lining, finish and haberdashery and a picture; the visitor only picks a size and adds the kit to the cart exactly as the customizer does (same lines, kit discount, locked quantities). Sizes that cannot be made (stock, an item that does not fit) are crossed out. Around the picture float three elements (pattern, fabric, haberdashery) as photo medallions, gold line drawings or hanging paper tags, and a gold needle sews a running stitch round it, over and under the elements. Elements floating, still or hidden; the needle on or off, with its speed.
+* Share button on every product: next to the heart on the product page and on the product cards (shop, new in, related products, favourites, mosaic). The phone's own share sheet on phones, a menu with WhatsApp, Facebook, Pinterest, email and copy link on computers. Design studio → Product page can switch each off. The blog uses the same button.
+* Newest blog post [atelier_irisee_latest_post] for the home page, in three looks: a pinned polaroid with a note, luxe (a wide picture with a cream card in a gold double frame) or journal (a sewing diary page with a date stamp). Design studio → Newest blog post.
 
 = 3.75.2 =
 * Blog posts: "Text and spacing of this post" in the blog layout box, above the rows: the spaces, title sizes and colours, text size, line height and colour, captions and more for this one post (empty = as in Design studio → Blog post, which stays the standard for all posts). The preview shows them too.

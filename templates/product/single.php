@@ -106,7 +106,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 				<div class="aimp-gallery" data-aimp-gallery="<?php echo esc_attr( wp_json_encode( $aimp_gallery ) ); ?>">
 					<div class="aimp-gallery-main aimp-fav-wrap">
 						<img src="<?php echo esc_url( $aimp_first['large'] ); ?>" alt="<?php echo esc_attr( $aimp_first['alt'] ); ?>" class="is-zoomable">
-						<?php echo AIMP_Favorites::button_html( $aimp_id, 'aimp-fav--overlay' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button_html(). ?>
+						<?php echo AIMP_Favorites::button_html( $aimp_id, 'aimp-fav--overlay' ) . AIMP_Share::product_button( $the_product, 'page' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button_html() and product_button(). ?>
 					</div>
 					<?php if ( count( $aimp_gallery ) > 1 ) : ?>
 						<div class="aimp-gallery-thumbs">
@@ -248,10 +248,6 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 				<div class="aimp-product-price">
 					<p class="aimp-details-price price"><?php echo wp_kses_post( $the_product->get_price_html() ); ?></p>
 				</div>
-			<?php endif; ?>
-
-			<?php if ( $aimp_pp( 'pp_share' ) ) : ?>
-				<?php echo AIMP_Product_Page::share_html( $the_product, $aimp_first ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in share_html(). ?>
 			<?php endif; ?>
 
 			<?php

@@ -24,6 +24,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 class AIMP_Blog {
 
 	const TAG    = 'atelier_irisee_blog';
+	/** The newest post on the home page (latest()). */
+	const LATEST = 'atelier_irisee_latest_post';
 	const ROWS   = '_aimp_blog_rows';
 	const LOOK   = '_aimp_blog_look';
 	const LIKES  = '_aimp_likes';
@@ -74,6 +76,7 @@ class AIMP_Blog {
 
 	public static function init() {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
+		add_shortcode( self::LATEST, array( __CLASS__, 'latest' ) );
 		add_action( 'init', array( __CLASS__, 'categories' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
 		add_filter( 'the_content', array( __CLASS__, 'content' ), 20 );
@@ -148,7 +151,7 @@ class AIMP_Blog {
 				),
 			)
 		);
-		if ( is_singular( 'post' ) || AIMP_Blocks::page_has( array( self::TAG ) ) ) {
+		if ( is_singular( 'post' ) || AIMP_Blocks::page_has( array( self::TAG, self::LATEST ) ) ) {
 			self::enqueue();
 		}
 	}
@@ -881,7 +884,7 @@ class AIMP_Blog {
 		}
 		$url   = get_permalink( $id );
 		$thumb = get_post_thumbnail_id( $id );
-		$html .= '<button type="button" class="aimp-blog-action aimp-blog-share" data-aimp-blog-share="' . esc_url( $url ) . '" data-title="' . esc_attr( wp_strip_all_tags( get_the_title( $id ) ) ) . '"' .
+		$html .= '<button type="button" class="aimp-blog-action aimp-blog-share" data-aimp-share="' . esc_url( $url ) . '" data-title="' . esc_attr( wp_strip_all_tags( get_the_title( $id ) ) ) . '"' .
 			( $thumb ? ' data-image="' . esc_url( (string) wp_get_attachment_image_url( $thumb, 'large' ) ) . '"' : '' ) . ' aria-haspopup="true" title="' . esc_attr__( 'Share', 'atelier-irisee-master-plugin' ) . '">' .
 			'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 3 10.2 13.8M21 3l-6.8 18-4-7.2L3 9.8z"/></svg>' .
 			( $words ? '<span>' . esc_html__( 'Share', 'atelier-irisee-master-plugin' ) . '</span>' : '<span class="screen-reader-text">' . esc_html__( 'Share', 'atelier-irisee-master-plugin' ) . '</span>' ) . '</button>';
@@ -995,6 +998,133 @@ class AIMP_Blog {
 			}
 		}
 		return $html . self::actions( $id, $opts ) . '</div></article></li>';
+	}
+
+	/* ------------------------------------------------------------------
+	 * The newest post on the home page
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * [atelier_irisee_latest_post]: the newest post in one of three looks: a pinned polaroid with a note next to it
+	 * (standard), a wide picture with a cream card in a gold double frame (style="luxe"), or a page of a sewing diary
+	 * with the picture taped on and a date stamp (style="journal"). Nothing without a published post.
+	 *
+	 * Attributes (all optional, over Design studio → Newest blog post): style, category (slug), title, button.
+	 *
+	 * @param array|string $atts Attributes.
+	 * @return string
+	 */
+	public static function latest( $atts ) {
+		$atts  = shortcode_atts(
+			array(
+				'style'    => '',
+				'category' => '',
+				'title'    => '',
+				'button'   => '',
+			),
+			$atts,
+			self::LATEST
+		);
+		$opt   = function ( $key, $default = null ) {
+			return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'home-latest', $key, $default ) : $default;
+		};
+		$style = in_array( $atts['style'], array( 'polaroid', 'luxe', 'journal' ), true ) ? $atts['style'] : (string) $opt( 'lp_style', '' );
+		$style = in_array( $style, array( 'polaroid', 'luxe', 'journal' ), true ) ? $style : 'polaroid';
+		$args  = array(
+			'post_type'           => 'post',
+			'post_status'         => 'publish',
+			'posts_per_page'      => 1,
+			'has_password'        => false,
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+		);
+		$cat   = '' !== $atts['category'] ? sanitize_title( $atts['category'] ) : sanitize_title( (string) $opt( 'lp_cat', '' ) );
+		if ( '' !== $cat ) {
+			$args['category_name'] = $cat;
+		}
+		$posts = get_posts( $args );
+		if ( ! $posts ) {
+			return '';
+		}
+		return self::latest_html( $posts[0], $style, $atts, $opt );
+	}
+
+	/**
+	 * The block's HTML (also used by the test harness).
+	 *
+	 * @param WP_Post  $post  Post.
+	 * @param string   $style polaroid, luxe or journal.
+	 * @param array    $atts  Attributes.
+	 * @param callable $opt   Design studio setting.
+	 * @return string
+	 */
+	public static function latest_html( $post, $style, $atts, $opt ) {
+		self::enqueue();
+		$id      = (int) $post->ID;
+		$url     = get_permalink( $post );
+		$title   = wp_strip_all_tags( get_the_title( $post ) );
+		$kicker  = '' !== $atts['title'] ? $atts['title'] : AIMP_Blocks::text( 'lp_kicker' );
+		$button  = '' !== $atts['button'] ? $atts['button'] : AIMP_Blocks::text( 'lp_button' );
+		$term    = $opt( 'lp_nolabel' ) ? null : self::category( $id );
+		$picture = self::picture( $id );
+		$image   = $picture ? wp_get_attachment_image( $picture, 'luxe' === $style ? 'full' : 'large', false, array( 'class' => 'aimp-latest-img', 'loading' => 'lazy', 'alt' => '', 'sizes' => 'luxe' === $style ? '100vw' : '(max-width: 800px) 90vw, 600px' ) ) : '';
+		if ( '' === $image ) {
+			$first = function_exists( 'mb_substr' ) ? mb_substr( $title, 0, 1 ) : substr( $title, 0, 1 );
+			$image = '<span class="aimp-latest-empty" aria-hidden="true">' . esc_html( $first ) . '</span>';
+		}
+
+		// Polaroid: pinned on the page like the cards of the overview, in the colour of the category.
+		$frame  = 'aimp-latest-frame';
+		$fstyle = '';
+		if ( 'polaroid' === $style ) {
+			$pin = (string) $opt( 'lp_pin', '' );
+			$pin = in_array( $pin, array( 'tack', 'tape', 'clip', 'heart', 'none' ), true ) ? $pin : 'pin';
+			if ( 'none' !== $pin ) {
+				$cat     = self::category( $id );
+				$color   = $cat ? self::color( $cat ) : '';
+				$frame  .= ' aimp-blog-card has-pin pin-' . $pin;
+				$fstyle  = ' style="' . esc_attr( ( '' !== $color ? '--bl-pin:' . $color . ';' : '' ) . '--bl-pin-turn:' . round( ( self::chance( $id, 6 ) * 2 - 1 ) * 8, 1 ) . 'deg' ) . '"';
+			}
+		}
+
+		$classes = 'aimp-home-block aimp-home-latest style-' . $style . ( $opt( 'lp_right' ) ? ' is-photo-right' : '' );
+		$html    = '<section class="' . esc_attr( $classes ) . '" aria-label="' . esc_attr( '' !== $kicker ? $kicker : $title ) . '"><div class="aimp-latest-inner">';
+		$html   .= '<a class="aimp-latest-media" href="' . esc_url( $url ) . '" tabindex="-1" aria-hidden="true"><span class="' . esc_attr( $frame ) . '"' . $fstyle . '>' . $image;
+		if ( 'polaroid' === $style ) {
+			$html .= '<span class="aimp-latest-caption">' . esc_html( $title ) . '</span>';
+		}
+		$html .= '</span></a><div class="aimp-latest-body">';
+		if ( 'journal' === $style ) {
+			// A round date stamp, as if stamped on the diary page.
+			$html .= '<span class="aimp-latest-stamp" aria-hidden="true"><b>' . esc_html( get_the_date( 'j', $post ) ) . '</b><span>' . esc_html( get_the_date( 'M', $post ) ) . '</span><small>' . esc_html( get_the_date( 'Y', $post ) ) . '</small></span>';
+		}
+		if ( '' !== $kicker ) {
+			$html .= '<p class="aimp-latest-kicker">' . esc_html( $kicker ) . '</p>';
+		}
+		if ( $term ) {
+			$html .= 'luxe' === $style ? '<p class="aimp-latest-cat">' . esc_html( $term->name ) . '</p>' : self::label( $term );
+		}
+		$html .= '<h2 class="aimp-latest-title"><a href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a></h2>';
+		$meta  = array();
+		if ( ! $opt( 'lp_nodate' ) ) {
+			$meta[] = '<time datetime="' . esc_attr( get_the_date( 'c', $post ) ) . '">' . esc_html( get_the_date( 'j F Y', $post ) ) . '</time>';
+		}
+		$minutes = self::minutes( $id );
+		/* translators: %d: minutes */
+		$meta[] = esc_html( sprintf( _n( '%d minute read', '%d minutes read', $minutes, 'atelier-irisee-master-plugin' ), $minutes ) );
+		$html  .= '<p class="aimp-latest-meta">' . implode( ' <span aria-hidden="true">·</span> ', $meta ) . '</p>';
+		if ( ! $opt( 'lp_noexcerpt' ) ) {
+			$text = self::excerpt( $post );
+			if ( '' !== $text ) {
+				$html .= '<p class="aimp-latest-text">' . esc_html( $text ) . '</p>';
+			}
+		}
+		$html .= '<div class="aimp-latest-actions"><a class="aimp-block-button aimp-latest-button" href="' . esc_url( $url ) . '">' . esc_html( $button ) . '</a>';
+		$all   = self::overview_url();
+		if ( '' !== $all && ! $opt( 'lp_noall' ) ) {
+			$html .= '<a class="aimp-latest-all" href="' . esc_url( $all ) . '">' . esc_html( AIMP_Blocks::text( 'lp_all' ) ) . '</a>';
+		}
+		return $html . '</div></div></div></section>';
 	}
 
 	/* ------------------------------------------------------------------

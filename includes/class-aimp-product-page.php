@@ -1171,7 +1171,7 @@ class AIMP_Product_Page {
 			esc_html( $card['name'] ) . ( '' !== AIMP_Notions::main_text( $product ) ? '<small class="aimp-card-sub">' . esc_html( AIMP_Notions::main_text( $product ) ) . '</small>' : '' ),
 			wp_kses_post( $card['price_html'] ),
 			$suffix, // Escaped above.
-			AIMP_Favorites::button_html( $product->get_id(), 'aimp-fav--overlay' )
+			AIMP_Favorites::overlay_html( $product->get_id() )
 		);
 	}
 

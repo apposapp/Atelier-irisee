@@ -307,6 +307,10 @@ class AIMP_Shop {
 				$out[ $key ] = $value;
 			}
 		}
+		// The share button on product cards (Design studio → Product page).
+		if ( class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'product-page', 'pp_nocardshare' ) ) {
+			$out['noshare'] = true;
+		}
 		return (object) $out;
 	}
 

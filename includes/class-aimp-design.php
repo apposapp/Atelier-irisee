@@ -175,6 +175,8 @@ class AIMP_Design {
 			'home-brands'     => array( $home, __( 'Brands', 'atelier-irisee-master-plugin' ), '.aimp-home-brands' ),
 			'home-giftcards'  => array( $home, __( 'Gift card promo', 'atelier-irisee-master-plugin' ), '.aimp-home-giftcards' ),
 			'home-instagram'  => array( $home, __( 'Instagram', 'atelier-irisee-master-plugin' ), '.aimp-home-instagram' ),
+			'home-latest'     => array( $home, __( 'Newest blog post', 'atelier-irisee-master-plugin' ), '.aimp-home-latest' ),
+			'home-spotlight'  => array( $home, __( 'Kit spotlight', 'atelier-irisee-master-plugin' ), '.aimp-spotlight' ),
 			'about'           => array( $about, __( 'About page (whole)', 'atelier-irisee-master-plugin' ), '.aimp-about' ),
 			'about-head'      => array( $about, __( 'About title and intro', 'atelier-irisee-master-plugin' ), '.aimp-about-head' ),
 			'about-chapter'   => array( $about, __( 'Story chapters', 'atelier-irisee-master-plugin' ), '.aimp-about-chapter' ),
@@ -227,6 +229,7 @@ class AIMP_Design {
 			'home-brands'     => array( 'br_opts' ),
 			'home-giftcards'  => array( 'gp_opts' ),
 			'home-instagram'  => array( 'ig_opts' ),
+			'home-latest'     => array( 'lp_opts' ),
 			'about'           => array( 'ab_opts' ),
 			'about-chapter'   => array( 'ab_chapters' ),
 			'about-closing'   => array( 'ab_closing' ),
@@ -580,6 +583,9 @@ class AIMP_Design {
 				'pp_nolow'   => 'bool',
 				'pp_noalert' => 'bool',
 				'pp_share'   => 'bool',
+				// The round share button next to the heart (3.76): on the product page and on product cards.
+				'pp_noshare'     => 'bool',
+				'pp_nocardshare' => 'bool',
 			),
 			'pp_info'     => self::product_info_fields(),
 			// Footer, newsletter, gift cards, messages, emails (phase 9).
@@ -757,6 +763,16 @@ class AIMP_Design {
 				'ig_noactions'  => 'bool',
 				'ig_nocaption'  => 'bool',
 				'ig_string'     => 'bool',
+			),
+			'lp_opts'     => array(
+				'lp_style'     => array( 'select', array( '', 'luxe', 'journal' ) ),
+				'lp_pin'       => array( 'select', array( '', 'tack', 'tape', 'clip', 'heart', 'none' ) ),
+				'lp_cat'       => 'text',
+				'lp_right'     => 'bool',
+				'lp_nolabel'   => 'bool',
+				'lp_nodate'    => 'bool',
+				'lp_noexcerpt' => 'bool',
+				'lp_noall'     => 'bool',
 			),
 			'gp_opts'     => array(
 				'gp_layout' => array( 'select', array( '', 'amounts', 'designs' ) ),
@@ -1383,7 +1399,7 @@ class AIMP_Design {
 	 * @return string[]
 	 */
 	public static function reload_groups() {
-		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'gp_opts', 'ig_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look', 'bl_opts', 'bl_post' );
+		return array( 'side_opts', 'info_opts', 'tabbar_opts', 'lang_opts', 'hero_buttons', 'arrow_opts', 'favicon', 'shop_tools', 'shop_cats', 'overview_opts', 'cz_steps', 'cz_flow', 'cz_summary', 'co_opts', 'acc_opts', 'nl_opts', 'notice_opts', 'email_opts', 'seo_opts', 'speed_opts', 'admin_opts', 'ct_opts', 'faq_opts', 'hc_opts', 'rv_opts', 'mk_opts', 'nw_opts', 'hn_opts', 'fq_opts', 'gp_opts', 'ig_opts', 'lp_opts', 'br_opts', 'ab_opts', 'ab_chapters', 'ab_closing', 'ph_page', 'ph_look', 'bl_opts', 'bl_post' );
 	}
 
 	/**
@@ -1395,7 +1411,7 @@ class AIMP_Design {
 	 */
 	public static function reload_keys() {
 		$groups = self::groups();
-		$keys   = array( 'nosticky', 'noshrink', 'h_img', 'h_pimg', 'h_video', 'h_slides', 'h_interval', 'ks_hide_2', 'ks_hide_3', 'ks_step5', 'ks_speed', 'ks_noloops', 'ks_url', 'ks_nosparkle', 'ks_nopopup', 'mos_source', 'mos_picks', 'brand', 'b_new', 'b_sale', 'b_low', 'pp_sticky', 'pp_share', 'pp_layout', 'pp_brand_link', 'pp_count', 'pp_related', 'cz_nosparkle', 'ft_top', 'cz_norder', 'cz_nonotions' );
+		$keys   = array( 'nosticky', 'noshrink', 'h_img', 'h_pimg', 'h_video', 'h_slides', 'h_interval', 'ks_hide_2', 'ks_hide_3', 'ks_step5', 'ks_speed', 'ks_noloops', 'ks_url', 'ks_nosparkle', 'ks_nopopup', 'mos_source', 'mos_picks', 'brand', 'b_new', 'b_sale', 'b_low', 'pp_sticky', 'pp_share', 'pp_noshare', 'pp_nocardshare', 'pp_layout', 'pp_brand_link', 'pp_count', 'pp_related', 'cz_nosparkle', 'ft_top', 'cz_norder', 'cz_nonotions' );
 		for ( $n = 1; $n <= 5; $n++ ) {
 			$keys[] = 'ks_icon_' . $n;
 			$keys[] = 'ks_img_' . $n;
@@ -1768,6 +1784,9 @@ class AIMP_Design {
 		$list['gp_other']        = array( __( 'Link "another amount"', 'atelier-irisee-master-plugin' ), 'lang', $gp, $b . 'gp_other' );
 		$list['ig_title']        = array( __( 'Title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-instagram' ), $b . 'ig_title' );
 		$list['ig_button']       = array( __( 'Button ({account} = your Instagram name)', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-instagram' ), $b . 'ig_button' );
+		$list['lp_kicker']       = array( __( 'Small line above the title', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-latest' ), $b . 'lp_kicker' );
+		$list['lp_button']       = array( __( 'Button', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-latest' ), $b . 'lp_button' );
+		$list['lp_all']          = array( __( 'Link to all posts', 'atelier-irisee-master-plugin' ), 'lang', array( 'home-latest' ), $b . 'lp_all' );
 		// The About page.
 		$head     = array( 'about', 'about-head' );
 		$chapters = array( 'about', 'about-chapter' );
@@ -4378,7 +4397,8 @@ class AIMP_Design {
 		self::check_box( 'pp_notrust', __( 'No delivery line under the buy bar', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'pp_nolow', __( 'No "Only … left"', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'pp_noalert', __( 'No "Email me when it\'s back" on sold-out products', 'atelier-irisee-master-plugin' ) );
-		self::check_box( 'pp_share', __( 'Share buttons (WhatsApp, Facebook, Pinterest, email, copy link)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'pp_noshare', __( 'No share button on the product page (next to the heart)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'pp_nocardshare', __( 'No share button on product cards', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'The texts (delivery line, sold out, back in stock) can be changed in the Texts tab.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 
@@ -4765,6 +4785,38 @@ class AIMP_Design {
 		self::check_box( 'ig_notitle', __( 'No title', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'ig_nobutton', __( 'No "Follow" button', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'The posts come from a Smash Balloon feed or your own token: Atelier Irisee → Instagram. Without posts the block stays hidden. On another page the shortcode can differ, e.g. [atelier_irisee_instagram count="8" columns="4" shape="portrait"] or style="polaroid".', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
+		$group( 'lp_opts', __( 'Newest blog post', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'lp_style',
+			__( 'Look', 'atelier-irisee-master-plugin' ),
+			array(
+				''        => __( 'Pinned polaroid with a note next to it (standard)', 'atelier-irisee-master-plugin' ),
+				'luxe'    => __( 'Wide picture with a cream card in a gold double frame', 'atelier-irisee-master-plugin' ),
+				'journal' => __( 'A page of a sewing diary: the picture taped on, a date stamp', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		self::choice(
+			'lp_pin',
+			__( 'Pin of the polaroid', 'atelier-irisee-master-plugin' ),
+			array(
+				''      => __( 'Pin with a round head (standard)', 'atelier-irisee-master-plugin' ),
+				'tack'  => __( 'Drawing pin', 'atelier-irisee-master-plugin' ),
+				'tape'  => __( 'Washi tape', 'atelier-irisee-master-plugin' ),
+				'clip'  => __( 'Paper clip', 'atelier-irisee-master-plugin' ),
+				'heart' => __( 'Heart', 'atelier-irisee-master-plugin' ),
+				'none'  => __( 'No pin', 'atelier-irisee-master-plugin' ),
+			)
+		);
+		$field( 'lp_cat', __( 'Only posts of this category (its slug, e.g. irisee-focus; empty = all)', 'atelier-irisee-master-plugin' ), 'text', '' );
+		self::check_box( 'lp_right', __( 'The picture on the right', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'lp_nolabel', __( 'Without the category', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'lp_nodate', __( 'Without the date', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'lp_noexcerpt', __( 'Without the short text', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'lp_noall', __( 'Without the link to all posts', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Shortcode: [atelier_irisee_latest_post]. The block stays hidden while there is no published post. A look per block: style="polaroid", "luxe" or "journal".', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo $texts_note; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
 		echo '</fieldset>';
 
 		$group( 'gp_opts', __( 'Gift card promo', 'atelier-irisee-master-plugin' ) );

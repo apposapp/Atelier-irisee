@@ -228,7 +228,8 @@
 	 *
 	 * @param {Element} container
 	 * @param {Object}  data   { items, page, pages, total, per_page } or null while loading
-	 * @param {Object}  opts   { selectedId, onSelect(item), onPage(page), emptyText, unavailableText, compact, priceSuffix }
+	 * @param {Object}  opts   { selectedId, onSelect(item), onPage(page), emptyText, unavailableText, compact, priceSuffix,
+	 *                         extra(item): HTML next to the card's button (not inside it) }
 	 *                         An item may carry its own price_suffix and badge.
 	 * @param {Object}  t      strings: loading, selected + the pagination strings
 	 */
@@ -247,7 +248,9 @@
 			var selected = opts.selectedId === item.id;
 			var unavailable = item.available === false;
 			var suffix = item.price_suffix || opts.priceSuffix;
-			html +=
+			// Something on the card that is not part of its button (the shop's share button): the card in a slot.
+			var extra = opts.extra ? opts.extra(item) : '';
+			html += (extra ? '<div class="aimp-card-slot">' : '') +
 				'<button type="button" class="aimp-card' + (selected ? ' is-selected' : '') + (unavailable ? ' is-unavailable' : '') + '"' +
 				' data-id="' + esc(item.id) + '" aria-pressed="' + (selected ? 'true' : 'false') + '"' +
 				(unavailable ? ' disabled' : '') + '>' +
@@ -258,7 +261,7 @@
 				(unavailable ? '<span class="aimp-badge">' + esc(opts.unavailableText || '') + '</span>' : '') +
 				(!unavailable && item.badge ? '<span class="aimp-badge">' + esc(item.badge) + '</span>' : '') +
 				(selected ? '<span class="aimp-badge aimp-badge--selected">' + esc(t.selected) + '</span>' : '') +
-				'</button>';
+				'</button>' + (extra ? extra + '</div>' : '');
 		});
 		html += '</div>';
 		html += paginationHtml(data, t);

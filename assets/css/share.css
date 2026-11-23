@@ -1,0 +1,152 @@
+/* Share buttons (AIMP_Share, share.js): the same round double gold border as the heart, and the menu on computers. */
+.aimp-share-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	margin: 0;
+	padding: 0;
+	border: 5px double var(--aimp-site-gold, #b38f4f);
+	border-radius: 100px;
+	background-color: rgba(255, 255, 255, 0.9);
+	color: var(--aimp-site-gold-text, #8a6a33);
+	font: inherit;
+	line-height: 1;
+	box-shadow: none;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.aimp-share-btn:hover,
+.aimp-share-btn:focus-visible {
+	background-color: #f6efe3;
+	color: var(--aimp-site-gold-text, #8a6a33);
+}
+
+.aimp-share-icon {
+	display: block;
+	width: 1.1rem;
+	height: 1.1rem;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+/* On a picture: under the heart (the heart sits top right; each place below follows its heart). */
+.aimp-share-btn--overlay {
+	position: absolute;
+	top: 3.75rem;
+	right: 0.6rem;
+	z-index: 5;
+}
+
+.aimp-product .aimp-gallery-main .aimp-share-btn--overlay {
+	top: 4.05rem;
+	right: 0.9rem;
+}
+
+.aimp-configurator .aimp-product-cards .aimp-share-btn--overlay {
+	top: 2.75rem;
+	right: 0.3rem;
+	transform: scale(0.8);
+}
+
+.aimp-configurator.aimp-favorites .aimp-share-btn--overlay {
+	top: 3.15rem;
+	right: 0.5rem;
+	transform: scale(0.85);
+}
+
+.aimp-configurator .aimp-mosaic-tile .aimp-share-btn--overlay {
+	top: 3.05rem;
+	right: 0.4rem;
+	transform: scale(0.85);
+}
+
+/* The shop's cards (buttons that open the quick view): the share button in the top right corner of the picture. */
+.aimp-card-slot {
+	position: relative;
+	display: flex;
+	min-width: 0;
+}
+
+.aimp-card-slot > .aimp-card {
+	flex: 1 1 auto;
+	width: 100%;
+	min-width: 0;
+}
+
+.aimp-card-slot > .aimp-share-btn--overlay {
+	top: 0.6rem;
+	right: 0.6rem;
+	opacity: 0;
+	transition: opacity 0.2s ease, background-color 0.3s ease;
+}
+
+.aimp-card-slot:is(:hover, :focus-within) > .aimp-share-btn--overlay,
+.aimp-card-slot > .aimp-share-btn--overlay[aria-expanded="true"] {
+	opacity: 1;
+}
+
+/* Touch screens have no hover: always shown, a little smaller. */
+@media (hover: none) {
+	.aimp-card-slot > .aimp-share-btn--overlay {
+		opacity: 1;
+		transform: scale(0.8);
+		transform-origin: top right;
+	}
+}
+
+/* The menu (computers). */
+.aimp-share-menu {
+	position: fixed;
+	z-index: 100000;
+	display: flex;
+	flex-direction: column;
+	min-width: 200px;
+	padding: 0.4rem;
+	border: 1px solid color-mix(in srgb, var(--aimp-site-gold, #b38f4f) 45%, transparent);
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 14px 34px color-mix(in srgb, var(--aimp-site-brown, #613907) 22%, transparent);
+	font-size: 14px;
+}
+
+.aimp-share-menu :is(a, button) {
+	display: flex;
+	align-items: center;
+	gap: 0.65rem;
+	padding: 0.55rem 0.75rem;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	color: var(--aimp-site-brown, #613907);
+	font: inherit;
+	font-weight: 600;
+	text-align: left;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.aimp-share-menu :is(a, button):is(:hover, :focus-visible) {
+	outline: none;
+	background: #f8f3ea;
+}
+
+.aimp-share-menu svg {
+	flex: none;
+	width: 18px;
+	height: 18px;
+	fill: var(--aimp-site-gold, #b38f4f);
+	color: var(--aimp-site-gold, #b38f4f);
+}
+
+/* The configurator's list rows on phones: the heart sits on the right of the row; no share button there. */
+@container aimp (max-width: 560px) {
+	.aimp-configurator:not(.aimp-shop) .aimp-grid:not(.aimp-overview-grid):not(.aimp-favorites-grid) .aimp-share-btn--overlay {
+		display: none;
+	}
+}

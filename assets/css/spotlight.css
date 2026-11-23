@@ -1,0 +1,590 @@
+/* [atelier_irisee_kit_spotlight]: a ready-made kit with its picture in a "stage", three floating elements around it
+   (pattern, fabric, haberdashery) and a needle that sews a running stitch round it (spotlight.js). The drawings and
+   the needle are the kit steps bar's (kit-steps.css). */
+.aimp-spotlight {
+	--sp-gold: var(--aimp-site-gold, #b38f4f);
+	--sp-gold-text: var(--aimp-site-gold-text, #8a6a33);
+	--sp-brown: var(--aimp-site-brown, #613907);
+	--sp-cream: #fbf8f2;
+	--sp-kraft: #dcc29a;
+	box-sizing: border-box;
+	display: grid;
+	grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+	align-items: center;
+	gap: clamp(1.5rem, 4vw, 4rem);
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: clamp(2rem, 5vw, 4.5rem) clamp(1rem, 3vw, 2rem);
+	color: var(--sp-gold-text);
+	/* The elements may reach past the stage: never a sideways scroll. */
+	overflow-x: clip;
+}
+
+.aimp-spotlight *,
+.aimp-spotlight *::before,
+.aimp-spotlight *::after {
+	box-sizing: border-box;
+}
+
+.aimp-spotlight.is-photo-right .aimp-spotlight-stage {
+	order: 2;
+}
+
+/* ------------------------------------------------------------------ the stage */
+.aimp-spotlight-stage {
+	position: relative;
+	justify-self: center;
+	width: 100%;
+	max-width: 620px;
+	aspect-ratio: 1;
+	container-type: inline-size;
+}
+
+.aimp-spotlight-photo {
+	position: absolute;
+	inset: 15%;
+	z-index: 1;
+	overflow: hidden;
+	border: 1px solid var(--sp-gold);
+	border-radius: 26px;
+	background: var(--sp-cream);
+	box-shadow: 0 18px 40px color-mix(in srgb, var(--sp-brown) 14%, transparent);
+}
+
+.aimp-spotlight-photo img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* The thread and the needle: one layer behind the elements, one in front of them. */
+.aimp-spotlight-layer {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.aimp-spotlight-layer.is-front {
+	z-index: 4;
+}
+
+.aimp-spotlight:not(.is-sewing) .aimp-spotlight-layer .ks-needle {
+	display: none;
+}
+
+.aimp-spotlight-layer .sp-guide,
+.aimp-spotlight-layer .sp-sewn {
+	fill: none;
+	stroke: var(--sp-gold);
+	stroke-linecap: round;
+}
+
+.aimp-spotlight-layer .sp-guide {
+	stroke-width: 1.2;
+	stroke-dasharray: 2 8;
+	opacity: 0.35;
+}
+
+.aimp-spotlight-layer .sp-sewn {
+	stroke-width: 2.4;
+}
+
+.aimp-spotlight-layer .ks-needle {
+	filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--sp-brown) 25%, transparent));
+}
+
+/* ------------------------------------------------------------------ the three elements */
+.aimp-spotlight-elements {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	pointer-events: none;
+}
+
+.aimp-sp-el {
+	position: absolute;
+	top: var(--sp-y);
+	left: var(--sp-x);
+	width: 24%;
+	margin: 0;
+	transform: translate(-50%, -50%);
+	pointer-events: auto;
+}
+
+.aimp-sp-float {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	color: inherit;
+	text-decoration: none;
+	animation: sp-float 6.5s ease-in-out infinite;
+}
+
+.aimp-sp-el--fabric .aimp-sp-float {
+	animation-duration: 7.5s;
+	animation-delay: -2.4s;
+}
+
+.aimp-sp-el--notions .aimp-sp-float {
+	animation-duration: 7s;
+	animation-delay: -4.6s;
+}
+
+.aimp-sp-float:focus-visible {
+	outline: 2px solid var(--sp-brown);
+	outline-offset: 4px;
+	border-radius: 12px;
+}
+
+.aimp-sp-float svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+@keyframes sp-float {
+	0%, 100% { transform: translate(0, 0) rotate(-2.5deg); }
+	50% { transform: translate(0, -7%) rotate(2.5deg); }
+}
+
+@keyframes sp-swing {
+	0%, 100% { transform: rotate(-6deg); }
+	50% { transform: rotate(6deg); }
+}
+
+/* Photo medallion: a round photo with a gold edge and a ribbon with its name. */
+.aimp-sp-disc {
+	display: block;
+	width: 100%;
+	aspect-ratio: 1;
+	overflow: hidden;
+	border: 4px solid #fff;
+	border-radius: 50%;
+	background: var(--sp-cream);
+	box-shadow: 0 0 0 2px var(--sp-gold), 0 10px 22px color-mix(in srgb, var(--sp-brown) 18%, transparent);
+	color: var(--sp-gold);
+}
+
+.aimp-sp-disc img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.aimp-sp-disc svg {
+	padding: 14%;
+}
+
+.aimp-sp-ribbon {
+	position: relative;
+	margin-top: -11%;
+	padding: 0.3em 1.15em;
+	background: var(--sp-gold);
+	clip-path: polygon(0 0, 100% 0, 94% 50%, 100% 100%, 0 100%, 6% 50%);
+	color: #fff;
+	font-size: clamp(9px, 2.3cqi, 13px);
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	line-height: 1.3;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+/* Gold line drawing on a cream badge (the kit steps bar's drawings, with their own moves). */
+.aimp-sp-badge {
+	display: grid;
+	place-items: center;
+	width: 100%;
+	aspect-ratio: 1;
+	padding: 12%;
+	border: 1.5px solid var(--sp-gold);
+	border-radius: 50%;
+	background: var(--sp-cream);
+	box-shadow: 0 0 0 5px var(--sp-cream), 0 0 0 6px color-mix(in srgb, var(--sp-gold) 45%, transparent), 0 10px 22px color-mix(in srgb, var(--sp-brown) 14%, transparent);
+	color: var(--sp-gold);
+}
+
+.aimp-sp-caption {
+	margin-top: 0.55em;
+	padding: 0.15em 0.7em;
+	border-radius: 100px;
+	background: var(--sp-cream);
+	color: var(--sp-gold-text);
+	font-size: clamp(9px, 2.3cqi, 13px);
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+/* A kraft paper label on a string, swinging like a price tag. */
+.style-tag .aimp-sp-el {
+	width: 23%;
+}
+
+.style-tag .aimp-sp-float {
+	transform-origin: 50% 0;
+	animation-name: sp-swing;
+}
+
+.aimp-sp-string {
+	display: block;
+	width: 1.5px;
+	height: 2.2em;
+	background: var(--sp-gold-text);
+	font-size: clamp(9px, 2.3cqi, 13px);
+}
+
+.aimp-sp-string::before {
+	display: block;
+	width: 7px;
+	height: 7px;
+	margin: -3px 0 0 -3px;
+	border-radius: 50%;
+	background: var(--sp-gold);
+	content: "";
+}
+
+.aimp-sp-tag {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.3em;
+	width: 100%;
+	padding: 22% 10% 12%;
+	background: var(--sp-kraft);
+	background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.25), transparent 60%);
+	clip-path: polygon(24% 0, 76% 0, 100% 15%, 100% 100%, 0 100%, 0 15%);
+	color: var(--sp-brown);
+	font-size: clamp(9px, 2.3cqi, 13px);
+	text-align: center;
+	filter: drop-shadow(0 6px 8px color-mix(in srgb, var(--sp-brown) 18%, transparent));
+}
+
+.aimp-sp-hole {
+	position: absolute;
+	top: 6%;
+	left: 50%;
+	width: 0.9em;
+	height: 0.9em;
+	margin-left: -0.45em;
+	border: 1.5px solid var(--sp-gold-text);
+	border-radius: 50%;
+	background: #fff;
+}
+
+.aimp-sp-tag img {
+	display: block;
+	width: 78%;
+	aspect-ratio: 1;
+	border: 3px solid #fff;
+	border-radius: 4px;
+	object-fit: cover;
+}
+
+.aimp-sp-tag svg {
+	width: 86%;
+	color: var(--sp-brown);
+}
+
+.aimp-sp-tag-label {
+	max-width: 100%;
+	overflow: hidden;
+	font-size: 0.85em;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	text-transform: uppercase;
+	opacity: 0.8;
+}
+
+.aimp-sp-tag-name {
+	display: -webkit-box;
+	overflow: hidden;
+	font-weight: 600;
+	line-height: 1.25;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+/* The elements standing still. */
+.aimp-spotlight.move-still .aimp-sp-el *,
+.aimp-spotlight.move-still .aimp-sp-el *::before {
+	animation: none !important;
+}
+
+/* ------------------------------------------------------------------ the text, sizes and button */
+.aimp-spotlight-body {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.85rem;
+	min-width: 0;
+}
+
+.aimp-spotlight .aimp-spotlight-kicker {
+	margin: 0;
+	color: var(--sp-gold);
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+.aimp-spotlight .aimp-spotlight-title {
+	margin: 0;
+	color: var(--sp-brown);
+	font-size: clamp(1.6rem, 3vw, 2.5rem);
+	line-height: 1.15;
+	text-wrap: balance;
+}
+
+.aimp-spotlight-text p {
+	margin: 0 0 0.6em;
+	line-height: 1.6;
+}
+
+.aimp-spotlight .aimp-spotlight-in {
+	margin: 0.3rem 0 0;
+	color: var(--sp-brown);
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.aimp-spotlight .aimp-spotlight-list {
+	display: grid;
+	gap: 0.35rem;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-spotlight-item {
+	padding-left: 1.4em;
+	background: radial-gradient(circle, var(--sp-gold) 0 3px, transparent 3.5px) 0 0.55em / 0.8em 0.8em no-repeat;
+	line-height: 1.45;
+}
+
+.aimp-spotlight-item a {
+	color: var(--sp-brown);
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, var(--sp-gold) 60%, transparent);
+	text-underline-offset: 3px;
+}
+
+.aimp-spotlight-item-label {
+	color: var(--sp-gold-text);
+	font-weight: 700;
+}
+
+.aimp-spotlight-item-label::after {
+	content: ":";
+}
+
+.aimp-spotlight-need {
+	color: var(--sp-gold-text);
+	font-size: 0.9em;
+	opacity: 0.85;
+}
+
+.aimp-spotlight-sizes {
+	width: 100%;
+	min-width: 0;
+	margin: 0.4rem 0 0;
+	padding: 0;
+	border: 0;
+}
+
+.aimp-spotlight-sizes legend {
+	margin-bottom: 0.5rem;
+	padding: 0;
+	color: var(--sp-brown);
+	font-weight: 700;
+}
+
+.aimp-spotlight-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.aimp-spotlight .aimp-spotlight-size {
+	min-width: 3.2em;
+	margin: 0;
+	padding: 0.5em 1em;
+	border: 1px solid var(--sp-gold);
+	border-radius: 100px;
+	background: #fff;
+	color: var(--sp-brown);
+	font: inherit;
+	font-weight: 600;
+	line-height: 1.1;
+	cursor: pointer;
+	transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.aimp-spotlight .aimp-spotlight-size:hover:not(:disabled) {
+	transform: translateY(-2px);
+}
+
+.aimp-spotlight .aimp-spotlight-size[aria-pressed="true"] {
+	background: var(--sp-gold);
+	color: #fff;
+}
+
+.aimp-spotlight .aimp-spotlight-size:disabled {
+	border-style: dashed;
+	opacity: 0.45;
+	text-decoration: line-through;
+	cursor: not-allowed;
+}
+
+.aimp-spotlight .aimp-spotlight-size:focus-visible {
+	outline: 2px solid var(--sp-brown);
+	outline-offset: 2px;
+}
+
+.aimp-spotlight .aimp-spotlight-price {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.3rem 0.6rem;
+	margin: 0.2rem 0 0;
+	color: var(--sp-brown);
+	font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+	font-weight: 700;
+}
+
+.aimp-spotlight-price del {
+	color: var(--sp-gold-text);
+	font-size: 0.65em;
+	font-weight: 400;
+	opacity: 0.8;
+}
+
+.aimp-spotlight-save {
+	padding: 0.15em 0.6em;
+	border: 1px solid var(--sp-gold);
+	border-radius: 100px;
+	color: var(--sp-gold-text);
+	font-size: 0.5em;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.aimp-spotlight .aimp-spotlight-soldout {
+	margin: 0;
+	font-style: italic;
+}
+
+.aimp-spotlight .aimp-spotlight-button {
+	margin: 0.2rem 0 0;
+	padding: 0.85em 1.6em;
+	border: 1px solid var(--sp-gold);
+	border-radius: 100px;
+	background: var(--sp-gold);
+	color: #fff;
+	font: inherit;
+	font-weight: 700;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: background 0.2s ease, color 0.2s ease;
+}
+
+.aimp-spotlight .aimp-spotlight-button:hover:not(:disabled),
+.aimp-spotlight .aimp-spotlight-button:focus-visible {
+	background: #fff;
+	color: var(--sp-brown);
+}
+
+.aimp-spotlight .aimp-spotlight-button:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.aimp-spotlight-message {
+	padding: 0.6rem 0.9rem;
+	border-left: 3px solid var(--sp-gold);
+	border-radius: 4px;
+	background: var(--sp-cream);
+	color: var(--sp-brown);
+}
+
+.aimp-spotlight-message.is-error {
+	border-left-color: #b32d2e;
+	color: #8a1f11;
+}
+
+.aimp-spotlight-message p {
+	margin: 0;
+}
+
+.aimp-spotlight .aimp-spotlight-note {
+	margin: 0;
+}
+
+.aimp-spotlight .aimp-spotlight-note a {
+	color: var(--sp-brown);
+	font-weight: 700;
+}
+
+.aimp-spotlight-missing {
+	padding: 1rem;
+	border: 1px dashed #b32d2e;
+	color: #8a1f11;
+}
+
+/* ------------------------------------------------------------------ phones and small tablets: one column */
+@media (max-width: 860px) {
+	.aimp-spotlight {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.aimp-spotlight.is-photo-right .aimp-spotlight-stage {
+		order: 0;
+	}
+
+	/* Narrower than the column, so the elements stay on the screen, and room for the labels below. */
+	.aimp-spotlight-stage {
+		width: 86%;
+		max-width: 480px;
+		margin-bottom: 1.5rem;
+	}
+
+	.aimp-sp-el {
+		width: 27%;
+	}
+
+	.style-tag .aimp-sp-el {
+		width: 26%;
+	}
+
+	.aimp-spotlight-photo {
+		inset: 16%;
+		border-radius: 18px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.aimp-spotlight *,
+	.aimp-spotlight *::before {
+		animation: none !important;
+		transition: none !important;
+	}
+}

@@ -1,0 +1,59 @@
+/* Atelier Irisee → Kit spotlights (admin-spotlight.js). */
+.aimp-sp-admin .aimp-sp-warn {
+	color: #b32d2e;
+	font-weight: 600;
+}
+
+.aimp-sp-form.is-loading [data-row],
+.aimp-sp-form.is-loading [data-notions] {
+	opacity: 0.45;
+	pointer-events: none;
+}
+
+.aimp-sp-form select {
+	max-width: 100%;
+}
+
+.aimp-sp-notions {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 10px 18px;
+}
+
+.aimp-sp-notion {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.aimp-sp-notion span {
+	font-weight: 600;
+}
+
+.aimp-sp-pic {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.aimp-sp-pic-preview img {
+	display: block;
+	width: 72px;
+	height: 72px;
+	border: 1px solid #dcc9a5;
+	border-radius: 6px;
+	object-fit: cover;
+}
+
+.aimp-sp-pic-preview em {
+	color: #646970;
+}
+
+.aimp-sp-texts {
+	max-width: 1100px;
+}
+
+.aimp-sp-texts th[scope="row"] {
+	width: 220px;
+}

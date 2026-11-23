@@ -102,7 +102,7 @@ class AIMP_Kit_Steps {
 	 * @param string $key Step.
 	 * @return string SVG.
 	 */
-	private static function drawing( $key ) {
+	public static function drawing( $key ) {
 		$clip  = wp_unique_id( 'aimp-ks-unroll-' );
 		$parts = array(
 			// A pattern sheet with a folded corner; a dress outline that draws itself as a cutting line, and tailor's
@@ -191,7 +191,7 @@ class AIMP_Kit_Steps {
 	 *
 	 * @return string SVG group.
 	 */
-	private static function needle() {
+	public static function needle() {
 		return '<g class="ks-needle">' .
 			'<path class="ks-needle-shaft" d="M-34 -2.4 Q-37 0 -34 2.4 L24 1.1 L36 0 L24 -1.1 Z"/>' .
 			'<path class="ks-needle-shine" d="M-30 -0.9 L22 -0.5"/>' .

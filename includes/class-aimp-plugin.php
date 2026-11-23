@@ -60,6 +60,8 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-boot.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-hero.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-kit-steps.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-spotlight.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-share.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-blocks.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-contact.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-home-blocks.php';
@@ -122,6 +124,8 @@ class AIMP_Plugin {
 		AIMP_Boot::init();
 		AIMP_Hero::init();
 		AIMP_Kit_Steps::init();
+		AIMP_Spotlight::init();
+		AIMP_Share::init();
 		AIMP_Contact::init();
 		AIMP_Home_Blocks::init();
 		AIMP_Instagram::init();
