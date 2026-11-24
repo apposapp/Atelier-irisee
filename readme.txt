@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.79.0
+Stable tag: 3.80.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.80.0 =
+* Design studio → Kit spotlight: "Position of the picture and the needle" and "Size of the picture and the needle", for every kit (0 = each kit's own setting in Kit spotlights).
+* Design studio → Newest blog post: "Place of the date stamp on the edge of the card" (wide picture): the stamp moves left or right along the curve of the arch (or the top of the rectangle) and further down the side.
+* Cart: a kit from a kit spotlight always uses that kit's discount as it is now (also when it was changed after the kit was put in the cart); the cart page shows each kit's own discount ("Sewing project kit discount: −…%" and the crossed-out prices) instead of the shop's.
 
 = 3.79.0 =
 * Kit spotlight: the whole picture is shown, in its own shape (no longer cropped to a square); the picture with the needle is a bit bigger as standard.
