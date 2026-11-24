@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.84.0
+Stable tag: 3.85.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.85.0 =
+* Fix: the home page flickered on Android phones (Chrome). The "Newest blog post" block was the width of the screen but started a page margin to the right, so the page was wider than the screen; Chrome then switched back and forth between the phone and the wide layout (the tab bar appearing and disappearing). The block now starts at the left edge on phones and stays centred at most 1180px wide on computers.
 
 = 3.84.0 =
 * Fix: pages flickered on phones (Chrome on Android). The favourites script rewrote the header count and every heart on each frame, which woke itself again: an endless loop. It now only writes what changes, and only reacts to newly loaded products.

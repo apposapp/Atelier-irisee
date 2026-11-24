@@ -1286,7 +1286,10 @@ html.aimp-blog-zoomed {
 .aimp-home-latest {
 	box-sizing: border-box;
 	max-width: 1180px;
-	margin: 0 auto;
+	/* The home block is the width of the screen (home-blocks.css): centred at most 1180px wide, and on phones the full
+	   width from the screen's left edge. "margin: 0 auto" left it a page margin too far right: wider than the screen,
+	   and Chrome on Android then flickered between the phone and the wide layout. */
+	margin: 0 0 0 calc(50% - min(50vw - var(--aimp-hero-sb, 0px) / 2, 590px));
 	padding: clamp(2rem, 5vw, 4.5rem) clamp(1rem, 3vw, 2rem);
 	color: var(--hb-brown);
 }
