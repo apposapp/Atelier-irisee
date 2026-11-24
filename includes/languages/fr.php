@@ -3483,4 +3483,10 @@ return array(
 	'Size of the picture and the needle' => 'Taille de la photo et de l\'aiguille',
 	'Kit discount' => 'Remise sur le kit',
 	'Only for this kit. Empty = the shop\'s kit discount (now %d%%, Atelier Irisee → Settings). 0 = no discount.' => 'Uniquement pour ce kit. Vide = la remise kit de la boutique (actuellement %d%%, Atelier Irisee → Réglages). 0 = pas de remise.',
+	// 3.80.0: spotlight picture in the Design studio, stamp place
+	'Wide picture: place of the date stamp on the edge of the card (-100 left … 100 right; 0 = standard)' => 'Grande photo : place du tampon de date sur le bord de la carte (-100 gauche … 100 droite ; 0 = standard)',
+	'The stamp follows the edge of the card: over the curve of the arch (or along the top of the rectangle), and further down the side.' => 'Le tampon suit le bord de la carte : le long de l\'arche (ou du haut du rectangle), puis plus bas le long du côté.',
+	'Position of the picture and the needle: left ← → right (0 = each kit\'s own setting)' => 'Position de la photo et de l\'aiguille : gauche ← → droite (0 = le réglage propre à chaque kit)',
+	'Size of the picture and the needle (0 = each kit\'s own setting; 70–140%)' => 'Taille de la photo et de l\'aiguille (0 = le réglage propre à chaque kit ; 70–140 %)',
+	'These are for every kit and win over the kit\'s own setting. The position is within the free room beside the picture; phones always show it in the middle.' => 'Ces réglages valent pour chaque kit et priment sur le réglage du kit lui-même. La position se fait dans l\'espace libre à côté de la photo ; sur téléphone, elle est toujours au centre.',
 );

@@ -463,6 +463,17 @@ class AIMP_Spotlight {
 		// Moved left/right and its size (Atelier Irisee → Kit spotlights → Picture and elements).
 		$scale   = ( isset( $spot['scale'] ) ? (int) $spot['scale'] : 100 ) / 100;
 		$shift   = isset( $spot['shift'] ) ? (int) $spot['shift'] : 0;
+		// Design studio → Kit spotlight: for every kit, over the kit's own (0 = the kit's own).
+		if ( class_exists( 'AIMP_Design' ) ) {
+			$size = (int) AIMP_Design::opt( 'home-spotlight', 'sp_size', 0 );
+			if ( $size > 0 ) {
+				$scale = max( 70, min( 140, $size ) ) / 100;
+			}
+			$move = (int) AIMP_Design::opt( 'home-spotlight', 'sp_shift', 0 );
+			if ( 0 !== $move ) {
+				$shift = max( -100, min( 100, $move ) );
+			}
+		}
 		$style   = '';
 		if ( 1.0 !== (float) $scale ) {
 			$style .= '--sp-size:' . $scale . ';--sp-col:' . round( 1.25 * $scale, 3 ) . 'fr;';
@@ -701,7 +712,8 @@ class AIMP_Spotlight {
 			$req['lining_units'] > 0 ? $spot['lining'] : 0,
 			array(),
 			isset( $req['finish'] ) ? $req['finish'] : '',
-			self::discount( $spot )
+			self::discount( $spot ),
+			$id
 		);
 		$wc_errors = array_map(
 			function ( $notice ) {

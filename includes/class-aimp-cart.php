@@ -62,7 +62,7 @@ class AIMP_Cart {
 	 * @param array $extras       The matching dog bandana: [ bandana => 0|1, thread => ID, band => ID ].
 	 * @return true|WP_Error WP_Error carries one message per problem.
 	 */
-	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0, $extras = array(), $finish = '', $discount = null ) {
+	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0, $extras = array(), $finish = '', $discount = null, $spotlight = 0 ) {
 		$errors = new WP_Error();
 		// With the fabric: a narrow one can need more.
 		$req    = AIMP_Catalog::get_requirements( $variation_id, $fabric_id ? $fabric_id : null );
@@ -190,6 +190,10 @@ class AIMP_Cart {
 			// A kit with its own discount (a kit spotlight).
 			if ( null !== $discount ) {
 				$data[ self::KEY ]['discount'] = max( 0, min( 90, (int) $discount ) );
+			}
+			// The kit spotlight it came from: its discount as it is now counts (item_discount()).
+			if ( $spotlight ) {
+				$data[ self::KEY ]['spotlight'] = absint( $spotlight );
 			}
 			try {
 				if ( $product->is_type( 'variation' ) ) {
@@ -463,7 +467,17 @@ class AIMP_Cart {
 	 */
 	public static function item_discount( $cart_item ) {
 		$meta = self::meta( $cart_item );
-		return $meta && isset( $meta['discount'] ) ? (int) $meta['discount'] : self::kit_discount();
+		if ( ! $meta ) {
+			return self::kit_discount();
+		}
+		// A kit spotlight: its discount now (also when it was changed after the kit was put in the cart).
+		if ( ! empty( $meta['spotlight'] ) && class_exists( 'AIMP_Spotlight' ) ) {
+			$spot = AIMP_Spotlight::get( (int) $meta['spotlight'] );
+			if ( $spot ) {
+				return AIMP_Spotlight::discount( $spot );
+			}
+		}
+		return isset( $meta['discount'] ) ? (int) $meta['discount'] : self::kit_discount();
 	}
 
 	/**

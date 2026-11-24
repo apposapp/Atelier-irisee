@@ -1110,8 +1110,16 @@ class AIMP_Blog {
 		$arch    = 'luxe' === $style && 'arch' === (string) $opt( 'lp_shape', '' );
 		$stamp   = in_array( $style, array( 'journal', 'luxe' ), true ) && ! $opt( 'lp_nodate' );
 		$ink     = class_exists( 'AIMP_Design' ) ? AIMP_Design::clean_color( (string) $opt( 'lp_stamp_color', '' ) ) : '';
-		$classes = 'aimp-home-block aimp-home-latest style-' . $style . ( $opt( 'lp_right' ) ? ' is-photo-right' : '' ) . ( $arch ? ' is-arch' : '' );
-		$html    = '<section class="' . esc_attr( $classes ) . '"' . ( '' !== $ink ? ' style="' . esc_attr( '--lp-stamp:' . $ink ) . '"' : '' ) . ' aria-label="' . esc_attr( '' !== $kicker ? $kicker : $title ) . '"><div class="aimp-latest-inner">';
+		// Luxe: where the stamp sits on the card's edge (-100 … 100): the first 70 over the curve of the arch (or along
+		// the top of the rectangle), the rest down the side.
+		$place   = 'luxe' === $style && $stamp ? max( -100, min( 100, (int) $opt( 'lp_stamp_pos', 0 ) ) ) : 0;
+		$vars    = '' !== $ink ? '--lp-stamp:' . $ink . ';' : '';
+		if ( 0 !== $place ) {
+			$along = max( -1, min( 1, $place / 70 ) );
+			$vars .= '--lp-sa:' . round( $along * 90, 2 ) . 'deg;--lp-su:' . round( $along, 4 ) . ';--lp-sd:' . round( max( 0, abs( $place ) - 70 ) / 30, 4 ) . ';';
+		}
+		$classes = 'aimp-home-block aimp-home-latest style-' . $style . ( $opt( 'lp_right' ) ? ' is-photo-right' : '' ) . ( $arch ? ' is-arch' : '' ) . ( 0 !== $place ? ' has-stamp-place' : '' );
+		$html    = '<section class="' . esc_attr( $classes ) . '"' . ( '' !== $vars ? ' style="' . esc_attr( $vars ) . '"' : '' ) . ' aria-label="' . esc_attr( '' !== $kicker ? $kicker : $title ) . '"><div class="aimp-latest-inner">';
 		$html   .= '<a class="aimp-latest-media" href="' . esc_url( $url ) . '" tabindex="-1" aria-hidden="true"><span class="' . esc_attr( $frame ) . '"' . $fstyle . '>' . $image;
 		if ( 'polaroid' === $style ) {
 			$html .= '<span class="aimp-latest-caption">' . esc_html( $title ) . '</span>';
@@ -1119,7 +1127,9 @@ class AIMP_Blog {
 		$html .= '</span></a><div class="aimp-latest-body">';
 		if ( $stamp ) {
 			// A round date stamp, as if stamped on the diary page or the cream card.
-			$html .= '<time class="aimp-latest-stamp" datetime="' . esc_attr( get_the_date( 'c', $post ) ) . '" aria-label="' . esc_attr( get_the_date( 'j F Y', $post ) ) . '"><b aria-hidden="true">' . esc_html( get_the_date( 'j', $post ) ) . '</b><span aria-hidden="true">' . esc_html( get_the_date( 'M', $post ) ) . '</span><small aria-hidden="true">' . esc_html( get_the_date( 'Y', $post ) ) . '</small></time>';
+			$time = '<time class="aimp-latest-stamp" datetime="' . esc_attr( get_the_date( 'c', $post ) ) . '" aria-label="' . esc_attr( get_the_date( 'j F Y', $post ) ) . '"><b aria-hidden="true">' . esc_html( get_the_date( 'j', $post ) ) . '</b><span aria-hidden="true">' . esc_html( get_the_date( 'M', $post ) ) . '</span><small aria-hidden="true">' . esc_html( get_the_date( 'Y', $post ) ) . '</small></time>';
+			// Placed on the card's edge: a layer as big as the card, the stamp on its line.
+			$html .= 0 !== $place ? '<span class="aimp-latest-stampline">' . $time . '</span>' : $time;
 		}
 		if ( '' !== $kicker ) {
 			$html .= '<p class="aimp-latest-kicker">' . esc_html( $kicker ) . '</p>';

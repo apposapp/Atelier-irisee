@@ -777,9 +777,14 @@ class AIMP_Design {
 				'lp_noall'     => 'bool',
 				'lp_shape'     => array( 'select', array( '', 'arch' ) ),
 				'lp_stamp_color' => 'color',
+				// Where the stamp sits on the card's edge: -100 left … 100 right along the curve (or top) and down the side.
+				'lp_stamp_pos' => array( -100, 100, 0 ),
 			),
 			'sp_opts'     => array(
 				'sp_nochart' => 'bool',
+				// The picture with the needle, for every kit (0 = each kit's own setting).
+				'sp_shift'   => array( -100, 100, 0 ),
+				'sp_size'    => array( 0, 140, 0 ),
 			),
 			'gp_opts'     => array(
 				'gp_layout' => array( 'select', array( '', 'amounts', 'designs' ) ),
@@ -4827,6 +4832,8 @@ class AIMP_Design {
 			)
 		);
 		self::color( 'lp_stamp_color', __( 'Colour of the date stamp (wide picture and diary page)', 'atelier-irisee-master-plugin' ) );
+		self::number( 'lp_stamp_pos', __( 'Wide picture: place of the date stamp on the edge of the card (-100 left … 100 right; 0 = standard)', 'atelier-irisee-master-plugin' ), -100, 100, '' );
+		echo '<p class="description">' . esc_html__( 'The stamp follows the edge of the card: over the curve of the arch (or along the top of the rectangle), and further down the side.', 'atelier-irisee-master-plugin' ) . '</p>';
 		$field( 'lp_cat', __( 'Only posts of this category (its slug, e.g. irisee-focus; empty = all)', 'atelier-irisee-master-plugin' ), 'text', '' );
 		self::check_box( 'lp_right', __( 'The picture on the right', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'lp_nolabel', __( 'Without the category', 'atelier-irisee-master-plugin' ) );
@@ -4839,6 +4846,9 @@ class AIMP_Design {
 
 		$group( 'sp_opts', __( 'Kit spotlight', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'sp_nochart', __( 'No size chart under the sizes', 'atelier-irisee-master-plugin' ) );
+		self::number( 'sp_shift', __( 'Position of the picture and the needle: left ← → right (0 = each kit\'s own setting)', 'atelier-irisee-master-plugin' ), -100, 100, '' );
+		self::number( 'sp_size', __( 'Size of the picture and the needle (0 = each kit\'s own setting; 70–140%)', 'atelier-irisee-master-plugin' ), 0, 140, '%' );
+		echo '<p class="description">' . esc_html__( 'These are for every kit and win over the kit\'s own setting. The position is within the free room beside the picture; phones always show it in the middle.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '<p class="description">' . esc_html__( 'The kits themselves: Atelier Irisee → Kit spotlights. Once a size is picked, the size chart shows the measurements of that size.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 

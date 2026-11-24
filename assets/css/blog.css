@@ -1521,8 +1521,10 @@ html.aimp-blog-zoomed {
 /* Luxe as an arch (Design studio → Newest blog post → Shape of the card): the top a half circle, the double frame and
    the cream edge follow it; more room at the top so the text stays inside the curve. */
 .style-luxe.is-arch .aimp-latest-body {
+	/* The height of the curve (also used to put the stamp on it). */
+	--lp-ry: 15rem;
 	padding-top: clamp(4.6rem, 9vw, 7rem);
-	border-radius: 50% 50% 0 0 / 15rem 15rem 0 0;
+	border-radius: 50% 50% 0 0 / var(--lp-ry) var(--lp-ry) 0 0;
 }
 
 /* Luxe: the date stamp on the top corner of the card, over the frame (with the arch: on top of the curve). */
@@ -1689,8 +1691,8 @@ html.aimp-blog-zoomed {
 	}
 
 	.style-luxe.is-arch .aimp-latest-body {
+		--lp-ry: 10rem;
 		padding-top: 4.4rem;
-		border-radius: 50% 50% 0 0 / 10rem 10rem 0 0;
 	}
 }
 
@@ -1698,4 +1700,29 @@ html.aimp-blog-zoomed {
 	.aimp-home-latest * {
 		transition: none !important;
 	}
+}
+
+/* Luxe: the stamp at its own place on the card's edge (Design studio → Newest blog post → Place of the date stamp).
+   A layer exactly over the card (its gold border included); the stamp's middle on the edge: over the curve of the
+   arch (--lp-sa: the angle from the top) or along the top of the rectangle (--lp-su: -1 … 1), then down the side
+   (--lp-sd: 0 … 1, up to 8rem). */
+.aimp-latest-stampline {
+	position: absolute;
+	inset: -6px;
+	z-index: 2;
+	container-type: size;
+	pointer-events: none;
+}
+
+.style-luxe.has-stamp-place .aimp-latest-stampline .aimp-latest-stamp {
+	top: calc(var(--lp-sd, 0) * 8rem);
+	right: auto;
+	left: calc(50cqw + var(--lp-su, 0) * 50cqw);
+	transform: translate(-50%, -50%) rotate(calc(var(--lp-su, 0) * 14deg - 6deg));
+}
+
+.style-luxe.is-arch.has-stamp-place .aimp-latest-stampline .aimp-latest-stamp {
+	top: calc(var(--lp-ry, 15rem) * (1 - cos(var(--lp-sa, 0deg))) + var(--lp-sd, 0) * 8rem);
+	left: calc(50cqw + sin(var(--lp-sa, 0deg)) * 50cqw);
+	transform: translate(-50%, -50%) rotate(calc(var(--lp-sa, 0deg) * 0.3 - 6deg));
 }

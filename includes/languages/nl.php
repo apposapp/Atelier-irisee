@@ -3483,4 +3483,10 @@ return array(
 	'Size of the picture and the needle' => 'Grootte van de foto en de naald',
 	'Kit discount' => 'Kitkorting',
 	'Only for this kit. Empty = the shop\'s kit discount (now %d%%, Atelier Irisee → Settings). 0 = no discount.' => 'Alleen voor deze kit. Leeg = de kitkorting van de winkel (nu %d%%, Atelier Irisee → Instellingen). 0 = geen korting.',
+	// 3.80.0: spotlight picture in the Design studio, stamp place
+	'Wide picture: place of the date stamp on the edge of the card (-100 left … 100 right; 0 = standard)' => 'Brede foto: plaats van de datumstempel op de rand van de kaart (-100 links … 100 rechts; 0 = standaard)',
+	'The stamp follows the edge of the card: over the curve of the arch (or along the top of the rectangle), and further down the side.' => 'De stempel volgt de rand van de kaart: over de boog (of langs de bovenkant van de rechthoek), en verder langs de zijkant naar beneden.',
+	'Position of the picture and the needle: left ← → right (0 = each kit\'s own setting)' => 'Plaats van de foto en de naald: links ← → rechts (0 = de instelling van elke kit zelf)',
+	'Size of the picture and the needle (0 = each kit\'s own setting; 70–140%)' => 'Grootte van de foto en de naald (0 = de instelling van elke kit zelf; 70–140%)',
+	'These are for every kit and win over the kit\'s own setting. The position is within the free room beside the picture; phones always show it in the middle.' => 'Deze gelden voor elke kit en gaan voor op de instelling van de kit zelf. De plaats is binnen de vrije ruimte naast de foto; op telefoons staat ze altijd in het midden.',
 );
