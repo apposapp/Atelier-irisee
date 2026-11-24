@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.85.0
+Stable tag: 3.86.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,15 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.86.0 =
+* SEO: shop pages show their products as plain HTML with real links (search engines can follow them), product cards are links (a click still opens the quick view) and page numbers are links.
+* SEO: every product category and brand has its own page: /stoffen/boucle/, /alle-producten/merk/cousette/, with its own title, description, address (canonical), heading (h1), breadcrumb and text (the category's description). Old category and filter links move there for good (301). Filtered shop pages are not listed (noindex, follow).
+* SEO: every language has its own address: French at /fr/…, English at /en/…, Dutch keeps the plain address. With hreflang links, the page's language in <html lang>, og:locale and the structured data, and the description and share texts translated. Old ?aimp_lang links move there (301). Atelier Irisee → Settings → General → Language addresses (on).
+* SEO: structured data: the organisation's logo, social media, contact and address; the FAQ block as FAQPage; products with shipping costs per country (PostNL) and the return policy (fabric cut to length: not returnable).
+* SEO: one main heading (h1) per page (blog, blog categories and favourites got one; a blog post no longer has two); product page subtitles are h2; Divi's hidden header and footer are no longer in the page; the favourites page and the newsletter's web version are not listed.
+* Speed: the hero picture is fetched first and phones get a smaller one; the hero video starts after the page has loaded; the header logo comes in a fitting size with width and height; the fonts are fetched first; the login popup no longer loads the password-strength library (jQuery and zxcvbn) on every page.
+* Alt texts: product photo thumbnails, shop overview cards, gift card designs, spotlight elements, and media pictures without one (the page's or picture's title).
 
 = 3.85.0 =
 * Fix: the home page flickered on Android phones (Chrome). The "Newest blog post" block was the width of the screen but started a page margin to the right, so the page was wider than the screen; Chrome then switched back and forth between the phone and the wide layout (the tab bar appearing and disappearing). The block now starts at the left edge on phones and stays centred at most 1180px wide on computers.

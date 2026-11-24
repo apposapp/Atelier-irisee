@@ -167,6 +167,10 @@ class AIMP_Shop {
 			if ( false !== $current ) {
 				return $current;
 			}
+			// Not before WordPress has read the address (nothing to find yet, and nothing kept).
+			if ( ! did_action( 'parse_request' ) ) {
+				return null;
+			}
 			$vars = array(
 				'page_id'         => get_query_var( 'page_id' ),
 				'aimp_term'       => get_query_var( 'aimp_term' ),
@@ -595,6 +599,7 @@ class AIMP_Shop {
 		// The first page of products (with the filter options) comes with the page, so the grid shows at once; the
 		// script only asks the server again when the visitor filters, sorts or pages.
 		$initial = '';
+		$data    = null;
 		if ( ! self::has_filters_in_url( true ) && ! $category && '' === $brand ) {
 			$data            = self::query( self::default_args( $type ) );
 			$data['facets']  = self::facets( $type );
@@ -607,7 +612,7 @@ class AIMP_Shop {
 		}
 		return '<div class="aimp-configurator aimp-shop" data-aimp-shop data-type="' . esc_attr( $type ) . '"' . ( $category ? ' data-category="' . $category . '"' : '' ) .
 			( '' !== $brand ? ' data-brand="' . esc_attr( $brand ) . '"' : '' ) . $clean . $initial . '>' .
-			self::static_html( $type, $category, $brand, $own ) .
+			self::static_html( $type, $category, $brand, $own, $data ) .
 			'<noscript><p>' . esc_html__( 'Please enable JavaScript to filter the products.', 'atelier-irisee-master-plugin' ) . '</p></noscript></div>';
 	}
 
@@ -619,9 +624,10 @@ class AIMP_Shop {
 	 * @param int        $category Category.
 	 * @param string     $brand    Brand slug.
 	 * @param array|null $own      request_term() on a category or brand page.
+	 * @param array|null $first    The first page without filters, when it was already fetched (data-initial).
 	 * @return string
 	 */
-	private static function static_html( $type, $category, $brand, $own ) {
+	private static function static_html( $type, $category, $brand, $own, $first = null ) {
 		$args = self::default_args( $type );
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- only reads which products to show.
 		if ( ! $category && isset( $_GET['aimp_cat'] ) ) {
@@ -635,7 +641,7 @@ class AIMP_Shop {
 		$args['category'] = $category ? array( $category ) : array();
 		$args['brand']    = $brand;
 		$args['page']     = $page;
-		$data             = self::query( $args );
+		$data             = ( $first && ! $category && '' === $brand && 1 === $page ) ? $first : self::query( $args );
 
 		$html = '<div class="aimp-shop-static">';
 		// A category's or brand's own text (Products → Categories / Brands → Description).

@@ -73,6 +73,7 @@ foreach ( array( 'aimp-giftcards', 'aimp-giftcards-themes', 'aimp-instagram' ) a
 delete_option( 'aimp_footer' );
 delete_option( 'aimp_mosaic' );
 delete_option( 'aimp_spot_extras' );
+delete_option( 'aimp_shop_rules' );
 $aimp_subscribers = get_posts(
 	array(
 		'post_type'      => 'aimp_subscriber',
