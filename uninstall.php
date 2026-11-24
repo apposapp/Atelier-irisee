@@ -72,6 +72,7 @@ foreach ( array( 'aimp-giftcards', 'aimp-giftcards-themes', 'aimp-instagram' ) a
 // Footer, mosaic and the newsletter subscribers (their addresses are removed with the plugin).
 delete_option( 'aimp_footer' );
 delete_option( 'aimp_mosaic' );
+delete_option( 'aimp_spot_extras' );
 $aimp_subscribers = get_posts(
 	array(
 		'post_type'      => 'aimp_subscriber',

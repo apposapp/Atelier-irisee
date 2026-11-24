@@ -233,7 +233,7 @@
 
 	/* ------------------------------------------------------------------ the parts the kit is missing */
 
-	// What the pattern needs in the chosen size that is not in the kit (Atelier Irisee → Settings: 1 in the block,
+	// What the pattern needs in the chosen size that is not in the kit (Atelier Irisee → Kit spotlights: 1 in the block,
 	// 2 a popup after adding, 3 both). Chosen items are added at their normal price, not as part of the kit.
 	function extras(block) {
 		var mode = parseInt(block.getAttribute('data-extras'), 10) || 0;

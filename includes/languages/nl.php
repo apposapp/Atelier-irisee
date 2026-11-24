@@ -3511,4 +3511,7 @@ return array(
 	'%s: this item does not fit this size.' => '%s: dit artikel past niet bij deze maat.',
 	'%s could not be added (stock).' => '%s kon niet toegevoegd worden (voorraad).',
 	'Also added: %s.' => 'Ook toegevoegd: %s.',
+	// 3.82.0: the missing-parts setting on the Kit spotlights page
+	'For all kit spotlights.' => 'Voor alle kits in de kijker.',
+	'Save' => 'Opslaan',
 );

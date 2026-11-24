@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.81.0
+Stable tag: 3.82.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.82.0 =
+* Kit spotlight: the setting "Kit spotlight: parts the kit is missing" moved from Atelier Irisee → Settings → Discounts to Atelier Irisee → Kit spotlights (under the list and under each kit; it counts for all kits).
 
 = 3.81.0 =
 * Kit spotlight: the parts the pattern needs that are not in the kit (haberdashery left on "none", a lining left out) are offered once a size is picked: "Not in this kit, but needed for the pattern", each with "Choose" (only items that fit that size, with picture, price for the amount needed and stock). They are added at their normal price as separate products, not part of the kit. Atelier Irisee → Settings → "Kit spotlight: parts the kit is missing": not offered, in the block (standard), in a popup after adding, or both.

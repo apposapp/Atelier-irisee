@@ -22,6 +22,8 @@ class AIMP_Spotlight {
 	const TAG    = 'atelier_irisee_kit_spotlight';
 	const OPTION = 'aimp_spotlights';
 	const PAGE   = 'aimp-spotlights';
+	/** Where the parts a kit is missing are offered, for all kits (see extras_mode()). */
+	const EXTRAS_OPTION = 'aimp_spot_extras';
 	const STYLES = array( 'medallion', 'drawing', 'tag' );
 	const MOVES  = array( 'move', 'still', 'off' );
 
@@ -38,6 +40,7 @@ class AIMP_Spotlight {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 65 ); // After the Atelier Irisee menu itself (60).
 		add_action( 'admin_post_aimp_spotlight_save', array( __CLASS__, 'save' ) );
 		add_action( 'admin_post_aimp_spotlight_delete', array( __CLASS__, 'delete' ) );
+		add_action( 'admin_post_aimp_spotlight_extras', array( __CLASS__, 'save_extras' ) );
 		add_action( 'wp_ajax_aimp_spotlight_choices', array( __CLASS__, 'ajax_choices' ) );
 	}
 
@@ -150,13 +153,41 @@ class AIMP_Spotlight {
 	}
 
 	/**
-	 * Where the parts the kit is missing are offered (Atelier Irisee → Settings): 0 not, 1 in the block, 2 a popup after
-	 * adding, 3 both.
+	 * Where the parts the kit is missing are offered (Atelier Irisee → Kit spotlights, for all kits): 0 not, 1 in the
+	 * block (standard), 2 a popup after adding, 3 both.
 	 *
 	 * @return int
 	 */
 	public static function extras_mode() {
-		return min( 3, (int) AIMP_Settings::get( 'spot_extras' ) );
+		return min( 3, absint( get_option( self::EXTRAS_OPTION, 1 ) ) );
+	}
+
+	/**
+	 * The choices for extras_mode().
+	 *
+	 * @return array
+	 */
+	private static function extras_choices() {
+		return array(
+			0 => __( 'Not offered', 'atelier-irisee-master-plugin' ),
+			1 => __( 'In the block, before adding (standard)', 'atelier-irisee-master-plugin' ),
+			2 => __( 'In a popup after adding', 'atelier-irisee-master-plugin' ),
+			3 => __( 'Both: in the block, and a popup after adding when nothing was chosen', 'atelier-irisee-master-plugin' ),
+		);
+	}
+
+	/**
+	 * Saves where the parts the kit is missing are offered (the form on the Kit spotlights page).
+	 */
+	public static function save_extras() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! check_admin_referer( 'aimp_spotlight_extras' ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'atelier-irisee-master-plugin' ) );
+		}
+		$mode = isset( $_POST['spot_extras'] ) ? min( 3, absint( $_POST['spot_extras'] ) ) : 1;
+		$back = isset( $_POST['back'] ) ? absint( $_POST['back'] ) : 0;
+		update_option( self::EXTRAS_OPTION, $mode );
+		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE . ( $back ? '&edit=' . $back : '' ) . '&extras_saved=1#aimp_spot_extras' ) );
+		exit;
 	}
 
 	/**
@@ -1256,6 +1287,7 @@ class AIMP_Spotlight {
 				}
 				echo '</tbody></table>';
 			}
+			self::extras_form();
 			echo '</div>';
 			return;
 		}
@@ -1406,7 +1438,33 @@ class AIMP_Spotlight {
 			<?php submit_button( __( 'Save kit spotlight', 'atelier-irisee-master-plugin' ) ); ?>
 		</form>
 		<script type="text/template" id="aimp-sp-none"><?php echo esc_html( $none ); ?></script>
+		<?php self::extras_form( $id ); ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * The form for where the parts a kit is missing are offered (for all kits), on the list and under each kit.
+	 *
+	 * @param int $back The kit to come back to after saving (0: the list).
+	 */
+	private static function extras_form( $back = 0 ) {
+		$current = self::extras_mode();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a notice only.
+		if ( ! empty( $_GET['extras_saved'] ) ) {
+			echo '<div class="notice notice-success inline"><p>' . esc_html__( 'Saved.', 'atelier-irisee-master-plugin' ) . '</p></div>';
+		}
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="aimp-sp-extras-form" style="margin-top:2em;padding:1em 1.2em;background:#fff;border:1px solid #dcdcde;max-width:760px">';
+		echo '<input type="hidden" name="action" value="aimp_spotlight_extras"><input type="hidden" name="back" value="' . (int) $back . '">';
+		wp_nonce_field( 'aimp_spotlight_extras' );
+		echo '<h2 style="margin-top:0"><label for="aimp_spot_extras">' . esc_html__( 'Kit spotlight: parts the kit is missing', 'atelier-irisee-master-plugin' ) . '</label></h2>';
+		echo '<p class="description">' . esc_html__( 'Parts the pattern needs that you left out of a kit (e.g. a zip on "none"): the customer can choose and add them. They are added at their normal price, not as part of the kit.', 'atelier-irisee-master-plugin' ) . ' ' . esc_html__( 'For all kit spotlights.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '<p><select id="aimp_spot_extras" name="spot_extras">';
+		foreach ( self::extras_choices() as $value => $label ) {
+			echo '<option value="' . (int) $value . '"' . selected( $current, $value, false ) . '>' . esc_html( $label ) . '</option>';
+		}
+		echo '</select> ';
+		submit_button( __( 'Save', 'atelier-irisee-master-plugin' ), 'secondary', 'submit', false );
+		echo '</p></form>';
 	}
 }
