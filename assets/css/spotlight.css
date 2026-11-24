@@ -496,7 +496,8 @@
 	font-style: italic;
 }
 
-.aimp-spotlight .aimp-spotlight-button {
+.aimp-spotlight .aimp-spotlight-button,
+.aimp-sp-dialog .aimp-spotlight-button {
 	margin: 0.2rem 0 0;
 	padding: 0.85em 1.6em;
 	border: 1px solid var(--sp-gold);
@@ -511,12 +512,15 @@
 }
 
 .aimp-spotlight .aimp-spotlight-button:hover:not(:disabled),
-.aimp-spotlight .aimp-spotlight-button:focus-visible {
+.aimp-spotlight .aimp-spotlight-button:focus-visible,
+.aimp-sp-dialog .aimp-spotlight-button:hover:not(:disabled),
+.aimp-sp-dialog .aimp-spotlight-button:focus-visible {
 	background: #fff;
 	color: var(--sp-brown);
 }
 
-.aimp-spotlight .aimp-spotlight-button:disabled {
+.aimp-spotlight .aimp-spotlight-button:disabled,
+.aimp-sp-dialog .aimp-spotlight-button:disabled {
 	opacity: 0.6;
 	cursor: default;
 }
