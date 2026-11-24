@@ -112,6 +112,23 @@
 		});
 	}
 
+	// The hero's video starts once the page has loaded (until then its picture shows), so it does not slow the page.
+	function startVideos() {
+		document.querySelectorAll('.aimp-hero-video[data-src]').forEach(function (video) {
+			video.src = video.getAttribute('data-src');
+			video.removeAttribute('data-src');
+			var play = video.play();
+			if (play && play.catch) {
+				play.catch(function () {});
+			}
+		});
+	}
+	if (document.readyState === 'complete') {
+		setTimeout(startVideos, 0);
+	} else {
+		window.addEventListener('load', startVideos);
+	}
+
 	function boot() {
 		var heroes = document.querySelectorAll('[data-aimp-hero]');
 		if (!heroes.length) {

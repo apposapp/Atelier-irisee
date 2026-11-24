@@ -41,8 +41,9 @@ class AIMP_Design_Tech {
 		$filtered = false;
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only the names of the parameters are read.
 		foreach ( array_keys( $_GET ) as $param ) {
-			// The shop filters and the customizer links (aimp_cat, aimp_q, aimp_pattern, …); page numbers stay indexed.
-			if ( 0 === strpos( (string) $param, 'aimp_' ) && 'aimp_page' !== $param ) {
+			// The shop filters and the customizer links (aimp_cat, aimp_q, aimp_pattern, …); page numbers stay indexed,
+			// and so does an old language link (?aimp_lang: it goes to the language's own address).
+			if ( 0 === strpos( (string) $param, 'aimp_' ) && ! in_array( $param, array( 'aimp_page', 'aimp_lang' ), true ) ) {
 				$filtered = true;
 			}
 		}

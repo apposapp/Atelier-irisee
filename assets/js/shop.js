@@ -91,6 +91,16 @@
 		if (fixed && !this.state.filters.category.length) {
 			this.state.filters.category = [fixed];
 		}
+		// A category or brand page of its own (/stoffen/boucle/, /alle-producten/merk/cousette/): that brand, and the
+		// address of the shop page itself for when the visitor filters on something else (class-aimp-shop.php).
+		var fixedBrand = root.getAttribute('data-brand') || '';
+		if (fixedBrand && !this.state.filters.brand) {
+			this.state.filters.brand = fixedBrand;
+		}
+		this.fixedCategory = root.getAttribute('data-clean') ? fixed : 0;
+		this.fixedBrand = root.getAttribute('data-clean') ? fixedBrand : '';
+		this.basePath = root.getAttribute('data-base') || '';
+		this.cleanPath = window.location.pathname;
 		// The first page of products, sent with the page (class-aimp-shop.php): no request for a first visit.
 		this.initial = null;
 		try {
@@ -146,6 +156,18 @@
 		if (!this.syncUrl || !window.history || !window.history.replaceState) {
 			return;
 		}
+		window.history.replaceState(null, '', this.urlFor(design.paging ? 1 : this.state.page) + window.location.hash);
+		rememberShop();
+	};
+
+	// The address of a page of the current results (the page links, for search engines and new tabs).
+	Shop.prototype.pageUrl = function (page) {
+		return this.urlFor(page);
+	};
+
+	// The address of the current filters on a page: on a category or brand page of its own its clean address while only
+	// that category or brand is chosen, otherwise the shop page with the filters as parameters.
+	Shop.prototype.urlFor = function (page) {
 		var f = this.state.filters;
 		var params = new URLSearchParams(window.location.search);
 		Array.from(params.keys()).forEach(function (key) {
@@ -192,8 +214,24 @@
 			}
 		});
 		// Page numbers only (with "Show more" a reload starts at the first page again).
-		if (this.state.page > 1 && !design.paging) {
-			params.set('aimp_page', this.state.page);
+		if (page > 1) {
+			params.set('aimp_page', page);
+		}
+		var path = window.location.pathname;
+		if (this.basePath) {
+			var self = this;
+			var own = Array.from(params.keys()).every(function (key) {
+				return key.indexOf('aimp_') !== 0 || key === 'aimp_lang' || key === 'aimp_design_preview' || key === 'aimp_page' ||
+					(key === 'aimp_cat' && self.fixedCategory && params.get(key) === String(self.fixedCategory)) ||
+					(key === 'aimp_brand' && self.fixedBrand && params.get(key) === self.fixedBrand);
+			}) && (!self.fixedCategory || params.get('aimp_cat') === String(self.fixedCategory)) && (!self.fixedBrand || params.get('aimp_brand') === self.fixedBrand);
+			if (own) {
+				params.delete('aimp_cat');
+				params.delete('aimp_brand');
+				var queryOwn = params.toString();
+				return this.cleanPath + (queryOwn ? '?' + queryOwn : '');
+			}
+			path = this.basePath;
 		}
 		// All products and Haberdashery show an overview without filters in the address: aimp_all keeps the
 		// list when the visitor clears every filter and reloads.
@@ -203,8 +241,7 @@
 			params.set('aimp_all', '1');
 		}
 		var query = params.toString();
-		window.history.replaceState(null, '', window.location.pathname + (query ? '?' + query : '') + window.location.hash);
-		rememberShop();
+		return path + (query ? '?' + query : '');
 	};
 
 	/* ---------------------------------------------------------------
@@ -956,6 +993,11 @@
 				selectedId: s.selected ? s.selected.id : null,
 				emptyText: this.activeCount() ? t.noMatch : t.noProducts,
 				compact: false,
+				// Real links to the product pages and (with page numbers) to the next pages, for search engines.
+				link: true,
+				pageHref: design.paging ? null : function (page) {
+					return self.pageUrl(page);
+				},
 				// A share button on each card (share.js), unless switched off (Design studio → Product page).
 				extra: function (item) {
 					if (!item.permalink || !window.aimpShare || design.noshare) {
@@ -1254,6 +1296,10 @@
 
 	Shop.prototype.setLanguage = function (code) {
 		if (!cfg.i18n[code] || code === lang) {
+			return;
+		}
+		// Languages with their own address: the page in that language.
+		if (UI.goLanguage(code)) {
 			return;
 		}
 		lang = code;

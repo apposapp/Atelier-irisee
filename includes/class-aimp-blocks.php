@@ -310,6 +310,10 @@ class AIMP_Blocks {
 		if ( ! $pairs ) {
 			return '';
 		}
+		// The questions as FAQPage data for search engines (AIMP_SEO, at the end of the page).
+		if ( class_exists( 'AIMP_SEO' ) ) {
+			AIMP_SEO::add_faq( $pairs );
+		}
 		// Design studio (FAQ): the first question open, and only one open at a time (details with one name).
 		$first  = (bool) self::design( 'faq', 'faq_open' );
 		$single = self::design( 'faq', 'faq_single' ) ? ' name="' . esc_attr( wp_unique_id( 'aimp-faq-' ) ) . '"' : '';

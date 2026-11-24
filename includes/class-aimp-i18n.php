@@ -62,6 +62,26 @@ class AIMP_I18n {
 		if ( is_admin() || ( class_exists( 'AIMP_Design' ) && AIMP_Design::is_preview() ) ) {
 			return;
 		}
+		// Languages with their own address: a page in another language than the shop's own is that visitor's choice
+		// (remembered); on a page in the shop's own language a visitor who chose another goes to that language's
+		// address. ?aimp_lang (a cached old link) is remembered and dropped. Search engines have no cookie: they stay.
+		if ( class_exists( 'AIMP_Lang_Urls', false ) && AIMP_Lang_Urls::enabled() ) {
+			$urls = array();
+			foreach ( AIMP_Lang_Urls::alternates() as $code => $href ) {
+				$urls[ $code ] = (string) strtok( wp_make_link_relative( $href ), '?' );
+			}
+			printf(
+				'<script>(function(){try{var p=%1$s,d=%2$s,u=%3$s,s=/[?&]aimp_lang=([a-z]+)/.exec(location.search),c=/(?:^|;\s*)aimp_lang=([a-z]+)/.exec(document.cookie);' .
+				'function k(l){document.cookie="aimp_lang="+l+"; path=/; max-age=31536000; SameSite=Lax";}' .
+				'if(s){k(s[1]);if(u[s[1]]){var q=location.search.replace(/([?&])aimp_lang=[a-z]+&?/,"$1").replace(/[?&]$/,"");location.replace(u[s[1]]+q+location.hash);}return;}' .
+				'if(p!==d){k(p);return;}' .
+				'if(c&&c[1]!==p&&u[c[1]]){location.replace(u[c[1]]+location.search+location.hash);}}catch(e){}})();</script>' . "\n",
+				wp_json_encode( AIMP_Lang_Urls::page_lang() ),
+				wp_json_encode( self::default_language() ),
+				wp_json_encode( (object) $urls )
+			);
+			return;
+		}
 		printf(
 			'<script>(function(){try{var p=%1$s,s=/[?&]aimp_lang=([a-z]+)/.exec(location.search),c=/(?:^|;\s*)aimp_lang=([a-z]+)/.exec(document.cookie);' .
 			'if(s){document.cookie="aimp_lang="+s[1]+"; path=/; max-age=31536000; SameSite=Lax";return;}' .
@@ -115,6 +135,19 @@ class AIMP_I18n {
 		);
 	}
 
+	/**
+	 * A language flag's link: the page in that language (its own address, or ?aimp_lang without language addresses).
+	 *
+	 * @param string $code Language.
+	 * @return string
+	 */
+	public static function switch_url( $code ) {
+		if ( class_exists( 'AIMP_Lang_Urls', false ) && AIMP_Lang_Urls::enabled() ) {
+			return AIMP_Lang_Urls::switch_url( $code );
+		}
+		return add_query_arg( 'aimp_lang', $code );
+	}
+
 	public static function is_valid( $code ) {
 		return is_string( $code ) && array_key_exists( $code, self::languages() );
 	}
@@ -163,6 +196,16 @@ class AIMP_I18n {
 			$referer      = wp_get_raw_referer();
 			$from_backend = ! wp_doing_ajax() || ( $referer && 0 === strpos( $referer, admin_url() ) );
 			return $from_backend ? self::from_locale( get_user_locale() ) : self::default_language();
+		}
+		// Languages with their own address (/fr/…): a page is in the language of its address; the shop's background
+		// requests sent from a /fr/ page carry it too, other requests follow the parameter or the cookie below.
+		if ( class_exists( 'AIMP_Lang_Urls', false ) && AIMP_Lang_Urls::enabled() ) {
+			if ( '' !== AIMP_Lang_Urls::prefix_lang() ) {
+				return AIMP_Lang_Urls::prefix_lang();
+			}
+			if ( AIMP_Lang_Urls::is_page_view() ) {
+				return self::default_language();
+			}
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification -- only selects a display language.
 		$requested = isset( $_REQUEST['aimp_lang'] ) ? sanitize_key( wp_unslash( $_REQUEST['aimp_lang'] ) ) : '';

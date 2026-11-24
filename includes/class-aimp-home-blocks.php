@@ -476,7 +476,7 @@ class AIMP_Home_Blocks {
 		if ( 'designs' === $layout && $designs ) {
 			$cards = '';
 			foreach ( $designs as $id => $design ) {
-				$cards .= '<li><a class="aimp-gp-design" href="' . esc_url( add_query_arg( 'aimp_gc_design', $id, $url ) ) . '"><img src="' . esc_url( AIMP_Giftcards::design_image( $id, 'woocommerce_thumbnail' ) ) . '" alt="" loading="lazy"><span>' . esc_html( $design['name'] ) . '</span></a></li>';
+				$cards .= '<li><a class="aimp-gp-design" href="' . esc_url( add_query_arg( 'aimp_gc_design', $id, $url ) ) . '"><img src="' . esc_url( AIMP_Giftcards::design_image( $id, 'woocommerce_thumbnail' ) ) . '" alt="' . esc_attr( $design['name'] ) . '" loading="lazy"><span>' . esc_html( $design['name'] ) . '</span></a></li>';
 			}
 			return '<section class="aimp-home-block aimp-home-giftcards is-designs" data-aimp-slider>' . self::title( $title ) .
 				( '' !== $text ? '<p class="aimp-gp-text">' . esc_html( $text ) . '</p>' : '' ) .

@@ -3514,4 +3514,15 @@ return array(
 	// 3.82.0: the missing-parts setting on the Kit spotlights page
 	'For all kit spotlights.' => 'Voor alle naaipakketten in de kijker.',
 	'Save' => 'Opslaan',
+	// 3.86.0: SEO (category and brand pages, language addresses)
+	'%s: all products' => '%s: alle producten',
+	'%1$s – %2$s' => '%1$s – %2$s',
+	'Page %d' => 'Pagina %d',
+	'Language addresses: French and English pages get their own address (/fr/…, /en/…)' => 'Taaladressen: Franse en Engelse pagina\'s krijgen een eigen adres (/fr/…, /en/…)',
+	'So search engines can find every language. The shop\'s own language keeps the plain address. Switch this off only if something does not work with it.' => 'Zo vinden zoekmachines elke taal. De eigen taal van de winkel houdt het gewone adres. Zet dit alleen uit als er iets niet mee werkt.',
+	'Please enable JavaScript to filter the products.' => 'Zet JavaScript aan om de producten te filteren.',
+	'%1$s at %2$s: %3$d product of %1$s, to order online.' => '%1$s bij %2$s: %3$d product van %1$s, online te bestellen.',
+	'%1$s at %2$s: all %3$d products of %1$s, to order online.' => '%1$s bij %2$s: alle %3$d producten van %1$s, online te bestellen.',
+	'%1$s at %2$s: %3$d product in %4$s, to order online.' => '%1$s bij %2$s: %3$d product in %4$s, online te bestellen.',
+	'%1$s at %2$s: discover %3$d products in %4$s, to order online.' => '%1$s bij %2$s: ontdek %3$d producten in %4$s, online te bestellen.',
 );

@@ -88,6 +88,11 @@
 	 * @param {string} defaultLanguage
 	 */
 	function initialLang(i18n, defaultLanguage) {
+		// Languages with their own address (class-aimp-lang-urls.php): the page's language.
+		var page = window.aimpLang && window.aimpLang.page;
+		if (page && i18n[page]) {
+			return page;
+		}
 		var match = document.cookie.match(/(?:^|;\s*)aimp_lang=([a-z]+)/);
 		if (match && i18n[match[1]]) {
 			return match[1];
@@ -107,6 +112,33 @@
 		try {
 			window.localStorage.setItem(LANG_KEY, code);
 		} catch (e) {}
+	}
+
+	/**
+	 * Languages with their own address: a language button goes to this page in that language (/fr/…), which the server
+	 * makes in that language. Returns false without language addresses (the page then switches its texts itself).
+	 *
+	 * @param {string} code
+	 * @return {boolean}
+	 */
+	function goLanguage(code) {
+		var l = window.aimpLang;
+		if (!l || !l.urls || !l.page || code === l.page || !l.urls[code]) {
+			return false;
+		}
+		persistLang(code);
+		var path = window.location.pathname;
+		var target = l.urls[code];
+		// The shop may have changed the address (filters): the same address with the other language part.
+		if (path !== l.urls[l.page]) {
+			var own = l.page !== l.default ? '/' + l.page : '';
+			if (own && (path === own || path.indexOf(own + '/') === 0)) {
+				path = path.slice(own.length) || '/';
+			}
+			target = (code !== l.default ? '/' + code : '') + path;
+		}
+		window.location.href = target + window.location.search + window.location.hash;
+		return true;
 	}
 
 	function languageInfo(languages, code) {
@@ -194,25 +226,32 @@
 	 * @param {Object} data { items, page, pages, total, per_page }
 	 * @param {Object} t    strings: pagination, previous, next, showing
 	 */
-	function paginationHtml(data, t) {
+	function paginationHtml(data, t, pageHref) {
 		var html = '';
+		// A page button; with pageHref (the shop) a real link to that page, so search engines can follow the pages.
+		var page = function (p, cls, label, text) {
+			var attrs = ' class="' + cls + '" data-page="' + p + '"' + (label ? ' aria-label="' + esc(label) + '"' : '');
+			return pageHref
+				? '<a href="' + esc(pageHref(p)) + '"' + attrs + '>' + text + '</a>'
+				: '<button type="button"' + attrs + '>' + text + '</button>';
+		};
 		if (data.pages > 1) {
 			html += '<nav class="aimp-pagination" aria-label="' + esc(t.pagination) + '">';
-			html +=
-				'<button type="button" class="aimp-page aimp-page--nav" data-page="' + (data.page - 1) + '"' +
-				(data.page <= 1 ? ' disabled' : '') + ' aria-label="' + esc(t.previous) + '">‹</button>';
+			html += data.page <= 1
+				? '<button type="button" class="aimp-page aimp-page--nav" disabled aria-label="' + esc(t.previous) + '">‹</button>'
+				: page(data.page - 1, 'aimp-page aimp-page--nav', t.previous, '‹');
 			pageList(data.page, data.pages).forEach(function (p) {
 				if (p === '…') {
 					html += '<span class="aimp-page-gap" aria-hidden="true">…</span>';
 				} else if (p === data.page) {
 					html += '<button type="button" class="aimp-page is-current" aria-current="page" disabled>' + p + '</button>';
 				} else {
-					html += '<button type="button" class="aimp-page" data-page="' + p + '">' + p + '</button>';
+					html += page(p, 'aimp-page', '', p);
 				}
 			});
-			html +=
-				'<button type="button" class="aimp-page aimp-page--nav" data-page="' + (data.page + 1) + '"' +
-				(data.page >= data.pages ? ' disabled' : '') + ' aria-label="' + esc(t.next) + '">›</button>';
+			html += data.page >= data.pages
+				? '<button type="button" class="aimp-page aimp-page--nav" disabled aria-label="' + esc(t.next) + '">›</button>'
+				: page(data.page + 1, 'aimp-page aimp-page--nav', t.next, '›');
 			html += '</nav>';
 		}
 		if (data.total > 0 && data.per_page > 0) {
@@ -250,10 +289,16 @@
 			var suffix = item.price_suffix || opts.priceSuffix;
 			// Something on the card that is not part of its button (the shop's share button): the card in a slot.
 			var extra = opts.extra ? opts.extra(item) : '';
+			// The shop (opts.link): the card is a real link to the product page (search engines follow it); a plain click
+			// still opens the quick view.
+			var link = opts.link && item.permalink;
 			html += (extra ? '<div class="aimp-card-slot">' : '') +
-				'<button type="button" class="aimp-card' + (selected ? ' is-selected' : '') + (unavailable ? ' is-unavailable' : '') + '"' +
-				' data-id="' + esc(item.id) + '" aria-pressed="' + (selected ? 'true' : 'false') + '"' +
-				(unavailable ? ' disabled' : '') + '>' +
+				(link
+					? '<a href="' + esc(item.permalink) + '" class="aimp-card' + (selected ? ' is-selected' : '') + (unavailable ? ' is-unavailable' : '') + '"' +
+						' data-id="' + esc(item.id) + '"' + (selected ? ' aria-current="true"' : '') + '>'
+					: '<button type="button" class="aimp-card' + (selected ? ' is-selected' : '') + (unavailable ? ' is-unavailable' : '') + '"' +
+						' data-id="' + esc(item.id) + '" aria-pressed="' + (selected ? 'true' : 'false') + '"' +
+						(unavailable ? ' disabled' : '') + '>') +
 				'<span class="aimp-card-image"><img src="' + esc(item.image) + '" alt="' + esc(item.image_alt || item.name) + '" loading="lazy"></span>' +
 				'<span class="aimp-card-name">' + esc(item.name) + (item.subtitle ? '<small class="aimp-card-sub">' + esc(item.subtitle) + '</small>' : '') + '</span>' +
 				'<span class="aimp-card-price">' + (item.price_html || '') +
@@ -261,14 +306,22 @@
 				(unavailable ? '<span class="aimp-badge">' + esc(opts.unavailableText || '') + '</span>' : '') +
 				(!unavailable && item.badge ? '<span class="aimp-badge">' + esc(item.badge) + '</span>' : '') +
 				(selected ? '<span class="aimp-badge aimp-badge--selected">' + esc(t.selected) + '</span>' : '') +
-				'</button>' + (extra ? extra + '</div>' : '');
+				(link ? '</a>' : '</button>') + (extra ? extra + '</div>' : '');
 		});
 		html += '</div>';
-		html += paginationHtml(data, t);
+		html += paginationHtml(data, t, opts.pageHref);
 		container.innerHTML = html;
 
+		// A link opened in a new tab (Ctrl/Cmd/Shift or the middle button) goes its own way.
+		var ownWay = function (e) {
+			return e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || (e.button && e.button !== 0);
+		};
 		container.querySelectorAll('.aimp-card').forEach(function (card) {
-			card.addEventListener('click', function () {
+			card.addEventListener('click', function (e) {
+				if (card.tagName === 'A' && ownWay(e)) {
+					return;
+				}
+				e.preventDefault();
 				var item = findById(data.items, parseInt(card.getAttribute('data-id'), 10));
 				if (item) {
 					opts.onSelect(item);
@@ -276,7 +329,11 @@
 			});
 		});
 		container.querySelectorAll('[data-page]').forEach(function (btn) {
-			btn.addEventListener('click', function () {
+			btn.addEventListener('click', function (e) {
+				if (btn.tagName === 'A' && ownWay(e)) {
+					return;
+				}
+				e.preventDefault();
 				opts.onPage(parseInt(btn.getAttribute('data-page'), 10));
 				scrollIntoViewIfNeeded(container);
 			});
@@ -521,6 +578,7 @@
 		findById: findById,
 		scrollIntoViewIfNeeded: scrollIntoViewIfNeeded,
 		initialLang: initialLang,
+		goLanguage: goLanguage,
 		persistLang: persistLang,
 		languageInfo: languageInfo,
 		languagesHtml: languagesHtml,

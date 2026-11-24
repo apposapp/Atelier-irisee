@@ -14,6 +14,10 @@
 	 * ------------------------------------------------------------- */
 
 	function lang() {
+		// Languages with their own address: the page's language.
+		if (window.aimpLang && window.aimpLang.page && cfg.i18n[window.aimpLang.page]) {
+			return window.aimpLang.page;
+		}
 		var match = document.cookie.match(/(?:^|;\s*)aimp_lang=([a-z]+)/);
 		if (match && cfg.i18n[match[1]]) {
 			return match[1];
@@ -382,6 +386,22 @@
 		return score;
 	}
 
+	// WordPress's strength library, only once someone types a new password (it is large); the meter updates when it is there.
+	var zxcvbnLoading = false;
+	function loadZxcvbn(input) {
+		if (zxcvbnLoading || !cfg.zxcvbn) {
+			return;
+		}
+		zxcvbnLoading = true;
+		var script = document.createElement('script');
+		script.src = cfg.zxcvbn;
+		script.async = true;
+		script.onload = function () {
+			updateStrength(input);
+		};
+		document.head.appendChild(script);
+	}
+
 	function updateStrength(input) {
 		var field = input.closest('.aimp-el-field');
 		var meter = field ? field.querySelector('.aimp-el-strength') : null;
@@ -394,6 +414,10 @@
 			if (window.wp && window.wp.passwordStrength && window.wp.passwordStrength.meter) {
 				var disallowed = window.wp.passwordStrength.userInputDisallowedList ? window.wp.passwordStrength.userInputDisallowedList() : [];
 				score = window.wp.passwordStrength.meter(value, disallowed, '');
+			} else if (window.zxcvbn) {
+				score = window.zxcvbn(value).score;
+			} else {
+				loadZxcvbn(input);
 			}
 			if (score < 0) {
 				score = fallbackScore(value);

@@ -62,6 +62,7 @@ class AIMP_Settings {
 			'per_page'        => 9,
 			'fabric_per_page' => 16,
 			'favorites_page'  => 0,
+			'lang_urls'       => 1,
 			'refund_days'     => 14,
 				'kit_discount'      => 10,
 			'welcome_discount'  => 10,
@@ -862,6 +863,7 @@ class AIMP_Settings {
 
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;
+		$sanitized['lang_urls'] = empty( $input['lang_urls'] ) ? 0 : 1;
 		$sanitized             = array_merge( $sanitized, AIMP_Hero::sanitize( $input ) );
 		$sanitized             = array_merge( $sanitized, AIMP_Kit_Steps::sanitize( $input ) );
 		$sanitized             = array_merge( $sanitized, AIMP_Notions::sanitize_options( $input ) );
@@ -999,6 +1001,14 @@ class AIMP_Settings {
 		}
 		echo '</select>';
 		echo '<p class="description">' . esc_html__( 'Used for these settings, the product fields and as the starting language of the configurator. Customers can switch language at any time with the flags in the configurator.', 'atelier-irisee-master-plugin' ) . '</p>';
+		// Every language its own address (AIMP_Lang_Urls).
+		printf(
+			'<p><label><input type="checkbox" name="%s[lang_urls]" value="1"%s> %s</label></p><p class="description">%s</p>',
+			esc_attr( self::OPTION ),
+			checked( (bool) self::get( 'lang_urls' ), true, false ),
+			esc_html__( 'Language addresses: French and English pages get their own address (/fr/…, /en/…)', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'So search engines can find every language. The shop\'s own language keeps the plain address. Switch this off only if something does not work with it.', 'atelier-irisee-master-plugin' )
+		);
 	}
 
 	public static function render_per_page_field( $args ) {

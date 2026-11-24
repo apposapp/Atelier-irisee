@@ -198,6 +198,10 @@ class AIMP_Newsletter {
 		$email->newsletter = self::email_parts( $nl );
 		$email->newsletter['view_url'] = '';
 		nocache_headers();
+		// A copy of an email: not for search engines.
+		if ( ! headers_sent() ) {
+			header( 'X-Robots-Tag: noindex, nofollow' );
+		}
 		echo $email->style_inline( $email->get_content_html() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- email HTML built from escaped parts.
 		exit;
 	}

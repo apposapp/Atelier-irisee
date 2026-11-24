@@ -1190,3 +1190,63 @@ html.aimp-sheet-open body {
 		gap: 0.6rem;
 	}
 }
+
+/* ------------------------------------------------------------------
+ * Product cards and page numbers as real links (search engines follow them; a click still opens the quick view).
+ * ------------------------------------------------------------------ */
+
+.aimp-configurator a.aimp-card,
+.aimp-configurator a.aimp-card:hover,
+.aimp-configurator a.aimp-card:focus {
+	box-sizing: border-box;
+	text-decoration: none;
+}
+
+.aimp-configurator a.aimp-page {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	text-decoration: none;
+	vertical-align: middle;
+}
+
+/* The products as plain HTML, before the shop's script builds the shop (search engines, no JavaScript). While the
+   script runs it is kept in place but not shown, so nothing jumps; the script replaces it. */
+.aimp-shop-static {
+	display: grid;
+	gap: var(--aimp-gap, 1rem);
+}
+
+.aimp-shop-static-intro {
+	max-width: 70ch;
+	margin: 0;
+}
+
+.aimp-shop-static .aimp-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+	gap: var(--aimp-gap, 1rem);
+}
+
+.aimp-shop-static .aimp-card-image img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 1;
+	object-fit: cover;
+}
+
+@media (scripting: enabled) {
+	.aimp-shop-static {
+		visibility: hidden;
+		/* Should the script not run after all, the products show after a moment. */
+		animation: aimp-shop-static-show 0s 4s forwards;
+	}
+}
+
+@keyframes aimp-shop-static-show {
+	to {
+		visibility: visible;
+	}
+}

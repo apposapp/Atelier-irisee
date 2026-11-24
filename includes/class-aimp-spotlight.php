@@ -748,14 +748,14 @@ class AIMP_Spotlight {
 		}
 		$drawing = self::drawing( $element['kind'] );
 		if ( 'medallion' === $spot['style'] ) {
-			$inner = '<span class="aimp-sp-disc">' . ( $image ? '<img src="' . esc_url( $image ) . '" alt="" loading="lazy">' : $drawing ) . '</span>' .
+			$inner = '<span class="aimp-sp-disc">' . ( $image ? '<img src="' . esc_url( $image ) . '" alt="' . esc_attr( $element['name'] ) . '" loading="lazy">' : $drawing ) . '</span>' .
 				'<span class="aimp-sp-ribbon">' . esc_html( $label ) . '</span>';
 		} elseif ( 'drawing' === $spot['style'] ) {
 			$inner = '<span class="aimp-sp-badge">' . $drawing . '</span><span class="aimp-sp-caption">' . esc_html( $label ) . '</span>';
 		} else {
 			// A kraft paper label on a string: the photo (or the drawing) and the product's name.
 			$inner = '<span class="aimp-sp-string"></span><span class="aimp-sp-tag"><span class="aimp-sp-hole"></span>' .
-				( $image ? '<img src="' . esc_url( $image ) . '" alt="" loading="lazy">' : $drawing ) .
+				( $image ? '<img src="' . esc_url( $image ) . '" alt="' . esc_attr( $element['name'] ) . '" loading="lazy">' : $drawing ) .
 				'<span class="aimp-sp-tag-label">' . esc_html( $label ) . '</span><span class="aimp-sp-tag-name">' . esc_html( $element['name'] ) . '</span></span>';
 		}
 		// A little delay of its own, so the elements never float in step.

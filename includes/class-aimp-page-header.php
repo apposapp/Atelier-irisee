@@ -253,6 +253,11 @@ class AIMP_Page_Header {
 		$fy      = (int) self::design( 'fy', -1, $page );
 		$title   = (string) self::design( 'title', '', $page );
 		$title   = '' !== $title ? AIMP_Settings::localized( $title ) : ( '' !== $atts['title'] ? $atts['title'] : $page_title );
+		// A category or brand page of its own (/stoffen/boucle/): its name is the page's heading.
+		$own = class_exists( 'AIMP_Shop' ) ? AIMP_Shop::request_term() : null;
+		if ( $own && is_page( $own[2] ) ) {
+			$title = $own[0]->name;
+		}
 		$sub     = (string) self::design( 'sub', '', $page );
 		$sub     = '' !== $sub ? AIMP_Settings::localized( $sub ) : $atts['sub'];
 		// "Title in the picture" needs a picture (or a video); without one the title is shown as text.

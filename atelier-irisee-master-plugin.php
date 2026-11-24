@@ -39,11 +39,14 @@ add_action(
 );
 
 require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-i18n.php';
+require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-lang-urls.php';
 require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-updater.php';
 require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-plugin.php';
 
 // Dutch/English translations, loaded first so every string (including the plugin description) is translated.
 AIMP_I18n::init();
+// Every language its own address (/fr/…, /en/…): read before WordPress reads the address.
+AIMP_Lang_Urls::boot();
 
 // The updater runs even when WooCommerce is inactive, so fixes can always be delivered.
 AIMP_Updater::init();

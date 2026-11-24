@@ -509,6 +509,10 @@
 		if (!validLang(code) || code === lang) {
 			return;
 		}
+		// Languages with their own address: the page in that language (the customizer keeps its choices in the address).
+		if (UI.goLanguage(code)) {
+			return;
+		}
 		lang = code;
 		t = cfg.i18n[code];
 		persistLang(code);

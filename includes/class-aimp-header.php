@@ -156,7 +156,7 @@ class AIMP_Header {
 			// The kinds and the extra categories (no "All haberdashery": the page itself shows the overview).
 			$links = array();
 			foreach ( $kinds as $kind => $item ) {
-				$links[] = array( $kind, $item[0], add_query_arg( 'aimp_cat', $item[1], $url ) );
+				$links[] = array( $kind, $item[0], AIMP_Shop::kind_url( $item[1], $url ) );
 			}
 			return $links;
 		}
@@ -178,7 +178,7 @@ class AIMP_Header {
 			$links[] = array( 'lining', __( 'Lining', 'atelier-irisee-master-plugin' ), add_query_arg( 'aimp_lining', 1, $url ) );
 		}
 		foreach ( $terms as $term ) {
-			$links[] = array( $term->slug, $term->name, add_query_arg( 'aimp_cat', $term->term_id, $url ) );
+			$links[] = array( $term->slug, $term->name, AIMP_Shop::kind_url( $term->term_id, $url ) );
 		}
 		return $links;
 	}
@@ -342,6 +342,26 @@ class AIMP_Header {
 	 */
 	public static function logo_html() {
 		$divi = self::divi_logo();
+		// A logo from the media library: a size that fits the header (with width and height, so nothing shifts while
+		// it loads) instead of the full upload (often 2560 px for a logo shown at 72 px high).
+		$id = '' !== $divi ? (int) attachment_url_to_postid( $divi ) : 0;
+		if ( $id ) {
+			$img = wp_get_attachment_image(
+				$id,
+				'medium_large',
+				false,
+				array(
+					'alt'           => get_bloginfo( 'name' ),
+					'sizes'         => '240px',
+					'loading'       => false,
+					'decoding'      => 'async',
+					'fetchpriority' => 'high',
+				)
+			);
+			if ( '' !== $img ) {
+				return '<a class="aimp-header-logo" href="' . esc_url( home_url( '/' ) ) . '" rel="home">' . $img . '</a>';
+			}
+		}
 		if ( '' !== $divi ) {
 			return sprintf(
 				'<a class="aimp-header-logo" href="%1$s" rel="home"><img src="%2$s" alt="%3$s"></a>',

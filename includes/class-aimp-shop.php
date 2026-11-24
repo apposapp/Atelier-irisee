@@ -48,6 +48,211 @@ class AIMP_Shop {
 		add_filter( 'term_link', array( __CLASS__, 'term_link' ), 20, 3 );
 		add_filter( 'woocommerce_get_shop_page_permalink', array( __CLASS__, 'shop_link' ), 20 );
 		add_action( 'template_redirect', array( __CLASS__, 'redirect_archives' ) );
+
+		// Every category and brand gets an address of its own under its shop page (/stoffen/boucle/,
+		// /alle-producten/merk/cousette/), with its own title and heading (AIMP_SEO): pages search engines can list.
+		add_action( 'init', array( __CLASS__, 'rewrite_rules' ) );
+		add_filter( 'query_vars', array( __CLASS__, 'query_vars' ) );
+		add_filter( 'request', array( __CLASS__, 'check_request' ) );
+		add_action( 'template_redirect', array( __CLASS__, 'redirect_filter_links' ), 5 );
+	}
+
+	/* ------------------------------------------------------------------
+	 * Category and brand pages: /{shop page}/{category}/ and /{All products}/merk/{brand}/
+	 * ------------------------------------------------------------------ */
+
+	/** The part of a brand page's address after the All products page. */
+	const BRAND_BASE = 'merk';
+
+	/** Option: the rules last written, so WordPress's rewrite rules are only renewed when a shop page changes. */
+	const RULES_OPTION = 'aimp_shop_rules';
+
+	/**
+	 * Whether categories and brands get their own address (pretty permalinks and the category routing on).
+	 *
+	 * @return bool
+	 */
+	public static function clean_urls() {
+		return (bool) AIMP_Settings::get( 'category_redirect' ) && '' !== (string) get_option( 'permalink_structure' );
+	}
+
+	/**
+	 * The shop pages: page id => type, for patterns, fabrics, haberdashery and all products.
+	 *
+	 * @return array
+	 */
+	private static function type_pages() {
+		$pages = array();
+		foreach ( array( 'patterns', 'fabrics', 'haberdashery', 'all' ) as $type ) {
+			$page = self::page_for_type( $type );
+			if ( $page && ! isset( $pages[ $page ] ) ) {
+				$pages[ $page ] = $type;
+			}
+		}
+		return $pages;
+	}
+
+	public static function rewrite_rules() {
+		if ( ! self::clean_urls() ) {
+			return;
+		}
+		$rules = array();
+		$all   = self::page_for_type( 'all' );
+		foreach ( self::type_pages() as $page => $type ) {
+			$uri = get_page_uri( $page );
+			if ( ! $uri ) {
+				continue;
+			}
+			$base = '^' . str_replace( '#', '\#', preg_quote( $uri ) );
+			if ( $page === $all ) {
+				$rules[ $base . '/' . self::BRAND_BASE . '/([^/]+)/?$' ] = 'index.php?page_id=' . $page . '&aimp_brand_slug=$matches[1]';
+			}
+			$rules[ $base . '/([^/]+)/?$' ] = 'index.php?page_id=' . $page . '&aimp_term=$matches[1]';
+		}
+		foreach ( $rules as $regex => $query ) {
+			add_rewrite_rule( $regex, $query, 'top' );
+		}
+		// New or changed shop pages: WordPress writes its rules again (once).
+		$signature = md5( wp_json_encode( $rules ) );
+		if ( get_option( self::RULES_OPTION ) !== $signature ) {
+			update_option( self::RULES_OPTION, $signature, true );
+			add_action(
+				'wp_loaded',
+				function () {
+					flush_rewrite_rules( false );
+				}
+			);
+		}
+	}
+
+	/**
+	 * @param array $vars Public query variables.
+	 * @return array
+	 */
+	public static function query_vars( $vars ) {
+		$vars[] = 'aimp_term';
+		$vars[] = 'aimp_brand_slug';
+		return $vars;
+	}
+
+	/**
+	 * A category or brand address that is not one (a child page with that name, or a mistake): the page at that
+	 * address, or "not found".
+	 *
+	 * @param array $vars Query.
+	 * @return array
+	 */
+	public static function check_request( $vars ) {
+		if ( empty( $vars['page_id'] ) || ( empty( $vars['aimp_term'] ) && empty( $vars['aimp_brand_slug'] ) ) ) {
+			return $vars;
+		}
+		if ( self::request_term( $vars ) ) {
+			return $vars;
+		}
+		$uri  = get_page_uri( (int) $vars['page_id'] );
+		$slug = ! empty( $vars['aimp_term'] ) ? $vars['aimp_term'] : self::BRAND_BASE . '/' . $vars['aimp_brand_slug'];
+		return array( 'pagename' => $uri . '/' . $slug );
+	}
+
+	/**
+	 * The category or brand of a category or brand address, when it really belongs to that shop page.
+	 *
+	 * @param array|null $vars Query (null: the current one).
+	 * @return array|null [ term, kind (category|brand), page id, type ]
+	 */
+	public static function request_term( $vars = null ) {
+		static $current = false;
+		$own = null === $vars;
+		if ( $own ) {
+			if ( false !== $current ) {
+				return $current;
+			}
+			$vars = array(
+				'page_id'         => get_query_var( 'page_id' ),
+				'aimp_term'       => get_query_var( 'aimp_term' ),
+				'aimp_brand_slug' => get_query_var( 'aimp_brand_slug' ),
+			);
+		}
+		$found = null;
+		$page  = isset( $vars['page_id'] ) ? (int) $vars['page_id'] : 0;
+		$types = self::type_pages();
+		if ( $page && isset( $types[ $page ] ) && self::clean_urls() ) {
+			if ( ! empty( $vars['aimp_term'] ) ) {
+				$slug = sanitize_title( $vars['aimp_term'] );
+				foreach ( get_terms( array( 'taxonomy' => 'product_cat', 'slug' => $slug, 'hide_empty' => false ) ) as $term ) {
+					// Only where the category's own address is this one (a fabric category under Fabrics, …).
+					if ( $term instanceof WP_Term && trailingslashit( get_permalink( $page ) ) . $term->slug . '/' === self::category_url( $term ) ) {
+						$found = array( $term, 'category', $page, $types[ $page ] );
+						break;
+					}
+				}
+			} elseif ( ! empty( $vars['aimp_brand_slug'] ) && taxonomy_exists( 'product_brand' ) && self::page_for_type( 'all' ) === $page ) {
+				$term = get_term_by( 'slug', sanitize_title( $vars['aimp_brand_slug'] ), 'product_brand' );
+				if ( $term instanceof WP_Term ) {
+					$found = array( $term, 'brand', $page, $types[ $page ] );
+				}
+			}
+		}
+		if ( $own ) {
+			$current = $found;
+		}
+		return $found;
+	}
+
+	/**
+	 * The address of a category or brand page, with a page number.
+	 *
+	 * @param WP_Term $term Category or brand.
+	 * @param int     $page Page number.
+	 * @return string
+	 */
+	public static function term_url( $term, $page = 1 ) {
+		$url = 'product_brand' === $term->taxonomy ? self::brand_url( $term ) : self::category_url( $term );
+		return $page > 1 && '' !== $url ? add_query_arg( 'aimp_page', (int) $page, $url ) : $url;
+	}
+
+	/**
+	 * Old links with one category or brand as a filter (?aimp_cat=34, ?aimp_brand=cousette): to that category's or
+	 * brand's own address, for good (301).
+	 */
+	public static function redirect_filter_links() {
+		if ( ! self::clean_urls() || ! is_page() || is_admin() ) {
+			return;
+		}
+		$types = self::type_pages();
+		$page  = (int) get_queried_object_id();
+		if ( ! isset( $types[ $page ] ) ) {
+			return;
+		}
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- only reads which filter the address has.
+		$keys = array_filter(
+			array_keys( $_GET ),
+			function ( $key ) {
+				return 0 === strpos( (string) $key, 'aimp_' ) && ! in_array( $key, array( 'aimp_lang', 'aimp_page', 'aimp_design_preview' ), true );
+			}
+		);
+		if ( 1 !== count( $keys ) ) {
+			return;
+		}
+		$key   = reset( $keys );
+		$value = isset( $_GET[ $key ] ) ? sanitize_text_field( wp_unslash( $_GET[ $key ] ) ) : '';
+		$num   = isset( $_GET['aimp_page'] ) ? absint( $_GET['aimp_page'] ) : 1;
+		// phpcs:enable
+		$term = null;
+		if ( 'aimp_cat' === $key && ctype_digit( $value ) ) {
+			$term = get_term( (int) $value, 'product_cat' );
+		} elseif ( 'aimp_brand' === $key && taxonomy_exists( 'product_brand' ) ) {
+			$term = get_term_by( 'slug', $value, 'product_brand' );
+		}
+		if ( ! $term instanceof WP_Term ) {
+			return;
+		}
+		$url = self::term_url( $term, $num );
+		// Only to a category page under this same shop page (other categories stay a filter here).
+		if ( '' !== $url && 0 === strpos( $url, trailingslashit( get_permalink( $page ) ) ) && trailingslashit( get_permalink( $page ) ) !== $url ) {
+			wp_safe_redirect( $url, 301 );
+			exit;
+		}
 	}
 
 	/* ------------------------------------------------------------------
@@ -90,11 +295,38 @@ class AIMP_Shop {
 				// Buttons, Zips, Ribbons and Bias tape are filters of their own.
 				return ( $term_id === $root && 'haberdashery' !== $type )
 					? get_permalink( $page )
-					: add_query_arg( 'aimp_cat', $term_id, get_permalink( $page ) );
+					: self::under_page( $page, $term_id );
 			}
 		}
 		$page = self::page_for_type( 'all' );
-		return $page ? add_query_arg( 'aimp_cat', $term_id, get_permalink( $page ) ) : '';
+		return $page ? self::under_page( $page, $term_id ) : '';
+	}
+
+	/**
+	 * A category's address for a menu or overview link: its own address, else the shop page with it as a filter.
+	 *
+	 * @param int    $term_id Category.
+	 * @param string $url     The shop page.
+	 * @return string
+	 */
+	public static function kind_url( $term_id, $url ) {
+		$own = self::routing_enabled() ? self::category_url( (int) $term_id ) : '';
+		return '' !== $own && $own !== $url ? $own : add_query_arg( 'aimp_cat', (int) $term_id, $url );
+	}
+
+	/**
+	 * A category's address under a shop page: its own (/stoffen/boucle/), or the page with the category as a filter.
+	 *
+	 * @param int $page    Shop page.
+	 * @param int $term_id Category.
+	 * @return string
+	 */
+	private static function under_page( $page, $term_id ) {
+		$term = get_term( $term_id, 'product_cat' );
+		if ( self::clean_urls() && $term instanceof WP_Term && '' !== $term->slug ) {
+			return trailingslashit( get_permalink( $page ) ) . $term->slug . '/';
+		}
+		return add_query_arg( 'aimp_cat', $term_id, get_permalink( $page ) );
 	}
 
 	/**
@@ -146,7 +378,8 @@ class AIMP_Shop {
 			$url  = ( $page && $page !== (int) wc_get_page_id( 'shop' ) ) ? get_permalink( $page ) : '';
 		}
 		if ( $url ) {
-			wp_safe_redirect( $url, 302 );
+			// For good (301): search engines move the old category address to the new one.
+			wp_safe_redirect( $url, 301 );
 			exit;
 		}
 	}
@@ -332,11 +565,21 @@ class AIMP_Shop {
 		);
 		$type     = in_array( $atts['type'], self::TYPES, true ) ? $atts['type'] : 'all';
 		$category = absint( $atts['category'] );
+		$brand    = '';
+		// A category or brand page of its own (/stoffen/boucle/): that category or brand.
+		$own = self::request_term();
+		if ( $own && (int) get_queried_object_id() === (int) $own[2] ) {
+			if ( 'brand' === $own[1] ) {
+				$brand = $own[0]->slug;
+			} else {
+				$category = (int) $own[0]->term_id;
+			}
+		}
 
 		// The All products page is an overview of the shop sections, and the Haberdashery page one of its kinds,
 		// unless a category link or filter (or "All haberdashery": aimp_all) brought the visitor here: then it
 		// lists the products.
-		if ( ! self::has_filters_in_url() && 'all' !== $atts['list'] && ! $category ) {
+		if ( ! self::has_filters_in_url() && 'all' !== $atts['list'] && ! $category && '' === $brand ) {
 			$overview = '';
 			if ( 'all' === $type ) {
 				$overview = self::overview_html();
@@ -352,15 +595,85 @@ class AIMP_Shop {
 		// The first page of products (with the filter options) comes with the page, so the grid shows at once; the
 		// script only asks the server again when the visitor filters, sorts or pages.
 		$initial = '';
-		if ( ! self::has_filters_in_url( true ) && ! $category ) {
+		if ( ! self::has_filters_in_url( true ) && ! $category && '' === $brand ) {
 			$data            = self::query( self::default_args( $type ) );
 			$data['facets']  = self::facets( $type );
 			$data['lang']    = AIMP_I18n::current();
 			$initial         = ' data-initial="' . esc_attr( wp_json_encode( $data ) ) . '"';
 		}
-		return '<div class="aimp-configurator aimp-shop" data-aimp-shop data-type="' . esc_attr( $type ) . '"' . ( $category ? ' data-category="' . $category . '"' : '' ) . $initial . '><noscript>' .
-			esc_html__( 'Please enable JavaScript to browse the products.', 'atelier-irisee-master-plugin' ) .
-			'</noscript></div>';
+		$clean = '';
+		if ( $own && (int) get_queried_object_id() === (int) $own[2] ) {
+			$clean = ' data-clean="1" data-base="' . esc_attr( wp_make_link_relative( get_permalink( $own[2] ) ) ) . '"';
+		}
+		return '<div class="aimp-configurator aimp-shop" data-aimp-shop data-type="' . esc_attr( $type ) . '"' . ( $category ? ' data-category="' . $category . '"' : '' ) .
+			( '' !== $brand ? ' data-brand="' . esc_attr( $brand ) . '"' : '' ) . $clean . $initial . '>' .
+			self::static_html( $type, $category, $brand, $own ) .
+			'<noscript><p>' . esc_html__( 'Please enable JavaScript to filter the products.', 'atelier-irisee-master-plugin' ) . '</p></noscript></div>';
+	}
+
+	/**
+	 * The products as plain HTML, replaced by the shop's script: what search engines (and visitors without
+	 * JavaScript) see. A page of products with links to them, and links to the next pages.
+	 *
+	 * @param string     $type     Page type.
+	 * @param int        $category Category.
+	 * @param string     $brand    Brand slug.
+	 * @param array|null $own      request_term() on a category or brand page.
+	 * @return string
+	 */
+	private static function static_html( $type, $category, $brand, $own ) {
+		$args = self::default_args( $type );
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- only reads which products to show.
+		if ( ! $category && isset( $_GET['aimp_cat'] ) ) {
+			$category = absint( wp_unslash( $_GET['aimp_cat'] ) );
+		}
+		if ( '' === $brand && isset( $_GET['aimp_brand'] ) ) {
+			$brand = sanitize_title( wp_unslash( $_GET['aimp_brand'] ) );
+		}
+		$page = isset( $_GET['aimp_page'] ) ? max( 1, absint( $_GET['aimp_page'] ) ) : 1;
+		// phpcs:enable
+		$args['category'] = $category ? array( $category ) : array();
+		$args['brand']    = $brand;
+		$args['page']     = $page;
+		$data             = self::query( $args );
+
+		$html = '<div class="aimp-shop-static">';
+		// A category's or brand's own text (Products → Categories / Brands → Description).
+		if ( $own && '' !== trim( (string) $own[0]->description ) ) {
+			$html .= '<div class="aimp-shop-static-intro">' . wp_kses_post( wpautop( $own[0]->description ) ) . '</div>';
+		}
+		if ( ! $data['items'] ) {
+			return $html . '<p>' . esc_html__( 'No products found.', 'atelier-irisee-master-plugin' ) . '</p></div>';
+		}
+		$size  = wc_get_image_size( 'woocommerce_thumbnail' );
+		$html .= '<ul class="aimp-grid">';
+		foreach ( $data['items'] as $i => $item ) {
+			$html .= '<li><a class="aimp-card" href="' . esc_url( $item['permalink'] ) . '">' .
+				'<span class="aimp-card-image"><img src="' . esc_url( $item['image'] ) . '" alt="' . esc_attr( '' !== $item['image_alt'] ? $item['image_alt'] : $item['name'] ) . '"' .
+				( ! empty( $size['width'] ) ? ' width="' . (int) $size['width'] . '" height="' . (int) ( ! empty( $size['height'] ) ? $size['height'] : $size['width'] ) . '"' : '' ) .
+				( $i > 3 ? ' loading="lazy"' : '' ) . ' decoding="async"></span>' .
+				'<span class="aimp-card-name">' . esc_html( $item['name'] ) . '</span>' .
+				'<span class="aimp-card-price">' . wp_kses_post( (string) $item['price_html'] ) . '</span></a></li>';
+		}
+		$html .= '</ul>';
+		if ( $data['pages'] > 1 ) {
+			$base = $own ? self::term_url( $own[0] ) : get_permalink();
+			if ( ! $own && $category ) {
+				$base = add_query_arg( 'aimp_cat', $category, $base );
+			}
+			if ( ! $own && '' !== $brand ) {
+				$base = add_query_arg( 'aimp_brand', $brand, $base );
+			}
+			$html .= '<nav class="aimp-pagination" aria-label="' . esc_attr__( 'Pages', 'atelier-irisee-master-plugin' ) . '">';
+			for ( $p = 1; $p <= $data['pages']; $p++ ) {
+				$url   = $p > 1 ? add_query_arg( 'aimp_page', $p, $base ) : $base;
+				$html .= $p === (int) $data['page']
+					? '<span class="aimp-page is-current" aria-current="page">' . $p . '</span> '
+					: '<a class="aimp-page" href="' . esc_url( $url ) . '">' . $p . '</a> ';
+			}
+			$html .= '</nav>';
+		}
+		return $html . '</div>';
 	}
 
 	/**
@@ -485,7 +798,7 @@ class AIMP_Shop {
 			if ( $hero_key === $key ) {
 				// Sewing project kits: the hero, a large tile on the left (bento), with only its picture and name.
 				$hero = sprintf(
-					'<li class="aimp-overview-card aimp-overview-hero aimp-overview-card--%4$s"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
+					'<li class="aimp-overview-card aimp-overview-hero aimp-overview-card--%4$s"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="%3$s" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
 					esc_url( get_permalink( $link_id ) ),
 					esc_url( self::overview_image( $setting, $cat_keys, $link_id ) ),
 					esc_html( $label ),
@@ -494,7 +807,7 @@ class AIMP_Shop {
 				continue;
 			}
 			$cards .= sprintf(
-				'<li class="aimp-overview-card aimp-overview-card--%4$s"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span>%5$s</a></li>',
+				'<li class="aimp-overview-card aimp-overview-card--%4$s"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="%3$s" loading="lazy"></span><span class="aimp-card-name">%3$s</span>%5$s</a></li>',
 				esc_url( get_permalink( $link_id ) ),
 				esc_url( self::overview_image( $setting, $cat_keys, $link_id ) ),
 				esc_html( $label ),
@@ -628,8 +941,8 @@ class AIMP_Shop {
 			// An extra category (no setting of its own): its own picture (Products → Categories), else one of its products.
 			$picture = '' !== $item[2] ? self::overview_image( 'overview_img_hab_' . $kind, array( $item[2] ), $page ) : self::category_image( $item[1] );
 			$cards  .= sprintf(
-				'<li class="aimp-overview-card aimp-overview-card--%4$s"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
-				esc_url( add_query_arg( 'aimp_cat', $item[1], $url ) ),
+				'<li class="aimp-overview-card aimp-overview-card--%4$s"><a class="aimp-card" href="%1$s"><span class="aimp-card-image"><img src="%2$s" alt="%3$s" loading="lazy"></span><span class="aimp-card-name">%3$s</span></a></li>',
+				esc_url( self::kind_url( $item[1], $url ) ),
 				esc_url( $picture ),
 				esc_html( $item[0] ),
 				esc_attr( $kind )
@@ -1429,6 +1742,12 @@ class AIMP_Shop {
 	 */
 	public static function brand_url( $term ) {
 		$page = self::page_for_type( 'all' );
-		return $page ? add_query_arg( 'aimp_brand', $term->slug, get_permalink( $page ) ) : '';
+		if ( ! $page ) {
+			return '';
+		}
+		// Its own address (/alle-producten/merk/cousette/), or the page with the brand as a filter.
+		return self::clean_urls()
+			? trailingslashit( get_permalink( $page ) ) . self::BRAND_BASE . '/' . $term->slug . '/'
+			: add_query_arg( 'aimp_brand', $term->slug, get_permalink( $page ) );
 	}
 }

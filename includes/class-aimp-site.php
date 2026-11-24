@@ -23,6 +23,24 @@ class AIMP_Site {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'defer_scripts' ), 999 );
 		// Divi's viewport blocks pinch zoom on phones; allow it again.
 		add_action( 'wp_head', array( __CLASS__, 'viewport' ), 0 );
+		// The fonts every page uses are fetched first, so the text shows in its own font sooner.
+		add_action( 'wp_head', array( __CLASS__, 'preload_fonts' ), 1 );
+	}
+
+	public static function preload_fonts() {
+		if ( is_admin() ) {
+			return;
+		}
+		$fonts = array( AIMP_PLUGIN_URL . 'assets/fonts/cinzel-latin.woff2' => 'font/woff2' );
+		if ( AIMP_Settings::get( 'site_font' ) && AIMP_Settings::get( 'font_regular' ) ) {
+			$url = (string) wp_get_attachment_url( AIMP_Settings::get( 'font_regular' ) );
+			if ( '' !== $url ) {
+				$fonts[ $url ] = 'otf' === strtolower( pathinfo( (string) wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) ) ? 'font/otf' : 'font/ttf';
+			}
+		}
+		foreach ( $fonts as $url => $type ) {
+			echo '<link rel="preload" as="font" type="' . esc_attr( $type ) . '" href="' . esc_url( $url ) . '" crossorigin>' . "\n";
+		}
 	}
 
 	public static function viewport() {

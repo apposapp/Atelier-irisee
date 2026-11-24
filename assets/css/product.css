@@ -1594,3 +1594,10 @@ html:has(.aimp-product-reviews) {
 .aimp-configurator.aimp-product > .is-tab-hidden {
 	display: none !important;
 }
+
+/* The summary's subtitles are h2 (one step below the product name, for search engines and screen readers) with the
+   look they had as h4. */
+.aimp-configurator h2.aimp-product-subtitle {
+	font-size: 18px;
+	line-height: 1.2;
+}

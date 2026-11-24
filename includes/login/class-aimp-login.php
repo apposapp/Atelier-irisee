@@ -349,7 +349,9 @@ class AIMP_Login {
 
 	public static function register_assets() {
 		wp_register_style( 'aimp-login', AIMP_PLUGIN_URL . 'assets/css/login.css', array(), AIMP_VERSION );
-		wp_register_script( 'aimp-login', AIMP_PLUGIN_URL . 'assets/js/login.js', array( 'password-strength-meter' ), AIMP_VERSION, true );
+		// No password-strength meter on every page (jQuery and the large zxcvbn library): login.js loads zxcvbn only when
+		// someone types a new password.
+		wp_register_script( 'aimp-login', AIMP_PLUGIN_URL . 'assets/js/login.js', array(), AIMP_VERSION, true );
 
 		// Logged-out visitors get the popup on every page: load the stylesheet in <head> right away.
 		if ( self::popup_needed() || ( function_exists( 'is_account_page' ) && is_account_page() ) ) {
@@ -455,6 +457,7 @@ class AIMP_Login {
 			'i18n'            => $i18n,
 			'singleField'     => (bool) self::opt( 'single_field' ),
 			'strengthMin'     => (int) self::opt( 'strength_min' ),
+			'zxcvbn'          => includes_url( 'js/zxcvbn.min.js' ),
 			// "On the first page of a visit": never on the cart, the checkout or the configurator, where it would
 			// interrupt a purchase, and never on the my account page (its own login form is there).
 			'autoOpen'        => $auto,

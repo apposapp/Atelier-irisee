@@ -21,6 +21,44 @@ class AIMP_Hero {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ), 20 );
+		// The hero's picture is the largest thing on the home page: the browser fetches it first (preload).
+		add_action( 'wp_head', array( __CLASS__, 'preload' ), 2 );
+	}
+
+	/**
+	 * The hero's pictures: [ computer (full size), phone (its own picture, else the same one at 1536 px) ].
+	 *
+	 * @param int $image_id The computer picture (0: the settings).
+	 * @return array
+	 */
+	private static function pictures( $image_id = 0 ) {
+		$design   = function ( $key, $default = null ) {
+			return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'hero', $key, $default ) : $default;
+		};
+		$image_id = $image_id ? $image_id : ( $design( 'h_img' ) ? (int) $design( 'h_img' ) : AIMP_Settings::get( 'hero_image' ) );
+		$image    = $image_id ? (string) wp_get_attachment_image_url( $image_id, 'full' ) : '';
+		$phone_id = $design( 'h_pimg' ) ? (int) $design( 'h_pimg' ) : AIMP_Settings::get( 'hero_image_phone' );
+		$phone    = $phone_id ? (string) wp_get_attachment_image_url( $phone_id, 'large' ) : '';
+		if ( '' === $phone && $image_id ) {
+			$phone = (string) wp_get_attachment_image_url( $image_id, '1536x1536' );
+		}
+		return array( $image, $phone );
+	}
+
+	/**
+	 * On a page with the hero: its picture for computers and for phones, fetched first.
+	 */
+	public static function preload() {
+		if ( ! class_exists( 'AIMP_Blocks' ) || ! AIMP_Blocks::page_has( array( self::TAG ) ) ) {
+			return;
+		}
+		list( $image, $phone ) = self::pictures();
+		if ( '' !== $image ) {
+			echo '<link rel="preload" as="image" href="' . esc_url( $image ) . '"' . ( '' !== $phone ? ' media="(min-width: 701px)"' : '' ) . ' fetchpriority="high">' . "\n";
+		}
+		if ( '' !== $phone ) {
+			echo '<link rel="preload" as="image" href="' . esc_url( $phone ) . '" media="(max-width: 700px)" fetchpriority="high">' . "\n";
+		}
 	}
 
 	public static function register_assets() {
@@ -76,10 +114,8 @@ class AIMP_Hero {
 		$design   = function ( $key, $default = null ) {
 			return class_exists( 'AIMP_Design' ) ? AIMP_Design::opt( 'hero', $key, $default ) : $default;
 		};
-		$image_id = absint( $atts['image'] ) ? absint( $atts['image'] ) : ( $design( 'h_img' ) ? (int) $design( 'h_img' ) : AIMP_Settings::get( 'hero_image' ) );
-		$image    = $image_id ? wp_get_attachment_image_url( $image_id, 'full' ) : '';
-		$phone_id = $design( 'h_pimg' ) ? (int) $design( 'h_pimg' ) : AIMP_Settings::get( 'hero_image_phone' );
-		$phone    = $phone_id ? wp_get_attachment_image_url( $phone_id, 'large' ) : '';
+		// Phones get their own picture, else the same one smaller (1536 px instead of the full size).
+		list( $image, $phone ) = self::pictures( absint( $atts['image'] ) );
 		$logo_id  = AIMP_Settings::get( 'hero_logo' );
 		$logo     = $logo_id ? wp_get_attachment_image_url( $logo_id, 'medium' ) : AIMP_Header::logo_url();
 		$focus    = self::focus_options();
@@ -131,7 +167,7 @@ class AIMP_Hero {
 			<?php if ( $video || count( $slides ) > 1 ) : ?>
 				<div class="aimp-hero-media" aria-hidden="true">
 					<?php if ( $video ) : ?>
-						<video class="aimp-hero-video" src="<?php echo esc_url( $video ); ?>" autoplay muted loop playsinline<?php echo $image ? ' poster="' . esc_url( $image ) . '"' : ''; ?>></video>
+						<video class="aimp-hero-video" data-src="<?php echo esc_url( $video ); ?>" preload="none" muted loop playsinline<?php echo $image ? ' poster="' . esc_url( $image ) . '"' : ''; ?>></video>
 					<?php else : ?>
 						<?php foreach ( $slides as $index => $slide ) : ?>
 							<div class="aimp-hero-slide<?php echo 0 === $index ? ' is-current' : ''; ?>" style="background-image:url('<?php echo esc_url( $slide ); ?>')"></div>

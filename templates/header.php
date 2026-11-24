@@ -88,7 +88,7 @@ $aimp_d = function ( $part, $key, $default = null ) {
 						<?php foreach ( $aimp_langs as $aimp_lang ) : ?>
 							<?php if ( $aimp_lang['code'] === $aimp_current ) { continue; } ?>
 							<li>
-								<a href="<?php echo esc_url( add_query_arg( 'aimp_lang', $aimp_lang['code'] ) ); ?>" data-lang="<?php echo esc_attr( $aimp_lang['code'] ); ?>" lang="<?php echo esc_attr( $aimp_lang['locale'] ); ?>">
+								<a href="<?php echo esc_url( AIMP_I18n::switch_url( $aimp_lang['code'] ) ); ?>" data-lang="<?php echo esc_attr( $aimp_lang['code'] ); ?>" lang="<?php echo esc_attr( $aimp_lang['locale'] ); ?>">
 									<img src="<?php echo esc_url( $aimp_lang['flag'] ); ?>" alt="" width="24" height="16">
 									<span><?php echo esc_html( $aimp_lang['name'] ); ?></span>
 								</a>

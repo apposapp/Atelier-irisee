@@ -56,6 +56,7 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-design-tech.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-design-inline.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-content-i18n.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-seo.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-stats.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-boot.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-hero.php';
@@ -118,6 +119,7 @@ class AIMP_Plugin {
 		AIMP_AI_Looks::init();
 		AIMP_Design::init();
 		AIMP_Design_Tech::init();
+		AIMP_SEO::init();
 		AIMP_Design_Inline::init();
 		AIMP_Content_I18n::init();
 		AIMP_Stats::init();

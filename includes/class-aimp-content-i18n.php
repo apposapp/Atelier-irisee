@@ -61,6 +61,21 @@ class AIMP_Content_I18n {
 	}
 
 	/**
+	 * One Dutch text in the page's language (structured data, titles made by the plugin), or the text itself.
+	 *
+	 * @param string $text Dutch text.
+	 * @return string
+	 */
+	public static function translate( $text ) {
+		$lang = AIMP_I18n::current();
+		if ( 'nl' === $lang || '' === trim( (string) $text ) || ! self::load( $lang ) ) {
+			return $text;
+		}
+		$found = self::find( self::key( (string) $text ) );
+		return null === $found ? $text : $found;
+	}
+
+	/**
 	 * @param string $lang Language.
 	 * @return bool Whether there is anything to translate.
 	 */
@@ -104,7 +119,44 @@ class AIMP_Content_I18n {
 			$json = wp_json_encode( self::walk( $data ) );
 			return false === $json ? $out : $json;
 		}
-		return false !== stripos( $out, '<' ) ? self::html( $out ) : $out;
+		return false !== stripos( $out, '<' ) ? self::html( self::head_tags( $out ) ) : $out;
+	}
+
+	/**
+	 * The page's search and share texts (description, Open Graph, Twitter) in the page's language, its language in
+	 * og:locale and the structured data, and links typed in Divi to a page of the shop in this language (/fr/…).
+	 *
+	 * @param string $html Whole page.
+	 * @return string
+	 */
+	private static function head_tags( $html ) {
+		$lang = AIMP_I18n::current();
+		$html = preg_replace_callback(
+			'/(<meta\s+(?:name|property)=["\'](?:description|og:title|og:description|og:image:alt|twitter:title|twitter:description)["\']\s+content=)(["\'])(.*?)\2/i',
+			function ( $m ) {
+				return $m[1] . $m[2] . self::text( $m[3], true ) . $m[2];
+			},
+			$html
+		);
+		$locale = 'fr' === $lang ? 'fr_BE' : 'en_GB';
+		$html   = preg_replace( '/(<meta\s+property=["\']og:locale["\']\s+content=["\'])[a-z]{2}_[A-Z]{2}(["\'])/', '${1}' . $locale . '${2}', $html );
+		$html   = preg_replace( '/("inLanguage"\s*:\s*")[a-z]{2}(?:-[A-Z]{2})?(")/', '${1}' . $lang . '${2}', $html );
+		if ( class_exists( 'AIMP_Lang_Urls', false ) && AIMP_Lang_Urls::enabled() && '' !== AIMP_Lang_Urls::prefix_lang() ) {
+			$html = preg_replace_callback(
+				'/(<a\b[^>]*?\shref=)(["\'])([^"\'#][^"\']*)\2/i',
+				function ( $m ) use ( $lang ) {
+					$url = html_entity_decode( $m[3], ENT_QUOTES, 'UTF-8' );
+					// Not a link that already has a language part, nor a flag to the shop's own language (?aimp_lang).
+					if ( '' !== AIMP_Lang_Urls::lang_of( $url ) || false !== strpos( $url, 'aimp_lang=' ) ) {
+						return $m[0];
+					}
+					$new = AIMP_Lang_Urls::with_lang( $url, $lang );
+					return $new === $url ? $m[0] : $m[1] . $m[2] . esc_attr( $new ) . $m[2];
+				},
+				$html
+			);
+		}
+		return $html;
 	}
 
 	/** Fields of the shop's answers that are data, not text: a filter's key is sent back as it is ("bruin, beige"). */

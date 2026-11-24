@@ -62,7 +62,7 @@ if ( $aimp_count ) {
  * @param string $aimp_class Extra class.
  */
 $aimp_dropdown = function ( $aimp_title, $aimp_body, $aimp_class ) {
-	echo '<details class="aimp-dropdown ' . esc_attr( $aimp_class ) . '"><summary><h4 class="aimp-product-subtitle">' . esc_html( $aimp_title ) . '</h4>';
+	echo '<details class="aimp-dropdown ' . esc_attr( $aimp_class ) . '"><summary><h2 class="aimp-product-subtitle">' . esc_html( $aimp_title ) . '</h2>';
 	echo '<span class="aimp-dropdown-arrow" aria-hidden="true"></span></summary><div class="aimp-dropdown-body">' . $aimp_body . '</div></details>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the callers.
 };
 
@@ -112,7 +112,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 						<div class="aimp-gallery-thumbs">
 							<?php foreach ( $aimp_gallery as $aimp_index => $aimp_image ) : ?>
 								<button type="button" class="aimp-thumb<?php echo 0 === $aimp_index ? ' is-active' : ''; ?>" data-index="<?php echo esc_attr( $aimp_index ); ?>" aria-pressed="<?php echo 0 === $aimp_index ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %d: picture number */ __( 'Show picture %d', 'atelier-irisee-master-plugin' ), $aimp_index + 1 ) ); ?>">
-									<img src="<?php echo esc_url( $aimp_image['thumb'] ); ?>" alt="" loading="lazy">
+									<img src="<?php echo esc_url( $aimp_image['thumb'] ); ?>" alt="<?php echo esc_attr( $aimp_image['alt'] ); ?>" loading="lazy">
 								</button>
 							<?php endforeach; ?>
 						</div>
@@ -308,7 +308,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 			<?php endif; ?>
 
 			<?php if ( $aimp_show_short ) : ?>
-				<h4 class="aimp-product-subtitle aimp-product-short-title"><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h4>
+				<h2 class="aimp-product-subtitle aimp-product-short-title"><?php esc_html_e( 'Description', 'atelier-irisee-master-plugin' ); ?></h2>
 				<div class="aimp-description aimp-product-short"><?php echo wp_kses_post( wc_format_content( $the_product->get_short_description() ) ); ?></div>
 			<?php endif; ?>
 
@@ -328,7 +328,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 			// Patterns: description and details here, next to the picture.
 			if ( $aimp_pattern && $aimp_has_desc ) {
 				// Without a second "Description" title when the short description already has one.
-				echo '<div class="aimp-product-text">' . ( $aimp_show_short ? '' : '<h4 class="aimp-product-subtitle">' . esc_html__( 'Description', 'atelier-irisee-master-plugin' ) . '</h4>' );
+				echo '<div class="aimp-product-text">' . ( $aimp_show_short ? '' : '<h2 class="aimp-product-subtitle">' . esc_html__( 'Description', 'atelier-irisee-master-plugin' ) . '</h2>' );
 				echo '<div class="aimp-description">' . wp_kses_post( wc_format_content( $aimp_description ) ) . '</div></div>';
 			}
 			?>
@@ -336,7 +336,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 			<?php if ( $aimp_attributes || $aimp_weight || $aimp_dimensions || $the_product->get_sku() ) : ?>
 				<div class="aimp-product-details">
 					<?php if ( $aimp_pattern ) : ?>
-						<h4 class="aimp-product-subtitle"><?php esc_html_e( 'Details', 'atelier-irisee-master-plugin' ); ?></h4>
+						<h2 class="aimp-product-subtitle"><?php esc_html_e( 'Details', 'atelier-irisee-master-plugin' ); ?></h2>
 					<?php endif; ?>
 					<dl class="aimp-info-list">
 						<?php foreach ( $aimp_attributes as $aimp_attribute ) : ?>

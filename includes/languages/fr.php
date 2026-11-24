@@ -3514,4 +3514,15 @@ return array(
 	// 3.82.0: the missing-parts setting on the Kit spotlights page
 	'For all kit spotlights.' => 'Pour tous les kits à l\'honneur.',
 	'Save' => 'Enregistrer',
+	// 3.86.0: SEO (category and brand pages, language addresses)
+	'%s: all products' => '%s : tous les produits',
+	'%1$s – %2$s' => '%1$s – %2$s',
+	'Page %d' => 'Page %d',
+	'Language addresses: French and English pages get their own address (/fr/…, /en/…)' => 'Adresses par langue : les pages en français et en anglais ont leur propre adresse (/fr/…, /en/…)',
+	'So search engines can find every language. The shop\'s own language keeps the plain address. Switch this off only if something does not work with it.' => 'Ainsi, les moteurs de recherche trouvent chaque langue. La langue de la boutique garde l\'adresse simple. Ne désactivez ceci que si quelque chose ne fonctionne pas.',
+	'Please enable JavaScript to filter the products.' => 'Activez JavaScript pour filtrer les produits.',
+	'%1$s at %2$s: %3$d product of %1$s, to order online.' => '%1$s chez %2$s : %3$d produit de %1$s, à commander en ligne.',
+	'%1$s at %2$s: all %3$d products of %1$s, to order online.' => '%1$s chez %2$s : les %3$d produits de %1$s, à commander en ligne.',
+	'%1$s at %2$s: %3$d product in %4$s, to order online.' => '%1$s chez %2$s : %3$d produit dans %4$s, à commander en ligne.',
+	'%1$s at %2$s: discover %3$d products in %4$s, to order online.' => '%1$s chez %2$s : découvrez %3$d produits dans %4$s, à commander en ligne.',
 );
