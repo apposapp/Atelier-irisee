@@ -237,5 +237,14 @@
 		document.querySelectorAll('.aimp-sp-form').forEach(setupForm);
 		setupPictures();
 		setupCopy();
+		// The sliders show their value.
+		document.querySelectorAll('.aimp-sp-form [data-range]').forEach(function (range) {
+			range.addEventListener('input', function () {
+				var out = range.parentNode.querySelector('output');
+				if (out) {
+					out.textContent = range.value;
+				}
+			});
+		});
 	});
 })();

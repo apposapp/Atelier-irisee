@@ -127,7 +127,23 @@ class AIMP_Spotlight {
 			'needle'      => ! isset( $spot['needle'] ) || ! empty( $spot['needle'] ) ? 1 : 0,
 			'speed'       => $int( 'speed', 25, 300, 100 ),
 			'right'       => empty( $spot['right'] ) ? 0 : 1,
+			// The picture with the needle and the elements: moved left/right in the free room of its column (-100 = all the
+			// way left, 100 = all the way right) and its size (%).
+			'shift'       => $int( 'shift', -100, 100, 0 ),
+			'scale'       => $int( 'scale', 70, 140, 100 ),
+			// Its own kit discount (%), or '' for the shop's (Settings → Sewing project kit discount).
+			'discount'    => isset( $spot['discount'] ) && '' !== trim( (string) $spot['discount'] ) ? max( 0, min( 90, (int) $spot['discount'] ) ) : '',
 		);
+	}
+
+	/**
+	 * The kit discount of a spotlight (%): its own, else the shop's.
+	 *
+	 * @param array $spot Spotlight.
+	 * @return int
+	 */
+	public static function discount( $spot ) {
+		return isset( $spot['discount'] ) && '' !== $spot['discount'] ? (int) $spot['discount'] : AIMP_Cart::kit_discount();
 	}
 
 	/**
@@ -153,7 +169,8 @@ class AIMP_Spotlight {
 	 */
 	public static function default_texts() {
 		return array(
-			'kicker'    => __( 'Kit in the spotlight', 'atelier-irisee-master-plugin' ),
+			// No small line above the title unless the shop types one.
+			'kicker'    => '',
 			'title'     => '',
 			'text'      => '',
 			'button'    => __( 'Add the kit to the cart', 'atelier-irisee-master-plugin' ),
@@ -247,7 +264,7 @@ class AIMP_Spotlight {
 		if ( ! $data ) {
 			return null;
 		}
-		$discount = AIMP_Cart::kit_discount();
+		$discount = self::discount( $spot );
 		$sizes    = array();
 		foreach ( $data['sizes'] as $size ) {
 			$req = self::requirements( $spot, $size['id'] );
@@ -428,20 +445,38 @@ class AIMP_Spotlight {
 		if ( '' === $title && isset( $elements['pattern'] ) ) {
 			$title = $elements['pattern']['name'];
 		}
-		$photo = '';
-		if ( $spot['image'] ) {
-			$photo = wp_get_attachment_image( $spot['image'], 'large', false, array( 'class' => 'aimp-spotlight-img', 'alt' => $title, 'loading' => 'lazy', 'style' => 'object-position:' . $spot['fx'] . '% ' . $spot['fy'] . '%' ) );
-		} elseif ( isset( $elements['pattern'] ) && $elements['pattern']['image'] ) {
-			$photo = wp_get_attachment_image( (int) $elements['pattern']['image'], 'large', false, array( 'class' => 'aimp-spotlight-img', 'alt' => $title, 'loading' => 'lazy' ) );
+		$photo   = '';
+		$picture = $spot['image'] ? (int) $spot['image'] : ( isset( $elements['pattern'] ) ? (int) $elements['pattern']['image'] : 0 );
+		$ratio   = '';
+		if ( $picture ) {
+			$photo = wp_get_attachment_image( $picture, 'large', false, array( 'class' => 'aimp-spotlight-img', 'alt' => $title, 'loading' => 'lazy' ) );
+			// The frame takes the picture's own shape, so the whole picture is seen.
+			$src = wp_get_attachment_image_src( $picture, 'large' );
+			if ( $src && ! empty( $src[1] ) && ! empty( $src[2] ) ) {
+				$ratio = ' style="--sp-ratio:' . round( max( 0.4, min( 2.5, $src[1] / $src[2] ) ), 4 ) . '"';
+			}
 		}
 
 		$classes = 'aimp-home-block aimp-spotlight style-' . $spot['style'] . ' move-' . $spot['move'] . ( $spot['right'] ? ' is-photo-right' : '' ) . ( $spot['needle'] ? ' has-needle' : '' );
 		$attrs   = ' data-aimp-spotlight data-id="' . (int) $id . '" data-endpoint="' . esc_url( WC_AJAX::get_endpoint( 'aimp_spotlight_add' ) ) . '"' .
 			' data-speed="' . (int) $spot['speed'] . '" data-needle="' . (int) $spot['needle'] . '"';
+		// Moved left/right and its size (Atelier Irisee → Kit spotlights → Picture and elements).
+		$scale   = ( isset( $spot['scale'] ) ? (int) $spot['scale'] : 100 ) / 100;
+		$shift   = isset( $spot['shift'] ) ? (int) $spot['shift'] : 0;
+		$style   = '';
+		if ( 1.0 !== (float) $scale ) {
+			$style .= '--sp-size:' . $scale . ';--sp-col:' . round( 1.25 * $scale, 3 ) . 'fr;';
+		}
+		if ( $shift ) {
+			$style .= '--sp-shift:' . ( $shift / 100 ) . ';';
+		}
+		if ( '' !== $style ) {
+			$attrs .= ' style="' . esc_attr( $style ) . '"';
+		}
 
 		$html  = '<section class="' . esc_attr( $classes ) . '"' . $attrs . ' aria-label="' . esc_attr( $title ) . '">';
 		$html .= '<div class="aimp-spotlight-stage">';
-		$html .= '<div class="aimp-spotlight-photo">' . $photo . '</div>';
+		$html .= '<div class="aimp-spotlight-photo"' . $ratio . '>' . $photo . '</div>';
 		if ( $spot['needle'] ) {
 			$html .= '<svg class="aimp-spotlight-layer is-back" aria-hidden="true" focusable="false"></svg>';
 		}
@@ -518,7 +553,7 @@ class AIMP_Spotlight {
 			$from = min( $amounts ) < max( $amounts ) ? sprintf( __( 'from %s', 'atelier-irisee-master-plugin' ), $lowest ) : $lowest;
 		}
 		$html .= '<p class="aimp-spotlight-price" aria-live="polite"><del data-regular hidden></del> <span data-price>' . esc_html( $from ) . '</span>';
-		$discount = AIMP_Cart::kit_discount();
+		$discount = self::discount( $spot );
 		if ( $discount > 0 ) {
 			/* translators: %d: discount percentage */
 			$html .= ' <span class="aimp-spotlight-save">' . esc_html( sprintf( __( '%d%% kit discount', 'atelier-irisee-master-plugin' ), $discount ) ) . '</span>';
@@ -665,7 +700,8 @@ class AIMP_Spotlight {
 			$spot['notions'],
 			$req['lining_units'] > 0 ? $spot['lining'] : 0,
 			array(),
-			isset( $req['finish'] ) ? $req['finish'] : ''
+			isset( $req['finish'] ) ? $req['finish'] : '',
+			self::discount( $spot )
 		);
 		$wc_errors = array_map(
 			function ( $notice ) {
@@ -1014,13 +1050,19 @@ class AIMP_Spotlight {
 				<tr data-row="finish"><th><?php esc_html_e( 'Finish', 'atelier-irisee-master-plugin' ); ?></th><td><select name="<?php echo esc_attr( $f( 'finish' ) ); ?>" data-finish></select></td></tr>
 				<tr><th><?php esc_html_e( 'Haberdashery', 'atelier-irisee-master-plugin' ); ?></th><td><div class="aimp-sp-notions" data-notions></div>
 					<p class="description"><?php esc_html_e( 'One item per kind the pattern needs. Leave one on "none" to leave it out of the kit. An item that does not fit a size (e.g. the length of a zip) makes that size unavailable.', 'atelier-irisee-master-plugin' ); ?></p></td></tr>
+				<tr><th><label for="aimp-sp-discount"><?php esc_html_e( 'Kit discount', 'atelier-irisee-master-plugin' ); ?></label></th>
+					<td><input id="aimp-sp-discount" type="number" min="0" max="90" step="1" class="small-text" name="<?php echo esc_attr( $f( 'discount' ) ); ?>" value="<?php echo esc_attr( (string) $spot['discount'] ); ?>" placeholder="<?php echo (int) AIMP_Cart::kit_discount(); ?>"> %
+					<?php /* translators: %d: the shop's kit discount (percent) */ ?>
+					<p class="description"><?php echo esc_html( sprintf( __( 'Only for this kit. Empty = the shop\'s kit discount (now %d%%, Atelier Irisee → Settings). 0 = no discount.', 'atelier-irisee-master-plugin' ), AIMP_Cart::kit_discount() ) ); ?></p></td></tr>
 			</table>
 
 			<h2><?php esc_html_e( 'Picture and elements', 'atelier-irisee-master-plugin' ); ?></h2>
 			<table class="form-table" role="presentation">
 				<tr><th><?php esc_html_e( 'Picture of the kit', 'atelier-irisee-master-plugin' ); ?></th><td><?php echo self::picture( $f( 'image' ), $spot['image'], __( 'Standard: the pattern picture', 'atelier-irisee-master-plugin' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in picture(). ?>
-					<p><label><?php esc_html_e( 'Focal point: left / right', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" max="100" name="<?php echo esc_attr( $f( 'fx' ) ); ?>" value="<?php echo (int) $spot['fx']; ?>" class="small-text"> %</label>
-					<label><?php esc_html_e( 'top / bottom', 'atelier-irisee-master-plugin' ); ?> <input type="number" min="0" max="100" name="<?php echo esc_attr( $f( 'fy' ) ); ?>" value="<?php echo (int) $spot['fy']; ?>" class="small-text"> %</label></p>
+					<p class="description"><?php esc_html_e( 'The whole picture is shown, in its own shape.', 'atelier-irisee-master-plugin' ); ?></p>
+					<input type="hidden" name="<?php echo esc_attr( $f( 'fx' ) ); ?>" value="<?php echo (int) $spot['fx']; ?>"><input type="hidden" name="<?php echo esc_attr( $f( 'fy' ) ); ?>" value="<?php echo (int) $spot['fy']; ?>">
+					<p class="aimp-sp-range"><label><?php esc_html_e( 'Position of the picture and the needle: left ← → right', 'atelier-irisee-master-plugin' ); ?><br><input type="range" min="-100" max="100" step="5" name="<?php echo esc_attr( $f( 'shift' ) ); ?>" value="<?php echo (int) $spot['shift']; ?>" data-range> <output><?php echo (int) $spot['shift']; ?></output></label><br><span class="description"><?php esc_html_e( 'Within the free room beside the picture: -100 = all the way left, 0 = in the middle, 100 = all the way right. When the picture fills its column, make it smaller first. Phones: always in the middle.', 'atelier-irisee-master-plugin' ); ?></span></p>
+					<p class="aimp-sp-range"><label><?php esc_html_e( 'Size of the picture and the needle', 'atelier-irisee-master-plugin' ); ?><br><input type="range" min="70" max="140" step="5" name="<?php echo esc_attr( $f( 'scale' ) ); ?>" value="<?php echo (int) $spot['scale']; ?>" data-range> <output><?php echo (int) $spot['scale']; ?></output> %</label></p>
 					<p><label><input type="checkbox" name="<?php echo esc_attr( $f( 'right' ) ); ?>" value="1" <?php checked( $spot['right'] ); ?>> <?php esc_html_e( 'The picture on the right', 'atelier-irisee-master-plugin' ); ?></label></p></td></tr>
 				<tr><th><?php esc_html_e( 'Look of the elements', 'atelier-irisee-master-plugin' ); ?></th><td>
 					<?php

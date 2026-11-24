@@ -62,7 +62,7 @@ class AIMP_Cart {
 	 * @param array $extras       The matching dog bandana: [ bandana => 0|1, thread => ID, band => ID ].
 	 * @return true|WP_Error WP_Error carries one message per problem.
 	 */
-	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0, $extras = array(), $finish = '' ) {
+	public static function add_group( $variation_id, $fabric_id, $notions, $lining_id = 0, $extras = array(), $finish = '', $discount = null ) {
 		$errors = new WP_Error();
 		// With the fabric: a narrow one can need more.
 		$req    = AIMP_Catalog::get_requirements( $variation_id, $fabric_id ? $fabric_id : null );
@@ -186,6 +186,10 @@ class AIMP_Cart {
 			}
 			if ( ! empty( $line['finish'] ) ) {
 				$data[ self::KEY ]['finish'] = $line['finish'];
+			}
+			// A kit with its own discount (a kit spotlight).
+			if ( null !== $discount ) {
+				$data[ self::KEY ]['discount'] = max( 0, min( 90, (int) $discount ) );
 			}
 			try {
 				if ( $product->is_type( 'variation' ) ) {
@@ -447,6 +451,17 @@ class AIMP_Cart {
 	 * @param array $cart_item Cart item.
 	 * @return bool
 	 */
+	/**
+	 * The discount of one kit line (%): the kit's own (a kit spotlight), else the shop's.
+	 *
+	 * @param array $cart_item Cart item (or its values).
+	 * @return int
+	 */
+	public static function item_discount( $cart_item ) {
+		$meta = self::meta( $cart_item );
+		return $meta && isset( $meta['discount'] ) ? (int) $meta['discount'] : self::kit_discount();
+	}
+
 	public static function is_kit_item( $cart_item ) {
 		return null !== self::meta( $cart_item );
 	}
@@ -458,12 +473,16 @@ class AIMP_Cart {
 	 * @param WC_Cart $cart Cart.
 	 */
 	public static function apply_kit_discount( $cart ) {
-		$percent = self::kit_discount();
-		if ( ! $percent || ( is_admin() && ! wp_doing_ajax() ) ) {
+		if ( is_admin() && ! wp_doing_ajax() ) {
 			return;
 		}
 		foreach ( $cart->get_cart() as $item ) {
 			if ( ! self::is_kit_item( $item ) || empty( $item['data'] ) || ! $item['data'] instanceof WC_Product ) {
+				continue;
+			}
+			// The kit's own discount (a kit spotlight), else the shop's.
+			$percent = self::item_discount( $item );
+			if ( $percent <= 0 ) {
 				continue;
 			}
 			$fresh = wc_get_product( $item['data']->get_id() );
@@ -567,8 +586,8 @@ class AIMP_Cart {
 		if ( isset( $values['data'] ) && AIMP_Catalog::sold_per_10cm( $values['data'] ) ) {
 			$item->add_meta_data( 'aimp_length', AIMP_Catalog::fabric_text( (int) $meta['qty'] ), true );
 		}
-		if ( self::kit_discount() ) {
-			$item->add_meta_data( __( 'Sewing project kit discount', 'atelier-irisee-master-plugin' ), self::kit_discount() . '%', true );
+		if ( self::item_discount( $values ) ) {
+			$item->add_meta_data( __( 'Sewing project kit discount', 'atelier-irisee-master-plugin' ), self::item_discount( $values ) . '%', true );
 		}
 	}
 

@@ -37,6 +37,8 @@
 	var saving = false;
 	var saveAgain = false;
 	var textsChanged = false;
+	// A setting (not typed text) the server makes: saved and loaded again at once, without waiting for more typing.
+	var quickReload = false;
 	var frameOrigin = '';
 	// The parts found on the page in the preview (null until it has loaded), and computer or phone settings.
 	var present = null;
@@ -382,12 +384,14 @@
 
 	/* ---------------- saving ---------------- */
 
-	function save(texts) {
+	function save(texts, quick) {
 		textsChanged = textsChanged || !!texts;
+		quickReload = !!texts && !!quick;
 		window.clearTimeout(saveTimer);
-		// The whole-site look is made on the server: saved sooner, so the preview follows quickly.
+		// The whole-site look is made on the server: saved sooner, so the preview follows quickly. A setting that loads
+		// the preview again (a choice, a tick, a slider): sooner still.
 		var site = current && cfg.elements[current] && !cfg.elements[current].selector;
-		saveTimer = window.setTimeout(flush, site ? 300 : 700);
+		saveTimer = window.setTimeout(flush, quickReload ? 200 : (site ? 300 : 700));
 		showStatus(t.saving);
 	}
 
@@ -398,7 +402,9 @@
 		}
 		saving = true;
 		var reload = textsChanged;
+		var quick = quickReload;
 		textsChanged = false;
+		quickReload = false;
 		post('save', { styles: JSON.stringify(draft), texts: JSON.stringify(draftTexts), settings: JSON.stringify(draftSettings) }).then(function (data) {
 			setState(data, true);
 			showStatus(unpublished() ? t.saved + ' · ' + t.unpublished : t.published);
@@ -407,7 +413,7 @@
 				window.clearTimeout(reloadTimer);
 				reloadTimer = window.setTimeout(function () {
 					reloadPreview();
-				}, 600);
+				}, quick ? 0 : 600);
 			}
 		}).catch(function (e) {
 			showStatus(e.message);
@@ -1028,7 +1034,7 @@
 			delete draft[current];
 		}
 		sendCss();
-		save(reloads(key));
+		save(reloads(key), true);
 		if (!reloads(key) && isOptionKey(key)) {
 			fastCss();
 		}

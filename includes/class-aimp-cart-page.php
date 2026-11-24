@@ -165,6 +165,7 @@ class AIMP_Cart_Page {
 						'regular'    => 0,
 						'remove_url' => wc_get_cart_remove_url( $key ),
 						'finish'     => '',
+						'discount'   => AIMP_Cart::item_discount( $item ),
 						'items'      => array(),
 					);
 				}
@@ -239,7 +240,6 @@ class AIMP_Cart_Page {
 	 */
 	public static function summary_html() {
 		$contents = self::contents();
-		$discount = AIMP_Cart::kit_discount();
 		ob_start();
 		?>
 		<ul class="aimp-os">
@@ -265,7 +265,7 @@ class AIMP_Cart_Page {
 									<?php endif; ?>
 								</span>
 								<span class="aimp-os-price">
-									<?php if ( $discount && $aimp_line['regular'] > 0 ) : ?>
+									<?php if ( $aimp_set['discount'] && $aimp_line['regular'] > 0 ) : ?>
 										<del><?php echo wp_kses_post( wc_price( $aimp_line['regular'] ) ); ?></del>
 									<?php endif; ?>
 									<?php echo wp_kses_post( $aimp_line['subtotal'] ); ?>
@@ -276,7 +276,7 @@ class AIMP_Cart_Page {
 					<p class="aimp-os-set-total">
 						<span><?php esc_html_e( 'Set total', 'atelier-irisee-master-plugin' ); ?></span>
 						<strong>
-							<?php if ( $discount && $aimp_set['regular'] > $aimp_set['total'] ) : ?>
+							<?php if ( $aimp_set['discount'] && $aimp_set['regular'] > $aimp_set['total'] ) : ?>
 								<del><?php echo wp_kses_post( wc_price( $aimp_set['regular'] ) ); ?></del>
 							<?php endif; ?>
 							<?php echo wp_kses_post( wc_price( $aimp_set['total'] ) ); ?>
