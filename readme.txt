@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.86.0
+Stable tag: 3.86.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.86.1 =
+* SEO: a brand page under All products shows the brand as its main heading (not the page's own Divi heading); the favourites page and the "Uncategorized" category are really not listed (All in One SEO's robots tag), and "Uncategorized" is left out of the sitemap.
 
 = 3.86.0 =
 * SEO: shop pages show their products as plain HTML with real links (search engines can follow them), product cards are links (a click still opens the quick view) and page numbers are links.

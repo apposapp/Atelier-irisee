@@ -40,6 +40,9 @@ class AIMP_SEO {
 		add_filter( 'aioseo_facebook_tags', array( __CLASS__, 'social_tags' ), 20 );
 		add_filter( 'aioseo_twitter_tags', array( __CLASS__, 'social_tags' ), 20 );
 		add_filter( 'aioseo_schema_output', array( __CLASS__, 'schema' ), 20 );
+		add_filter( 'aioseo_robots_meta', array( __CLASS__, 'aioseo_robots' ), 20 );
+		// WooCommerce's "Uncategorized" category is not a page worth listing.
+		add_filter( 'aioseo_sitemap_exclude_terms', array( __CLASS__, 'sitemap_exclude_terms' ), 20, 2 );
 		// Without an SEO plugin: WordPress's own title and canonical.
 		add_filter( 'document_title_parts', array( __CLASS__, 'title_parts' ), 20 );
 		add_filter( 'get_canonical_url', array( __CLASS__, 'canonical' ), 20 );
@@ -234,6 +237,11 @@ class AIMP_SEO {
 		if ( $favorites && is_page( $favorites ) ) {
 			$noindex = true;
 		}
+		// The "Uncategorized" category page.
+		$meta = self::term_meta();
+		if ( $meta && (int) $meta[3]->term_id === (int) get_option( 'default_product_cat' ) ) {
+			$noindex = true;
+		}
 		if ( is_page() && class_exists( 'AIMP_Shop' ) && self::is_shop_page() ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only the names of the parameters.
 			foreach ( array_keys( $_GET ) as $key ) {
@@ -248,6 +256,54 @@ class AIMP_SEO {
 			$robots['follow']  = true;
 		}
 		return $robots;
+	}
+
+	/**
+	 * Whether this page is not to be listed (robots()).
+	 *
+	 * @return bool
+	 */
+	private static function noindex() {
+		$robots = self::robots( array() );
+		return ! empty( $robots['noindex'] );
+	}
+
+	/**
+	 * All in One SEO's robots tag (it writes its own, not WordPress's): noindex, follow where robots() says so.
+	 *
+	 * @param array $attributes Directives (name => value, '' when not set).
+	 * @return array
+	 */
+	public static function aioseo_robots( $attributes ) {
+		if ( ! is_array( $attributes ) || ! self::noindex() ) {
+			return $attributes;
+		}
+		$attributes['noindex'] = 'noindex';
+		if ( isset( $attributes['index'] ) ) {
+			unset( $attributes['index'] );
+		}
+		if ( isset( $attributes['nofollow'] ) ) {
+			$attributes['nofollow'] = '';
+		}
+		return $attributes;
+	}
+
+	/**
+	 * @param int[]  $ids  Terms left out of the sitemap.
+	 * @param string $type Taxonomy.
+	 * @return int[]
+	 */
+	public static function sitemap_exclude_terms( $ids, $type = '' ) {
+		$uncategorized = (int) get_option( 'default_product_cat' );
+		if ( ! $uncategorized || ( '' !== $type && 'product_cat' !== $type ) ) {
+			return $ids;
+		}
+		// Given back in the form it came (a list, or a comma separated text).
+		if ( is_array( $ids ) ) {
+			$ids[] = $uncategorized;
+			return $ids;
+		}
+		return trim( (string) $ids . ',' . $uncategorized, ',' );
 	}
 
 	/**
@@ -524,6 +580,20 @@ class AIMP_SEO {
 		}
 		if ( preg_match( '/<body[^>]*\baimp-replace-theme-footer\b/', $html ) ) {
 			$html = preg_replace( '#(<footer\b[^>]*\bid=["\']main-footer["\'][^>]*>).*?(</footer>)#s', '$1$2', $html, 1 );
+		}
+		// A category or brand page: its name in the page's main heading (the shop page's own heading, e.g. a Divi
+		// heading "All products", is the shop page's).
+		$meta = self::term_meta();
+		if ( $meta ) {
+			$name = esc_html( self::in_language( $meta[3]->name ) );
+			$html = preg_replace_callback(
+				'#(<h1\b[^>]*>)(.*?)(</h1>)#s',
+				function ( $m ) use ( $name ) {
+					return trim( wp_strip_all_tags( $m[2] ) ) === html_entity_decode( $name, ENT_QUOTES, 'UTF-8' ) ? $m[0] : $m[1] . $name . $m[3];
+				},
+				$html,
+				1
+			);
 		}
 		// A blog post: the plugin's own title is the main heading; Divi's (hidden) title becomes a paragraph.
 		if ( false !== strpos( $html, 'aimp-blog-post-title' ) ) {
