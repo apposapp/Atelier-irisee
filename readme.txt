@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.82.0
+Stable tag: 3.83.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.83.0 =
+* Dutch: every "kit" is now "naaipakket" (Naaipakket in de kijker, naaipakketkorting, dit naaipakket, …); the phone tab "Pakketten" is now "Naaipakket".
+* Kit spotlight: the price of an extra item showed "&euro;" instead of €.
 
 = 3.82.0 =
 * Kit spotlight: the setting "Kit spotlight: parts the kit is missing" moved from Atelier Irisee → Settings → Discounts to Atelier Irisee → Kit spotlights (under the list and under each kit; it counts for all kits).

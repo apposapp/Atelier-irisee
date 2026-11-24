@@ -924,11 +924,11 @@ class AIMP_Spotlight {
 				$total   = (float) wc_get_price_to_display( $product ) * $units;
 				$items[] = array(
 					'id'         => (int) $card['id'],
-					'name'       => wp_strip_all_tags( (string) $card['name'] ),
+					'name'       => wp_strip_all_tags( html_entity_decode( (string) $card['name'], ENT_QUOTES, 'UTF-8' ) ),
 					'image'      => (string) $card['image'],
 					'total'      => $total,
-					'total_html' => wp_strip_all_tags( wc_price( $total ) ),
-					'text'       => AIMP_Catalog::fabric_text( $units ),
+					'total_html' => html_entity_decode( wp_strip_all_tags( wc_price( $total ) ), ENT_QUOTES, 'UTF-8' ),
+					'text'       => html_entity_decode( wp_strip_all_tags( AIMP_Catalog::fabric_text( $units ) ), ENT_QUOTES, 'UTF-8' ),
 					'available'  => $product->is_purchasable() && $product->is_in_stock() && $product->has_enough_stock( $units ),
 				);
 			}
@@ -941,8 +941,8 @@ class AIMP_Spotlight {
 					'name'       => wp_strip_all_tags( html_entity_decode( (string) $card['name'], ENT_QUOTES, 'UTF-8' ) ),
 					'image'      => (string) $card['image'],
 					'total'      => $total,
-					'total_html' => wp_strip_all_tags( wc_price( $total ) ),
-					'text'       => wp_strip_all_tags( (string) $card['qty_text'] ),
+					'total_html' => html_entity_decode( wp_strip_all_tags( wc_price( $total ) ), ENT_QUOTES, 'UTF-8' ),
+					'text'       => html_entity_decode( wp_strip_all_tags( (string) $card['qty_text'] ), ENT_QUOTES, 'UTF-8' ),
 					'available'  => ! empty( $card['available'] ),
 				);
 			}
