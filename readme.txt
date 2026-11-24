@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.83.0
+Stable tag: 3.84.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.84.0 =
+* Fix: pages flickered on phones (Chrome on Android). The favourites script rewrote the header count and every heart on each frame, which woke itself again: an endless loop. It now only writes what changes, and only reacts to newly loaded products.
 
 = 3.83.0 =
 * Dutch: every "kit" is now "naaipakket" (Naaipakket in de kijker, naaipakketkorting, dit naaipakket, …); the phone tab "Pakketten" is now "Naaipakket".
