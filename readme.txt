@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.78.0
+Stable tag: 3.79.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.79.0 =
+* Kit spotlight: the whole picture is shown, in its own shape (no longer cropped to a square); the picture with the needle is a bit bigger as standard.
+* Kit spotlights → Picture and elements: "Position of the picture and the needle" (left ← → right, within the free room of its column) and "Size of the picture and the needle" (70–140%, the picture, needle and elements together, keeping their shape).
+* Kit spotlights → The kit: "Kit discount", its own discount for that kit (empty = the shop's kit discount). Used for its prices, the "% kit discount" label, the cart, the cart summary and the order.
+* Kit spotlight: no small line above the title as standard (only when typed in the kit's texts).
+* Design studio: choices, ticks, sliders and colours whose preview is made on the server now load the preview again sooner (no extra waiting for typing).
 
 = 3.78.0 =
 * Kit spotlight: once a size is picked, the size chart under the sizes shows that size's measurements, in the design of the customizer's size chart, with "How to measure". Design studio → Kit spotlight: "No size chart under the sizes".

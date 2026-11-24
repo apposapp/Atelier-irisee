@@ -451,6 +451,10 @@ class AIMP_Cart {
 	 * @param array $cart_item Cart item.
 	 * @return bool
 	 */
+	public static function is_kit_item( $cart_item ) {
+		return null !== self::meta( $cart_item );
+	}
+
 	/**
 	 * The discount of one kit line (%): the kit's own (a kit spotlight), else the shop's.
 	 *
@@ -460,10 +464,6 @@ class AIMP_Cart {
 	public static function item_discount( $cart_item ) {
 		$meta = self::meta( $cart_item );
 		return $meta && isset( $meta['discount'] ) ? (int) $meta['discount'] : self::kit_discount();
-	}
-
-	public static function is_kit_item( $cart_item ) {
-		return null !== self::meta( $cart_item );
 	}
 
 	/**

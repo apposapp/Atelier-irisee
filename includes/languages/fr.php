@@ -3476,4 +3476,11 @@ return array(
 	'Rectangle (standard)' => 'Rectangle (standard)',
 	'Colour of the date stamp (wide picture and diary page)' => 'Couleur du tampon de date (grande photo et page de journal)',
 	'The kits themselves: Atelier Irisee → Kit spotlights. Once a size is picked, the size chart shows the measurements of that size.' => 'Les kits eux-mêmes : Atelier Irisee → Kit spotlights. Dès qu\'une taille est choisie, le tableau des tailles montre les mesures de cette taille.',
+	// 3.79.0: kit spotlight picture, position, size, own discount
+	'The whole picture is shown, in its own shape.' => 'La photo entière est affichée, dans sa propre forme.',
+	'Position of the picture and the needle: left ← → right' => 'Position de la photo et de l\'aiguille : gauche ← → droite',
+	'Within the free room beside the picture: -100 = all the way left, 0 = in the middle, 100 = all the way right. When the picture fills its column, make it smaller first. Phones: always in the middle.' => 'Dans l\'espace libre à côté de la photo : -100 = tout à gauche, 0 = au centre, 100 = tout à droite. Si la photo remplit sa colonne, réduisez-la d\'abord. Téléphones : toujours au centre.',
+	'Size of the picture and the needle' => 'Taille de la photo et de l\'aiguille',
+	'Kit discount' => 'Remise sur le kit',
+	'Only for this kit. Empty = the shop\'s kit discount (now %d%%, Atelier Irisee → Settings). 0 = no discount.' => 'Uniquement pour ce kit. Vide = la remise kit de la boutique (actuellement %d%%, Atelier Irisee → Réglages). 0 = pas de remise.',
 );

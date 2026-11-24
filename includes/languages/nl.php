@@ -3476,4 +3476,11 @@ return array(
 	'Rectangle (standard)' => 'Rechthoek (standaard)',
 	'Colour of the date stamp (wide picture and diary page)' => 'Kleur van de datumstempel (brede foto en dagboekpagina)',
 	'The kits themselves: Atelier Irisee → Kit spotlights. Once a size is picked, the size chart shows the measurements of that size.' => 'De kits zelf: Atelier Irisee → Kit spotlights. Zodra een maat gekozen is, toont de maattabel de maten van die maat.',
+	// 3.79.0: kit spotlight picture, position, size, own discount
+	'The whole picture is shown, in its own shape.' => 'De hele foto wordt getoond, in zijn eigen vorm.',
+	'Position of the picture and the needle: left ← → right' => 'Plaats van de foto en de naald: links ← → rechts',
+	'Within the free room beside the picture: -100 = all the way left, 0 = in the middle, 100 = all the way right. When the picture fills its column, make it smaller first. Phones: always in the middle.' => 'Binnen de vrije ruimte naast de foto: -100 = helemaal links, 0 = in het midden, 100 = helemaal rechts. Vult de foto zijn kolom, maak hem dan eerst kleiner. Telefoons: altijd in het midden.',
+	'Size of the picture and the needle' => 'Grootte van de foto en de naald',
+	'Kit discount' => 'Kitkorting',
+	'Only for this kit. Empty = the shop\'s kit discount (now %d%%, Atelier Irisee → Settings). 0 = no discount.' => 'Alleen voor deze kit. Leeg = de kitkorting van de winkel (nu %d%%, Atelier Irisee → Instellingen). 0 = geen korting.',
 );
