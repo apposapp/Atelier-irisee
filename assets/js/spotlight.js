@@ -231,6 +231,287 @@
 		});
 	}
 
+	/* ------------------------------------------------------------------ the parts the kit is missing */
+
+	// What the pattern needs in the chosen size that is not in the kit (Atelier Irisee → Settings: 1 in the block,
+	// 2 a popup after adding, 3 both). Chosen items are added at their normal price, not as part of the kit.
+	function extras(block) {
+		var mode = parseInt(block.getAttribute('data-extras'), 10) || 0;
+		if (!mode) {
+			return null;
+		}
+		var t = {};
+		try {
+			t = JSON.parse(block.getAttribute('data-texts') || '{}');
+		} catch (err) {}
+		var m = t.money || { decimals: 2, decimal: ',', thousand: '.', format: '%1$s%2$s', symbol: '€' };
+
+		function money(n) {
+			var fixed = Math.abs(n).toFixed(m.decimals).split('.');
+			var whole = fixed[0].replace(/\B(?=(\d{3})+(?!\d))/g, m.thousand);
+			var num = whole + (fixed[1] ? m.decimal + fixed[1] : '');
+			return m.format.replace('%1$s', m.symbol).replace('%2$s', num);
+		}
+
+		function post(url, data) {
+			var body = new FormData();
+			Object.keys(data).forEach(function (key) {
+				body.append(key, data[key]);
+			});
+			return fetch(url, { method: 'POST', body: body, credentials: 'same-origin' }).then(function (r) {
+				return r.json();
+			});
+		}
+
+		function el(tag, cls, text) {
+			var node = document.createElement(tag);
+			if (cls) {
+				node.className = cls;
+			}
+			if (text !== undefined) {
+				node.textContent = text;
+			}
+			return node;
+		}
+
+		// One row per missing part, with "Choose" opening the items that fit (a page at a time).
+		function rows(list, missing, size, picks, changed) {
+			list.innerHTML = '';
+			missing.forEach(function (part) {
+				var row = el('li', 'aimp-sp-extra');
+				var head = el('div', 'aimp-sp-extra-head');
+				var info = el('div', 'aimp-sp-extra-info');
+				info.appendChild(el('span', 'aimp-sp-extra-label', part.label));
+				info.appendChild(el('span', 'aimp-sp-extra-need', part.need));
+				var pick = el('div', 'aimp-sp-extra-pick');
+				var choose = el('button', 'aimp-sp-extra-choose', t.choose);
+				choose.type = 'button';
+				choose.setAttribute('aria-expanded', 'false');
+				head.appendChild(info);
+				head.appendChild(choose);
+				row.appendChild(head);
+				row.appendChild(pick);
+				var grid = el('div', 'aimp-sp-extra-grid');
+				grid.hidden = true;
+				row.appendChild(grid);
+				var page = 0;
+				var pages = 1;
+
+				function showPick() {
+					pick.innerHTML = '';
+					var item = picks[part.type];
+					choose.textContent = item ? t.change : t.choose;
+					if (!item) {
+						return;
+					}
+					pick.appendChild(el('span', 'aimp-sp-extra-chosen', item.name));
+					pick.appendChild(el('span', 'aimp-sp-extra-price', item.total_html));
+					var remove = el('button', 'aimp-sp-extra-remove', t.remove);
+					remove.type = 'button';
+					remove.addEventListener('click', function () {
+						delete picks[part.type];
+						showPick();
+						mark();
+						changed();
+					});
+					pick.appendChild(remove);
+				}
+
+				function mark() {
+					grid.querySelectorAll('.aimp-sp-extra-card').forEach(function (card) {
+						card.setAttribute('aria-pressed', picks[part.type] && String(picks[part.type].id) === card.getAttribute('data-id') ? 'true' : 'false');
+					});
+				}
+
+				function load() {
+					var more = grid.querySelector('.aimp-sp-extra-more');
+					if (more) {
+						more.remove();
+					}
+					var wait = el('p', 'aimp-sp-extra-wait', t.loading);
+					grid.appendChild(wait);
+					post(block.getAttribute('data-options'), { id: block.getAttribute('data-id'), variation: String(size), type: part.type, page: String(page + 1) }).then(function (json) {
+						wait.remove();
+						var data = json && json.success ? json.data : { items: [], page: 1, pages: 1 };
+						page = data.page;
+						pages = data.pages;
+						if (!data.items.length && !grid.querySelector('.aimp-sp-extra-card')) {
+							grid.appendChild(el('p', 'aimp-sp-extra-wait', t.none));
+							return;
+						}
+						data.items.forEach(function (item) {
+							var card = el('button', 'aimp-sp-extra-card');
+							card.type = 'button';
+							card.setAttribute('data-id', String(item.id));
+							card.disabled = !item.available;
+							if (item.image) {
+								var img = el('img');
+								img.src = item.image;
+								img.alt = '';
+								img.loading = 'lazy';
+								card.appendChild(img);
+							}
+							card.appendChild(el('span', 'aimp-sp-extra-name', item.name));
+							card.appendChild(el('span', 'aimp-sp-extra-text', item.available ? item.text : t.soldOut));
+							card.appendChild(el('strong', 'aimp-sp-extra-total', item.total_html));
+							card.addEventListener('click', function () {
+								picks[part.type] = item;
+								mark();
+								showPick();
+								grid.hidden = true;
+								choose.setAttribute('aria-expanded', 'false');
+								changed();
+								choose.focus();
+							});
+							grid.appendChild(card);
+						});
+						mark();
+						if (page < pages) {
+							var button = el('button', 'aimp-sp-extra-more', t.more);
+							button.type = 'button';
+							button.addEventListener('click', load);
+							grid.appendChild(button);
+						}
+					}).catch(function () {
+						wait.textContent = t.none;
+					});
+				}
+
+				choose.addEventListener('click', function () {
+					grid.hidden = !grid.hidden;
+					choose.setAttribute('aria-expanded', grid.hidden ? 'false' : 'true');
+					if (!grid.hidden && !page) {
+						load();
+					}
+				});
+				showPick();
+				list.appendChild(row);
+			});
+		}
+
+		function count(picks) {
+			return Object.keys(picks).length;
+		}
+
+		function sum(picks) {
+			return Object.keys(picks).reduce(function (total, type) {
+				return total + (parseFloat(picks[type].total) || 0);
+			}, 0);
+		}
+
+		function add(size, picks) {
+			var data = { id: block.getAttribute('data-id'), variation: String(size) };
+			Object.keys(picks).forEach(function (type) {
+				data['extras[' + type + ']'] = String(picks[type].id);
+			});
+			return post(block.getAttribute('data-extras-add'), data);
+		}
+
+		// The popup after adding: the same rows, "Add to cart" and "No thanks".
+		function popup(missing, size, done) {
+			var picks = {};
+			var back = document.activeElement;
+			var overlay = el('div', 'aimp-sp-dialog');
+			var panel = el('div', 'aimp-sp-dialog-panel');
+			panel.setAttribute('role', 'dialog');
+			panel.setAttribute('aria-modal', 'true');
+			var title = el('p', 'aimp-sp-dialog-title', t.popTitle);
+			title.id = 'aimp-sp-dialog-' + block.getAttribute('data-id');
+			panel.setAttribute('aria-labelledby', title.id);
+			var x = el('button', 'aimp-sp-dialog-x', '×');
+			x.type = 'button';
+			x.setAttribute('aria-label', t.close);
+			var list = el('ul', 'aimp-spotlight-extras-rows');
+			var foot = el('div', 'aimp-sp-dialog-foot');
+			var sumLine = el('p', 'aimp-sp-dialog-sum');
+			var addButton = el('button', 'aimp-spotlight-button', t.popAdd);
+			addButton.type = 'button';
+			addButton.disabled = true;
+			var skip = el('button', 'aimp-sp-dialog-skip', t.popSkip);
+			skip.type = 'button';
+			var said = el('div', 'aimp-spotlight-message');
+			said.setAttribute('role', 'status');
+			said.hidden = true;
+			foot.appendChild(sumLine);
+			foot.appendChild(addButton);
+			foot.appendChild(skip);
+			panel.appendChild(x);
+			panel.appendChild(title);
+			panel.appendChild(el('p', 'aimp-spotlight-extras-note', t.popNote));
+			panel.appendChild(list);
+			panel.appendChild(said);
+			panel.appendChild(foot);
+			overlay.appendChild(panel);
+			document.body.appendChild(overlay);
+
+			function close() {
+				overlay.remove();
+				document.removeEventListener('keydown', keys, true);
+				if (back && back.focus) {
+					back.focus();
+				}
+			}
+			function keys(e) {
+				if (e.key === 'Escape') {
+					e.preventDefault();
+					close();
+				} else if (e.key === 'Tab') {
+					var all = Array.prototype.filter.call(panel.querySelectorAll('button, a[href]'), function (node) {
+						return !node.disabled && node.offsetParent !== null;
+					});
+					if (!all.length) {
+						return;
+					}
+					var first = all[0];
+					var last = all[all.length - 1];
+					if (e.shiftKey && document.activeElement === first) {
+						e.preventDefault();
+						last.focus();
+					} else if (!e.shiftKey && document.activeElement === last) {
+						e.preventDefault();
+						first.focus();
+					}
+				}
+			}
+			document.addEventListener('keydown', keys, true);
+			overlay.addEventListener('click', function (e) {
+				if (e.target === overlay) {
+					close();
+				}
+			});
+			x.addEventListener('click', close);
+			skip.addEventListener('click', close);
+			rows(list, missing, size, picks, function () {
+				var n = count(picks);
+				addButton.disabled = !n;
+				sumLine.textContent = n ? t.extraSum.replace('%s', money(sum(picks))) : '';
+			});
+			addButton.addEventListener('click', function () {
+				addButton.disabled = true;
+				addButton.textContent = t.loading;
+				add(size, picks).then(function (json) {
+					var data = json && json.data ? json.data : { errors: [] };
+					done(data);
+					if (data.errors && data.errors.length) {
+						said.textContent = data.errors.join(' ');
+						said.classList.add('is-error');
+						said.hidden = false;
+						addButton.textContent = t.popAdd;
+						addButton.disabled = false;
+						return;
+					}
+					close();
+				}).catch(function () {
+					addButton.textContent = t.popAdd;
+					addButton.disabled = false;
+				});
+			});
+			x.focus();
+		}
+
+		return { mode: mode, t: t, money: money, rows: rows, count: count, sum: sum, add: add, popup: popup };
+	}
+
 	/* ------------------------------------------------------------------ sizes and the cart */
 
 	function shop(block) {
@@ -246,6 +527,27 @@
 		if (!button) {
 			return;
 		}
+		// The parts the kit is missing (none: the setting is off).
+		var extra = extras(block);
+		var listBox = block.querySelector('[data-extras-list]');
+		var missing = [];
+		var picks = {};
+		var extraLine = null;
+		if (extra && listBox) {
+			extraLine = document.createElement('p');
+			extraLine.className = 'aimp-spotlight-extra-sum';
+			extraLine.hidden = true;
+			block.querySelector('.aimp-spotlight-price').insertAdjacentElement('afterend', extraLine);
+		}
+		// The button and the extra line follow the chosen extras.
+		function label() {
+			var n = extra ? extra.count(picks) : 0;
+			if (extraLine) {
+				extraLine.textContent = n ? extra.t.extraSum.replace('%s', extra.money(extra.sum(picks))) : '';
+				extraLine.hidden = !n;
+			}
+			return n ? (n === 1 ? extra.t.withOne : extra.t.withExtra.replace('%d', n)) : button.getAttribute('data-label');
+		}
 
 		function say(lines, error) {
 			message.innerHTML = '';
@@ -256,6 +558,14 @@
 			});
 			message.classList.toggle('is-error', !!error);
 			message.hidden = !lines.length;
+		}
+
+		// The mini cart and the cart count follow.
+		function refresh() {
+			if (window.jQuery) {
+				window.jQuery(document.body).trigger('wc_fragment_refresh');
+			}
+			document.body.dispatchEvent(new CustomEvent('wc-blocks_added_to_cart', { bubbles: true, detail: { preserveCartData: false } }));
 		}
 
 		pills.forEach(function (pill) {
@@ -283,8 +593,23 @@
 					});
 					chart.hidden = false;
 				}
+				// What this size needs that is not in the kit: new choices for each size.
+				if (extra) {
+					try {
+						missing = JSON.parse(pill.getAttribute('data-missing') || '[]');
+					} catch (err) {
+						missing = [];
+					}
+					picks = {};
+					if (listBox) {
+						extra.rows(listBox.querySelector('[data-rows]'), missing, chosen, picks, function () {
+							button.textContent = label();
+						});
+						listBox.hidden = !missing.length;
+					}
+				}
 				button.disabled = false;
-				button.textContent = button.getAttribute('data-label');
+				button.textContent = label();
 				say([]);
 				note.hidden = true;
 			});
@@ -304,22 +629,41 @@
 					return response.json();
 				})
 				.then(function (json) {
-					button.disabled = false;
-					button.textContent = button.getAttribute('data-label');
 					if (!json || !json.success) {
+						button.disabled = false;
+						button.textContent = label();
 						say((json && json.data && json.data.errors) || [button.getAttribute('data-error')], true);
-						return;
+						return null;
 					}
-					say([json.data.message]);
-					note.hidden = false;
-					if (window.jQuery) {
-						window.jQuery(document.body).trigger('wc_fragment_refresh');
-					}
-					document.body.dispatchEvent(new CustomEvent('wc-blocks_added_to_cart', { bubbles: true, detail: { preserveCartData: false } }));
+					var kitMessage = json.data.message;
+					// Then the chosen extras (normal price); the kit stays in the cart if one of them cannot be added.
+					var next = extra && extra.count(picks) ? extra.add(chosen, picks) : Promise.resolve(null);
+					return next.then(function (more) {
+						var data = more && more.data ? more.data : { message: '', errors: [] };
+						var lines = [kitMessage];
+						if (data.message) {
+							lines.push(data.message);
+						}
+						say(lines.concat(data.errors || []), !!(data.errors && data.errors.length));
+						var hadPicks = extra && extra.count(picks) > 0;
+						button.disabled = false;
+						button.textContent = label();
+						note.hidden = false;
+						refresh();
+						// The popup after adding (2), or (3) when nothing was chosen in the block.
+						if (extra && missing.length && (extra.mode === 2 || (extra.mode === 3 && !hadPicks))) {
+							extra.popup(missing, chosen, function (added) {
+								if (added && added.message) {
+									say([kitMessage, added.message]);
+									refresh();
+								}
+							});
+						}
+					});
 				})
 				.catch(function () {
 					button.disabled = false;
-					button.textContent = button.getAttribute('data-label');
+					button.textContent = label();
 					say([button.getAttribute('data-error')], true);
 				});
 		});

@@ -749,3 +749,327 @@
 		text-transform: uppercase;
 	}
 }
+
+/* ------------------------------------------------------------------ the parts the kit is missing
+   (AIMP_Spotlight::extras_html(), spotlight.js): a row per part, "Choose" opens the items that fit; the popup after
+   adding uses the same rows. Normal price, not part of the kit. */
+.aimp-spotlight-extras {
+	width: 100%;
+	padding: 0.9rem 1rem;
+	border: 1px dashed color-mix(in srgb, var(--sp-gold) 70%, transparent);
+	border-radius: 12px;
+	background: color-mix(in srgb, var(--sp-cream) 70%, #fff);
+}
+
+.aimp-spotlight-extras[hidden] {
+	display: none;
+}
+
+.aimp-spotlight .aimp-spotlight-extras-title,
+.aimp-sp-dialog .aimp-sp-dialog-title {
+	margin: 0 0 0.2rem;
+	color: var(--sp-brown, #613907);
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.aimp-spotlight .aimp-spotlight-extras-note,
+.aimp-sp-dialog .aimp-spotlight-extras-note {
+	margin: 0 0 0.6rem;
+	font-size: 0.85rem;
+	opacity: 0.85;
+}
+
+.aimp-spotlight-extras-rows {
+	display: grid;
+	gap: 0.6rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.aimp-sp-extra {
+	margin: 0;
+	padding: 0.6rem 0 0;
+	border-top: 1px solid color-mix(in srgb, var(--sp-gold, #b38f4f) 30%, transparent);
+}
+
+.aimp-sp-extra:first-child {
+	padding-top: 0;
+	border-top: 0;
+}
+
+.aimp-sp-extra-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.4rem 1rem;
+}
+
+.aimp-sp-extra-info {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.aimp-sp-extra-label {
+	color: var(--sp-brown, #613907);
+	font-weight: 700;
+}
+
+.aimp-sp-extra-need {
+	font-size: 0.82rem;
+	opacity: 0.85;
+}
+
+.aimp-sp-extra-choose,
+.aimp-sp-extra-more,
+.aimp-sp-dialog-skip {
+	padding: 0.35rem 0.95rem;
+	border: 1px solid var(--sp-gold, #b38f4f);
+	border-radius: 999px;
+	background: #fff;
+	color: var(--sp-brown, #613907);
+	font: inherit;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.aimp-sp-extra-choose:hover,
+.aimp-sp-extra-more:hover,
+.aimp-sp-dialog-skip:hover {
+	background: var(--sp-gold, #b38f4f);
+	color: #fff;
+}
+
+.aimp-sp-extra-pick {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.3rem 0.8rem;
+	margin-top: 0.3rem;
+	font-size: 0.88rem;
+}
+
+.aimp-sp-extra-pick:empty {
+	display: none;
+}
+
+.aimp-sp-extra-chosen {
+	color: var(--sp-brown, #613907);
+}
+
+.aimp-sp-extra-price {
+	font-weight: 700;
+}
+
+.aimp-sp-extra-remove {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	font-size: 0.82rem;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.aimp-sp-extra-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+	gap: 0.6rem;
+	max-height: 22rem;
+	margin-top: 0.6rem;
+	overflow-y: auto;
+	padding: 2px;
+}
+
+.aimp-sp-extra-grid[hidden] {
+	display: none;
+}
+
+.aimp-sp-extra-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	padding: 0.45rem;
+	border: 1px solid color-mix(in srgb, var(--sp-gold, #b38f4f) 45%, transparent);
+	border-radius: 10px;
+	background: #fff;
+	color: var(--sp-brown, #613907);
+	font: inherit;
+	font-size: 0.8rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.aimp-sp-extra-card[aria-pressed="true"] {
+	border-color: var(--sp-gold, #b38f4f);
+	box-shadow: 0 0 0 2px var(--sp-gold, #b38f4f);
+}
+
+.aimp-sp-extra-card:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
+}
+
+.aimp-sp-extra-card img {
+	width: 100%;
+	aspect-ratio: 1;
+	border-radius: 6px;
+	object-fit: cover;
+}
+
+.aimp-sp-extra-name {
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.aimp-sp-extra-text {
+	opacity: 0.8;
+}
+
+.aimp-sp-extra-wait {
+	grid-column: 1 / -1;
+	margin: 0;
+	font-size: 0.85rem;
+}
+
+.aimp-sp-extra-more {
+	grid-column: 1 / -1;
+	justify-self: center;
+}
+
+.aimp-spotlight .aimp-spotlight-extra-sum,
+.aimp-sp-dialog-sum {
+	margin: -0.4rem 0 0;
+	color: var(--sp-brown, #613907);
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+.aimp-spotlight-extra-sum[hidden] {
+	display: none;
+}
+
+/* The popup after adding. */
+.aimp-sp-dialog {
+	--sp-gold: var(--aimp-site-gold, #b38f4f);
+	--sp-brown: var(--aimp-site-brown, #613907);
+	--sp-cream: #fbf8f2;
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: grid;
+	place-items: center;
+	padding: 1rem;
+	background: rgba(40, 25, 10, 0.45);
+	color: var(--aimp-site-gold-text, #8a6a33);
+}
+
+.aimp-sp-dialog *,
+.aimp-sp-dialog *::before {
+	box-sizing: border-box;
+}
+
+.aimp-sp-dialog-panel {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	width: min(100%, 38rem);
+	max-height: calc(100vh - 2rem);
+	padding: 1.6rem 1.4rem 1.2rem;
+	overflow-y: auto;
+	border: 1px solid var(--sp-gold);
+	border-radius: 18px;
+	background: var(--sp-cream);
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+
+.aimp-sp-dialog .aimp-sp-dialog-title {
+	padding-right: 2rem;
+	font-size: 0.95rem;
+}
+
+.aimp-sp-dialog-x {
+	position: absolute;
+	top: 0.6rem;
+	right: 0.7rem;
+	width: 2.2rem;
+	height: 2.2rem;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--sp-brown);
+	font-size: 1.5rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.aimp-sp-dialog-x:hover {
+	background: color-mix(in srgb, var(--sp-gold) 18%, transparent);
+}
+
+.aimp-sp-dialog-foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.6rem 1rem;
+	padding-top: 0.6rem;
+	border-top: 1px solid color-mix(in srgb, var(--sp-gold) 30%, transparent);
+}
+
+.aimp-sp-dialog-foot .aimp-sp-dialog-sum {
+	flex: 1 1 100%;
+	margin: 0;
+}
+
+.aimp-sp-dialog-foot .aimp-sp-dialog-sum:empty {
+	display: none;
+}
+
+.aimp-sp-dialog .aimp-spotlight-message.is-error {
+	color: #8a1f11;
+}
+
+/* Design studio → Kit spotlight → alignment of the text, sizes and button (standard: left). */
+.aimp-spotlight.is-text-center .aimp-spotlight-body {
+	align-items: center;
+	text-align: center;
+}
+
+.aimp-spotlight.is-text-right .aimp-spotlight-body {
+	align-items: flex-end;
+	text-align: right;
+}
+
+.aimp-spotlight.is-text-center .aimp-spotlight-pills {
+	justify-content: center;
+}
+
+.aimp-spotlight.is-text-right .aimp-spotlight-pills {
+	justify-content: flex-end;
+}
+
+.aimp-spotlight.is-text-center .aimp-spotlight-sizes legend,
+.aimp-spotlight.is-text-center .aimp-spotlight-list {
+	margin-inline: auto;
+}
+
+.aimp-spotlight.is-text-right .aimp-spotlight-sizes legend {
+	margin-left: auto;
+}
+
+.aimp-spotlight.is-text-center .aimp-spotlight-list,
+.aimp-spotlight.is-text-right .aimp-spotlight-list {
+	text-align: left;
+}
+
+.aimp-spotlight.is-text-right .aimp-spotlight-list {
+	margin-left: auto;
+}

@@ -212,25 +212,25 @@ class AIMP_Design {
 			'header-lang'     => array( 'lang_opts' ),
 			'header-search'   => array( 'search_opts' ),
 			'hero-arrow'      => array( 'arrow_opts' ),
-			'kit-steps'       => array( 'ks_opts' ),
+			'kit-steps'       => array( 'ks_opts', 'w80_opts' ),
 			'shop'            => array( 'shop_grid', 'shop_cards', 'shop_tools', 'shop_badges', 'shop_cats' ),
 			'overview'        => array( 'overview_opts' ),
-			'mosaic'          => array( 'mosaic_opts' ),
+			'mosaic'          => array( 'mosaic_opts', 'w80_opts' ),
 			'footer'          => array( 'footer_opts' ),
 			'newsletter'      => array( 'nl_opts' ),
 			'contact'         => array( 'ct_opts' ),
 			'faq'             => array( 'faq_opts' ),
-			'home-cats'       => array( 'hc_opts' ),
-			'home-reviews'    => array( 'rv_opts' ),
-			'home-maker'      => array( 'mk_opts' ),
-			'home-new'        => array( 'nw_opts' ),
-			'home-newsletter' => array( 'hn_opts' ),
-			'home-faq'        => array( 'fq_opts' ),
-			'home-brands'     => array( 'br_opts' ),
-			'home-giftcards'  => array( 'gp_opts' ),
+			'home-cats'       => array( 'hc_opts', 'w80_opts' ),
+			'home-reviews'    => array( 'rv_opts', 'w80_opts' ),
+			'home-maker'      => array( 'mk_opts', 'w80_opts' ),
+			'home-new'        => array( 'nw_opts', 'w80_opts' ),
+			'home-newsletter' => array( 'hn_opts', 'w80_opts' ),
+			'home-faq'        => array( 'fq_opts', 'w80_opts' ),
+			'home-brands'     => array( 'br_opts', 'w80_opts' ),
+			'home-giftcards'  => array( 'gp_opts', 'w80_opts' ),
 			'home-instagram'  => array( 'ig_opts' ),
-			'home-latest'     => array( 'lp_opts' ),
-			'home-spotlight'  => array( 'sp_opts' ),
+			'home-latest'     => array( 'lp_opts', 'w80_opts' ),
+			'home-spotlight'  => array( 'sp_opts', 'w80_opts' ),
 			'about'           => array( 'ab_opts' ),
 			'about-chapter'   => array( 'ab_chapters' ),
 			'about-closing'   => array( 'ab_closing' ),
@@ -780,8 +780,14 @@ class AIMP_Design {
 				// Where the stamp sits on the card's edge: -100 left … 100 right along the curve (or top) and down the side.
 				'lp_stamp_pos' => array( -100, 100, 0 ),
 			),
+			// The home blocks (and the mosaic, the kit steps bar): 80% of the screen width, in the middle.
+			'w80_opts'    => array(
+				'blk_w80' => 'bool',
+			),
 			'sp_opts'     => array(
 				'sp_nochart' => 'bool',
+				// The text, sizes and button: left (standard), centre, right.
+				'sp_align'   => array( 'select', array( '', 'center', 'right' ) ),
 				// The picture with the needle, for every kit (0 = each kit's own setting).
 				'sp_shift'   => array( -100, 100, 0 ),
 				'sp_size'    => array( 0, 140, 0 ),
@@ -3133,6 +3139,25 @@ class AIMP_Design {
 			$css .= 'html body .aimp-config-bar{' . $bar . '}';
 		}
 
+		// The home blocks at 80% of the screen width, in the middle (Width of the block); phones keep their width.
+		foreach ( array(
+			'kit-steps'       => '.aimp-kit-steps',
+			'mosaic'          => '.aimp-mosaic',
+			'home-cats'       => '.aimp-home-cats',
+			'home-reviews'    => '.aimp-home-reviews',
+			'home-maker'      => '.aimp-home-maker',
+			'home-new'        => '.aimp-home-new',
+			'home-newsletter' => '.aimp-home-newsletter',
+			'home-faq'        => '.aimp-home-faq',
+			'home-brands'     => '.aimp-home-brands',
+			'home-giftcards'  => '.aimp-home-giftcards',
+			'home-latest'     => '.aimp-home-latest',
+			'home-spotlight'  => '.aimp-spotlight',
+		) as $part => $root ) {
+			if ( $get( $part, 'blk_w80' ) ) {
+				$computer .= 'html body ' . $root . '{box-sizing:border-box!important;width:80vw!important;max-width:none!important;margin-left:calc(50% - 40vw)!important;margin-right:calc(50% - 40vw)!important}';
+			}
+		}
 		if ( '' !== $computer ) {
 			$css .= $min . $computer . '}';
 		}
@@ -4844,8 +4869,22 @@ class AIMP_Design {
 		echo $texts_note; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
 		echo '</fieldset>';
 
+		$group( 'w80_opts', __( 'Width of the block', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'blk_w80', __( '80% of the width of the screen, in the middle', 'atelier-irisee-master-plugin' ) );
+		echo '<p class="description">' . esc_html__( 'Wider than the page column, on computers and tablets. Phones keep the normal width.', 'atelier-irisee-master-plugin' ) . '</p>';
+		echo '</fieldset>';
+
 		$group( 'sp_opts', __( 'Kit spotlight', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'sp_nochart', __( 'No size chart under the sizes', 'atelier-irisee-master-plugin' ) );
+		self::choice(
+			'sp_align',
+			__( 'Text, sizes and button: alignment', 'atelier-irisee-master-plugin' ),
+			array(
+				''       => __( 'Left (standard)', 'atelier-irisee-master-plugin' ),
+				'center' => __( 'Centre', 'atelier-irisee-master-plugin' ),
+				'right'  => __( 'Right', 'atelier-irisee-master-plugin' ),
+			)
+		);
 		self::number( 'sp_shift', __( 'Position of the picture and the needle: left ← → right (0 = each kit\'s own setting)', 'atelier-irisee-master-plugin' ), -100, 100, '' );
 		self::number( 'sp_size', __( 'Size of the picture and the needle (0 = each kit\'s own setting; 70–140%)', 'atelier-irisee-master-plugin' ), 0, 140, '%' );
 		echo '<p class="description">' . esc_html__( 'These are for every kit and win over the kit\'s own setting. The position is within the free room beside the picture; phones always show it in the middle.', 'atelier-irisee-master-plugin' ) . '</p>';

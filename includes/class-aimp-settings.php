@@ -64,6 +64,7 @@ class AIMP_Settings {
 			'favorites_page'  => 0,
 			'refund_days'     => 14,
 				'kit_discount'      => 10,
+			'spot_extras'       => 1,
 			'welcome_discount'  => 10,
 			'welcome_days'      => 30,
 			'shop_per_page'     => 12,
@@ -206,6 +207,14 @@ class AIMP_Settings {
 			self::PAGE,
 			'aimp_discounts',
 			array( 'label_for' => 'aimp_kit_discount' )
+		);
+		add_settings_field(
+			'aimp_spot_extras',
+			__( 'Kit spotlight: parts the kit is missing', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_spot_extras_field' ),
+			self::PAGE,
+			'aimp_discounts',
+			array( 'label_for' => 'aimp_spot_extras' )
 		);
 		add_settings_field(
 			'aimp_welcome_discount',
@@ -823,6 +832,7 @@ class AIMP_Settings {
 		$sanitized['favorites_page'] = isset( $input['favorites_page'] ) ? absint( $input['favorites_page'] ) : 0;
 		$sanitized['refund_days']    = isset( $input['refund_days'] ) ? min( 365, max( 1, absint( $input['refund_days'] ) ) ) : 14;
 		$sanitized['kit_discount']     = isset( $input['kit_discount'] ) ? min( 90, absint( $input['kit_discount'] ) ) : 10;
+		$sanitized['spot_extras']      = isset( $input['spot_extras'] ) ? min( 3, absint( $input['spot_extras'] ) ) : 1;
 		$sanitized['welcome_discount'] = isset( $input['welcome_discount'] ) ? min( 90, absint( $input['welcome_discount'] ) ) : 10;
 		$sanitized['welcome_days']     = isset( $input['welcome_days'] ) ? min( 365, absint( $input['welcome_days'] ) ) : 30;
 		$sanitized['configurator_page'] = isset( $input['configurator_page'] ) ? absint( $input['configurator_page'] ) : 0;
@@ -913,6 +923,24 @@ class AIMP_Settings {
 			(int) self::get( 'kit_discount' ),
 			esc_html__( 'Every item of a sewing project kit made in the configurator gets this discount. 0 = no discount.', 'atelier-irisee-master-plugin' )
 		);
+	}
+
+	/**
+	 * Where a kit spotlight offers the parts the pattern needs that are not in the kit (a zip left on "none", …).
+	 */
+	public static function render_spot_extras_field() {
+		$current = (int) self::get( 'spot_extras' );
+		$choices = array(
+			0 => __( 'Not offered', 'atelier-irisee-master-plugin' ),
+			1 => __( 'In the block, before adding (standard)', 'atelier-irisee-master-plugin' ),
+			2 => __( 'In a popup after adding', 'atelier-irisee-master-plugin' ),
+			3 => __( 'Both: in the block, and a popup after adding when nothing was chosen', 'atelier-irisee-master-plugin' ),
+		);
+		echo '<select id="aimp_spot_extras" name="' . esc_attr( self::OPTION ) . '[spot_extras]">';
+		foreach ( $choices as $value => $label ) {
+			echo '<option value="' . (int) $value . '"' . selected( $current, $value, false ) . '>' . esc_html( $label ) . '</option>';
+		}
+		echo '</select><p class="description">' . esc_html__( 'Parts the pattern needs that you left out of a kit (e.g. a zip on "none"): the customer can choose and add them. They are added at their normal price, not as part of the kit.', 'atelier-irisee-master-plugin' ) . '</p>';
 	}
 
 	public static function render_welcome_fields() {

@@ -32,6 +32,9 @@ class AIMP_Spotlight {
 		add_shortcode( self::TAG, array( __CLASS__, 'shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 20 );
 		add_action( 'wc_ajax_aimp_spotlight_add', array( __CLASS__, 'add_to_cart' ) );
+		// The parts the kit is missing: what fits, and adding them (normal price).
+		add_action( 'wc_ajax_aimp_spotlight_options', array( __CLASS__, 'ajax_options' ) );
+		add_action( 'wc_ajax_aimp_spotlight_extras', array( __CLASS__, 'ajax_extras' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 65 ); // After the Atelier Irisee menu itself (60).
 		add_action( 'admin_post_aimp_spotlight_save', array( __CLASS__, 'save' ) );
 		add_action( 'admin_post_aimp_spotlight_delete', array( __CLASS__, 'delete' ) );
@@ -144,6 +147,46 @@ class AIMP_Spotlight {
 	 */
 	public static function discount( $spot ) {
 		return isset( $spot['discount'] ) && '' !== $spot['discount'] ? (int) $spot['discount'] : AIMP_Cart::kit_discount();
+	}
+
+	/**
+	 * Where the parts the kit is missing are offered (Atelier Irisee → Settings): 0 not, 1 in the block, 2 a popup after
+	 * adding, 3 both.
+	 *
+	 * @return int
+	 */
+	public static function extras_mode() {
+		return min( 3, (int) AIMP_Settings::get( 'spot_extras' ) );
+	}
+
+	/**
+	 * What the pattern needs in one size that is not in the kit: the haberdashery the shop left on "none" and the
+	 * lining when the kit has none. [ type (notion type or "lining"), label, need ].
+	 *
+	 * @param array $spot Spotlight.
+	 * @param array $req  Requirements of the size (requirements()).
+	 * @return array[]
+	 */
+	public static function missing( $spot, $req ) {
+		$list = array();
+		if ( $req['lining_units'] > 0 && ! $spot['lining'] ) {
+			$fields = AIMP_Catalog::material_fields();
+			$list[] = array(
+				'type'  => 'lining',
+				'label' => $fields['lining']['label'],
+				'need'  => AIMP_Catalog::fabric_text( $req['lining_units'] ),
+			);
+		}
+		foreach ( AIMP_Catalog::size_notions( $req ) as $type => $info ) {
+			if ( empty( $spot['notions'][ $type ] ) ) {
+				$list[] = array(
+					'type'  => (string) $type,
+					'label' => (string) $info['name'],
+					'need'  => (string) $info['need'],
+				);
+			}
+		}
+		return $list;
 	}
 
 	/**
@@ -289,6 +332,8 @@ class AIMP_Spotlight {
 				'price'     => '' === $kit['reason'] ? wp_strip_all_tags( wc_price( $kitp ) ) : '',
 				'regular'   => '' === $kit['reason'] && $discount > 0 ? wp_strip_all_tags( wc_price( $total ) ) : '',
 				'fabric'    => $req['fabric_units'] > 0 ? AIMP_Catalog::fabric_need_text( $req ) : '',
+				// What the pattern needs that is not in the kit (offered to add, Atelier Irisee → Settings).
+				'missing'   => self::extras_mode() ? self::missing( $spot, $req ) : array(),
 			);
 			// The measurements for the size chart (as the customizer's: AIMP_Catalog::get_sizes()).
 			foreach ( array( 'bust', 'waist', 'hip', 'inside_leg', 'height' ) as $measure ) {
@@ -458,8 +503,18 @@ class AIMP_Spotlight {
 		}
 
 		$classes = 'aimp-home-block aimp-spotlight style-' . $spot['style'] . ' move-' . $spot['move'] . ( $spot['right'] ? ' is-photo-right' : '' ) . ( $spot['needle'] ? ' has-needle' : '' );
+		// Design studio → Kit spotlight → alignment of the text, sizes and button.
+		$align = class_exists( 'AIMP_Design' ) ? (string) AIMP_Design::opt( 'home-spotlight', 'sp_align', '' ) : '';
+		if ( in_array( $align, array( 'center', 'right' ), true ) ) {
+			$classes .= ' is-text-' . $align;
+		}
 		$attrs   = ' data-aimp-spotlight data-id="' . (int) $id . '" data-endpoint="' . esc_url( WC_AJAX::get_endpoint( 'aimp_spotlight_add' ) ) . '"' .
 			' data-speed="' . (int) $spot['speed'] . '" data-needle="' . (int) $spot['needle'] . '"';
+		$mode = self::extras_mode();
+		if ( $mode ) {
+			$attrs .= ' data-extras="' . (int) $mode . '" data-options="' . esc_url( WC_AJAX::get_endpoint( 'aimp_spotlight_options' ) ) . '" data-extras-add="' . esc_url( WC_AJAX::get_endpoint( 'aimp_spotlight_extras' ) ) . '"' .
+				' data-texts="' . esc_attr( wp_json_encode( self::extras_texts() ) ) . '"';
+		}
 		// Moved left/right and its size (Atelier Irisee → Kit spotlights → Picture and elements).
 		$scale   = ( isset( $spot['scale'] ) ? (int) $spot['scale'] : 100 ) / 100;
 		$shift   = isset( $spot['shift'] ) ? (int) $spot['shift'] : 0;
@@ -542,18 +597,20 @@ class AIMP_Spotlight {
 		);
 		foreach ( $sizes as $size ) {
 			$html .= sprintf(
-				'<button type="button" class="aimp-spotlight-size" data-size="%1$d" data-price="%2$s" data-regular="%3$s" data-need="%4$s" aria-pressed="false"%5$s%6$s>%7$s</button>',
+				'<button type="button" class="aimp-spotlight-size" data-size="%1$d" data-price="%2$s" data-regular="%3$s" data-need="%4$s" data-missing="%8$s" aria-pressed="false"%5$s%6$s>%7$s</button>',
 				$size['id'],
 				esc_attr( $size['price'] ),
 				esc_attr( $size['regular'] ),
 				esc_attr( $size['fabric'] ),
 				$size['available'] ? '' : ' disabled',
 				'' !== $size['reason'] ? ' title="' . esc_attr( $size['reason'] ) . '"' : '',
-				esc_html( $size['label'] )
+				esc_html( $size['label'] ),
+				esc_attr( wp_json_encode( isset( $size['missing'] ) ? $size['missing'] : array() ) )
 			);
 		}
 		$html .= '</div></fieldset>';
 		$html .= self::chart( $sizes );
+		$html .= self::extras_html();
 
 		// Before a size is chosen: "from" the lowest price.
 		$from = '';
@@ -729,6 +786,196 @@ class AIMP_Spotlight {
 			array(
 				'message'    => __( 'The kit has been added to your cart.', 'atelier-irisee-master-plugin' ),
 				'cart_url'   => wc_get_cart_url(),
+				'cart_count' => WC()->cart->get_cart_contents_count(),
+			)
+		);
+	}
+
+	/* ------------------------------------------------------------------ the parts the kit is missing */
+
+	/**
+	 * The section in the block (spotlight.js fills it once a size is picked); empty when only the popup is used.
+	 *
+	 * @return string
+	 */
+	private static function extras_html() {
+		$mode = self::extras_mode();
+		if ( 1 !== $mode && 3 !== $mode ) {
+			return '';
+		}
+		return '<div class="aimp-spotlight-extras" data-extras-list hidden><p class="aimp-spotlight-extras-title">' . esc_html__( 'Not in this kit, but needed for the pattern', 'atelier-irisee-master-plugin' ) . '</p>' .
+			'<p class="aimp-spotlight-extras-note">' . esc_html__( 'Add them if you need them: they are added at their normal price.', 'atelier-irisee-master-plugin' ) . '</p><ul class="aimp-spotlight-extras-rows" data-rows></ul></div>';
+	}
+
+	/**
+	 * The texts of the section and the popup (spotlight.js), and how prices are written.
+	 *
+	 * @return array
+	 */
+	private static function extras_texts() {
+		return array(
+			'choose'    => __( 'Choose', 'atelier-irisee-master-plugin' ),
+			'change'    => __( 'Change', 'atelier-irisee-master-plugin' ),
+			'remove'    => __( 'Remove', 'atelier-irisee-master-plugin' ),
+			'more'      => __( 'Show more', 'atelier-irisee-master-plugin' ),
+			'loading'   => __( 'Loading…', 'atelier-irisee-master-plugin' ),
+			'none'      => __( 'Nothing that fits this size is available right now.', 'atelier-irisee-master-plugin' ),
+			'soldOut'   => __( 'Sold out', 'atelier-irisee-master-plugin' ),
+			'close'     => __( 'Close', 'atelier-irisee-master-plugin' ),
+			/* translators: %s: amount, e.g. "€12,50" */
+			'extraSum'  => __( '+ %s for the extra items (normal price)', 'atelier-irisee-master-plugin' ),
+			/* translators: %d: number of extra items */
+			'withExtra' => __( 'Add the kit + %d items to the cart', 'atelier-irisee-master-plugin' ),
+			'withOne'   => __( 'Add the kit + 1 item to the cart', 'atelier-irisee-master-plugin' ),
+			'popTitle'  => __( 'Your kit does not contain these parts the pattern needs', 'atelier-irisee-master-plugin' ),
+			'popNote'   => __( 'Choose what you need: it is added at its normal price.', 'atelier-irisee-master-plugin' ),
+			'popAdd'    => __( 'Add to cart', 'atelier-irisee-master-plugin' ),
+			'popSkip'   => __( 'No thanks', 'atelier-irisee-master-plugin' ),
+			'money'     => array(
+				'decimals' => wc_get_price_decimals(),
+				'decimal'  => wc_get_price_decimal_separator(),
+				'thousand' => wc_get_price_thousand_separator(),
+				'format'   => html_entity_decode( get_woocommerce_price_format(), ENT_QUOTES, 'UTF-8' ),
+				'symbol'   => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
+			),
+		);
+	}
+
+	/**
+	 * The spotlight, the size's requirements and its missing types from a request (the extras endpoints).
+	 *
+	 * @return array [ spot, req, missing (type => row) ]
+	 */
+	private static function extras_request() {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- public, read-only or adds only allowed products.
+		$spot      = self::get( isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0 );
+		$variation = isset( $_POST['variation'] ) ? absint( wp_unslash( $_POST['variation'] ) ) : 0;
+		// phpcs:enable
+		if ( ! $spot || ! self::extras_mode() ) {
+			wp_send_json_error( array( 'errors' => array( __( 'This kit is no longer available.', 'atelier-irisee-master-plugin' ) ) ) );
+		}
+		$data = AIMP_Catalog::get_sizes( $spot['size'] );
+		$ids  = $data ? array_map( 'intval', wp_list_pluck( $data['sizes'], 'id' ) ) : array();
+		$req  = in_array( $variation, $ids, true ) ? self::requirements( $spot, $variation ) : null;
+		if ( ! $req ) {
+			wp_send_json_error( array( 'errors' => array( __( 'Choose your size.', 'atelier-irisee-master-plugin' ) ) ) );
+		}
+		$missing = array();
+		foreach ( self::missing( $spot, $req ) as $row ) {
+			$missing[ $row['type'] ] = $row;
+		}
+		return array( $spot, $req, $missing );
+	}
+
+	/**
+	 * What fits one missing part of a size: [ id, name, image, total (normal price for the need), total_html, text,
+	 * available ], a page at a time.
+	 */
+	public static function ajax_options() {
+		list( $spot, $req, $missing ) = self::extras_request();
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- read-only.
+		$type = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
+		$page = isset( $_POST['page'] ) ? max( 1, absint( wp_unslash( $_POST['page'] ) ) ) : 1;
+		// phpcs:enable
+		if ( ! isset( $missing[ $type ] ) ) {
+			wp_send_json_error( null, 404 );
+		}
+		$variation = $req['variation']->get_id();
+		$items     = array();
+		if ( 'lining' === $type ) {
+			$data  = AIMP_Catalog::get_fabrics( $variation, array( 'page' => $page, 'fabric' => $spot['fabric'], 'in_stock' => true, 'sort' => 'recommended', 'category' => array(), 'search' => '' ), true );
+			$units = $req['lining_units'];
+			foreach ( $data ? $data['items'] : array() as $card ) {
+				$product = wc_get_product( $card['id'] );
+				if ( ! $product ) {
+					continue;
+				}
+				$total   = (float) wc_get_price_to_display( $product ) * $units;
+				$items[] = array(
+					'id'         => (int) $card['id'],
+					'name'       => wp_strip_all_tags( (string) $card['name'] ),
+					'image'      => (string) $card['image'],
+					'total'      => $total,
+					'total_html' => wp_strip_all_tags( wc_price( $total ) ),
+					'text'       => AIMP_Catalog::fabric_text( $units ),
+					'available'  => $product->is_purchasable() && $product->is_in_stock() && $product->has_enough_stock( $units ),
+				);
+			}
+		} else {
+			$data = 'interfacing' === $type ? AIMP_Catalog::get_interfacing_options( $variation, $spot['fabric'], $page ) : AIMP_Catalog::get_notions( $variation, $type, $page );
+			foreach ( $data ? $data['items'] : array() as $card ) {
+				$total   = (float) $card['price'] * (int) $card['qty'];
+				$items[] = array(
+					'id'         => (int) $card['id'],
+					'name'       => wp_strip_all_tags( html_entity_decode( (string) $card['name'], ENT_QUOTES, 'UTF-8' ) ),
+					'image'      => (string) $card['image'],
+					'total'      => $total,
+					'total_html' => wp_strip_all_tags( wc_price( $total ) ),
+					'text'       => wp_strip_all_tags( (string) $card['qty_text'] ),
+					'available'  => ! empty( $card['available'] ),
+				);
+			}
+		}
+		wp_send_json_success(
+			array(
+				'items' => $items,
+				'page'  => $data ? (int) $data['page'] : 1,
+				'pages' => $data ? (int) $data['pages'] : 1,
+			)
+		);
+	}
+
+	/**
+	 * Adds the chosen missing parts as separate products at their normal price (not part of the kit). Only types the
+	 * kit is missing for that size, only products that fit, amounts from the size.
+	 */
+	public static function ajax_extras() {
+		list( $spot, $req, $missing ) = self::extras_request();
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- each value is checked below.
+		$chosen = isset( $_POST['extras'] ) && is_array( $_POST['extras'] ) ? wp_unslash( $_POST['extras'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- absint below.
+		$added  = array();
+		$errors = array();
+		foreach ( $chosen as $type => $id ) {
+			$type = sanitize_key( (string) $type );
+			$id   = absint( $id );
+			if ( ! $id || ! isset( $missing[ $type ] ) ) {
+				continue;
+			}
+			if ( 'lining' === $type ) {
+				$product = AIMP_Catalog::get_allowed_lining( $id, $spot['fabric'] );
+				$qty     = $req['lining_units'];
+			} else {
+				$product = AIMP_Catalog::get_allowed_notion( $id, $type, $req, $spot['fabric'] );
+				$qty     = $product ? AIMP_Catalog::pack_qty( $product, AIMP_Catalog::notion_count( $type, $req ) ) : 0;
+			}
+			if ( ! $product || $qty <= 0 ) {
+				/* translators: %s: e.g. "Invisible zip" */
+				$errors[] = sprintf( __( '%s: this item does not fit this size.', 'atelier-irisee-master-plugin' ), $missing[ $type ]['label'] );
+				continue;
+			}
+			$key = $product->is_type( 'variation' )
+				? WC()->cart->add_to_cart( $product->get_parent_id(), $qty, $product->get_id(), $product->get_variation_attributes() )
+				: WC()->cart->add_to_cart( $product->get_id(), $qty );
+			if ( $key ) {
+				$added[] = wp_strip_all_tags( $product->get_name() );
+			} else {
+				/* translators: %s: product name */
+				$errors[] = sprintf( __( '%s could not be added (stock).', 'atelier-irisee-master-plugin' ), wp_strip_all_tags( $product->get_name() ) );
+			}
+		}
+		$wc_errors = array_map(
+			function ( $notice ) {
+				return wp_strip_all_tags( is_array( $notice ) ? $notice['notice'] : $notice );
+			},
+			wc_get_notices( 'error' )
+		);
+		wc_clear_notices();
+		$errors = array_values( array_unique( array_merge( $errors, $errors ? $wc_errors : array() ) ) );
+		wp_send_json_success(
+			array(
+				/* translators: %s: product names */
+				'message'    => $added ? sprintf( __( 'Also added: %s.', 'atelier-irisee-master-plugin' ), implode( ', ', $added ) ) : '',
+				'errors'     => $errors,
 				'cart_count' => WC()->cart->get_cart_contents_count(),
 			)
 		);
