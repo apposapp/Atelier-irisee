@@ -116,10 +116,20 @@
 		var id = parseInt(btn.getAttribute('data-aimp-fav'), 10);
 		var on = isFavorite(id);
 		var label = on ? t().remove : t().add;
-		btn.classList.toggle('is-favorite', on);
-		btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-		btn.setAttribute('aria-label', label);
-		btn.title = label;
+		var pressed = on ? 'true' : 'false';
+		// Only write what changes: rewriting the same values made phones (Chrome on Android) repaint and flicker.
+		if (btn.classList.contains('is-favorite') !== on) {
+			btn.classList.toggle('is-favorite', on);
+		}
+		if (btn.getAttribute('aria-pressed') !== pressed) {
+			btn.setAttribute('aria-pressed', pressed);
+		}
+		if (btn.getAttribute('aria-label') !== label) {
+			btn.setAttribute('aria-label', label);
+		}
+		if (btn.title !== label) {
+			btn.title = label;
+		}
 		var text = btn.querySelector('.aimp-fav-label');
 		var wanted = on ? t().inFavorites : t().add;
 		// Only touch the text when it changes: replacing it would wake the MutationObserver again.
@@ -137,9 +147,15 @@
 		}
 		(root || document).querySelectorAll('[data-aimp-fav]').forEach(paint);
 		// Number of favorites in the header.
+		// Only when the number changes: replacing the text woke the MutationObserver below every frame (an endless loop).
 		document.querySelectorAll('[data-aimp-fav-count]').forEach(function (badge) {
-			badge.textContent = ids.length;
-			badge.hidden = !ids.length;
+			var count = String(ids.length);
+			if (badge.textContent !== count) {
+				badge.textContent = count;
+			}
+			if (badge.hidden !== !ids.length) {
+				badge.hidden = !ids.length;
+			}
 		});
 	}
 
@@ -327,8 +343,14 @@
 		// Product grids loaded later (filters, infinite scroll) get their hearts marked too.
 		if (window.MutationObserver) {
 			var scheduled = false;
-			new MutationObserver(function () {
-				if (scheduled) {
+			new MutationObserver(function (list) {
+				// Only new elements that hold a heart (a product grid loaded later), never our own text changes.
+				var fresh = list.some(function (m) {
+					return Array.prototype.some.call(m.addedNodes, function (node) {
+						return node.nodeType === 1 && (node.matches('[data-aimp-fav]') || !!node.querySelector('[data-aimp-fav]'));
+					});
+				});
+				if (!fresh || scheduled) {
 					return;
 				}
 				scheduled = true;
