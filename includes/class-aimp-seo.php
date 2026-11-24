@@ -176,7 +176,59 @@ class AIMP_SEO {
 	 */
 	public static function description( $description ) {
 		$meta = self::term_meta();
-		return $meta ? $meta[1] : $description;
+		return $meta ? $meta[1] : self::description_in_language( $description );
+	}
+
+	/**
+	 * A page's description on a French or English page: its translation (includes/languages/content-*.php), else made
+	 * from the translated paragraphs of the product's or page's own text (All in One SEO makes the Dutch one from
+	 * that same text); Dutch only when none of it is translated.
+	 *
+	 * @param string $description Dutch description.
+	 * @return string
+	 */
+	private static function description_in_language( $description ) {
+		if ( ! class_exists( 'AIMP_I18n' ) || AIMP_I18n::current() === AIMP_I18n::default_language() || '' === trim( (string) $description ) ) {
+			return $description;
+		}
+		$own = self::in_language( $description );
+		if ( $own !== $description || ! is_singular() ) {
+			return $own;
+		}
+		static $made = array();
+		$id = (int) get_queried_object_id();
+		if ( isset( $made[ $id ] ) ) {
+			return '' !== $made[ $id ] ? $made[ $id ] : $description;
+		}
+		$post   = get_post( $id );
+		$source = $post ? (string) $post->post_excerpt : '';
+		if ( $post && 'product' === $post->post_type && function_exists( 'wc_get_product' ) ) {
+			$product = wc_get_product( $id );
+			$source  = $product ? (string) $product->get_short_description() : '';
+			if ( '' === trim( wp_strip_all_tags( $source ) ) && $product ) {
+				$source = (string) $product->get_description();
+			}
+		}
+		if ( $post && '' === trim( wp_strip_all_tags( $source ) ) ) {
+			// Divi's layout codes out, their content kept.
+			$source = (string) preg_replace( '/\[\/?[a-z_]+[^\]]*\]/i', "\n\n", (string) $post->post_content );
+		}
+		$texts = array();
+		foreach ( preg_split( '#</p>|<br\s*/?>|</h[1-6]>|</li>|\n\s*\n#i', wpautop( $source ) ) as $part ) {
+			$plain = trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( $part ), ENT_QUOTES, 'UTF-8' ) ) );
+			if ( '' === $plain || ! preg_match( '/\pL{2}/u', $plain ) ) {
+				continue;
+			}
+			$found = self::in_language( $plain );
+			if ( $found !== $plain ) {
+				$texts[] = $found;
+			}
+			if ( mb_strlen( implode( ' ', $texts ) ) > 160 ) {
+				break;
+			}
+		}
+		$made[ $id ] = $texts ? self::shorten( implode( ' ', $texts ), 158 ) : '';
+		return '' !== $made[ $id ] ? $made[ $id ] : $description;
 	}
 
 	/**
@@ -196,7 +248,21 @@ class AIMP_SEO {
 	 */
 	public static function social_tags( $tags ) {
 		$meta = self::term_meta();
-		if ( ! $meta || ! is_array( $tags ) ) {
+		if ( ! is_array( $tags ) ) {
+			return $tags;
+		}
+		// Other pages in French or English: the share texts in that language too.
+		if ( ! $meta ) {
+			foreach ( array( 'og:description', 'twitter:description' ) as $key ) {
+				if ( ! empty( $tags[ $key ] ) && is_string( $tags[ $key ] ) ) {
+					$tags[ $key ] = self::description_in_language( $tags[ $key ] );
+				}
+			}
+			foreach ( array( 'og:title', 'twitter:title' ) as $key ) {
+				if ( ! empty( $tags[ $key ] ) && is_string( $tags[ $key ] ) ) {
+					$tags[ $key ] = self::in_language( $tags[ $key ] );
+				}
+			}
 			return $tags;
 		}
 		foreach ( array( 'og:title', 'twitter:title' ) as $key ) {

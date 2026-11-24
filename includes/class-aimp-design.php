@@ -627,6 +627,7 @@ class AIMP_Design {
 				'sp_prefetch' => 'bool',
 				'sp_noemoji'  => 'bool',
 				'sp_noembed'  => 'bool',
+				'sp_nobundle' => 'bool',
 			),
 			'admin_opts'  => array(
 				'ad_nobar' => 'bool',
@@ -4591,6 +4592,7 @@ class AIMP_Design {
 		self::check_box( 'sp_prefetch', __( 'Load the next page while the mouse is on a link', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'sp_noemoji', __( 'No emoji script (the browser shows emoji itself)', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'sp_noembed', __( 'No embed script (for showing other sites\' posts in a page)', 'atelier-irisee-master-plugin' ) );
+		self::check_box( 'sp_nobundle', __( 'Keep the plugin\'s scripts as separate files (standard: one combined file per page)', 'atelier-irisee-master-plugin' ) );
 		echo '<p class="description">' . esc_html__( 'These take effect for visitors after publishing (LiteSpeed is emptied then).', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 

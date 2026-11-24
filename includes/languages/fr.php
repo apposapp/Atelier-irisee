@@ -3525,4 +3525,6 @@ return array(
 	'%1$s at %2$s: all %3$d products of %1$s, to order online.' => '%1$s chez %2$s : les %3$d produits de %1$s, à commander en ligne.',
 	'%1$s at %2$s: %3$d product in %4$s, to order online.' => '%1$s chez %2$s : %3$d produit dans %4$s, à commander en ligne.',
 	'%1$s at %2$s: discover %3$d products in %4$s, to order online.' => '%1$s chez %2$s : découvrez %3$d produits dans %4$s, à commander en ligne.',
+	// 3.87.0: combined scripts
+	'Keep the plugin\'s scripts as separate files (standard: one combined file per page)' => 'Garder les scripts du plugin en fichiers séparés (standard : un seul fichier combiné par page)',
 );

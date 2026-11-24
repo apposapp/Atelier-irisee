@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.86.1
+Stable tag: 3.87.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,11 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.87.0 =
+* SEO: French and English pages get their description (and share texts) in their own language: the translations of the shop's page descriptions, else one made from the translated text of the product or page.
+* SEO: a sitemap per language, /sitemap-lang-fr.xml and /sitemap-lang-en.xml (every page, post, product, category and brand, with links to the other languages), named in robots.txt.
+* Speed: the plugin's scripts of a page come as one combined file (uploads/aimp-cache/) instead of a dozen. Design studio → Site → Speed can keep them separate.
 
 = 3.86.1 =
 * SEO: a brand page under All products shows the brand as its main heading (not the page's own Divi heading); the favourites page and the "Uncategorized" category are really not listed (All in One SEO's robots tag), and "Uncategorized" is left out of the sitemap.

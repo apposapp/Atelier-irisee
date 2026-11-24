@@ -59,6 +59,167 @@ class AIMP_Lang_Urls {
 		add_filter( 'language_attributes', array( __CLASS__, 'html_lang' ), 20 );
 		// WordPress's own "right address" check compares with the address as requested (with its language part).
 		add_filter( 'redirect_canonical', array( __CLASS__, 'redirect_canonical' ), 20 );
+		// A sitemap per language (/sitemap-lang-fr.xml), named in robots.txt.
+		// After everything is registered (WooCommerce's products and categories), before WordPress reads the address.
+		add_action( 'wp_loaded', array( __CLASS__, 'sitemap' ), 1 );
+		add_filter( 'robots_txt', array( __CLASS__, 'robots_txt' ), 99 );
+		foreach ( array( 'save_post', 'deleted_post', 'created_term', 'edited_term', 'delete_term' ) as $hook ) {
+			add_action( $hook, array( __CLASS__, 'flush_sitemaps' ) );
+		}
+	}
+
+	/* ------------------------------------------------------------------
+	 * Sitemaps per language
+	 * ------------------------------------------------------------------ */
+
+	/** Kept for a while (made again after a change). */
+	const SITEMAP_CACHE = 'aimp_lang_sitemap_';
+
+	/**
+	 * The address of a language's sitemap.
+	 *
+	 * @param string $lang Language.
+	 * @return string
+	 */
+	public static function sitemap_url( $lang ) {
+		return untrailingslashit( (string) get_option( 'home' ) ) . '/sitemap-lang-' . $lang . '.xml';
+	}
+
+	public static function flush_sitemaps() {
+		foreach ( self::prefixed() as $code ) {
+			delete_transient( self::SITEMAP_CACHE . $code );
+		}
+	}
+
+	/**
+	 * @param string $output robots.txt.
+	 * @return string
+	 */
+	public static function robots_txt( $output ) {
+		foreach ( self::prefixed() as $code ) {
+			$line = 'Sitemap: ' . self::sitemap_url( $code );
+			if ( false === strpos( $output, $line ) ) {
+				$output = rtrim( $output ) . "\n" . $line . "\n";
+			}
+		}
+		return $output;
+	}
+
+	/**
+	 * /sitemap-lang-fr.xml: every page, post, product, product category and brand in that language, each with its
+	 * addresses in the other languages.
+	 */
+	public static function sitemap() {
+		$path = (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '', PHP_URL_PATH ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- only compared.
+		if ( ! preg_match( '#^' . preg_quote( self::home_path(), '#' ) . '/sitemap-lang-([a-z]{2})\.xml$#', $path, $m ) || ! in_array( $m[1], self::prefixed(), true ) ) {
+			return;
+		}
+		$lang = $m[1];
+		$xml  = get_transient( self::SITEMAP_CACHE . $lang );
+		if ( ! is_string( $xml ) || '' === $xml ) {
+			$xml = self::sitemap_xml( $lang );
+			set_transient( self::SITEMAP_CACHE . $lang, $xml, 12 * HOUR_IN_SECONDS );
+		}
+		status_header( 200 );
+		header( 'Content-Type: application/xml; charset=UTF-8' );
+		header( 'X-Robots-Tag: noindex, follow' );
+		echo $xml; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built with esc_url() below.
+		exit;
+	}
+
+	/**
+	 * The addresses of the shop in its own language: [ address, last change ].
+	 *
+	 * @return array
+	 */
+	private static function sitemap_entries() {
+		$entries = array();
+		$skip    = array();
+		foreach ( array( 'cart', 'checkout', 'myaccount' ) as $page ) {
+			$skip[] = function_exists( 'wc_get_page_id' ) ? (int) wc_get_page_id( $page ) : 0;
+		}
+		$options = get_option( 'aimp_settings', array() );
+		$skip[]  = is_array( $options ) && ! empty( $options['favorites_page'] ) ? (int) $options['favorites_page'] : 0;
+		$hidden  = array();
+		if ( taxonomy_exists( 'product_visibility' ) ) {
+			foreach ( array( 'exclude-from-catalog', 'exclude-from-search' ) as $slug ) {
+				$term = get_term_by( 'slug', $slug, 'product_visibility' );
+				if ( $term ) {
+					$hidden[] = (int) $term->term_taxonomy_id;
+				}
+			}
+		}
+		$posts = get_posts(
+			array(
+				'post_type'        => array( 'page', 'post', 'product' ),
+				'post_status'      => 'publish',
+				'posts_per_page'   => 2000,
+				'has_password'     => false,
+				'orderby'          => 'ID',
+				'order'            => 'ASC',
+				'suppress_filters' => false,
+			)
+		);
+		foreach ( $posts as $post ) {
+			if ( in_array( (int) $post->ID, $skip, true ) ) {
+				continue;
+			}
+			// A product hidden from the shop and search (Catalog visibility → Hidden).
+			if ( 'product' === $post->post_type && $hidden && 2 === count( array_intersect( $hidden, wp_get_object_terms( $post->ID, 'product_visibility', array( 'fields' => 'tt_ids' ) ) ) ) ) {
+				continue;
+			}
+			$entries[] = array( get_permalink( $post ), get_post_modified_time( 'c', true, $post ) );
+		}
+		$uncategorized = (int) get_option( 'default_product_cat' );
+		foreach ( array( 'product_cat', 'product_brand', 'category' ) as $taxonomy ) {
+			if ( ! taxonomy_exists( $taxonomy ) ) {
+				continue;
+			}
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $taxonomy,
+					'hide_empty' => true,
+				)
+			);
+			foreach ( is_array( $terms ) ? $terms : array() as $term ) {
+				if ( 'product_cat' === $taxonomy && (int) $term->term_id === $uncategorized ) {
+					continue;
+				}
+				$link = get_term_link( $term );
+				if ( is_string( $link ) && '' !== $link ) {
+					$entries[] = array( $link, '' );
+				}
+			}
+		}
+		// Once per address (a category can be its shop page itself).
+		$unique = array();
+		foreach ( $entries as $entry ) {
+			$unique[ $entry[0] ] = $entry;
+		}
+		return array_values( $unique );
+	}
+
+	/**
+	 * @param string $lang Language.
+	 * @return string
+	 */
+	private static function sitemap_xml( $lang ) {
+		$codes = array_keys( AIMP_I18n::languages() );
+		$xml   = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+			'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
+		foreach ( self::sitemap_entries() as $entry ) {
+			list( $url, $modified ) = $entry;
+			$xml .= "\t<url>\n\t\t<loc>" . esc_url( self::with_lang( $url, $lang ) ) . "</loc>\n";
+			if ( '' !== $modified ) {
+				$xml .= "\t\t<lastmod>" . esc_html( $modified ) . "</lastmod>\n";
+			}
+			foreach ( $codes as $code ) {
+				$xml .= "\t\t" . '<xhtml:link rel="alternate" hreflang="' . esc_attr( $code ) . '" href="' . esc_url( self::with_lang( $url, $code ) ) . '"/>' . "\n";
+			}
+			$xml .= "\t\t" . '<xhtml:link rel="alternate" hreflang="x-default" href="' . esc_url( self::with_lang( $url, AIMP_I18n::default_language() ) ) . '"/>' . "\n";
+			$xml .= "\t</url>\n";
+		}
+		return $xml . '</urlset>' . "\n";
 	}
 
 	/**
