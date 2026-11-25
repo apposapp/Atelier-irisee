@@ -692,7 +692,7 @@ class AIMP_Blog {
 			}
 			$picture = '' !== $poster ? $poster : $embed[1];
 			$inner   = '<button type="button" class="aimp-blog-play" data-embed="' . esc_url( $embed[0] ) . '" aria-label="' . esc_attr__( 'Play video', 'atelier-irisee-master-plugin' ) . '">' .
-				( '' !== $picture ? '<img src="' . esc_url( $picture ) . '" alt="" loading="lazy">' : '' ) . $play . '</button>';
+				( '' !== $picture ? '<img src="' . esc_url( $picture ) . '" alt="' . esc_attr__( 'Video', 'atelier-irisee-master-plugin' ) . '" loading="lazy">' : '' ) . $play . '</button>';
 		}
 		if ( '' === $inner ) {
 			return '';

@@ -1469,7 +1469,7 @@ class AIMP_Product_Page {
 		foreach ( AIMP_Shortcode::languages_data() as $language ) {
 			$active = $language['code'] === $current;
 			$html  .= sprintf(
-				'<a class="aimp-language%1$s" href="%2$s" data-lang="%3$s" lang="%4$s"%5$s><img src="%6$s" alt="" width="24" height="16"><span>%7$s</span></a>',
+				'<a class="aimp-language%1$s" href="%2$s" data-lang="%3$s" lang="%4$s"%5$s><img src="%6$s" alt="%7$s" width="24" height="16"><span>%7$s</span></a>',
 				$active ? ' is-active' : '',
 				esc_url( AIMP_I18n::switch_url( $language['code'] ) ),
 				esc_attr( $language['code'] ),

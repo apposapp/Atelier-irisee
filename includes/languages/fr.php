@@ -3620,4 +3620,6 @@ return array(
 	'Your prices include this VAT; the invoice shows the amount without VAT and the VAT in it. Only used for orders without VAT lines of their own (WooCommerce does not calculate taxes).' => 'Vos prix comprennent cette TVA ; la facture indique le montant hors TVA et la TVA comprise. Uniquement pour les commandes sans lignes de TVA propres (WooCommerce ne calcule pas les taxes).',
 	// 3.89.0: Google product feed
 	'%s (per 10 cm)' => '%s (par 10 cm)',
+	// 
+	'Sewing kit' => 'Kit de couture',
 );

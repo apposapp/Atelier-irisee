@@ -251,6 +251,7 @@ class AIMP_SEO {
 		if ( ! is_array( $tags ) ) {
 			return $tags;
 		}
+		$tags = self::share_image( $tags );
 		// Other pages in French or English: the share texts in that language too.
 		if ( ! $meta ) {
 			foreach ( array( 'og:description', 'twitter:description' ) as $key ) {
@@ -277,6 +278,57 @@ class AIMP_SEO {
 		}
 		if ( isset( $tags['og:url'] ) ) {
 			$tags['og:url'] = $meta[2];
+		}
+		return $tags;
+	}
+
+	/**
+	 * A share picture on every page (Facebook, WhatsApp, X): the page's own picture when All in One SEO found none,
+	 * else the category's picture, else the home page's hero picture, else the logo.
+	 *
+	 * @param array $tags Tags.
+	 * @return array
+	 */
+	private static function share_image( $tags ) {
+		$has_og      = ! empty( $tags['og:image'] );
+		$has_twitter = ! empty( $tags['twitter:image'] );
+		if ( ( $has_og || ! array_key_exists( 'og:title', $tags ) ) && ( $has_twitter || ! array_key_exists( 'twitter:title', $tags ) ) ) {
+			return $tags;
+		}
+		$id  = 0;
+		$own = class_exists( 'AIMP_Shop' ) ? AIMP_Shop::request_term() : null;
+		if ( $own ) {
+			$id = (int) get_term_meta( $own[0]->term_id, 'thumbnail_id', true );
+		} elseif ( is_singular() ) {
+			$id = (int) get_post_thumbnail_id();
+		} elseif ( is_tax() || is_category() ) {
+			$id = (int) get_term_meta( get_queried_object_id(), 'thumbnail_id', true );
+		}
+		if ( ! $id ) {
+			$id = class_exists( 'AIMP_Design' ) ? (int) AIMP_Design::opt( 'hero', 'h_img', 0 ) : 0;
+			$id = $id ? $id : (int) AIMP_Settings::get( 'hero_image' );
+		}
+		$image = $id ? wp_get_attachment_image_src( $id, 'large' ) : false;
+		$url   = $image ? (string) $image[0] : '';
+		if ( '' === $url && class_exists( 'AIMP_Header' ) ) {
+			$url = (string) AIMP_Header::logo_url();
+		}
+		if ( '' === $url ) {
+			return $tags;
+		}
+		if ( ! $has_og && array_key_exists( 'og:title', $tags ) ) {
+			$tags['og:image']            = $url;
+			$tags['og:image:secure_url'] = $url;
+			if ( $image ) {
+				$tags['og:image:width']  = (int) $image[1];
+				$tags['og:image:height'] = (int) $image[2];
+			}
+		}
+		if ( ! $has_twitter && array_key_exists( 'twitter:title', $tags ) ) {
+			$tags['twitter:image'] = $url;
+			if ( isset( $tags['twitter:card'] ) && 'summary' === $tags['twitter:card'] && $image ) {
+				$tags['twitter:card'] = 'summary_large_image';
+			}
 		}
 		return $tags;
 	}

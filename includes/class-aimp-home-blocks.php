@@ -243,6 +243,18 @@ class AIMP_Home_Blocks {
 		return $html;
 	}
 
+	/**
+	 * A picture's alt text: the one set in the media library, else the given text.
+	 *
+	 * @param int    $id       Attachment.
+	 * @param string $fallback Text.
+	 * @return string
+	 */
+	private static function alt( $id, $fallback ) {
+		$alt = $id ? trim( (string) get_post_meta( (int) $id, '_wp_attachment_image_alt', true ) ) : '';
+		return '' !== $alt ? $alt : wp_strip_all_tags( (string) $fallback );
+	}
+
 	/* ------------------------------------------------------------------ meet the maker */
 
 	/**
@@ -261,7 +273,7 @@ class AIMP_Home_Blocks {
 
 		$html = '<section class="aimp-home-block aimp-home-maker' . ( AIMP_Blocks::design( $part, 'mk_right' ) ? ' is-picture-right' : '' ) . ( $picture ? '' : ' has-no-picture' ) . '">';
 		if ( $picture ) {
-			$image = wp_get_attachment_image( $picture, 'large', false, array( 'class' => 'aimp-maker-image', 'loading' => 'lazy', 'alt' => '' ) );
+			$image = wp_get_attachment_image( $picture, 'large', false, array( 'class' => 'aimp-maker-image', 'loading' => 'lazy', 'alt' => self::alt( $picture, AIMP_Blocks::text( 'mk_title' ) ) ) );
 			if ( '' !== $style ) {
 				$image = preg_replace( '/^<img /', '<img' . $style . ' ', $image );
 			}
@@ -273,7 +285,7 @@ class AIMP_Home_Blocks {
 				// <img>, so the Design studio's "Picture" control (replace, move, zoom) works on it too.
 				$ix    = (int) AIMP_Blocks::design( $part, 'mk_fx2', -1 );
 				$iy    = (int) AIMP_Blocks::design( $part, 'mk_fy2', -1 );
-				$html .= '<span class="aimp-maker-inset"><img class="aimp-maker-inset-image" src="' . esc_url( $url2 ) . '" alt="" loading="lazy" style="object-position:' . ( $ix >= 0 ? $ix : 50 ) . '% ' . ( $iy >= 0 ? $iy : 50 ) . '%"></span>';
+				$html .= '<span class="aimp-maker-inset"><img class="aimp-maker-inset-image" src="' . esc_url( $url2 ) . '" alt="' . esc_attr( self::alt( $inset, get_bloginfo( 'name' ) ) ) . '" loading="lazy" style="object-position:' . ( $ix >= 0 ? $ix : 50 ) . '% ' . ( $iy >= 0 ? $iy : 50 ) . '%"></span>';
 			}
 			$html .= '</div>';
 		}
@@ -484,7 +496,7 @@ class AIMP_Home_Blocks {
 				'<p class="aimp-gp-more">' . $button . '</p></section>';
 		}
 
-		$media = '' !== $src ? '<div class="aimp-gp-media"><img class="aimp-gp-card" src="' . esc_url( $src ) . '" alt="" loading="lazy"></div>' : '';
+		$media = '' !== $src ? '<div class="aimp-gp-media"><img class="aimp-gp-card" src="' . esc_url( $src ) . '" alt="' . esc_attr( self::alt( $picture, '' !== $title ? $title : __( 'Gift card', 'atelier-irisee-master-plugin' ) ) ) . '" loading="lazy"></div>' : '';
 		$body  = ( '' !== $kicker ? '<p class="aimp-gp-kicker">' . esc_html( $kicker ) . '</p>' : '' ) .
 			( '' !== $title ? '<h2 class="aimp-gp-title">' . esc_html( $title ) . '</h2>' : '' ) .
 			( '' !== $text ? '<p class="aimp-gp-text">' . esc_html( $text ) . '</p>' : '' );
@@ -653,7 +665,7 @@ class AIMP_Home_Blocks {
 		$account = '' !== $user ? 'https://www.instagram.com/' . rawurlencode( $user ) . '/' : '';
 		$avatar  = AIMP_Instagram::avatar();
 		$picture = '' !== $avatar
-			? '<img class="aimp-ig-avatar" src="' . esc_url( $avatar ) . '" alt="" width="36" height="36" loading="lazy">'
+			? '<img class="aimp-ig-avatar" src="' . esc_url( $avatar ) . '" alt="' . esc_attr( '' !== $user ? '@' . $user : 'Instagram' ) . '" width="36" height="36" loading="lazy">'
 			: '<span class="aimp-ig-avatar is-letter" aria-hidden="true">' . esc_html( strtoupper( substr( '' !== $user ? $user : 'A', 0, 1 ) ) ) . '</span>';
 		$outside = ' target="_blank" rel="noopener"';
 		$svg     = function ( $path ) {

@@ -75,7 +75,7 @@ $aimp_d = function ( $part, $key, $default = null ) {
 			<?php if ( $aimp_active && count( $aimp_langs ) > 1 ) : ?>
 				<div class="aimp-header-lang" data-aimp-lang-switch>
 					<button type="button" class="aimp-lang-toggle" aria-expanded="false" aria-haspopup="true" aria-controls="aimp-lang-list" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: language name */ __( 'Language: %s', 'atelier-irisee-master-plugin' ), $aimp_active['name'] ) ); ?>">
-						<img src="<?php echo esc_url( $aimp_active['flag'] ); ?>" alt="" width="26" height="18">
+						<img src="<?php echo esc_url( $aimp_active['flag'] ); ?>" alt="<?php echo esc_attr( $aimp_active['name'] ); ?>" width="26" height="18">
 						<?php $aimp_lang_style = $aimp_d( 'header-lang', 'lang_style', '' ); ?>
 						<?php if ( 'code' === $aimp_lang_style ) : ?>
 							<span class="aimp-lang-name"><?php echo esc_html( strtoupper( $aimp_active['code'] ) ); ?></span>
@@ -89,7 +89,7 @@ $aimp_d = function ( $part, $key, $default = null ) {
 							<?php if ( $aimp_lang['code'] === $aimp_current ) { continue; } ?>
 							<li>
 								<a href="<?php echo esc_url( AIMP_I18n::switch_url( $aimp_lang['code'] ) ); ?>" data-lang="<?php echo esc_attr( $aimp_lang['code'] ); ?>" lang="<?php echo esc_attr( $aimp_lang['locale'] ); ?>">
-									<img src="<?php echo esc_url( $aimp_lang['flag'] ); ?>" alt="" width="24" height="16">
+									<img src="<?php echo esc_url( $aimp_lang['flag'] ); ?>" alt="<?php echo esc_attr( $aimp_lang['name'] ); ?>" width="24" height="16">
 									<span><?php echo esc_html( $aimp_lang['name'] ); ?></span>
 								</a>
 							</li>

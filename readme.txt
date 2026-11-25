@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.89.0
+Stable tag: 3.90.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.90.0 =
+* SEO (All in One SEO audit): every page has a share picture (og:image, twitter:image): the page's own, else the category's, else the home hero picture, else the logo. Pictures that had an empty alt text now have one (language flags, the maker's pictures, the gift card promo, Instagram avatar, kit cards, video previews).
 
 = 3.89.0 =
 * Google Merchant Center: a product feed at /google-feed.xml (every product that can be bought, a pattern's sizes as variants, prices incl. VAT, stock, pictures, brand, categories; fabric per 10 cm with unit pricing). Merchant Center fetches it daily.

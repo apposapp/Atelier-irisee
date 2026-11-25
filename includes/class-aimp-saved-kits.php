@@ -335,7 +335,7 @@ class AIMP_Saved_Kits {
 			$cards .= sprintf(
 				'<li class="aimp-saved-kit" data-aimp-saved-kit="%1$s">' .
 				'<a class="aimp-card" href="%2$s">' .
-				'<span class="aimp-card-image"><img src="%3$s" alt="" loading="lazy"></span>' .
+				'<span class="aimp-card-image"><img src="%3$s" alt="%4$s" loading="lazy"></span>' .
 				'<span class="aimp-card-name">%4$s</span>' .
 				'%5$s<span class="aimp-card-price">%6$s</span>' .
 				'<span class="aimp-button aimp-fav-view">%7$s</span></a>' .

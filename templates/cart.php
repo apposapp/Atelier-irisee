@@ -44,7 +44,7 @@ defined( 'ABSPATH' ) || exit;
 							<a class="aimp-card" href="<?php echo esc_url( $data['kit_url'] ); ?>">
 								<span class="aimp-card-image">
 									<?php if ( $aimp_kit_image ) : ?>
-										<img src="<?php echo esc_url( $aimp_kit_image ); ?>" alt="" loading="lazy">
+										<img src="<?php echo esc_url( $aimp_kit_image ); ?>" alt="<?php esc_attr_e( 'Sewing kit', 'atelier-irisee-master-plugin' ); ?>" loading="lazy">
 									<?php endif; ?>
 								</span>
 								<span class="aimp-card-name"><?php esc_html_e( 'Create your sewing kit', 'atelier-irisee-master-plugin' ); ?></span>
