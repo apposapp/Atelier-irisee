@@ -25,6 +25,22 @@ class AIMP_Site {
 		add_action( 'wp_head', array( __CLASS__, 'viewport' ), 0 );
 		// The fonts every page uses are fetched first, so the text shows in its own font sooner.
 		add_action( 'wp_head', array( __CLASS__, 'preload_fonts' ), 1 );
+		// Basic security headers (Really Simple Security only sends them in its paid version).
+		add_action( 'send_headers', array( __CLASS__, 'security_headers' ) );
+	}
+
+	/**
+	 * HTTPS only (a year), no guessing of file types, no framing by other sites, and only the domain as referrer to
+	 * other sites. Off with add_filter( 'aimp_security_headers', '__return_false' ).
+	 */
+	public static function security_headers() {
+		if ( headers_sent() || ! is_ssl() || ! apply_filters( 'aimp_security_headers', true ) ) {
+			return;
+		}
+		header( 'Strict-Transport-Security: max-age=31536000' );
+		header( 'X-Content-Type-Options: nosniff' );
+		header( 'X-Frame-Options: SAMEORIGIN' );
+		header( 'Referrer-Policy: strict-origin-when-cross-origin' );
 	}
 
 	public static function preload_fonts() {

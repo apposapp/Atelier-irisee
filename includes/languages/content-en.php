@@ -890,4 +890,6 @@ return array(
 	'Viscose, denim, katoen, linnen, jacquard en meer: kwaliteitsstoffen per 10 cm, in één stuk geleverd. Levering in 2–4 werkdagen, gratis vanaf €175.' => 'Viscose, denim, cotton, linen, jacquard and more: quality fabrics per 10 cm, delivered in one piece. Delivery in 2–4 working days, free from €175.',
 	'Een vraag over een patroon, een stof of je bestelling? Stuur een bericht, mail of WhatsApp. We antwoorden meestal binnen één werkdag.' => 'A question about a pattern, a fabric or your order? Send a message, an email or a WhatsApp. We usually reply within one working day.',
 	'Atelier Irisée – Naaipakketten, stoffen en naaipatronen' => 'Atelier Irisée – Sewing kits, fabrics and sewing patterns',
+	// Added
+	'Stel je eigen naaipakket samen bij Atelier Irisée: naaipatroon, stoffen en fournituren in één pakket. Gratis verzending vanaf €175.' => 'Put together your own sewing kit at Atelier Irisée: pattern, fabrics and notions in one kit. Free shipping from €175.',
 );

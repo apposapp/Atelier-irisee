@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.90.0
+Stable tag: 3.90.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.90.1 =
+* Security headers on every page (HTTPS only for a year, nosniff, no framing by other sites, referrer policy); Really Simple Security only sends these in its paid version. French and English versions of the new home page description.
 
 = 3.90.0 =
 * SEO (All in One SEO audit): every page has a share picture (og:image, twitter:image): the page's own, else the category's, else the home hero picture, else the logo. Pictures that had an empty alt text now have one (language flags, the maker's pictures, the gift card promo, Instagram avatar, kit cards, video previews).
