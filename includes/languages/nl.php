@@ -3618,4 +3618,6 @@ return array(
 	'Phone number (only on the invoice)' => 'Telefoonnummer (alleen op de factuur)',
 	'VAT rate included in your prices' => 'Btw-tarief in je prijzen',
 	'Your prices include this VAT; the invoice shows the amount without VAT and the VAT in it. Only used for orders without VAT lines of their own (WooCommerce does not calculate taxes).' => 'Je prijzen bevatten deze btw; de factuur toont het bedrag zonder btw en de btw erin. Alleen voor bestellingen zonder eigen btw-regels (WooCommerce berekent geen belastingen).',
+	// 3.89.0: Google product feed
+	'%s (per 10 cm)' => '%s (per 10 cm)',
 );
