@@ -58,6 +58,9 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-content-i18n.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-seo.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-bundle.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-consent.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-invoices.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-lost-orders.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-stats.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-boot.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-hero.php';
@@ -122,6 +125,9 @@ class AIMP_Plugin {
 		AIMP_Design_Tech::init();
 		AIMP_SEO::init();
 		AIMP_Bundle::init();
+		AIMP_Consent::init();
+		AIMP_Invoices::init();
+		AIMP_Lost_Orders::init();
 		AIMP_Design_Inline::init();
 		AIMP_Content_I18n::init();
 		AIMP_Stats::init();

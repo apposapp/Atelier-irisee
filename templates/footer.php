@@ -101,6 +101,10 @@ defined( 'ABSPATH' ) || exit;
 
 	<div class="aimp-footer-bottom">
 		<?php echo $data['legal_menu']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_nav_menu() output. ?>
+		<?php if ( class_exists( 'AIMP_Consent' ) && AIMP_Consent::banner_on() ) : ?>
+			<?php // The cookie choice again (AIMP_Consent). ?>
+			<a class="aimp-footer-cookies" href="#cookies" data-aimp-cookies><?php esc_html_e( 'Cookie settings', 'atelier-irisee-master-plugin' ); ?></a>
+		<?php endif; ?>
 		<p class="aimp-footer-copyright"><?php echo esc_html( $data['copyright'] ); ?></p>
 	</div>
 	<?php if ( class_exists( 'AIMP_Design' ) && AIMP_Design::opt( 'footer', 'ft_top' ) ) : ?>

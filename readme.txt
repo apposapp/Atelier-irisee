@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.87.0
+Stable tag: 3.88.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.88.0 =
+* Cookies and Google: Atelier Irisee → Settings → General → Google and cookies: the Google Analytics ID (with Consent Mode v2: no cookies before "Accept"), the Search Console verification code, and a cookie banner in NL/FR/EN ("Accept" / "Refuse", "Cookie settings" in the footer). The Facebook pixel only runs after "Accept". The shop manager's own visits are not counted.
+* Invoices: every paid order gets an invoice number per year without gaps (2026-0001). The PDF has the shop's details and VAT number (BE0598.716.761), the customer, the lines (a sewing project kit as one block), shipping, discounts, VAT per rate and the payment, in the customer's language. On the order ("Invoice" box), as the bulk action "Print invoices", attached to the "Processing" email and in My account. Settings: Atelier Irisee → Settings → Invoices.
+* Credit notes: every refund on an invoiced order gets a credit note from its own series (C2026-0001) that names the invoice; attached to the "Refunded" email, on the order and in My account.
+* Lost packages: the order status "Lost", and on the order the box "Package lost": choose what to send again and make a free replacement order (same customer, address and products at 0, PostNL with the same delivery choice and a new label). The customer gets the email "Replacement shipment" in their language; its delivery note is in the Invoice box.
+* Orders remember their language (for emails, invoices and replacements).
 
 = 3.87.0 =
 * SEO: French and English pages get their description (and share texts) in their own language: the translations of the shop's page descriptions, else one made from the translated text of the product or page.

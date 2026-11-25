@@ -1,0 +1,87 @@
+/* The cookie banner (AIMP_Consent): a calm bar at the bottom, in the shop's gold and cream. */
+.aimp-consent {
+	position: fixed;
+	right: max(12px, env(safe-area-inset-right, 0px));
+	bottom: max(12px, env(safe-area-inset-bottom, 0px));
+	left: max(12px, env(safe-area-inset-left, 0px));
+	z-index: 99990;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem 1.25rem;
+	box-sizing: border-box;
+	max-width: 760px;
+	margin: 0 auto;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--aimp-site-gold, #b38f4f);
+	border-radius: 14px;
+	background: var(--aimp-site-cream, #fbf7f0);
+	color: var(--aimp-site-brown, #613907);
+	box-shadow: 0 10px 30px rgba(60, 40, 10, 0.18);
+	font-size: 0.95rem;
+	line-height: 1.5;
+}
+
+.aimp-consent[hidden] {
+	display: none;
+}
+
+.aimp-consent-text {
+	flex: 1 1 22rem;
+	margin: 0;
+	padding: 0;
+}
+
+.aimp-consent-text a {
+	color: var(--aimp-site-gold-text, #8a6a33);
+	text-decoration: underline;
+}
+
+.aimp-consent-buttons {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.aimp-consent button {
+	min-height: 44px;
+	padding: 0.55rem 1.2rem;
+	border: 1px solid var(--aimp-site-gold, #b38f4f);
+	border-radius: 999px;
+	font: inherit;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	cursor: pointer;
+}
+
+.aimp-consent .aimp-consent-refuse {
+	background: transparent;
+	color: var(--aimp-site-gold-text, #8a6a33);
+}
+
+.aimp-consent .aimp-consent-accept {
+	background: var(--aimp-site-gold, #b38f4f);
+	color: #fff;
+}
+
+.aimp-consent button:hover,
+.aimp-consent button:focus-visible {
+	filter: brightness(0.95);
+	outline: 2px solid var(--aimp-site-gold, #b38f4f);
+	outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+	/* Above the phone tab bar. */
+	.aimp-consent {
+		bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+	}
+
+	.aimp-consent-buttons {
+		width: 100%;
+	}
+
+	.aimp-consent button {
+		flex: 1;
+	}
+}

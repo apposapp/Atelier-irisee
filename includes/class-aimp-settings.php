@@ -63,6 +63,7 @@ class AIMP_Settings {
 			'fabric_per_page' => 16,
 			'favorites_page'  => 0,
 			'lang_urls'       => 1,
+			'cookie_banner'   => 1,
 			'refund_days'     => 14,
 				'kit_discount'      => 10,
 			'welcome_discount'  => 10,
@@ -165,6 +166,15 @@ class AIMP_Settings {
 			self::PAGE,
 			'aimp_general',
 			array( 'label_for' => 'aimp_language' )
+		);
+
+		add_settings_field(
+			'aimp_google',
+			__( 'Google and cookies', 'atelier-irisee-master-plugin' ),
+			array( __CLASS__, 'render_google_fields' ),
+			self::PAGE,
+			'aimp_general',
+			array( 'label_for' => 'aimp_ga_id' )
 		);
 
 		add_settings_field(
@@ -864,7 +874,19 @@ class AIMP_Settings {
 		$language             = isset( $input['language'] ) ? sanitize_key( $input['language'] ) : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['language'] = AIMP_I18n::is_valid( $language ) ? $language : AIMP_I18n::DEFAULT_LANG;
 		$sanitized['lang_urls'] = empty( $input['lang_urls'] ) ? 0 : 1;
+		// Google (AIMP_Consent).
+		$ga                        = isset( $input['ga_id'] ) ? strtoupper( trim( sanitize_text_field( wp_unslash( $input['ga_id'] ) ) ) ) : '';
+		$sanitized['ga_id']        = preg_match( '/^G-[A-Z0-9]{4,20}$/', $ga ) ? $ga : '';
+		$verify                    = isset( $input['gsc_verify'] ) ? (string) wp_unslash( $input['gsc_verify'] ) : '';
+		if ( preg_match( '/content=["\']([^"\']+)["\']/', $verify, $m ) ) {
+			$verify = $m[1];
+		}
+		$sanitized['gsc_verify']    = sanitize_text_field( $verify );
+		$sanitized['cookie_banner'] = empty( $input['cookie_banner'] ) ? 0 : 1;
 		$sanitized             = array_merge( $sanitized, AIMP_Hero::sanitize( $input ) );
+		if ( class_exists( 'AIMP_Invoices' ) ) {
+			$sanitized = array_merge( $sanitized, AIMP_Invoices::sanitize( $input ) );
+		}
 		$sanitized             = array_merge( $sanitized, AIMP_Kit_Steps::sanitize( $input ) );
 		$sanitized             = array_merge( $sanitized, AIMP_Notions::sanitize_options( $input ) );
 		$sanitized             = array_merge( $sanitized, AIMP_Clothing_Icons::sanitize( $input ) );
@@ -993,6 +1015,25 @@ class AIMP_Settings {
 		) . '</p>';
 	}
 
+	/**
+	 * Google Analytics, Search Console and the cookie banner (AIMP_Consent).
+	 */
+	public static function render_google_fields() {
+		printf(
+			'<p><label>%1$s<br><input type="text" id="aimp_ga_id" class="regular-text" name="%2$s[ga_id]" value="%3$s" placeholder="G-XXXXXXXXXX"></label></p>' .
+			'<p><label>%4$s<br><input type="text" class="regular-text" name="%2$s[gsc_verify]" value="%5$s"></label></p>' .
+			'<p><label><input type="checkbox" name="%2$s[cookie_banner]" value="1"%6$s> %7$s</label></p><p class="description">%8$s</p>',
+			esc_html__( 'Google Analytics measurement ID', 'atelier-irisee-master-plugin' ),
+			esc_attr( self::OPTION ),
+			esc_attr( self::get_text( 'ga_id' ) ),
+			esc_html__( 'Google Search Console verification code (the content of the HTML tag)', 'atelier-irisee-master-plugin' ),
+			esc_attr( self::get_text( 'gsc_verify' ) ),
+			checked( (bool) self::get( 'cookie_banner' ), true, false ),
+			esc_html__( 'Cookie banner: Google Analytics and the Facebook pixel only use cookies after the visitor accepts', 'atelier-irisee-master-plugin' ),
+			esc_html__( 'Required in Belgium for statistics cookies. Without consent Google only receives anonymous counts. Your own visits as shop manager are not counted.', 'atelier-irisee-master-plugin' )
+		);
+	}
+
 	public static function render_language_field() {
 		$current = AIMP_I18n::default_language();
 		echo '<select id="aimp_language" name="' . esc_attr( self::OPTION ) . '[language]">';
@@ -1100,7 +1141,7 @@ class AIMP_Settings {
 	private static function tab_sections() {
 		global $wp_settings_sections;
 		$registered = isset( $wp_settings_sections[ self::PAGE ] ) ? (array) $wp_settings_sections[ self::PAGE ] : array();
-		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_notion_options', 'aimp_ideal_icons', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_site', 'aimp_home', 'aimp_kit_steps', 'aimp_images', 'aimp_ai_looks', 'aimp_footer', 'aimp_socials', 'aimp_mosaic', 'aimp_admin_menu' );
+		$order      = array( 'aimp_general', 'aimp_categories', 'aimp_shop_pages', 'aimp_notion_options', 'aimp_ideal_icons', 'aimp_discounts', 'aimp_shipping', 'aimp_postnl', 'aimp_invoices', 'aimp_site', 'aimp_home', 'aimp_kit_steps', 'aimp_images', 'aimp_ai_looks', 'aimp_footer', 'aimp_socials', 'aimp_mosaic', 'aimp_admin_menu' );
 		$sections   = array();
 		foreach ( $order as $id ) {
 			if ( isset( $registered[ $id ] ) ) {
