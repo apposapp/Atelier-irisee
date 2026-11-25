@@ -116,7 +116,7 @@ return array(
 	'Deze webshop wordt uitgebaat door:' => 'This webshop is run by:',
 	'- Dorien Decorte' => '- Dorien Decorte',
 	'Zaffelare-dorp 77, 9080 Zaffelare, België' => 'Zaffelare-dorp 77, 9080 Zaffelare, Belgium',
-	'Ondernemingsnummer (KBO) / btw-nummer: BE05978.716.761' => 'Company number (KBO) / VAT number: BE05978.716.761',
+	'Ondernemingsnummer (KBO) / btw-nummer: BE0598.716.761' => 'Company number (KBO) / VAT number: BE0598.716.761',
 	'E-mail:' => 'Email:',
 	'Telefoon: +32 475 24 52 10' => 'Phone: +32 475 24 52 10',
 	'2. Toepassing' => '2. Scope',

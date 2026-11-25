@@ -84,10 +84,12 @@ class AIMP_Invoices {
 			case 'company':
 				return class_exists( 'AIMP_Footer' ) ? (string) AIMP_Footer::get( 'company' ) : get_bloginfo( 'name' );
 			case 'address':
-				if ( class_exists( 'AIMP_Footer' ) && '' !== trim( (string) AIMP_Footer::get( 'address' ) ) ) {
-					return (string) AIMP_Footer::get( 'address' );
+				// WooCommerce's shop address (street, postcode and town), else the footer's.
+				$street = trim( get_option( 'woocommerce_store_address' ) . ' ' . get_option( 'woocommerce_store_address_2' ) );
+				if ( '' !== $street ) {
+					return trim( $street . "\n" . get_option( 'woocommerce_store_postcode' ) . ' ' . get_option( 'woocommerce_store_city' ) );
 				}
-				return trim( get_option( 'woocommerce_store_address' ) . "\n" . get_option( 'woocommerce_store_postcode' ) . ' ' . get_option( 'woocommerce_store_city' ) );
+				return class_exists( 'AIMP_Footer' ) ? (string) AIMP_Footer::get( 'address' ) : '';
 		}
 		return '';
 	}

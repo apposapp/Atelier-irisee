@@ -77,10 +77,6 @@ class AIMP_Bundle {
 		$before  = array();
 		$key     = '';
 		foreach ( $ours as $handle => $item ) {
-			// Inline code after a script would run before the deferred file: not combined.
-			if ( ! empty( $item->extra['after'] ) ) {
-				return;
-			}
 			$path = AIMP_PLUGIN_DIR . ltrim( (string) substr( strtok( $item->src, '?' ), strlen( $base_url ) ), '/' );
 			if ( ! is_readable( $path ) || '.js' !== substr( $path, -3 ) ) {
 				return;
@@ -93,6 +89,11 @@ class AIMP_Bundle {
 			}
 			if ( ! empty( $item->extra['before'] ) ) {
 				$before = array_merge( $before, array_filter( (array) $item->extra['before'] ) );
+			}
+			// Inline code "after" one of ours already runs before it today (the plugin's files are deferred, the
+			// inline code is not), so it stays inline before the combined file. It must not need the file's code.
+			if ( ! empty( $item->extra['after'] ) ) {
+				$before = array_merge( $before, array_filter( (array) $item->extra['after'] ) );
 			}
 		}
 		$url = self::file( md5( $key ), $sources );

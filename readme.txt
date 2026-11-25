@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.88.0
+Stable tag: 3.88.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.88.1 =
+* Invoices: the shop's address comes from WooCommerce's shop address (street, postcode and town) unless one is set under Settings → Invoices.
+* Speed: the plugin's scripts are now really combined (inline code that came after one of them stays inline, before the combined file).
+* SEO: "Uncategorized" is left out of All in One SEO's sitemap; the language sitemaps are named in robots.txt (after All in One SEO writes it).
+* The French and English text of the terms page follows the corrected VAT number (BE0598.716.761).
 
 = 3.88.0 =
 * Cookies and Google: Atelier Irisee → Settings → General → Google and cookies: the Google Analytics ID (with Consent Mode v2: no cookies before "Accept"), the Search Console verification code, and a cookie banner in NL/FR/EN ("Accept" / "Refuse", "Cookie settings" in the footer). The Facebook pixel only runs after "Accept". The shop manager's own visits are not counted.

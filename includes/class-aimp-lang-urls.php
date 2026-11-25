@@ -62,7 +62,8 @@ class AIMP_Lang_Urls {
 		// A sitemap per language (/sitemap-lang-fr.xml), named in robots.txt.
 		// After everything is registered (WooCommerce's products and categories), before WordPress reads the address.
 		add_action( 'wp_loaded', array( __CLASS__, 'sitemap' ), 1 );
-		add_filter( 'robots_txt', array( __CLASS__, 'robots_txt' ), 99 );
+		// After All in One SEO, which writes robots.txt anew at 10000.
+		add_filter( 'robots_txt', array( __CLASS__, 'robots_txt' ), 10001 );
 		foreach ( array( 'save_post', 'deleted_post', 'created_term', 'edited_term', 'delete_term' ) as $hook ) {
 			add_action( $hook, array( __CLASS__, 'flush_sitemaps' ) );
 		}

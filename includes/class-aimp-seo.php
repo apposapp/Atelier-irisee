@@ -361,7 +361,8 @@ class AIMP_SEO {
 	 */
 	public static function sitemap_exclude_terms( $ids, $type = '' ) {
 		$uncategorized = (int) get_option( 'default_product_cat' );
-		if ( ! $uncategorized || ( '' !== $type && 'product_cat' !== $type ) ) {
+		// $type is the sitemap (general, rss), not a taxonomy: term ids are unique over all taxonomies.
+		if ( ! $uncategorized ) {
 			return $ids;
 		}
 		// Given back in the form it came (a list, or a comma separated text).
