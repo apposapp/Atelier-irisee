@@ -3614,4 +3614,8 @@ return array(
 	'Cookie banner: Google Analytics and the Facebook pixel only use cookies after the visitor accepts' => 'Bannière de cookies : Google Analytics et le pixel Facebook n\'utilisent des cookies qu\'après l\'accord du visiteur',
 	'Required in Belgium for statistics cookies. Without consent Google only receives anonymous counts. Your own visits as shop manager are not counted.' => 'Obligatoire en Belgique pour les cookies statistiques. Sans consentement, Google ne reçoit que des comptages anonymes. Vos propres visites en tant que gestionnaire ne sont pas comptées.',
 	'Cookie settings' => 'Paramètres des cookies',
+	// 3.88.2: invoice phone and VAT rate
+	'Phone number (only on the invoice)' => 'Numéro de téléphone (uniquement sur la facture)',
+	'VAT rate included in your prices' => 'Taux de TVA compris dans vos prix',
+	'Your prices include this VAT; the invoice shows the amount without VAT and the VAT in it. Only used for orders without VAT lines of their own (WooCommerce does not calculate taxes).' => 'Vos prix comprennent cette TVA ; la facture indique le montant hors TVA et la TVA comprise. Uniquement pour les commandes sans lignes de TVA propres (WooCommerce ne calcule pas les taxes).',
 );

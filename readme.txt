@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.88.1
+Stable tag: 3.88.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.88.2 =
+* Invoices: prices include 21% VAT (WooCommerce calculates no taxes here), so the invoice shows 21% on every line, the total without VAT and the VAT in it (Settings → Invoices → VAT rate). The phone number 0475245210 is on the invoice only (Settings → Invoices; the footer is not changed).
 
 = 3.88.1 =
 * Invoices: the shop's address comes from WooCommerce's shop address (street, postcode and town) unless one is set under Settings → Invoices.

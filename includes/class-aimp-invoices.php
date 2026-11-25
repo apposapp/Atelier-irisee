@@ -28,6 +28,9 @@ class AIMP_Invoices {
 	/** The shop's VAT number (Atelier Irisee → Settings → Invoices can change it). */
 	const VAT_DEFAULT = 'BE0598.716.761';
 
+	/** The phone number on the invoice (Settings → Invoices can change it; the footer's phone is not used). */
+	const PHONE_DEFAULT = '0475245210';
+
 	/** Page layout (mm). */
 	const LEFT  = 18;
 	const RIGHT = 192;
@@ -81,6 +84,11 @@ class AIMP_Invoices {
 		switch ( $key ) {
 			case 'vat':
 				return self::VAT_DEFAULT;
+			case 'phone':
+				// Only on the invoice (not the footer's phone).
+				return self::PHONE_DEFAULT;
+			case 'rate':
+				return '21';
 			case 'company':
 				return class_exists( 'AIMP_Footer' ) ? (string) AIMP_Footer::get( 'company' ) : get_bloginfo( 'name' );
 			case 'address':
@@ -124,6 +132,16 @@ class AIMP_Invoices {
 			esc_html__( 'Extra line at the bottom (bank account, …)', 'atelier-irisee-master-plugin' ),
 			esc_textarea( self::setting( 'extra' ) )
 		);
+		printf(
+			'<p><label>%1$s<br><input type="text" class="regular-text" name="%2$s[inv_phone]" value="%3$s"></label></p>' .
+			'<p><label>%4$s <input type="number" min="0" max="30" step="0.5" class="small-text" name="%2$s[inv_rate]" value="%5$s"> %%</label></p><p class="description">%6$s</p>',
+			esc_html__( 'Phone number (only on the invoice)', 'atelier-irisee-master-plugin' ),
+			esc_attr( AIMP_Settings::OPTION ),
+			esc_attr( self::setting( 'phone' ) ),
+			esc_html__( 'VAT rate included in your prices', 'atelier-irisee-master-plugin' ),
+			esc_attr( self::setting( 'rate' ) ),
+			esc_html__( 'Your prices include this VAT; the invoice shows the amount without VAT and the VAT in it. Only used for orders without VAT lines of their own (WooCommerce does not calculate taxes).', 'atelier-irisee-master-plugin' )
+		);
 	}
 
 	public static function render_numbers() {
@@ -153,6 +171,10 @@ class AIMP_Invoices {
 		$out['inv_company'] = isset( $input['inv_company'] ) ? sanitize_text_field( wp_unslash( $input['inv_company'] ) ) : '';
 		$out['inv_address'] = isset( $input['inv_address'] ) ? sanitize_textarea_field( wp_unslash( $input['inv_address'] ) ) : '';
 		$out['inv_extra']   = isset( $input['inv_extra'] ) ? sanitize_textarea_field( wp_unslash( $input['inv_extra'] ) ) : '';
+		$phone              = isset( $input['inv_phone'] ) ? sanitize_text_field( wp_unslash( $input['inv_phone'] ) ) : '';
+		$out['inv_phone']   = self::PHONE_DEFAULT === $phone ? '' : $phone;
+		$rate               = isset( $input['inv_rate'] ) ? (float) str_replace( ',', '.', sanitize_text_field( wp_unslash( $input['inv_rate'] ) ) ) : 21.0;
+		$out['inv_rate']    = 21.0 === $rate ? '' : (string) min( 30, max( 0, $rate ) );
 		foreach ( array( 'inv_next' => self::COUNTER, 'inv_credit_next' => self::CREDIT_COUNTER ) as $key => $option ) {
 			if ( isset( $input[ $key ] ) && absint( $input[ $key ] ) > 0 && absint( $input[ $key ] ) !== self::peek( $option ) ) {
 				update_option(
@@ -369,6 +391,20 @@ class AIMP_Invoices {
 	}
 
 	/**
+	 * The shop's VAT rate when an order has no VAT lines at all (prices include the VAT, WooCommerce does not
+	 * calculate taxes): Settings → Invoices, standard 21. 0 when the order has VAT lines of its own.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return float
+	 */
+	private static function included_rate( $order ) {
+		if ( $order->get_items( 'tax' ) || 0.0 !== (float) $order->get_total_tax() ) {
+			return 0.0;
+		}
+		return max( 0.0, (float) str_replace( ',', '.', self::setting( 'rate' ) ) );
+	}
+
+	/**
 	 * The VAT rate of an item ("21%"), from its taxes.
 	 *
 	 * @param WC_Order_Item $item  Item.
@@ -465,7 +501,7 @@ class AIMP_Invoices {
 		}
 		$shop = array_filter( array_merge( preg_split( '/\r?\n/', self::setting( 'address' ) ), array( __( 'VAT', 'atelier-irisee-master-plugin' ) . ' ' . self::setting( 'vat' ) ) ) );
 		if ( class_exists( 'AIMP_Footer' ) ) {
-			$shop[] = trim( (string) AIMP_Footer::get( 'email' ) . ( '' !== (string) AIMP_Footer::get( 'phone' ) ? '  ·  ' . AIMP_Footer::get( 'phone' ) : '' ), ' ·' );
+			$shop[] = trim( (string) AIMP_Footer::get( 'email' ) . ( '' !== self::setting( 'phone' ) ? '  ·  ' . self::setting( 'phone' ) : '' ), ' ·' );
 		}
 		$pdf->text( self::RIGHT, $y + 4, self::setting( 'company' ), 'sans-bold', 12, self::INK, 'right' );
 		$ty = $y + 9.5;
@@ -652,7 +688,8 @@ class AIMP_Invoices {
 	 * @return array[] [ name, qty, unit (incl. VAT) or null, rate or null, total (incl. VAT) or null, sub, head ].
 	 */
 	private static function rows( $order, $refund, $kind ) {
-		$rates  = self::rates( $order );
+		$rates    = self::rates( $order );
+		$included = self::included_rate( $order );
 		$source = 'credit' === $kind ? $refund : $order;
 		$items  = array();
 		foreach ( $source->get_items() as $item ) {
@@ -662,7 +699,7 @@ class AIMP_Invoices {
 		}
 		$rows = array();
 		$before_coupon = 'credit' !== $kind;
-		$line          = function ( $item, $sub ) use ( $rates, $before_coupon ) {
+		$line          = function ( $item, $sub ) use ( $rates, $before_coupon, $included ) {
 			$qty    = abs( (float) $item->get_quantity() );
 			$total  = $before_coupon ? abs( (float) $item->get_subtotal() + (float) $item->get_subtotal_tax() ) : abs( (float) $item->get_total() + (float) $item->get_total_tax() );
 			$length = (string) $item->get_meta( 'aimp_length' );
@@ -671,7 +708,7 @@ class AIMP_Invoices {
 				'name'  => $name,
 				'qty'   => $qty ? wc_stock_amount( $qty ) : '',
 				'unit'  => $qty ? $total / $qty : $total,
-				'rate'  => self::item_rate( $item, $rates ),
+				'rate'  => $included > 0 ? $included : self::item_rate( $item, $rates ),
 				'total' => $total,
 				'sub'   => $sub,
 				'head'  => false,
@@ -761,6 +798,13 @@ class AIMP_Invoices {
 			foreach ( $split as $pair ) {
 				$tax += $pair[1];
 			}
+		}
+		// Prices with the VAT in them but no VAT lines in the order (WooCommerce does not calculate taxes here):
+		// everything at the shop's rate, the VAT taken out of the total.
+		$included = self::included_rate( $order );
+		if ( $included > 0 ) {
+			$tax   = $total - $total / ( 1 + $included / 100 );
+			$split = array( (string) $included => array( $total - $tax, $tax ) );
 		}
 		$x1  = 120;
 		$put = function ( $label, $value, $bold = false ) use ( $pdf, &$y, $x1, $order ) {

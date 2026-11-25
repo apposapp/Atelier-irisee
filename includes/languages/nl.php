@@ -3614,4 +3614,8 @@ return array(
 	'Cookie banner: Google Analytics and the Facebook pixel only use cookies after the visitor accepts' => 'Cookiebanner: Google Analytics en de Facebook-pixel gebruiken pas cookies nadat de bezoeker akkoord gaat',
 	'Required in Belgium for statistics cookies. Without consent Google only receives anonymous counts. Your own visits as shop manager are not counted.' => 'Verplicht in België voor statistiekcookies. Zonder toestemming krijgt Google alleen anonieme tellingen. Je eigen bezoeken als winkelbeheerder worden niet geteld.',
 	'Cookie settings' => 'Cookie-instellingen',
+	// 3.88.2: invoice phone and VAT rate
+	'Phone number (only on the invoice)' => 'Telefoonnummer (alleen op de factuur)',
+	'VAT rate included in your prices' => 'Btw-tarief in je prijzen',
+	'Your prices include this VAT; the invoice shows the amount without VAT and the VAT in it. Only used for orders without VAT lines of their own (WooCommerce does not calculate taxes).' => 'Je prijzen bevatten deze btw; de factuur toont het bedrag zonder btw en de btw erin. Alleen voor bestellingen zonder eigen btw-regels (WooCommerce berekent geen belastingen).',
 );
