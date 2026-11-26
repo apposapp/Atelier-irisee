@@ -21,6 +21,9 @@ class AIMP_Emails {
 		add_action( 'woocommerce_email_header', array( __CLASS__, 'preheader' ), 5, 2 );
 		add_filter( 'woocommerce_email_from_name', array( __CLASS__, 'from_name' ), 20 );
 		add_filter( 'woocommerce_email_headers', array( __CLASS__, 'reply_to' ), 20, 4 );
+		// Every email, however it is made: well-formed HTML (the preview line inside the body), and in the shop's
+		// style no subject line at the top and the logo in the middle.
+		add_filter( 'wp_mail', array( __CLASS__, 'tidy_mail' ), 5 );
 
 		if ( ! AIMP_Settings::get( 'email_style' ) ) {
 			return;
@@ -48,9 +51,6 @@ class AIMP_Emails {
 			},
 			PHP_INT_MAX
 		);
-		// Every email in the shop's style, however it is made (WooCommerce, its test emails, the plugin's own):
-		// no subject line at the top, the logo in the middle.
-		add_filter( 'wp_mail', array( __CLASS__, 'tidy_mail' ), 5 );
 		add_filter( 'option_woocommerce_email_header_image', array( __CLASS__, 'header_image' ) );
 		add_filter( 'default_option_woocommerce_email_header_image', array( __CLASS__, 'header_image' ) );
 		add_filter( 'woocommerce_email_footer_text', array( __CLASS__, 'footer_text' ), 20 );
@@ -109,7 +109,10 @@ class AIMP_Emails {
 	 */
 	public static function tidy_mail( $args ) {
 		if ( isset( $args['message'] ) && is_string( $args['message'] ) ) {
-			$args['message'] = self::tidy_header( $args['message'] );
+			$args['message'] = self::preheader_in_body( $args['message'] );
+			if ( AIMP_Settings::get( 'email_style' ) ) {
+				$args['message'] = self::tidy_header( $args['message'] );
+			}
 		}
 		return $args;
 	}
@@ -192,8 +195,43 @@ class AIMP_Emails {
 		if ( '' === $text ) {
 			return;
 		}
-		// The spacers keep the inbox from filling the preview with the email's first words.
-		echo '<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">' . esc_html( $text ) . str_repeat( '&#847;&zwnj;&nbsp;', 40 ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed entities.
+		// Just the line: rows of invisible spacer characters are something spam filters (Outlook, Hotmail) count
+		// against an email. WooCommerce prints this before its own <html>; preheader_in_body() moves it inside.
+		echo '<div class="aimp-preheader" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">' . esc_html( $text ) . '</div>';
+	}
+
+	/**
+	 * The hidden preview line as the first thing inside <body> (WooCommerce's template starts its document after it).
+	 *
+	 * @param string $html Email HTML.
+	 * @return string
+	 */
+	public static function preheader_in_body( $html ) {
+		$body = stripos( $html, '<body' );
+		if ( false === $body ) {
+			return $html;
+		}
+		$before = substr( $html, 0, $body );
+		$doc    = stripos( $before, '<!DOCTYPE' );
+		if ( false === $doc && false === stripos( $before, '<html' ) ) {
+			return $html;
+		}
+		// What came before the document itself (the CSS inliner's charset <meta>, the preview line).
+		$start = false !== $doc ? $doc : stripos( $before, '<html' );
+		$lead  = substr( $html, 0, $start );
+		if ( '' === trim( $lead ) ) {
+			return $html;
+		}
+		$html = substr( $html, $start );
+		$line = '';
+		if ( preg_match( '#<div(?=[^>]*(?:aimp-preheader|display:\s*none;\s*font-size:\s*1px))[^>]*>.*?</div>#s', $lead, $found ) ) {
+			$line = $found[0];
+		}
+		$meta = preg_match( '#<meta http-equiv=["\']Content-Type["\'][^>]*>#i', $lead, $m ) ? $m[0] : '';
+		if ( '' !== $meta && false === stripos( $html, 'http-equiv="Content-Type"' ) ) {
+			$html = (string) preg_replace( '#(<head[^>]*>)#i', '$1' . $meta, $html, 1 );
+		}
+		return '' !== $line ? (string) preg_replace( '#(<body[^>]*>)#i', '$1' . $line, $html, 1 ) : $html;
 	}
 
 	/**
