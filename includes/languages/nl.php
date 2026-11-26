@@ -3716,4 +3716,11 @@ return array(
 	'Language of this newsletter' => 'Taal van deze nieuwsbrief',
 	'Each subscriber\'s own language' => 'De eigen taal van elke abonnee',
 	'The buttons, links and "Let\'s connect" at the end follow the language you write in.' => 'De knoppen, links en "Let\'s connect" onderaan volgen de taal waarin je schrijft.',
+	// 3.93.0: button block
+	'+ Button' => '+ Knop',
+	'Text on the button' => 'Tekst op de knop',
+	'Link (a web address or a page of the site)' => 'Link (een webadres of een pagina van de site)',
+	'Gold double line' => 'Gouden dubbele lijn',
+	'Filled gold' => 'Goud gevuld',
+	'Open in a new tab' => 'In een nieuw tabblad openen',
 );

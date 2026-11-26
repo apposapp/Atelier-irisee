@@ -77,6 +77,8 @@
 				return { t: 'video', gap: '', id: 0, url: '', poster: 0, auto: 0, shape: '', caption: '' };
 			case 'lijn':
 				return { t: 'lijn', gap: '', width: '' };
+			case 'button':
+				return { t: 'button', gap: '', text: text.slice(0, 80), url: '', style: '', align: '', blank: 0 };
 			default:
 				return { t: 'text', gap: '', html: from && from.t === 'text' ? from.html : esc(text), align: '' };
 		}
@@ -223,6 +225,11 @@
 		} else if (block.t === 'lijn') {
 			html += '<div class="aimp-bb-lijn' + (block.width === 'narrow' ? ' is-narrow' : '') + '"><span></span><i>✦</i><span></span></div>';
 			html += '<div class="aimp-bb-fields">' + select(t.lijnWidth, 'width', at, block.width, [['', t.lijnFull], ['narrow', t.lijnNarrow]]) + '</div>';
+		} else if (block.t === 'button') {
+			html += '<div class="aimp-bb-button-preview' + (block.style === 'filled' ? ' is-filled' : '') + (block.align ? ' is-' + esc(block.align) : '') + '"><span>' + esc(block.text || t.button) + '</span></div>';
+			html += input(t.buttonText, 'text', at, block.text) + input(t.buttonUrl, 'url', at, block.url, 'text', 'https://… ' + t.or + ' /winkel');
+			html += '<div class="aimp-bb-fields">' + select(t.buttonStyle, 'style', at, block.style, [['', t.buttonLine], ['filled', t.buttonFilled]]) +
+				select(t.align, 'align', at, block.align, ALIGN) + check(t.newTab, 'blank', at, block.blank) + '</div>';
 		}
 		// A block under another one: its own space above (standard: the row's).
 		if (at.b > 0) {
@@ -235,7 +242,7 @@
 		return '<div class="aimp-bb-block is-' + esc(block.t) + '">' +
 			'<div class="aimp-bb-block-bar">' +
 			'<select class="aimp-bb-type"' + attrs(at, 't') + ' aria-label="' + esc(t.text) + '">' +
-			[['title', t.title], ['text', t.text], ['image', t.image], ['video', t.video], ['lijn', t.lijn]].map(function (o) {
+			[['title', t.title], ['text', t.text], ['image', t.image], ['video', t.video], ['lijn', t.lijn], ['button', t.button]].map(function (o) {
 				return '<option value="' + o[0] + '"' + (block.t === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
 			}).join('') + '</select>' +
 			'<span class="aimp-bb-tools">' +
@@ -337,7 +344,8 @@
 			'<button type="button" class="button" data-act="add-row" data-kind="text">' + esc(t.addTextRow) + '</button> ' +
 			'<button type="button" class="button" data-act="add-row" data-kind="pictext">' + esc(t.addPicText) + '</button> ' +
 			'<button type="button" class="button" data-act="add-row" data-kind="video">' + esc(t.video) + '</button> ' +
-			'<button type="button" class="button" data-act="add-row" data-kind="lijn">' + esc(t.addLijn) + '</button>' +
+			'<button type="button" class="button" data-act="add-row" data-kind="lijn">' + esc(t.addLijn) + '</button> ' +
+			'<button type="button" class="button" data-act="add-row" data-kind="button">' + esc(t.addButton) + '</button>' +
 			(newsletter ? ' <button type="button" class="button" data-act="add-row" data-kind="section">' + esc(t.addSection) + '</button>' : '') + '</div>';
 		root.innerHTML = html;
 		initEditors();
@@ -418,6 +426,13 @@
 			return;
 		}
 		(block || row)[key] = value;
+		// A button's preview follows its text while typing.
+		if (block && block.t === 'button' && key === 'text') {
+			var pill = el.closest('.aimp-bb-block-body').querySelector('.aimp-bb-button-preview span');
+			if (pill) {
+				pill.textContent = value || t.button;
+			}
+		}
 		// Choices and ticks change what is shown: build again. Typing only saves.
 		if (e.type === 'change' && (el.tagName === 'SELECT' || el.type === 'checkbox')) {
 			render();

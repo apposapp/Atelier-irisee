@@ -441,3 +441,35 @@
 .aimp-bb-section .aimp-bb-field {
 	flex: 1 1 260px;
 }
+
+/* "Button" block: a preview of the style. */
+.aimp-bb-button-preview {
+	margin: 4px 0 10px;
+}
+
+.aimp-bb-button-preview span {
+	display: inline-block;
+	padding: 6px 18px;
+	border: 4px double #b38f4f;
+	border-radius: 100px;
+	color: #613907;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.aimp-bb-button-preview.is-filled span {
+	border-color: #fff;
+	background: #b38f4f;
+	box-shadow: 0 0 0 1px #b38f4f;
+	color: #fff;
+}
+
+.aimp-bb-button-preview.is-center {
+	text-align: center;
+}
+
+.aimp-bb-button-preview.is-right {
+	text-align: right;
+}

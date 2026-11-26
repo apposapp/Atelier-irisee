@@ -278,8 +278,47 @@ class AIMP_Newsletter_Render {
 				return self::video( $block, $width );
 			case 'lijn':
 				return self::lijn_img( isset( $block['width'] ) ? $block['width'] : '', false, $width );
+			case 'button':
+				return self::email_button( (string) $block['text'], self::absolute( (string) $block['url'] ), isset( $block['style'] ) ? $block['style'] : '', $align );
 		}
 		return '';
+	}
+
+	/**
+	 * A link of the site ("/winkel") as a full address: emails are read outside the site.
+	 *
+	 * @param string $url Link.
+	 * @return string
+	 */
+	private static function absolute( $url ) {
+		return 0 === strpos( $url, '/' ) && 0 !== strpos( $url, '//' ) ? home_url( $url ) : $url;
+	}
+
+	/**
+	 * A button that works in every mail program (a table cell), in the site's style: the gold double line, or
+	 * filled gold with white text.
+	 *
+	 * @param string $text  Text.
+	 * @param string $url   Link.
+	 * @param string $style '' or filled.
+	 * @param string $align left, center or right.
+	 * @return string
+	 */
+	public static function email_button( $text, $url, $style = '', $align = 'center' ) {
+		$gold   = self::gold();
+		$filled = 'filled' === $style;
+		$align  = in_array( $align, array( 'left', 'right' ), true ) ? $align : 'center';
+		$margin = 'center' === $align ? '12px auto' : ( 'right' === $align ? '12px 0 12px auto' : '12px auto 12px 0' );
+		return sprintf(
+			'<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="%1$s" style="margin:%2$s;border-collapse:separate"><tr><td align="center" bgcolor="%3$s" style="background-color:%3$s;border:%4$s;border-radius:100px;mso-padding-alt:12px 28px"><a href="%5$s" target="_blank" style="display:inline-block;padding:12px 28px;color:%6$s;font-weight:bold;font-size:15px;line-height:20px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;border-radius:100px">%7$s</a></td></tr></table>',
+			$align,
+			$margin,
+			$filled ? $gold : '#ffffff',
+			$filled ? "3px solid {$gold}" : "3px double {$gold}",
+			esc_url( $url ),
+			$filled ? '#ffffff' : self::brown(),
+			esc_html( $text )
+		);
 	}
 
 	private static function title( $text, $tag, $align ) {
@@ -400,6 +439,8 @@ class AIMP_Newsletter_Render {
 				} elseif ( 'video' === $t ) {
 					$url  = ! empty( $block['id'] ) ? (string) wp_get_attachment_url( (int) $block['id'] ) : (string) $block['url'];
 					$out .= '' !== $url ? __( 'Watch the video', 'atelier-irisee-master-plugin' ) . ': ' . $url . "\n" : '';
+				} elseif ( 'button' === $t && ! empty( $block['url'] ) && '' !== trim( (string) $block['text'] ) ) {
+					$out .= $block['text'] . ': ' . self::absolute( (string) $block['url'] ) . "\n";
 				} elseif ( 'lijn' === $t ) {
 					$out .= "\n— ✦ —\n";
 				}

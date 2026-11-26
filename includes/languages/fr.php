@@ -3716,4 +3716,11 @@ return array(
 	'Language of this newsletter' => 'Langue de cette newsletter',
 	'Each subscriber\'s own language' => 'La langue de chaque abonné',
 	'The buttons, links and "Let\'s connect" at the end follow the language you write in.' => 'Les boutons, les liens et « Let\'s connect » en bas suivent la langue dans laquelle vous écrivez.',
+	// 3.93.0: button block
+	'+ Button' => '+ Bouton',
+	'Text on the button' => 'Texte du bouton',
+	'Link (a web address or a page of the site)' => 'Lien (une adresse web ou une page du site)',
+	'Gold double line' => 'Double ligne dorée',
+	'Filled gold' => 'Rempli d\'or',
+	'Open in a new tab' => 'Ouvrir dans un nouvel onglet',
 );

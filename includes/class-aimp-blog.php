@@ -466,7 +466,7 @@ class AIMP_Blog {
 					$get  = function ( $key, $default = '' ) use ( $block ) {
 						return isset( $block[ $key ] ) ? $block[ $key ] : $default;
 					};
-					$type = $pick( $get( 't' ), array( 'text', 'title', 'image', 'video', 'lijn' ) );
+					$type = $pick( $get( 't' ), array( 'text', 'title', 'image', 'video', 'lijn', 'button' ) );
 					$item = array(
 						't'   => $type,
 						'gap' => $pick( $get( 'gap' ), array( '', 'none', 'small', 'large' ) ),
@@ -489,6 +489,12 @@ class AIMP_Blog {
 						$item['zoom']    = $get( 'zoom', 1 ) ? 1 : 0;
 					} elseif ( 'lijn' === $type ) {
 						$item['width'] = $pick( $get( 'width' ), array( '', 'narrow' ) );
+					} elseif ( 'button' === $type ) {
+						$item['text']  = $text( $get( 'text' ), 80 );
+						$item['url']   = esc_url_raw( is_string( $get( 'url' ) ) ? trim( $get( 'url' ) ) : '' );
+						$item['style'] = $pick( $get( 'style' ), array( '', 'filled' ) );
+						$item['align'] = $pick( $get( 'align' ), array( '', 'left', 'center', 'right' ) );
+						$item['blank'] = $get( 'blank' ) ? 1 : 0;
 					} else {
 						$item['id']      = absint( $get( 'id', 0 ) );
 						$item['url']     = esc_url_raw( is_string( $get( 'url' ) ) ? trim( $get( 'url' ) ) : '' );
@@ -543,6 +549,8 @@ class AIMP_Blog {
 				return ! empty( $block['id'] ) || '' !== (string) $block['url'];
 			case 'lijn':
 				return true;
+			case 'button':
+				return '' !== trim( (string) $block['text'] ) && '' !== trim( (string) $block['url'] );
 		}
 		return false;
 	}
@@ -629,6 +637,9 @@ class AIMP_Blog {
 				return self::video( $block );
 			case 'lijn':
 				return self::lijn( isset( $block['width'] ) ? $block['width'] : '' );
+			case 'button':
+				return '<p class="aimp-blog-button-wrap is-align-' . esc_attr( $align ) . '"><a class="aimp-blog-button' . ( 'filled' === $block['style'] ? ' is-filled' : '' ) . '" href="' . esc_url( $block['url'] ) . '"' .
+					( ! empty( $block['blank'] ) ? ' target="_blank" rel="noopener"' : '' ) . '>' . esc_html( $block['text'] ) . '</a></p>';
 		}
 		return '';
 	}
