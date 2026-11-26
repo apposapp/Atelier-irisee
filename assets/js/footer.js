@@ -299,7 +299,7 @@
 	}
 	window.setTimeout(function () {
 		// Not over an open sheet or pop-up, and not once the visitor is subscribed (the footer form is hidden then).
-		if (form.hidden || document.documentElement.classList.contains('aimp-sheet-open') || document.querySelector('.aimp-el-modal.is-open, .aimp-howto-dialog')) {
+		if (form.hidden || document.documentElement.classList.contains('aimp-sheet-open') || document.querySelector('.aimp-el-modal.is-open, .aimp-howto-dialog, [data-aimp-sale-popup][open]')) {
 			return;
 		}
 		try {

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.90.2
+Stable tag: 3.91.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.91.0 =
+* Sale (Black Friday): Atelier Irisee → Sale (Black Friday). A percentage off the whole shop between a start and an end, from a minimum order amount; gift cards excepted; sewing project kits get their kit discount first, then the sale discount. Taken off in the cart (crossed-out prices, a "still €X to go" line); discount codes can't be used with it, and customers with a welcome code are told it stays valid. Announcements, each switchable: the gold bar, a popup once per visitor, a banner with countdown under the home page hero (or the shortcode [atelier_irisee_sale_banner]), and labels in the shop and on product pages. Cached pages refresh at the start and the end. "Preview on the site" shows it only to you.
+* Welcome codes: an email a week before an unused welcome code expires (WooCommerce → Settings → Emails → Welcome code expires soon).
 
 = 3.90.2 =
 * Lost orders: the "Make free replacement order" button gave a WordPress error page (the order form's own action field won); it now makes the replacement order.

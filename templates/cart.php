@@ -96,7 +96,7 @@ defined( 'ABSPATH' ) || exit;
 										<?php endif; ?>
 									</span>
 									<span class="aimp-cart-set-price">
-										<?php if ( isset( $aimp_line['regular'] ) && $aimp_line['regular'] > 0 && $aimp_set['discount'] ) : ?>
+										<?php if ( isset( $aimp_line['regular'] ) && $aimp_line['regular'] > 0 && ( $aimp_set['discount'] || $aimp_set['sale'] ) ) : ?>
 											<del><?php echo wp_kses_post( wc_price( $aimp_line['regular'] ) ); ?></del>
 										<?php endif; ?>
 										<?php echo wp_kses_post( $aimp_line['subtotal'] ); ?>
@@ -107,7 +107,7 @@ defined( 'ABSPATH' ) || exit;
 						<p class="aimp-cart-set-total">
 							<span><?php esc_html_e( 'Set total', 'atelier-irisee-master-plugin' ); ?></span>
 							<strong>
-								<?php if ( $aimp_set['discount'] && $aimp_set['regular'] > $aimp_set['total'] ) : ?>
+								<?php if ( ( $aimp_set['discount'] || $aimp_set['sale'] ) && $aimp_set['regular'] > $aimp_set['total'] ) : ?>
 									<del><?php echo wp_kses_post( wc_price( $aimp_set['regular'] ) ); ?></del>
 								<?php endif; ?>
 								<?php echo wp_kses_post( wc_price( $aimp_set['total'] ) ); ?>
@@ -120,6 +120,9 @@ defined( 'ABSPATH' ) || exit;
 								echo esc_html( sprintf( __( 'Sewing project kit discount: −%d%%', 'atelier-irisee-master-plugin' ), (int) $aimp_set['discount'] ) );
 								?>
 							</p>
+						<?php endif; ?>
+						<?php if ( $aimp_set['sale'] ) : ?>
+							<p class="aimp-cart-kit-discount aimp-cart-sale-note"><?php echo esc_html( AIMP_Sale::title() . ' −' . (int) $aimp_set['sale'] . '%' ); ?></p>
 						<?php endif; ?>
 						<p class="aimp-help aimp-cart-locked"><?php esc_html_e( 'The amounts of a set are fixed by the size.', 'atelier-irisee-master-plugin' ); ?></p>
 					</section>
@@ -140,7 +143,7 @@ defined( 'ABSPATH' ) || exit;
 									<span class="aimp-cart-single-price"><?php echo wp_kses_post( $aimp_line['price'] ); ?><?php echo '' !== AIMP_Catalog::price_suffix( $aimp_line['product'] ) ? ' <small>' . esc_html( AIMP_Catalog::price_suffix( $aimp_line['product'] ) ) . '</small>' : ''; ?></span>
 								</div>
 								<div class="aimp-cart-single-qty"><?php echo AIMP_Cart_Page::stepper_html( $aimp_line ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in stepper_html(). ?></div>
-								<span class="aimp-cart-single-subtotal"><?php echo wp_kses_post( $aimp_line['subtotal'] ); ?></span>
+								<span class="aimp-cart-single-subtotal"><?php if ( ! empty( $aimp_line['regular'] ) ) : ?><del><?php echo wp_kses_post( wc_price( $aimp_line['regular'] ) ); ?></del> <?php endif; ?><?php echo wp_kses_post( $aimp_line['subtotal'] ); ?><?php if ( ! empty( $aimp_line['sale'] ) ) : ?><small class="aimp-cart-sale-note"><?php echo esc_html( AIMP_Sale::title() . ' −' . (int) $aimp_line['sale'] . '%' ); ?></small><?php endif; ?></span>
 								<a class="aimp-cart-remove aimp-cart-remove--x" href="<?php echo esc_url( wc_get_cart_remove_url( $aimp_line['key'] ) ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: product name */ __( 'Remove %s from your cart', 'atelier-irisee-master-plugin' ), $aimp_line['name'] ) ); ?>">×</a>
 							</li>
 						<?php endforeach; ?>

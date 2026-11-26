@@ -117,10 +117,14 @@ $aimp_d = function ( $part, $key, $default = null ) {
 	$aimp_links = preg_split( '/\r\n|\r|\n/', (string) $aimp_d( 'info-bar', 'ib_links', '' ) );
 	$aimp_speed = (int) $aimp_d( 'info-bar', 'ib_speed', 0 );
 	?>
-	<?php if ( ! empty( $data['info_bar'] ) && $aimp_show ) : ?>
+	<?php $aimp_sale_bar = class_exists( 'AIMP_Sale' ) ? AIMP_Sale::bar_text() : ''; ?>
+	<?php if ( ( ! empty( $data['info_bar'] ) || '' !== $aimp_sale_bar ) && $aimp_show ) : ?>
 		<?php // Gold info bar (Site look → Info bar); folds away while scrolling down (header.js). ?>
 		<div class="aimp-info-bar" data-aimp-info-bar<?php echo $aimp_speed ? ' data-speed="' . esc_attr( (string) $aimp_speed ) . '"' : ''; ?>>
 			<ul class="aimp-info-bar-items">
+				<?php if ( '' !== $aimp_sale_bar ) : ?>
+					<li class="aimp-info-bar-sale"><span class="aimp-info-bar-mark" aria-hidden="true">✦</span><a href="<?php echo esc_url( AIMP_Sale::bar_url() ); ?>"><?php echo esc_html( $aimp_sale_bar ); ?></a></li>
+				<?php endif; ?>
 				<?php foreach ( array_values( $data['info_bar'] ) as $aimp_i => $aimp_info ) : ?>
 					<?php $aimp_link = isset( $aimp_links[ $aimp_i ] ) ? esc_url( trim( $aimp_links[ $aimp_i ] ) ) : ''; ?>
 					<li><span class="aimp-info-bar-mark" aria-hidden="true">✦</span><?php if ( '' !== $aimp_link ) : ?><a href="<?php echo esc_url( $aimp_link ); ?>"><?php echo esc_html( $aimp_info ); ?></a><?php else : ?><?php echo esc_html( $aimp_info ); ?><?php endif; ?></li>

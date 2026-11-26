@@ -210,7 +210,8 @@ class AIMP_Hero {
 			</button>
 		</section>
 		<?php
-		return ob_get_clean();
+		// Right under the hero: e.g. the sale banner (AIMP_Sale).
+		return ob_get_clean() . (string) apply_filters( 'aimp_after_hero', '' );
 	}
 
 	/* ------------------------------------------------------------------ settings: the "Home page" tab */

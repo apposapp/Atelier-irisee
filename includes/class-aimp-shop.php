@@ -1444,6 +1444,10 @@ class AIMP_Shop {
 		$item['price_suffix']      = AIMP_Catalog::price_suffix( $product );
 		$item['subtitle']          = AIMP_Notions::main_text( $product );
 		$item['badge']             = $product->is_in_stock() ? '' : __( 'Out of stock', 'atelier-irisee-master-plugin' );
+		// During a sale: "Black Friday −20%" instead of New / Sale.
+		if ( '' === $item['badge'] && class_exists( 'AIMP_Sale' ) ) {
+			$item['badge'] = AIMP_Sale::label( $product, true );
+		}
 		$item['short_description'] = wp_kses_post( wpautop( $product->get_short_description() ) );
 		$item['gallery']           = AIMP_Catalog::images( $product );
 		$item['in_stock']          = $product->is_in_stock();

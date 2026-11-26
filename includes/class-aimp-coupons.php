@@ -20,6 +20,12 @@ class AIMP_Coupons {
 	const META_COUPON  = '_aimp_welcome_coupon';
 	const META_POPUP   = '_aimp_welcome_popup';
 
+	/** Coupon meta: the "expires in a week" email was sent. */
+	const META_REMINDED = '_aimp_reminded';
+
+	/** Daily check for welcome codes that expire within a week. */
+	const REMIND_HOOK = 'aimp_welcome_reminders';
+
 	/** Characters for welcome codes (no 0/O and 1/I). */
 	const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -44,6 +50,65 @@ class AIMP_Coupons {
 		// Guests: the welcome discount at the top of the checkout (the cart and the register form show it in their
 		// templates, the gold bar in the header).
 		add_action( 'woocommerce_before_checkout_form', array( __CLASS__, 'checkout_offer' ), 5 );
+
+		// A week before a welcome code expires: an email to the customer (WooCommerce → Settings → Emails).
+		add_action( 'init', array( __CLASS__, 'schedule_reminders' ) );
+		add_action( self::REMIND_HOOK, array( __CLASS__, 'send_reminders' ) );
+		add_filter( 'woocommerce_email_classes', array( __CLASS__, 'email_class' ) );
+	}
+
+	public static function schedule_reminders() {
+		if ( ! wp_next_scheduled( self::REMIND_HOOK ) ) {
+			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', self::REMIND_HOOK );
+		}
+	}
+
+	/**
+	 * @param array $emails WooCommerce emails.
+	 * @return array
+	 */
+	public static function email_class( $emails ) {
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-email-welcome-reminder.php';
+		if ( class_exists( 'AIMP_Email_Welcome_Reminder' ) ) {
+			$emails['AIMP_Email_Welcome_Reminder'] = new AIMP_Email_Welcome_Reminder();
+		}
+		return $emails;
+	}
+
+	/**
+	 * Welcome codes that are still unused and expire within a week: one reminder each.
+	 */
+	public static function send_reminders() {
+		if ( ! function_exists( 'WC' ) ) {
+			return;
+		}
+		$emails = WC()->mailer()->get_emails();
+		if ( empty( $emails['AIMP_Email_Welcome_Reminder'] ) ) {
+			return;
+		}
+		$users = get_users(
+			array(
+				'meta_key' => self::META_COUPON, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'fields'   => 'ID',
+				'number'   => 500,
+			)
+		);
+		foreach ( $users as $user_id ) {
+			$coupon = new WC_Coupon( (int) get_user_meta( (int) $user_id, self::META_COUPON, true ) );
+			if ( ! self::usable( $coupon ) || $coupon->get_meta( self::META_REMINDED ) ) {
+				continue;
+			}
+			$expires = $coupon->get_date_expires();
+			$left    = $expires ? $expires->getTimestamp() - time() : 0;
+			$user    = get_userdata( (int) $user_id );
+			if ( $left <= 0 || $left > WEEK_IN_SECONDS || ! $user || in_array( (string) $user->ID, array_map( 'strval', (array) $coupon->get_used_by() ), true ) ) {
+				continue;
+			}
+			if ( $emails['AIMP_Email_Welcome_Reminder']->trigger( $user, $coupon ) ) {
+				$coupon->update_meta_data( self::META_REMINDED, time() );
+				$coupon->save();
+			}
+		}
 	}
 
 	/* ------------------------------------------------------------------
@@ -270,7 +335,7 @@ class AIMP_Coupons {
 	 * @param WC_Coupon $coupon Coupon.
 	 * @return string
 	 */
-	private static function value_text( $coupon ) {
+	public static function value_text( $coupon ) {
 		return 'percent' === $coupon->get_discount_type()
 			? wc_format_localized_decimal( $coupon->get_amount() ) . '%'
 			: wp_strip_all_tags( wc_price( $coupon->get_amount() ) );
@@ -310,7 +375,7 @@ class AIMP_Coupons {
 	 * @param WP_User $user User.
 	 * @return WC_Coupon|null
 	 */
-	private static function welcome_coupon( $user ) {
+	public static function welcome_coupon( $user ) {
 		$id = (int) get_user_meta( $user->ID, self::META_COUPON, true );
 		if ( ! $id ) {
 			return null;
@@ -335,6 +400,10 @@ class AIMP_Coupons {
 			return;
 		}
 		if ( WC()->cart->get_applied_coupons() || ( WC()->session && WC()->session->get( 'aimp_welcome_removed' ) ) ) {
+			return;
+		}
+		// Not while a sale discount applies (codes can't be used with it).
+		if ( class_exists( 'AIMP_Sale' ) && AIMP_Sale::cart_applies( WC()->cart ) ) {
 			return;
 		}
 		$coupon = self::welcome_coupon( wp_get_current_user() );

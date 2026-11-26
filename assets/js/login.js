@@ -864,7 +864,7 @@
 		} catch (e) {}
 		// Never two pop-ups at once: while the newsletter pop-up is open, wait until it is closed.
 		var tryOpen = function () {
-			if (document.querySelector('.aimp-nl-popup')) {
+			if (document.querySelector('.aimp-nl-popup, [data-aimp-sale-popup][open]')) {
 				setTimeout(tryOpen, 1500);
 				return;
 			}

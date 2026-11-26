@@ -155,6 +155,8 @@ class AIMP_Cart_Page {
 				'subtotal'  => WC()->cart->get_product_subtotal( $product, $item['quantity'] ),
 				'amount'    => self::amount_text( $item ),
 				'role'      => $meta ? (string) $meta['role'] : '',
+				// The sale discount on this line (AIMP_Sale), 0: none.
+				'sale'      => class_exists( 'AIMP_Sale' ) ? AIMP_Sale::line_percent( $item ) : 0,
 			);
 			if ( $meta ) {
 				$group = (string) $meta['group'];
@@ -166,6 +168,7 @@ class AIMP_Cart_Page {
 						'remove_url' => wc_get_cart_remove_url( $key ),
 						'finish'     => '',
 						'discount'   => AIMP_Cart::item_discount( $item ),
+						'sale'       => $line['sale'],
 						'items'      => array(),
 					);
 				}
@@ -180,6 +183,10 @@ class AIMP_Cart_Page {
 					$sets[ $group ]['finish'] = isset( $meta['finish'] ) ? (string) $meta['finish'] : '';
 				}
 			} else {
+				// Before the sale discount, for showing it crossed out.
+				if ( $line['sale'] ) {
+					$line['regular'] = AIMP_Cart::undiscounted_price( $product ) * (int) $item['quantity'];
+				}
 				$singles[] = $line;
 			}
 		}
@@ -265,7 +272,7 @@ class AIMP_Cart_Page {
 									<?php endif; ?>
 								</span>
 								<span class="aimp-os-price">
-									<?php if ( $aimp_set['discount'] && $aimp_line['regular'] > 0 ) : ?>
+									<?php if ( ( $aimp_set['discount'] || $aimp_set['sale'] ) && $aimp_line['regular'] > 0 ) : ?>
 										<del><?php echo wp_kses_post( wc_price( $aimp_line['regular'] ) ); ?></del>
 									<?php endif; ?>
 									<?php echo wp_kses_post( $aimp_line['subtotal'] ); ?>
@@ -276,7 +283,7 @@ class AIMP_Cart_Page {
 					<p class="aimp-os-set-total">
 						<span><?php esc_html_e( 'Set total', 'atelier-irisee-master-plugin' ); ?></span>
 						<strong>
-							<?php if ( $aimp_set['discount'] && $aimp_set['regular'] > $aimp_set['total'] ) : ?>
+							<?php if ( ( $aimp_set['discount'] || $aimp_set['sale'] ) && $aimp_set['regular'] > $aimp_set['total'] ) : ?>
 								<del><?php echo wp_kses_post( wc_price( $aimp_set['regular'] ) ); ?></del>
 							<?php endif; ?>
 							<?php echo wp_kses_post( wc_price( $aimp_set['total'] ) ); ?>
@@ -292,7 +299,7 @@ class AIMP_Cart_Page {
 						<?php echo wc_get_formatted_cart_item_data( $aimp_line['item'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WooCommerce HTML. ?>
 						<small><?php echo esc_html( $aimp_line['amount'] ); ?></small>
 					</span>
-					<span class="aimp-os-price"><?php echo wp_kses_post( $aimp_line['subtotal'] ); ?></span>
+					<span class="aimp-os-price"><?php if ( ! empty( $aimp_line['regular'] ) ) : ?><del><?php echo wp_kses_post( wc_price( $aimp_line['regular'] ) ); ?></del> <?php endif; ?><?php echo wp_kses_post( $aimp_line['subtotal'] ); ?></span>
 				</li>
 			<?php endforeach; ?>
 		</ul>

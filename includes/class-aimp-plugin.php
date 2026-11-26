@@ -62,6 +62,7 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-invoices.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-lost-orders.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-feed.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-sale.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-stats.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-boot.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-hero.php';
@@ -130,6 +131,7 @@ class AIMP_Plugin {
 		AIMP_Invoices::init();
 		AIMP_Lost_Orders::init();
 		AIMP_Feed::init();
+		AIMP_Sale::init();
 		AIMP_Design_Inline::init();
 		AIMP_Content_I18n::init();
 		AIMP_Stats::init();

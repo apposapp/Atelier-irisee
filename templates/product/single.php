@@ -161,6 +161,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 					<div class="aimp-buy-price">
 						<?php if ( '' !== $the_product->get_price_html() ) : ?>
 							<p class="aimp-details-price price" data-aimp-price><?php echo wp_kses_post( $the_product->get_price_html() ); ?></p>
+							<?php echo class_exists( 'AIMP_Sale' ) ? AIMP_Sale::label_html( $the_product ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in label_html(). ?>
 						<?php endif; ?>
 						<?php if ( $aimp_buy['per_10cm'] ) : ?>
 							<p class="aimp-price-unit" data-aimp-unit-line><?php esc_html_e( 'per 10 cm', 'atelier-irisee-master-plugin' ); ?></p>
@@ -247,6 +248,7 @@ $aimp_specs_html   = $aimp_fabric ? $aimp_tiles( $aimp_fabric['specs'] ) : ( $ai
 			<?php elseif ( '' !== $the_product->get_price_html() ) : ?>
 				<div class="aimp-product-price">
 					<p class="aimp-details-price price"><?php echo wp_kses_post( $the_product->get_price_html() ); ?></p>
+					<?php echo class_exists( 'AIMP_Sale' ) ? AIMP_Sale::label_html( $the_product ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in label_html(). ?>
 				</div>
 			<?php endif; ?>
 
