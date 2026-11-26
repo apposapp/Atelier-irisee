@@ -347,6 +347,8 @@ class AIMP_Newsletter_Render {
 			'arch'   => '999px 999px 0 0',
 			'round'  => '50%',
 			'square' => '16px',
+			// As it is: rounded corners too.
+			''       => '16px',
 		);
 		$style  = 'display:block;width:100%;max-width:' . (int) $width . 'px;height:auto;margin:0 auto;border:0';
 		if ( isset( $radius[ $block['shape'] ] ) ) {

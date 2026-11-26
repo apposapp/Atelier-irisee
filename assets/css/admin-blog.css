@@ -473,3 +473,20 @@
 .aimp-bb-button-preview.is-right {
 	text-align: right;
 }
+
+/* The fit of a picture in its shape, in the preview. */
+.aimp-bb-image.is-plain {
+	border-radius: 14px;
+}
+
+.aimp-bb-image.is-fit-photo {
+	aspect-ratio: auto;
+}
+
+.aimp-bb-image.is-fit-photo img {
+	height: auto;
+}
+
+.aimp-bb-image.is-fit-contain img {
+	object-fit: contain;
+}

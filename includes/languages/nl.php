@@ -3725,4 +3725,9 @@ return array(
 	'Open in a new tab' => 'In een nieuw tabblad openen',
 	// 3.93.1: button label
 	'Link button' => 'Knop',
+	// 3.94.0: photo fit
+	'The photo in the shape' => 'De foto in de vorm',
+	'Fills the shape (edges cut off)' => 'Vult de vorm (randen weggesneden)',
+	'The shape follows the photo (nothing cut off)' => 'De vorm volgt de foto (niets weggesneden)',
+	'The whole photo inside the shape' => 'De hele foto binnen de vorm',
 );

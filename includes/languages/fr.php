@@ -3725,4 +3725,9 @@ return array(
 	'Open in a new tab' => 'Ouvrir dans un nouvel onglet',
 	// 3.93.1: button label
 	'Link button' => 'Bouton',
+	// 3.94.0: photo fit
+	'The photo in the shape' => 'La photo dans la forme',
+	'Fills the shape (edges cut off)' => 'Remplit la forme (bords coupés)',
+	'The shape follows the photo (nothing cut off)' => 'La forme suit la photo (rien de coupé)',
+	'The whole photo inside the shape' => 'Toute la photo dans la forme',
 );

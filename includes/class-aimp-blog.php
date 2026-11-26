@@ -487,6 +487,9 @@ class AIMP_Blog {
 						$item['caption'] = $text( $get( 'caption' ) );
 						$item['link']    = esc_url_raw( is_string( $get( 'link' ) ) ? trim( $get( 'link' ) ) : '' );
 						$item['zoom']    = $get( 'zoom', 1 ) ? 1 : 0;
+						// In a shape: '' fills it (cut to the shape), photo = the shape follows the photo's own
+						// proportions, contain = the whole photo inside the shape.
+						$item['fit']     = $pick( $get( 'fit' ), array( '', 'photo', 'contain' ) );
 					} elseif ( 'lijn' === $type ) {
 						$item['width'] = $pick( $get( 'width' ), array( '', 'narrow' ) );
 					} elseif ( 'button' === $type ) {
@@ -690,7 +693,8 @@ class AIMP_Blog {
 			$full  = wp_get_attachment_image_url( $id, 'full' );
 			$image = '<a class="aimp-blog-img-link" href="' . esc_url( $full ) . '" data-aimp-zoom aria-label="' . esc_attr__( 'Enlarge picture', 'atelier-irisee-master-plugin' ) . '">' . $image . '</a>';
 		}
-		$html = '<figure class="aimp-blog-image is-' . esc_attr( $shape ) . ( ! empty( $block['frame'] ) ? ' has-frame' : '' ) . '"><span class="aimp-blog-frame">' . $image . '</span>';
+		$fit  = 'plain' !== $shape && isset( $block['fit'] ) && in_array( $block['fit'], array( 'photo', 'contain' ), true ) ? ' is-fit-' . $block['fit'] : '';
+		$html = '<figure class="aimp-blog-image is-' . esc_attr( $shape ) . $fit . ( ! empty( $block['frame'] ) ? ' has-frame' : '' ) . '"><span class="aimp-blog-frame">' . $image . '</span>';
 		if ( '' !== $block['caption'] ) {
 			$html .= '<figcaption>' . esc_html( $block['caption'] ) . '</figcaption>';
 		}

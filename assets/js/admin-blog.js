@@ -72,7 +72,7 @@
 			case 'title':
 				return { t: 'title', gap: '', text: text.slice(0, 300), size: 'h2', align: '' };
 			case 'image':
-				return { t: 'image', gap: '', id: 0, shape: '', frame: 0, fx: -1, fy: -1, caption: '', link: '', zoom: 1 };
+				return { t: 'image', gap: '', id: 0, shape: '', fit: '', frame: 0, fx: -1, fy: -1, caption: '', link: '', zoom: 1 };
 			case 'video':
 				return { t: 'video', gap: '', id: 0, url: '', poster: 0, auto: 0, shape: '', caption: '' };
 			case 'lijn':
@@ -198,7 +198,7 @@
 		} else if (block.t === 'image') {
 			var picture = block.id && media[block.id] ? media[block.id] : null;
 			if (picture) {
-				html += '<div class="aimp-bb-image is-' + esc(block.shape || 'plain') + (block.frame ? ' has-frame' : '') + '" data-act="focus"' + attrs(at) + ' title="' + esc(t.focus) + '">' +
+				html += '<div class="aimp-bb-image is-' + esc(block.shape || 'plain') + (block.shape && block.fit ? ' is-fit-' + esc(block.fit) : '') + (block.frame ? ' has-frame' : '') + '" data-act="focus"' + attrs(at) + ' title="' + esc(t.focus) + '">' +
 					'<img src="' + esc(picture.thumb || picture.url) + '" alt="" style="object-position:' + (block.fx >= 0 ? block.fx : 50) + '% ' + (block.fy >= 0 ? block.fy : 50) + '%">' +
 					'<span class="aimp-bb-dot" style="left:' + (block.fx >= 0 ? block.fx : 50) + '%;top:' + (block.fy >= 0 ? block.fy : 50) + '%"></span></div>';
 				html += '<p class="aimp-bb-hint">' + esc(t.focus) + '</p>';
@@ -206,6 +206,8 @@
 			html += '<p class="aimp-bb-buttons">' + button('pick-image', picture ? t.change : t.choose, at) + (picture ? ' ' + button('clear-image', t.remove, at) : '') + '</p>';
 			html += '<div class="aimp-bb-fields">' +
 				select(t.shape, 'shape', at, block.shape, [['', t.plain], ['arch', t.arch], ['round', t.round], ['square', t.square]]) +
+				// In a shape: fill it (cut to the shape), let the shape follow the photo, or the whole photo inside it.
+				(block.shape ? select(t.fit, 'fit', at, block.fit, [['', t.fitFill], ['photo', t.fitPhoto], ['contain', t.fitContain]]) : '') +
 				check(t.frame, 'frame', at, block.frame) + check(t.zoom, 'zoom', at, block.zoom) + '</div>';
 			html += input(t.caption, 'caption', at, block.caption) + input(t.link, 'link', at, block.link, 'url', 'https://');
 		} else if (block.t === 'video') {

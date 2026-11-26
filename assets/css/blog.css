@@ -371,7 +371,32 @@ a.aimp-blog-label:focus-visible {
 }
 
 .aimp-blog-image.is-plain .aimp-blog-frame {
-	border-radius: 4px;
+	border-radius: var(--hb-radius);
+}
+
+/* "The shape follows the photo": the photo's own proportions, nothing cut off but the rounding. */
+.aimp-blog-image.is-fit-photo .aimp-blog-frame {
+	aspect-ratio: auto;
+}
+
+.aimp-blog-image.is-fit-photo .aimp-blog-img {
+	height: auto;
+	object-fit: initial;
+}
+
+/* "The whole photo in the shape": the shape keeps its size, the photo fits inside it. */
+.aimp-blog-image.is-fit-contain .aimp-blog-img {
+	box-sizing: border-box;
+	object-fit: contain;
+}
+
+/* In an arch or circle the photo keeps away from the rounding, so its corners stay in view. */
+.aimp-blog-image.is-arch.is-fit-contain .aimp-blog-img {
+	padding: 14% 6% 4%;
+}
+
+.aimp-blog-image.is-round.is-fit-contain .aimp-blog-img {
+	padding: 15%;
 }
 
 /* Alone in its row: as it is, but never higher than the screen. */
