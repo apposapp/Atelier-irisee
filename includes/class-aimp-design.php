@@ -616,6 +616,9 @@ class AIMP_Design {
 				'em_logo'    => 'image',
 				'em_noframe' => 'bool',
 				'em_footer'  => 'text',
+				'em_noconnect' => 'bool',
+				'em_hashtag' => 'text',
+				'em_review'  => 'url',
 			),
 			// SEO, speed and dashboard (phase 10, AIMP_Design_Tech).
 			'seo_opts'    => array(
@@ -4578,6 +4581,10 @@ class AIMP_Design {
 		self::picture_field( 'em_logo', __( 'Logo at the top', 'atelier-irisee-master-plugin' ) );
 		self::check_box( 'em_noframe', __( 'No gold frame around the email', 'atelier-irisee-master-plugin' ) );
 		$field( 'em_footer', __( 'An extra line at the bottom', 'atelier-irisee-master-plugin' ), 'text', $lang_hint );
+		echo '<p class="description"><strong>' . esc_html__( '"Let\'s connect" at the end of every email to customers', 'atelier-irisee-master-plugin' ) . '</strong>: ' . esc_html__( 'your socials, the website, your email address and address (Settings → Footer and Socials).', 'atelier-irisee-master-plugin' ) . '</p>';
+		self::check_box( 'em_noconnect', __( 'No "Let\'s connect" banner', 'atelier-irisee-master-plugin' ) );
+		$field( 'em_hashtag', __( 'Hashtag for "Show your makes" (empty: no line)', 'atelier-irisee-master-plugin' ), 'text', '#atelieririsee' );
+		$field( 'em_review', __( 'Link for "Leave a review" (empty: no line)', 'atelier-irisee-master-plugin' ), 'url', 'https://' );
 		echo '<p class="description">' . esc_html__( 'For the WooCommerce emails (orders, accounts), when "Atelier Irisee style for WooCommerce emails" is on in the settings. Emails cannot be shown in the preview; they use what is published.', 'atelier-irisee-master-plugin' ) . '</p>';
 		echo '</fieldset>';
 

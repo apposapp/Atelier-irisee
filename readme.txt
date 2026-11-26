@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.91.0
+Stable tag: 3.92.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,12 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.92.0 =
+* Newsletter: build it with rows and blocks, as a blog post (WooCommerce → Newsletter → "Build it here"). Mark sections with "+ New section"; the email shows the whole newsletter, or a summary per section (title, picture, short text and a "Read more" button to that section in the web version). Simple text and a website page stay available.
+* New block "Line with a star" (blog and newsletter): a thin gold line with a glowing star.
+* "Let's connect" at the end of every email to customers: social icons, the website, the email address and address, and optionally a hashtag line, a review link and a newsletter sign-up link (Design studio → Emails).
+* Sale: the label on product pages is gold with white text.
 
 = 3.91.0 =
 * Sale (Black Friday): Atelier Irisee → Sale (Black Friday). A percentage off the whole shop between a start and an end, from a minimum order amount; gift cards excepted; sewing project kits get their kit discount first, then the sale discount. Taken off in the cart (crossed-out prices, a "still €X to go" line); discount codes can't be used with it, and customers with a welcome code are told it stays valid. Announcements, each switchable: the gold bar, a popup once per visitor, a banner with countdown under the home page hero (or the shortcode [atelier_irisee_sale_banner]), and labels in the shop and on product pages. Cached pages refresh at the start and the end. "Preview on the site" shows it only to you.

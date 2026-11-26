@@ -464,6 +464,10 @@ class AIMP_Giftcards {
 				$subject     = $parts[0];
 				$html        = $parts[1];
 				$attachments = isset( $parts[2] ) ? (array) $parts[2] : array();
+				// "Let's connect" at the end, for customers (not the shop's own mails).
+				if ( class_exists( 'AIMP_Email_Connect' ) && strtolower( (string) $to ) !== strtolower( (string) get_option( 'admin_email' ) ) ) {
+					$html .= AIMP_Email_Connect::html( true, (string) $to );
+				}
 				if ( function_exists( 'WC' ) && WC()->mailer() ) {
 					$mailer = WC()->mailer();
 					$mailer->send( $to, $subject, $mailer->wrap_message( $subject, $html ), array( 'Content-Type: text/html; charset=UTF-8' ), $attachments );

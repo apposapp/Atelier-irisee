@@ -165,8 +165,8 @@
 	margin: 0.4em 0 0;
 	padding: 0.3em 0.8em;
 	border-radius: 999px;
-	background: #1f1b17;
-	color: var(--aimp-site-gold, #b38f4f);
+	background: var(--aimp-site-gold, #b38f4f);
+	color: #fff;
 	font-size: 0.85em;
 	font-weight: 600;
 	line-height: 1.4;

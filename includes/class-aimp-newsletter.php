@@ -74,6 +74,22 @@ class AIMP_Newsletter {
 			)
 		);
 		wp_enqueue_style( 'aimp-admin', AIMP_PLUGIN_URL . 'assets/css/admin.css', array(), AIMP_VERSION );
+
+		// The rows and blocks of the blog, for "Build it here".
+		if ( class_exists( 'AIMP_Blog_Builder' ) ) {
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended -- choosing what to show.
+			$id = isset( $_GET['aimp_nl_copy'] ) ? absint( $_GET['aimp_nl_copy'] ) : ( isset( $_GET['aimp_nl'] ) ? absint( $_GET['aimp_nl'] ) : 0 );
+			// phpcs:enable
+			$nl = self::get( $id );
+			AIMP_Blog_Builder::enqueue(
+				$nl['rows'],
+				array(
+					'mode'  => 'newsletter',
+					'root'  => 'aimp-nl-builder',
+					'field' => '#aimp_nl_rows',
+				)
+			);
+		}
 	}
 
 	/* ------------------------------------------------------------------
@@ -94,7 +110,9 @@ class AIMP_Newsletter {
 				'button_text'   => '',
 				'button_url'    => '',
 				'attachment_id' => 0,
-				'source'        => 'editor',
+				'source'        => 'builder',
+				'rows'          => array(),
+				'layout'        => 'full',
 				'page'          => 0,
 				'preheader'     => '',
 				'status'        => 'draft',
@@ -113,7 +131,9 @@ class AIMP_Newsletter {
 			'button_text'   => (string) $meta( '_aimp_button_text' ),
 			'button_url'    => (string) $meta( '_aimp_button_url' ),
 			'attachment_id' => (int) $meta( '_aimp_attachment' ),
-			'source'        => 'page' === $meta( '_aimp_source' ) ? 'page' : 'editor',
+			'source'        => self::source( $meta( '_aimp_source' ) ),
+			'rows'          => self::rows_from( $meta( '_aimp_rows' ) ),
+			'layout'        => 'summary' === $meta( '_aimp_layout' ) ? 'summary' : 'full',
 			'page'          => (int) $meta( '_aimp_page' ),
 			'preheader'     => (string) $meta( '_aimp_preheader' ),
 			'status'        => $meta( '_aimp_status' ) ? (string) $meta( '_aimp_status' ) : 'draft',
@@ -121,6 +141,37 @@ class AIMP_Newsletter {
 			'sent'          => (int) $meta( '_aimp_sent' ),
 			'sent_at'       => (string) $meta( '_aimp_sent_at' ),
 		);
+	}
+
+	/**
+	 * @param mixed $value builder (rows and blocks), page or editor (simple text, the older newsletters).
+	 * @return string
+	 */
+	private static function source( $value ) {
+		return in_array( $value, array( 'builder', 'page' ), true ) ? $value : 'editor';
+	}
+
+	/**
+	 * Saved rows (JSON) as clean rows.
+	 *
+	 * @param mixed $json JSON.
+	 * @return array
+	 */
+	private static function rows_from( $json ) {
+		$rows = is_string( $json ) && '' !== $json ? json_decode( $json, true ) : array();
+		return class_exists( 'AIMP_Blog' ) && is_array( $rows ) ? AIMP_Blog::clean_rows( $rows ) : array();
+	}
+
+	/**
+	 * The rows the builder posted (<!-- aimp-blog:base64 -->), made safe.
+	 *
+	 * @return array
+	 */
+	private static function posted_rows() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- checked by the callers; decoded and cleaned below.
+		$raw     = isset( $_POST['aimp_nl_rows'] ) ? (string) wp_unslash( $_POST['aimp_nl_rows'] ) : '';
+		$payload = class_exists( 'AIMP_Blog' ) ? AIMP_Blog::payload( $raw ) : null;
+		return null !== $payload ? AIMP_Blog::clean_rows( $payload['rows'] ) : array();
 	}
 
 	/**
@@ -141,6 +192,9 @@ class AIMP_Newsletter {
 			'attachment'  => $nl['attachment_id'] ? (string) get_attached_file( $nl['attachment_id'] ) : '',
 			'unsubscribe' => $subscriber_id ? AIMP_Footer::unsubscribe_url( $subscriber_id ) : home_url( '/' ),
 			'view_url'    => self::view_url( $nl ),
+			'source'      => isset( $nl['source'] ) ? $nl['source'] : 'editor',
+			'rows'        => isset( $nl['rows'] ) ? $nl['rows'] : array(),
+			'layout'      => isset( $nl['layout'] ) ? $nl['layout'] : 'full',
 		);
 		// A page on the website (for example designed with Divi): intro, its picture and "Read the newsletter".
 		$page = ( isset( $nl['source'], $nl['page'] ) && 'page' === $nl['source'] && $nl['page'] ) ? get_post( $nl['page'] ) : null;
@@ -188,7 +242,9 @@ class AIMP_Newsletter {
 		$key = isset( $_GET['key'] ) ? sanitize_key( wp_unslash( $_GET['key'] ) ) : '';
 		// phpcs:enable
 		$nl = self::get( $id );
-		if ( ! $nl['id'] || 'draft' === $nl['status'] || ! hash_equals( substr( wp_hash( 'aimp_nl_view_' . $id ), 0, 16 ), $key ) ) {
+		// A draft only for the shop (to try the "Read more" links of a preview).
+		$draft = 'draft' === $nl['status'] && ! current_user_can( 'manage_woocommerce' );
+		if ( ! $nl['id'] || $draft || ! hash_equals( substr( wp_hash( 'aimp_nl_view_' . $id ), 0, 16 ), $key ) ) {
 			return;
 		}
 		$email = self::mailer_email();
@@ -197,6 +253,8 @@ class AIMP_Newsletter {
 		}
 		$email->newsletter = self::email_parts( $nl );
 		$email->newsletter['view_url'] = '';
+		// On the website the whole newsletter, with its sections' anchors.
+		$email->newsletter['layout'] = 'full';
 		nocache_headers();
 		// A copy of an email: not for search engines.
 		if ( ! headers_sent() ) {
@@ -250,9 +308,11 @@ class AIMP_Newsletter {
 			'_aimp_button_text' => isset( $_POST['aimp_nl_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['aimp_nl_button_text'] ) ) : '',
 			'_aimp_button_url'  => isset( $_POST['aimp_nl_button_url'] ) ? esc_url_raw( wp_unslash( $_POST['aimp_nl_button_url'] ) ) : '',
 			'_aimp_attachment'  => isset( $_POST['aimp_nl_attachment'] ) ? absint( $_POST['aimp_nl_attachment'] ) : 0,
-			'_aimp_source'      => ( isset( $_POST['aimp_nl_source'] ) && 'page' === $_POST['aimp_nl_source'] ) ? 'page' : 'editor',
+			'_aimp_source'      => self::source( isset( $_POST['aimp_nl_source'] ) ? sanitize_key( wp_unslash( $_POST['aimp_nl_source'] ) ) : '' ),
 			'_aimp_page'        => isset( $_POST['aimp_nl_page'] ) ? absint( $_POST['aimp_nl_page'] ) : 0,
 			'_aimp_preheader'   => isset( $_POST['aimp_nl_preheader'] ) ? sanitize_text_field( wp_unslash( $_POST['aimp_nl_preheader'] ) ) : '',
+			'_aimp_rows'        => wp_slash( (string) wp_json_encode( self::posted_rows() ) ),
+			'_aimp_layout'      => ( isset( $_POST['aimp_nl_layout'] ) && 'summary' === $_POST['aimp_nl_layout'] ) ? 'summary' : 'full',
 		);
 		// phpcs:enable
 		// A newsletter that was sent stays as it was; saving it again makes a new copy.
@@ -361,9 +421,13 @@ class AIMP_Newsletter {
 			'button_text'   => isset( $_POST['aimp_nl_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['aimp_nl_button_text'] ) ) : '',
 			'button_url'    => isset( $_POST['aimp_nl_button_url'] ) ? esc_url_raw( wp_unslash( $_POST['aimp_nl_button_url'] ) ) : '',
 			'attachment_id' => 0,
-			'source'        => ( isset( $_POST['aimp_nl_source'] ) && 'page' === $_POST['aimp_nl_source'] ) ? 'page' : 'editor',
+			'source'        => self::source( isset( $_POST['aimp_nl_source'] ) ? sanitize_key( wp_unslash( $_POST['aimp_nl_source'] ) ) : '' ),
 			'page'          => isset( $_POST['aimp_nl_page'] ) ? absint( $_POST['aimp_nl_page'] ) : 0,
 			'preheader'     => isset( $_POST['aimp_nl_preheader'] ) ? sanitize_text_field( wp_unslash( $_POST['aimp_nl_preheader'] ) ) : '',
+			'rows'          => self::posted_rows(),
+			'layout'        => ( isset( $_POST['aimp_nl_layout'] ) && 'summary' === $_POST['aimp_nl_layout'] ) ? 'summary' : 'full',
+			// The saved newsletter (for the "Read more" links to its web version).
+			'id'            => isset( $_POST['aimp_nl_id'] ) ? absint( $_POST['aimp_nl_id'] ) : 0,
 		);
 		// phpcs:enable
 		$email = self::mailer_email();
@@ -424,7 +488,8 @@ class AIMP_Newsletter {
 				</p>
 				<fieldset class="aimp-nl-source">
 					<legend><strong><?php esc_html_e( 'Content', 'atelier-irisee-master-plugin' ); ?></strong></legend>
-					<label><input type="radio" name="aimp_nl_source" value="editor" <?php checked( 'page' !== $nl['source'] ); ?>> <?php esc_html_e( 'Write it here', 'atelier-irisee-master-plugin' ); ?></label>
+					<label><input type="radio" name="aimp_nl_source" value="builder" <?php checked( 'builder' === $nl['source'] ); ?>> <?php esc_html_e( 'Build it here with rows and blocks (as a blog post)', 'atelier-irisee-master-plugin' ); ?></label>
+					<label><input type="radio" name="aimp_nl_source" value="editor" <?php checked( 'editor' === $nl['source'] ); ?>> <?php esc_html_e( 'Simple text', 'atelier-irisee-master-plugin' ); ?></label>
 					<label><input type="radio" name="aimp_nl_source" value="page" <?php checked( 'page' === $nl['source'] ); ?>> <?php esc_html_e( 'A page on the website (for example designed with Divi)', 'atelier-irisee-master-plugin' ); ?></label>
 					<span class="aimp-nl-page">
 						<?php
@@ -441,6 +506,17 @@ class AIMP_Newsletter {
 					</span>
 					<p class="description"><?php esc_html_e( 'With a page, the email shows the text below as an introduction, the page\'s featured image and a "Read the newsletter" button. Email programs can\'t show a Divi design, so the full newsletter is read on the website.', 'atelier-irisee-master-plugin' ); ?></p>
 				</fieldset>
+				<div class="aimp-nl-builder" data-aimp-nl-for="builder"<?php echo 'builder' === $nl['source'] ? '' : ' hidden'; ?>>
+					<fieldset class="aimp-nl-layout">
+						<legend><strong><?php esc_html_e( 'The email shows', 'atelier-irisee-master-plugin' ); ?></strong></legend>
+						<label><input type="radio" name="aimp_nl_layout" value="full" <?php checked( 'summary' !== $nl['layout'] ); ?>> <?php esc_html_e( 'The whole newsletter', 'atelier-irisee-master-plugin' ); ?></label>
+						<label><input type="radio" name="aimp_nl_layout" value="summary" <?php checked( 'summary' === $nl['layout'] ); ?>> <?php esc_html_e( 'A summary per section (title, picture, short text and a "Read more" button to the newsletter on the website)', 'atelier-irisee-master-plugin' ); ?></label>
+						<p class="description"><?php esc_html_e( 'Mark the start of each section with "+ New section" or the tick "A new section starts here" on a row. What comes before the first section is shown in full in both.', 'atelier-irisee-master-plugin' ); ?></p>
+					</fieldset>
+					<textarea name="aimp_nl_rows" id="aimp_nl_rows" hidden><?php echo esc_textarea( class_exists( 'AIMP_Blog' ) ? AIMP_Blog::encode( $nl['rows'], array() ) : '' ); ?></textarea>
+					<div id="aimp-nl-builder" class="aimp-bb"></div>
+				</div>
+				<div class="aimp-nl-editor" data-aimp-nl-for="editor page"<?php echo 'builder' === $nl['source'] ? ' hidden' : ''; ?>>
 				<?php
 				wp_editor(
 					$nl['content'],
@@ -452,6 +528,7 @@ class AIMP_Newsletter {
 					)
 				);
 				?>
+				</div>
 				<div class="aimp-nl-extra">
 					<p>
 						<label for="aimp_nl_button_text"><strong><?php esc_html_e( 'Button (optional)', 'atelier-irisee-master-plugin' ); ?></strong></label><br>

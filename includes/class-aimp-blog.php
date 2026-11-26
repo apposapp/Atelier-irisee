@@ -466,7 +466,7 @@ class AIMP_Blog {
 					$get  = function ( $key, $default = '' ) use ( $block ) {
 						return isset( $block[ $key ] ) ? $block[ $key ] : $default;
 					};
-					$type = $pick( $get( 't' ), array( 'text', 'title', 'image', 'video' ) );
+					$type = $pick( $get( 't' ), array( 'text', 'title', 'image', 'video', 'lijn' ) );
 					$item = array(
 						't'   => $type,
 						'gap' => $pick( $get( 'gap' ), array( '', 'none', 'small', 'large' ) ),
@@ -487,6 +487,8 @@ class AIMP_Blog {
 						$item['caption'] = $text( $get( 'caption' ) );
 						$item['link']    = esc_url_raw( is_string( $get( 'link' ) ) ? trim( $get( 'link' ) ) : '' );
 						$item['zoom']    = $get( 'zoom', 1 ) ? 1 : 0;
+					} elseif ( 'lijn' === $type ) {
+						$item['width'] = $pick( $get( 'width' ), array( '', 'narrow' ) );
 					} else {
 						$item['id']      = absint( $get( 'id', 0 ) );
 						$item['url']     = esc_url_raw( is_string( $get( 'url' ) ) ? trim( $get( 'url' ) ) : '' );
@@ -512,6 +514,13 @@ class AIMP_Blog {
 				'bg'    => $get( 'bg' ) ? 1 : 0,
 				'cols'  => $cols,
 			);
+			// A newsletter row can start a section (its name and summary are for the summary email).
+			if ( $get( 'sec' ) ) {
+				$last                       = count( $clean ) - 1;
+				$clean[ $last ]['sec']      = 1;
+				$clean[ $last ]['sec_name'] = $text( $get( 'sec_name' ), 120 );
+				$clean[ $last ]['sec_sum']  = $text( $get( 'sec_sum' ), 400 );
+			}
 		}
 		return $clean;
 	}
@@ -522,7 +531,7 @@ class AIMP_Blog {
 	 * @param array $block Block.
 	 * @return bool
 	 */
-	private static function filled( $block ) {
+	public static function filled( $block ) {
 		switch ( isset( $block['t'] ) ? $block['t'] : '' ) {
 			case 'title':
 				return '' !== trim( (string) $block['text'] );
@@ -532,6 +541,8 @@ class AIMP_Blog {
 				return ! empty( $block['id'] ) && wp_attachment_is_image( (int) $block['id'] );
 			case 'video':
 				return ! empty( $block['id'] ) || '' !== (string) $block['url'];
+			case 'lijn':
+				return true;
 		}
 		return false;
 	}
@@ -616,8 +627,32 @@ class AIMP_Blog {
 				return self::image( $block, $alone );
 			case 'video':
 				return self::video( $block );
+			case 'lijn':
+				return self::lijn( isset( $block['width'] ) ? $block['width'] : '' );
 		}
 		return '';
+	}
+
+	/**
+	 * The atelier's line: a thin gold line with a glowing four-pointed star in the middle.
+	 *
+	 * @param string $width '' (the full width) or 'narrow'.
+	 * @return string
+	 */
+	public static function lijn( $width = '' ) {
+		static $n = 0;
+		$id   = 'aimp-lijn-' . ( ++$n );
+		$fade = '<stop offset="0" stop-color="#d9b968" stop-opacity="0"/><stop offset=".3" stop-color="#d4b25e"/><stop offset="1" stop-color="#e9d18a"/>';
+		return '<div class="aimp-lijn' . ( 'narrow' === $width ? ' is-narrow' : '' ) . '" role="separator">' .
+			'<svg class="aimp-lijn-line" viewBox="0 0 1000 4" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs>' .
+			'<linearGradient id="' . $id . '-l" x1="0" x2="1">' . $fade . '</linearGradient>' .
+			'<linearGradient id="' . $id . '-r" x1="1" x2="0">' . $fade . '</linearGradient></defs>' .
+			'<rect x="0" y="1.4" width="490" height="1.2" fill="url(#' . $id . '-l)"/><rect x="510" y="1.4" width="490" height="1.2" fill="url(#' . $id . '-r)"/></svg>' .
+			'<svg class="aimp-lijn-star" viewBox="0 0 80 80" aria-hidden="true" focusable="false"><defs>' .
+			'<radialGradient id="' . $id . '-g"><stop offset="0" stop-color="#fff4c2" stop-opacity=".95"/><stop offset=".4" stop-color="#f2d57c" stop-opacity=".45"/><stop offset="1" stop-color="#f2d57c" stop-opacity="0"/></radialGradient>' .
+			'<radialGradient id="' . $id . '-s" cx=".42" cy=".4" r=".75"><stop offset="0" stop-color="#fffbe6"/><stop offset=".5" stop-color="#f3db86"/><stop offset="1" stop-color="#c79f4a"/></radialGradient></defs>' .
+			'<ellipse cx="40" cy="40" rx="30" ry="20" fill="url(#' . $id . '-g)"/>' .
+			'<path d="M40 4C41.6 28 44.5 36.6 66 40C44.5 43.4 41.6 52 40 76C38.4 52 35.5 43.4 14 40C35.5 36.6 38.4 28 40 4Z" fill="url(#' . $id . '-s)"/></svg></div>';
 	}
 
 	/**

@@ -45,3 +45,27 @@ jQuery(function ($) {
 		}
 	});
 });
+
+// "Build it here", "Simple text" or "A page": show the builder or the editor.
+jQuery(function ($) {
+	'use strict';
+
+	var $form = $('[data-aimp-nl-form]');
+	if (!$form.length) {
+		return;
+	}
+	function show() {
+		var source = $form.find('input[name="aimp_nl_source"]:checked').val() || 'builder';
+		$form.find('[data-aimp-nl-for]').each(function () {
+			var on = (' ' + this.getAttribute('data-aimp-nl-for') + ' ').indexOf(' ' + source + ' ') !== -1;
+			var was = this.hidden;
+			this.hidden = !on;
+			// The builder's text editors are built again once it is visible.
+			if (on && was && source === 'builder' && typeof window.aimpBlogBuilderRender === 'function') {
+				window.aimpBlogBuilderRender();
+			}
+		});
+	}
+	$form.on('change', 'input[name="aimp_nl_source"]', show);
+	show();
+});

@@ -46,6 +46,8 @@ class AIMP_Plugin {
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-tracking.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-admin-menu.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-newsletter.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-newsletter-render.php';
+		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-email-connect.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-product-workspace.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-trust.php';
 		require_once AIMP_PLUGIN_DIR . 'includes/class-aimp-mosaic.php';
@@ -117,6 +119,7 @@ class AIMP_Plugin {
 		AIMP_Tracking::init();
 		AIMP_Admin_Menu::init();
 		AIMP_Newsletter::init();
+		AIMP_Email_Connect::init();
 		AIMP_Product_Workspace::init();
 		AIMP_Trust::init();
 		AIMP_Mosaic::init();

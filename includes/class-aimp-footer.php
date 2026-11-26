@@ -665,6 +665,17 @@ class AIMP_Footer {
 	}
 
 	/**
+	 * Whether this address is a confirmed newsletter subscriber.
+	 *
+	 * @param string $email Email address.
+	 * @return bool
+	 */
+	public static function is_subscribed( $email ) {
+		$id = is_email( $email ) ? self::find( $email ) : 0;
+		return $id && 'confirmed' === self::status( $id );
+	}
+
+	/**
 	 * @param string $token Token.
 	 * @return int Post ID or 0.
 	 */

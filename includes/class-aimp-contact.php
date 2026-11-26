@@ -410,7 +410,8 @@ class AIMP_Contact {
 				/* translators: %s: shop name */
 				sprintf( __( 'We received your message – %s', 'atelier-irisee-master-plugin' ), $site ),
 				__( 'Thank you for your message', 'atelier-irisee-master-plugin' ),
-				'<p>' . esc_html__( 'We received your message and will get back to you as soon as possible. This is what you sent us:', 'atelier-irisee-master-plugin' ) . '</p>' . $body,
+				'<p>' . esc_html__( 'We received your message and will get back to you as soon as possible. This is what you sent us:', 'atelier-irisee-master-plugin' ) . '</p>' . $body .
+					( class_exists( 'AIMP_Email_Connect' ) ? AIMP_Email_Connect::html( true, $email ) : '' ),
 				array( 'Reply-To: ' . $to )
 			);
 		}

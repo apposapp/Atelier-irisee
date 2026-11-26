@@ -31,7 +31,12 @@ if ( ! empty( $newsletter['image'] ) ) {
 	);
 }
 
-echo wp_kses_post( wpautop( isset( $newsletter['content'] ) ? $newsletter['content'] : '' ) );
+if ( isset( $newsletter['source'] ) && 'builder' === $newsletter['source'] && class_exists( 'AIMP_Newsletter_Render' ) ) {
+	// Rows and blocks: the whole newsletter, or a summary per section with "Read more" to the web version.
+	echo AIMP_Newsletter_Render::html( isset( $newsletter['rows'] ) ? $newsletter['rows'] : array(), isset( $newsletter['layout'] ) ? $newsletter['layout'] : 'full', isset( $newsletter['view_url'] ) ? (string) $newsletter['view_url'] : '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in the renderer.
+} else {
+	echo wp_kses_post( wpautop( isset( $newsletter['content'] ) ? $newsletter['content'] : '' ) );
+}
 
 if ( ! empty( $newsletter['button_text'] ) && ! empty( $newsletter['button_url'] ) ) {
 	echo AIMP_Emails::button( $newsletter['button_text'], $newsletter['button_url'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button().

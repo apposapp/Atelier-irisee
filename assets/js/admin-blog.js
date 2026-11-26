@@ -11,8 +11,10 @@
 	var cfg = window.aimpBlogBuilder || {};
 	var t = cfg.i18n || {};
 	var media = cfg.media || {};
-	var root = document.getElementById('aimp-blog-builder');
-	var field = document.getElementById('content');
+	// The same builder writes a newsletter (WooCommerce → Newsletter): its own field, sections, no "look" panel.
+	var newsletter = cfg.mode === 'newsletter';
+	var root = document.getElementById(cfg.root || 'aimp-blog-builder');
+	var field = document.querySelector(cfg.field || '#content');
 	if (!root || !field || !window.wp) {
 		return;
 	}
@@ -73,13 +75,15 @@
 				return { t: 'image', gap: '', id: 0, shape: '', frame: 0, fx: -1, fy: -1, caption: '', link: '', zoom: 1 };
 			case 'video':
 				return { t: 'video', gap: '', id: 0, url: '', poster: 0, auto: 0, shape: '', caption: '' };
+			case 'lijn':
+				return { t: 'lijn', gap: '', width: '' };
 			default:
 				return { t: 'text', gap: '', html: from && from.t === 'text' ? from.html : esc(text), align: '' };
 		}
 	}
 
 	function newRow(types) {
-		return { w: '', v: '', space: '', stack: '', bg: 0, cols: types.map(function (type) { return [newBlock(type)]; }) };
+		return { w: '', v: '', space: '', stack: '', bg: 0, sec: 0, sec_name: '', sec_sum: '', cols: types.map(function (type) { return [newBlock(type)]; }) };
 	}
 
 	/* ---------------------------------------------------------------
@@ -216,6 +220,9 @@
 				'<span>' + esc(t.poster) + '</span> ' + button('pick-poster', poster ? t.change : t.choose, at) + (poster ? ' ' + button('clear-poster', t.remove, at) : '') + '</div>';
 			html += '<div class="aimp-bb-fields">' + select(t.videoShape, 'shape', at, block.shape, [['', t.rounded], ['plain', t.square2]]) + (file ? check(t.auto, 'auto', at, block.auto) : '') + '</div>';
 			html += input(t.caption, 'caption', at, block.caption);
+		} else if (block.t === 'lijn') {
+			html += '<div class="aimp-bb-lijn' + (block.width === 'narrow' ? ' is-narrow' : '') + '"><span></span><i>✦</i><span></span></div>';
+			html += '<div class="aimp-bb-fields">' + select(t.lijnWidth, 'width', at, block.width, [['', t.lijnFull], ['narrow', t.lijnNarrow]]) + '</div>';
 		}
 		// A block under another one: its own space above (standard: the row's).
 		if (at.b > 0) {
@@ -228,7 +235,7 @@
 		return '<div class="aimp-bb-block is-' + esc(block.t) + '">' +
 			'<div class="aimp-bb-block-bar">' +
 			'<select class="aimp-bb-type"' + attrs(at, 't') + ' aria-label="' + esc(t.text) + '">' +
-			[['title', t.title], ['text', t.text], ['image', t.image], ['video', t.video]].map(function (o) {
+			[['title', t.title], ['text', t.text], ['image', t.image], ['video', t.video], ['lijn', t.lijn]].map(function (o) {
 				return '<option value="' + o[0] + '"' + (block.t === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
 			}).join('') + '</select>' +
 			'<span class="aimp-bb-tools">' +
@@ -272,9 +279,17 @@
 			bar += select(t.stack, 'stack', at, row.stack, SPACES);
 		}
 		bar += check(t.background, 'bg', at, row.bg);
+		if (newsletter) {
+			bar += check(t.section, 'sec', at, row.sec);
+		}
 		bar += '<span class="aimp-bb-tools">' + tool('row-up', '↑', t.up, at, r === 0) + tool('row-down', '↓', t.down, at, r === rows.length - 1) +
 			tool('row-copy', '⧉', t.copy, at, false) + tool('row-remove', '×', t.remove, at, false) + '</span></div>';
-		return '<div class="aimp-bb-row' + (row.bg ? ' has-bg' : '') + '">' + bar +
+		// A newsletter section starts here: its name and summary (for the email that shows a summary per section).
+		if (newsletter && row.sec) {
+			bar += '<div class="aimp-bb-section">' + input(t.sectionName, 'sec_name', at, row.sec_name, 'text', t.sectionNameHint) +
+				input(t.sectionSum, 'sec_sum', at, row.sec_sum, 'text', t.sectionSumHint) + '</div>';
+		}
+		return '<div class="aimp-bb-row' + (row.bg ? ' has-bg' : '') + (newsletter && row.sec ? ' is-section' : '') + '">' + bar +
 			'<div class="aimp-bb-blocks is-n-' + count + (count === 2 && row.w ? ' is-w-' + esc(row.w) : '') + '">' +
 			row.cols.map(function (col, c) {
 				return colHtml(col, r, c, count);
@@ -313,7 +328,7 @@
 	function render() {
 		sync();
 		destroyEditors();
-		var html = lookHtml() + (rows.length ? '' : '<p class="aimp-bb-empty">' + esc(t.empty) + '</p>');
+		var html = (newsletter ? '' : lookHtml()) + (rows.length ? '' : '<p class="aimp-bb-empty">' + esc(newsletter ? t.emptyNl : t.empty) + '</p>');
 		rows.forEach(function (row, r) {
 			html += rowHtml(row, r);
 		});
@@ -321,7 +336,9 @@
 			'<button type="button" class="button button-primary" data-act="add-row" data-kind="title">' + esc(t.addTitleRow) + '</button> ' +
 			'<button type="button" class="button" data-act="add-row" data-kind="text">' + esc(t.addTextRow) + '</button> ' +
 			'<button type="button" class="button" data-act="add-row" data-kind="pictext">' + esc(t.addPicText) + '</button> ' +
-			'<button type="button" class="button" data-act="add-row" data-kind="video">' + esc(t.video) + '</button></div>';
+			'<button type="button" class="button" data-act="add-row" data-kind="video">' + esc(t.video) + '</button> ' +
+			'<button type="button" class="button" data-act="add-row" data-kind="lijn">' + esc(t.addLijn) + '</button>' +
+			(newsletter ? ' <button type="button" class="button" data-act="add-row" data-kind="section">' + esc(t.addSection) + '</button>' : '') + '</div>';
 		root.innerHTML = html;
 		initEditors();
 		write();
@@ -450,7 +467,14 @@
 				break;
 			case 'add-row':
 				var kind = el.getAttribute('data-kind');
-				rows.push(newRow(kind === 'pictext' ? ['image', 'text'] : [kind || 'text']));
+				if (kind === 'section') {
+					// A new section: a row with its title, marked as the start of a section.
+					var first = newRow(['title']);
+					first.sec = 1;
+					rows.push(first);
+				} else {
+					rows.push(newRow(kind === 'pictext' ? ['image', 'text'] : [kind || 'text']));
+				}
 				break;
 			case 'row-up':
 			case 'row-down':
@@ -553,10 +577,12 @@
 	});
 
 	// Saving and the preview: the latest texts of the editors.
-	$('#post').on('submit', function () {
+	$(field.form || '#post').on('submit', function () {
 		sync();
 		write();
 	});
 
+	// Built again when it becomes visible (the newsletter shows it after choosing "Build it here").
+	window.aimpBlogBuilderRender = render;
 	render();
 })(jQuery);

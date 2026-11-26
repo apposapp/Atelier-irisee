@@ -232,6 +232,16 @@ class AIMP_Blog_Builder {
 			return;
 		}
 		$post = get_post();
+		self::enqueue( $post ? self::rows( $post ) : array(), array( 'look' => self::look_fields() ) );
+	}
+
+	/**
+	 * The builder's script and styles, also for the newsletter (WooCommerce → Newsletter).
+	 *
+	 * @param array $rows  The rows being edited (for the previews of their pictures).
+	 * @param array $extra More settings for the script: mode ('newsletter'), root (element id), field (selector), look.
+	 */
+	public static function enqueue( $rows, $extra = array() ) {
 		wp_enqueue_media();
 		wp_enqueue_editor();
 		wp_enqueue_style( 'aimp-admin-blog', AIMP_PLUGIN_URL . 'assets/css/admin-blog.css', array(), AIMP_VERSION );
@@ -239,10 +249,22 @@ class AIMP_Blog_Builder {
 		wp_localize_script(
 			'aimp-admin-blog',
 			'aimpBlogBuilder',
-			array(
-				'media' => $post ? self::media( self::rows( $post ) ) : array(),
-				'look'  => self::look_fields(),
+			array_merge(
+				array(
+				'media' => self::media( $rows ),
 				'i18n'  => array(
+					'lijn'        => __( 'Line with a star', 'atelier-irisee-master-plugin' ),
+					'addLijn'     => __( '+ Line with a star', 'atelier-irisee-master-plugin' ),
+					'lijnWidth'   => __( 'Width', 'atelier-irisee-master-plugin' ),
+					'lijnFull'    => __( 'The full width', 'atelier-irisee-master-plugin' ),
+					'lijnNarrow'  => __( 'Narrower, in the middle', 'atelier-irisee-master-plugin' ),
+					'section'     => __( 'A new section starts here', 'atelier-irisee-master-plugin' ),
+					'addSection'  => __( '+ New section', 'atelier-irisee-master-plugin' ),
+					'sectionName' => __( 'Section name', 'atelier-irisee-master-plugin' ),
+					'sectionNameHint' => __( 'Empty: the first title of the section', 'atelier-irisee-master-plugin' ),
+					'sectionSum'  => __( 'Short text for the summary email (optional)', 'atelier-irisee-master-plugin' ),
+					'sectionSumHint' => __( 'Empty: the start of the section\'s text', 'atelier-irisee-master-plugin' ),
+					'emptyNl'     => __( 'No rows yet. Start with a title or a text; with "+ New section" you mark the parts the summary email shows separately.', 'atelier-irisee-master-plugin' ),
 					'row'         => __( 'Row', 'atelier-irisee-master-plugin' ),
 					'addRow'      => __( '+ Row', 'atelier-irisee-master-plugin' ),
 					'addTitleRow' => __( '+ Title', 'atelier-irisee-master-plugin' ),
@@ -317,6 +339,8 @@ class AIMP_Blog_Builder {
 					'videoShape'  => __( 'Corners', 'atelier-irisee-master-plugin' ),
 					'square2'     => __( 'Square', 'atelier-irisee-master-plugin' ),
 				),
+				),
+				$extra
 			)
 		);
 	}

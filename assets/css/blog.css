@@ -1729,3 +1729,39 @@ html.aimp-blog-zoomed {
 	left: calc(50cqw + sin(var(--lp-sa, 0deg)) * 50cqw);
 	transform: translate(-50%, -50%) rotate(calc(var(--lp-sa, 0deg) * 0.3 - 6deg));
 }
+
+/* "Lijn": a thin gold line with a glowing four-pointed star in the middle. */
+.aimp-lijn {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 56px;
+	margin: 0 auto;
+}
+
+.aimp-lijn.is-narrow {
+	width: 60%;
+}
+
+.aimp-lijn-line {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	width: 100%;
+	height: 4px;
+	transform: translateY(-50%);
+}
+
+.aimp-lijn-star {
+	position: relative;
+	width: 56px;
+	height: 56px;
+}
+
+@media (max-width: 700px) {
+	.aimp-lijn.is-narrow {
+		width: 80%;
+	}
+}

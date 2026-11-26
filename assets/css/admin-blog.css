@@ -396,3 +396,48 @@
 .aimp-bb-look-pick input.is-unset {
 	opacity: 0.4;
 }
+
+/* "Lijn" block and newsletter sections. */
+.aimp-bb-lijn {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 6px 0 10px;
+	color: #c9a24f;
+}
+
+.aimp-bb-lijn span {
+	flex: 1;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, #c9a24f);
+}
+
+.aimp-bb-lijn span:last-child {
+	background: linear-gradient(270deg, transparent, #c9a24f);
+}
+
+.aimp-bb-lijn.is-narrow {
+	margin-inline: 20%;
+}
+
+.aimp-bb-lijn i {
+	font-style: normal;
+	font-size: 20px;
+	text-shadow: 0 0 8px #f3db86;
+}
+
+.aimp-bb-row.is-section {
+	border-top: 4px double #b38f4f;
+}
+
+.aimp-bb-section {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	padding: 8px 12px;
+	background: #fbf6ec;
+}
+
+.aimp-bb-section .aimp-bb-field {
+	flex: 1 1 260px;
+}
