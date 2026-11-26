@@ -204,7 +204,7 @@ class AIMP_Newsletter {
 		return AIMP_I18n::with_language(
 			self::language( $nl ),
 			function () use ( $email ) {
-				return $email->style_inline( $email->get_content_html() );
+				return AIMP_Emails::tidy_header( $email->style_inline( $email->get_content_html() ) );
 			}
 		);
 	}

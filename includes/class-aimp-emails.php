@@ -45,8 +45,12 @@ class AIMP_Emails {
 			'pre_option_woocommerce_email_header_alignment',
 			function () {
 				return 'center';
-			}
+			},
+			PHP_INT_MAX
 		);
+		// Every email in the shop's style, however it is made (WooCommerce, its test emails, the plugin's own):
+		// no subject line at the top, the logo in the middle.
+		add_filter( 'wp_mail', array( __CLASS__, 'tidy_mail' ), 5 );
 		add_filter( 'option_woocommerce_email_header_image', array( __CLASS__, 'header_image' ) );
 		add_filter( 'default_option_woocommerce_email_header_image', array( __CLASS__, 'header_image' ) );
 		add_filter( 'woocommerce_email_footer_text', array( __CLASS__, 'footer_text' ), 20 );
@@ -99,6 +103,47 @@ class AIMP_Emails {
 	 * @param string $url  Link.
 	 * @return string
 	 */
+	/**
+	 * @param array $args wp_mail() arguments.
+	 * @return array
+	 */
+	public static function tidy_mail( $args ) {
+		if ( isset( $args['message'] ) && is_string( $args['message'] ) ) {
+			$args['message'] = self::tidy_header( $args['message'] );
+		}
+		return $args;
+	}
+
+	/**
+	 * The top of an email in WooCommerce's template: without the subject line (it is already the email's subject),
+	 * the logo in the middle. Other emails stay as they are.
+	 *
+	 * @param string $html Email HTML.
+	 * @return string
+	 */
+	public static function tidy_header( $html ) {
+		if ( false === strpos( $html, 'header_wrapper' ) && false === strpos( $html, 'template_header_image' ) ) {
+			return $html;
+		}
+		// The row with the subject (<h1>).
+		$html = (string) preg_replace( '#<tr>\s*<td[^>]*\bid=["\']header_wrapper["\'][^>]*>.*?</td>\s*</tr>#s', '', $html );
+		// Anything left of it (another template): the heading itself.
+		$html = (string) preg_replace( '#(<td[^>]*\bid=["\']header_wrapper["\'][^>]*>)\s*<h1[^>]*>.*?</h1>#s', '$1', $html );
+		// The logo in the middle.
+		return (string) preg_replace_callback(
+			// A table cell (newer WooCommerce) or a div (older).
+			'#<(td|div)[^>]*\bid=["\']template_header_image["\'][^>]*>.*?</\1>#s',
+			function ( $m ) {
+				$cell = preg_replace( '/\balign=(["\'])(left|right)\1/i', 'align="center"', $m[0] );
+				$cell = preg_replace( '/text-align:\s*(left|right|start)/i', 'text-align: center', $cell );
+				// The cell and its paragraph centred even without an align attribute.
+				$cell = preg_replace( '#^<(td|div)(?![^>]*\balign=)#', '<$1 align="center"', $cell );
+				return preg_replace( '#<p(?![^>]*\balign=)([^>]*)>#', '<p align="center"$1>', $cell, 1 );
+			},
+			$html
+		);
+	}
+
 	public static function button( $text, $url ) {
 		return sprintf(
 			'<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin:24px auto;border-collapse:separate"><tr><td align="center" bgcolor="#ffffff" style="border:3px double %1$s;border-radius:100px;mso-padding-alt:12px 28px"><a href="%2$s" target="_blank" style="display:inline-block;padding:12px 28px;min-height:20px;color:%3$s;font-weight:bold;font-size:16px;line-height:20px;text-decoration:none;border-radius:100px">%4$s</a></td></tr></table>',
@@ -253,7 +298,7 @@ class AIMP_Emails {
 		return $face . $css . "
 			#template_header { background-color: #ffffff !important; border-bottom: 5px double {$gold}; }
 			#template_header h1, #template_header h1 a, #header_wrapper h1 { color: {$gold} !important; text-shadow: none; font-family: {$title} !important; font-weight: 700 !important; letter-spacing: 0.04em; text-align: center !important; }
-			#header_wrapper { text-align: center !important; }
+			#header_wrapper { display: none !important; mso-hide: all; }
 			#template_header_image, #template_header_image p { text-align: center !important; }
 			#template_header_image img { margin-left: auto !important; margin-right: auto !important; }
 			#template_container { border: 5px double {$gold} !important; border-radius: 24px !important; box-shadow: none !important; overflow: hidden; }
