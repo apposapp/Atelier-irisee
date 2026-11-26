@@ -236,7 +236,7 @@ class AIMP_Blog_Builder {
 	}
 
 	/**
-	 * The builder's script and styles, also for the newsletter (WooCommerce → Newsletter).
+	 * The builder's script and styles, also for the newsletter (Atelier Irisee → Newsletter).
 	 *
 	 * @param array $rows  The rows being edited (for the previews of their pictures).
 	 * @param array $extra More settings for the script: mode ('newsletter'), root (element id), field (selector), look.

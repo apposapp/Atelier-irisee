@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.92.0
+Stable tag: 3.92.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,8 +29,13 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 
 == Changelog ==
 
+= 3.92.1 =
+* Newsletter: now under the Atelier Irisee menu (Atelier Irisee → Newsletter). New choice "Language of this newsletter": the buttons, links and the band at the end follow the language the newsletter is written in.
+* The summary button reads "Lees verder" / "Lire la suite" / "Continue reading".
+* "Let's connect": its texts follow the language of each email (the title stays "Let's connect").
+
 = 3.92.0 =
-* Newsletter: build it with rows and blocks, as a blog post (WooCommerce → Newsletter → "Build it here"). Mark sections with "+ New section"; the email shows the whole newsletter, or a summary per section (title, picture, short text and a "Read more" button to that section in the web version). Simple text and a website page stay available.
+* Newsletter: build it with rows and blocks, as a blog post (Atelier Irisee → Newsletter → "Build it here"). Mark sections with "+ New section"; the email shows the whole newsletter, or a summary per section (title, picture, short text and a "Continue reading" button to that section in the web version). Simple text and a website page stay available.
 * New block "Line with a star" (blog and newsletter): a thin gold line with a glowing star.
 * "Let's connect" at the end of every email to customers: social icons, the website, the email address and address, and optionally a hashtag line, a review link and a newsletter sign-up link (Design studio → Emails).
 * Sale: the label on product pages is gold with white text.

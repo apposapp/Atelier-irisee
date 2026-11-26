@@ -11,7 +11,7 @@
 	var cfg = window.aimpBlogBuilder || {};
 	var t = cfg.i18n || {};
 	var media = cfg.media || {};
-	// The same builder writes a newsletter (WooCommerce → Newsletter): its own field, sections, no "look" panel.
+	// The same builder writes a newsletter (Atelier Irisee → Newsletter): its own field, sections, no "look" panel.
 	var newsletter = cfg.mode === 'newsletter';
 	var root = document.getElementById(cfg.root || 'aimp-blog-builder');
 	var field = document.querySelector(cfg.field || '#content');

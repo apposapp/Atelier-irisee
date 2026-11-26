@@ -168,7 +168,7 @@ class AIMP_Newsletter_Render {
 			$text .= '<p style="margin:0 0 4px;font-size:15px;line-height:1.6;text-align:' . $align . ';color:' . self::brown() . '">' . esc_html( $d['text'] ) . '</p>';
 		}
 		if ( '' !== $view_url && class_exists( 'AIMP_Emails' ) ) {
-			$button = AIMP_Emails::button( __( 'Read more', 'atelier-irisee-master-plugin' ), $view_url . '#s-' . $n );
+			$button = AIMP_Emails::button( __( 'Continue reading', 'atelier-irisee-master-plugin' ), $view_url . '#s-' . $n );
 			$text  .= '' !== $src ? str_replace( 'align="center" style="margin:24px auto;', 'align="left" style="margin:18px 0 4px;', $button ) : $button;
 		}
 		if ( '' === $src ) {
@@ -378,7 +378,7 @@ class AIMP_Newsletter_Render {
 				$d    = self::digest( $section );
 				$out .= "\n" . ( '' !== $d['title'] ? strtoupper( $d['title'] ) . "\n" : '' ) . ( '' !== $d['text'] ? $d['text'] . "\n" : '' );
 				if ( '' !== $view_url ) {
-					$out .= __( 'Read more', 'atelier-irisee-master-plugin' ) . ': ' . $view_url . '#s-' . ( $i + 1 ) . "\n";
+					$out .= __( 'Continue reading', 'atelier-irisee-master-plugin' ) . ': ' . $view_url . '#s-' . ( $i + 1 ) . "\n";
 				}
 			}
 			return $out;

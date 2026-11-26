@@ -1124,7 +1124,6 @@ return array(
 	'The test email has been sent to you.' => 'L\'e-mail de test vous a été envoyé.',
 	'There are no confirmed subscribers yet.' => 'Il n\'y a pas encore d\'inscrits confirmés.',
 	'Use as a copy' => 'Utiliser comme copie',
-	'Used for the newsletters you write and send under WooCommerce → Newsletter. The subject and text come from the newsletter itself.' => 'Utilisé pour les newsletters que vous rédigez et envoyez sous WooCommerce → Newsletter. L\'objet et le texte viennent de la newsletter elle-même.',
 	'Write a newsletter' => 'Rédiger une newsletter',
 	'You get this email because you subscribed to our newsletter.' => 'Vous recevez cet e-mail parce que vous êtes inscrit à notre newsletter.',
 
@@ -3711,4 +3710,10 @@ return array(
 	'The whole newsletter' => 'Toute la newsletter',
 	'A summary per section (title, picture, short text and a "Read more" button to the newsletter on the website)' => 'Un résumé par section (titre, photo, texte court et un bouton « Lire la suite » vers la newsletter sur le site)',
 	'Mark the start of each section with "+ New section" or the tick "A new section starts here" on a row. What comes before the first section is shown in full in both.' => 'Marquez le début de chaque section avec « + Nouvelle section » ou la case « Une nouvelle section commence ici » sur une rangée. Ce qui précède la première section est montré en entier dans les deux.',
+	// 3.92.1: newsletter language, Lees verder, menu
+	'Used for the newsletters you write and send under Atelier Irisee → Newsletter. The subject and text come from the newsletter itself.' => 'Utilisé pour les newsletters que vous rédigez et envoyez sous Atelier Irisee → Newsletter. L\'objet et le texte viennent de la newsletter elle-même.',
+	'Continue reading' => 'Lire la suite',
+	'Language of this newsletter' => 'Langue de cette newsletter',
+	'Each subscriber\'s own language' => 'La langue de chaque abonné',
+	'The buttons, links and "Let\'s connect" at the end follow the language you write in.' => 'Les boutons, les liens et « Let\'s connect » en bas suivent la langue dans laquelle vous écrivez.',
 );

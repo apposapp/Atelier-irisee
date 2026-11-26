@@ -1,6 +1,6 @@
 <?php
 /**
- * "Newsletter": the WooCommerce email used to send a newsletter written under WooCommerce → Newsletter.
+ * "Newsletter": the WooCommerce email used to send a newsletter written under Atelier Irisee → Newsletter.
  * WooCommerce's header, footer and styles (the Atelier Irisee look), the content, an optional button and
  * attachment, and a personal unsubscribe link.
  *
@@ -22,7 +22,7 @@ if ( ! class_exists( 'AIMP_Email_Newsletter' ) && class_exists( 'WC_Email' ) ) {
 			$this->id             = 'aimp_newsletter';
 			$this->customer_email = true;
 			$this->title          = __( 'Newsletter', 'atelier-irisee-master-plugin' );
-			$this->description    = __( 'Used for the newsletters you write and send under WooCommerce → Newsletter. The subject and text come from the newsletter itself.', 'atelier-irisee-master-plugin' );
+			$this->description    = __( 'Used for the newsletters you write and send under Atelier Irisee → Newsletter. The subject and text come from the newsletter itself.', 'atelier-irisee-master-plugin' );
 			$this->template_base  = AIMP_PLUGIN_DIR . 'templates/';
 			$this->template_html  = 'emails/newsletter.php';
 			$this->template_plain = 'emails/plain/newsletter.php';

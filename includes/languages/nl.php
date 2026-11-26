@@ -1124,7 +1124,6 @@ return array(
 	'The test email has been sent to you.' => 'De testmail is naar je verstuurd.',
 	'There are no confirmed subscribers yet.' => 'Er zijn nog geen bevestigde inschrijvers.',
 	'Use as a copy' => 'Gebruiken als kopie',
-	'Used for the newsletters you write and send under WooCommerce → Newsletter. The subject and text come from the newsletter itself.' => 'Gebruikt voor de nieuwsbrieven die je schrijft en verstuurt onder WooCommerce → Nieuwsbrief. Het onderwerp en de tekst komen uit de nieuwsbrief zelf.',
 	'Write a newsletter' => 'Schrijf een nieuwsbrief',
 	'You get this email because you subscribed to our newsletter.' => 'Je krijgt deze e-mail omdat je je hebt ingeschreven op onze nieuwsbrief.',
 
@@ -3711,4 +3710,10 @@ return array(
 	'The whole newsletter' => 'De hele nieuwsbrief',
 	'A summary per section (title, picture, short text and a "Read more" button to the newsletter on the website)' => 'Een samenvatting per sectie (titel, foto, korte tekst en een knop "Lees verder" naar de nieuwsbrief op de website)',
 	'Mark the start of each section with "+ New section" or the tick "A new section starts here" on a row. What comes before the first section is shown in full in both.' => 'Markeer het begin van elke sectie met "+ Nieuwe sectie" of het vinkje "Hier begint een nieuwe sectie" op een rij. Wat voor de eerste sectie staat, wordt in beide volledig getoond.',
+	// 3.92.1: newsletter language, Lees verder, menu
+	'Used for the newsletters you write and send under Atelier Irisee → Newsletter. The subject and text come from the newsletter itself.' => 'Gebruikt voor de nieuwsbrieven die je schrijft en verstuurt onder Atelier Irisee → Nieuwsbrief. Het onderwerp en de tekst komen uit de nieuwsbrief zelf.',
+	'Continue reading' => 'Lees verder',
+	'Language of this newsletter' => 'Taal van deze nieuwsbrief',
+	'Each subscriber\'s own language' => 'De eigen taal van elke abonnee',
+	'The buttons, links and "Let\'s connect" at the end follow the language you write in.' => 'De knoppen, links en "Let\'s connect" onderaan volgen de taal waarin je schrijft.',
 );

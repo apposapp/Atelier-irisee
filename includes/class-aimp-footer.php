@@ -5,7 +5,7 @@
  *
  * With "Use the Atelier Irisee footer" on, it replaces the theme footer (Divi's "Designed by Elegant
  * Themes | Powered by WordPress" bar included). Newsletter addresses are stored on the site, with a list
- * and a CSV download under WooCommerce → Newsletter.
+ * and a CSV download under Atelier Irisee → Newsletter.
  *
  * @package AtelierIriseeMasterPlugin
  */
@@ -988,8 +988,9 @@ class AIMP_Footer {
 	}
 
 	public static function admin_menu() {
+		// Under the Atelier Irisee menu.
 		add_submenu_page(
-			'woocommerce',
+			AIMP_Settings::PAGE,
 			__( 'Newsletter', 'atelier-irisee-master-plugin' ),
 			__( 'Newsletter', 'atelier-irisee-master-plugin' ),
 			'manage_woocommerce',

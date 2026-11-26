@@ -1,5 +1,5 @@
 /**
- * WooCommerce → Newsletter: choose the attachment from the media library, and ask before sending to
+ * Atelier Irisee → Newsletter: choose the attachment from the media library, and ask before sending to
  * everyone.
  */
 jQuery(function ($) {

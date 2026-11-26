@@ -55,7 +55,30 @@ class AIMP_Email_Connect {
 				$signup = false;
 			}
 		}
-		echo self::html( $signup ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in html().
+		$lang = self::mail_language( $email );
+		$html = ( '' !== $lang && class_exists( 'AIMP_I18n' ) ) ? AIMP_I18n::with_language(
+			$lang,
+			function () use ( $signup ) {
+				return self::html( $signup );
+			}
+		) : self::html( $signup );
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in html().
+	}
+
+	/**
+	 * The language of the email itself, so the band speaks it too. The plugin's own emails (newsletter, gift card,
+	 * replacement, reminder…) already run in their language: ''. WooCommerce's own emails are written in the
+	 * language WordPress uses for them.
+	 *
+	 * @param WC_Email|null $email Email.
+	 * @return string Language code, or '' to keep the current one.
+	 */
+	private static function mail_language( $email ) {
+		if ( ! class_exists( 'AIMP_I18n' ) || ( $email instanceof WC_Email && 0 === strpos( (string) $email->id, 'aimp_' ) ) ) {
+			return '';
+		}
+		$code = strtolower( substr( (string) get_locale(), 0, 2 ) );
+		return AIMP_I18n::is_valid( $code ) ? $code : '';
 	}
 
 	/**

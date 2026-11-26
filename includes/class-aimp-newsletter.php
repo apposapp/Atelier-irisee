@@ -1,6 +1,6 @@
 <?php
 /**
- * Newsletters: written and sent from WooCommerce → Newsletter.
+ * Newsletters: written and sent from Atelier Irisee → Newsletter.
  *
  * A newsletter (private post type aimp_newsletter) has a subject, content (the WordPress editor, with
  * pictures), an optional button and an optional attachment. Preview, a test to yourself, then "Send to
@@ -58,7 +58,8 @@ class AIMP_Newsletter {
 	}
 
 	public static function enqueue( $hook_suffix ) {
-		if ( 'woocommerce_page_' . AIMP_Footer::ADMIN_PAGE !== $hook_suffix ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- which admin page this is.
+		if ( ! isset( $_GET['page'] ) || AIMP_Footer::ADMIN_PAGE !== $_GET['page'] ) {
 			return;
 		}
 		wp_enqueue_media();
@@ -113,6 +114,7 @@ class AIMP_Newsletter {
 				'source'        => 'builder',
 				'rows'          => array(),
 				'layout'        => 'full',
+				'lang'          => class_exists( 'AIMP_I18n' ) ? AIMP_I18n::default_language() : 'nl',
 				'page'          => 0,
 				'preheader'     => '',
 				'status'        => 'draft',
@@ -134,6 +136,8 @@ class AIMP_Newsletter {
 			'source'        => self::source( $meta( '_aimp_source' ) ),
 			'rows'          => self::rows_from( $meta( '_aimp_rows' ) ),
 			'layout'        => 'summary' === $meta( '_aimp_layout' ) ? 'summary' : 'full',
+			// '' (older newsletters): each subscriber's own language.
+			'lang'          => (string) $meta( '_aimp_nl_lang' ),
 			'page'          => (int) $meta( '_aimp_page' ),
 			'preheader'     => (string) $meta( '_aimp_preheader' ),
 			'status'        => $meta( '_aimp_status' ) ? (string) $meta( '_aimp_status' ) : 'draft',
@@ -160,6 +164,49 @@ class AIMP_Newsletter {
 	private static function rows_from( $json ) {
 		$rows = is_string( $json ) && '' !== $json ? json_decode( $json, true ) : array();
 		return class_exists( 'AIMP_Blog' ) && is_array( $rows ) ? AIMP_Blog::clean_rows( $rows ) : array();
+	}
+
+	/**
+	 * The language the newsletter is written in (the composer's choice).
+	 *
+	 * @return string
+	 */
+	private static function posted_lang() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by the callers.
+		$lang = isset( $_POST['aimp_nl_lang'] ) ? sanitize_key( wp_unslash( $_POST['aimp_nl_lang'] ) ) : '';
+		return class_exists( 'AIMP_I18n' ) && AIMP_I18n::is_valid( $lang ) ? $lang : '';
+	}
+
+	/**
+	 * The language of a newsletter's email: the language it is written in, so its buttons, links and the band at the
+	 * end match its text. Older newsletters without one: the subscriber's own language.
+	 *
+	 * @param array $nl            Newsletter.
+	 * @param int   $subscriber_id Subscriber (0 = none).
+	 * @return string
+	 */
+	private static function language( $nl, $subscriber_id = 0 ) {
+		$lang = isset( $nl['lang'] ) ? (string) $nl['lang'] : '';
+		if ( ! AIMP_I18n::is_valid( $lang ) && $subscriber_id ) {
+			$lang = (string) get_post_meta( (int) $subscriber_id, '_aimp_lang', true );
+		}
+		return AIMP_I18n::is_valid( $lang ) ? $lang : AIMP_I18n::default_language();
+	}
+
+	/**
+	 * The newsletter's email as HTML, in its language (preview and web version).
+	 *
+	 * @param WC_Email $email Email.
+	 * @param array    $nl    Newsletter.
+	 * @return string
+	 */
+	private static function email_html( $email, $nl ) {
+		return AIMP_I18n::with_language(
+			self::language( $nl ),
+			function () use ( $email ) {
+				return $email->style_inline( $email->get_content_html() );
+			}
+		);
 	}
 
 	/**
@@ -260,7 +307,7 @@ class AIMP_Newsletter {
 		if ( ! headers_sent() ) {
 			header( 'X-Robots-Tag: noindex, nofollow' );
 		}
-		echo $email->style_inline( $email->get_content_html() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- email HTML built from escaped parts.
+		echo self::email_html( $email, $nl ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- email HTML built from escaped parts.
 		exit;
 	}
 
@@ -287,7 +334,14 @@ class AIMP_Newsletter {
 		if ( 'test' === $do ) {
 			$email = self::mailer_email();
 			$user  = wp_get_current_user();
-			$msg   = ( $email && $email->trigger( $user->user_email, self::email_parts( self::get( $id ) ) ) ) ? 'nl_test_sent' : 'nl_test_failed';
+			$saved = self::get( $id );
+			$ok    = $email && AIMP_I18n::with_language(
+				self::language( $saved ),
+				function () use ( $email, $user, $saved ) {
+					return $email->trigger( $user->user_email, self::email_parts( $saved ) );
+				}
+			);
+			$msg   = $ok ? 'nl_test_sent' : 'nl_test_failed';
 		} elseif ( 'send' === $do ) {
 			$msg = self::start_sending( $id ) ? 'nl_sending' : 'nl_nobody';
 		}
@@ -313,6 +367,7 @@ class AIMP_Newsletter {
 			'_aimp_preheader'   => isset( $_POST['aimp_nl_preheader'] ) ? sanitize_text_field( wp_unslash( $_POST['aimp_nl_preheader'] ) ) : '',
 			'_aimp_rows'        => wp_slash( (string) wp_json_encode( self::posted_rows() ) ),
 			'_aimp_layout'      => ( isset( $_POST['aimp_nl_layout'] ) && 'summary' === $_POST['aimp_nl_layout'] ) ? 'summary' : 'full',
+			'_aimp_nl_lang'     => self::posted_lang(),
 		);
 		// phpcs:enable
 		// A newsletter that was sent stays as it was; saving it again makes a new copy.
@@ -385,8 +440,7 @@ class AIMP_Newsletter {
 			if ( ! $email || ! is_email( $address ) || 'confirmed' !== AIMP_Footer::status( (int) $subscriber_id ) ) {
 				continue; // Unsubscribed in the meantime.
 			}
-			$lang = (string) get_post_meta( (int) $subscriber_id, '_aimp_lang', true );
-			$lang = AIMP_I18n::is_valid( $lang ) ? $lang : AIMP_I18n::default_language();
+			$lang = self::language( $nl, (int) $subscriber_id );
 			$ok   = AIMP_I18n::with_language(
 				$lang,
 				function () use ( $email, $address, $nl, $subscriber_id ) {
@@ -426,6 +480,7 @@ class AIMP_Newsletter {
 			'preheader'     => isset( $_POST['aimp_nl_preheader'] ) ? sanitize_text_field( wp_unslash( $_POST['aimp_nl_preheader'] ) ) : '',
 			'rows'          => self::posted_rows(),
 			'layout'        => ( isset( $_POST['aimp_nl_layout'] ) && 'summary' === $_POST['aimp_nl_layout'] ) ? 'summary' : 'full',
+			'lang'          => self::posted_lang(),
 			// The saved newsletter (for the "Read more" links to its web version).
 			'id'            => isset( $_POST['aimp_nl_id'] ) ? absint( $_POST['aimp_nl_id'] ) : 0,
 		);
@@ -435,12 +490,12 @@ class AIMP_Newsletter {
 			wp_die( esc_html__( 'The newsletter email is not available.', 'atelier-irisee-master-plugin' ) );
 		}
 		$email->newsletter = self::email_parts( $nl );
-		echo $email->style_inline( $email->get_content_html() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- email HTML built from escaped parts.
+		echo self::email_html( $email, $nl ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- email HTML built from escaped parts.
 		exit;
 	}
 
 	/* ------------------------------------------------------------------
-	 * Composer (top of WooCommerce → Newsletter)
+	 * Composer (top of Atelier Irisee → Newsletter)
 	 * ------------------------------------------------------------------ */
 
 	private static function notice() {
@@ -485,6 +540,18 @@ class AIMP_Newsletter {
 				<p>
 					<label for="aimp_nl_preheader"><strong><?php esc_html_e( 'Preview text (optional)', 'atelier-irisee-master-plugin' ); ?></strong></label><br>
 					<input type="text" id="aimp_nl_preheader" name="aimp_nl_preheader" class="large-text" value="<?php echo esc_attr( $nl['preheader'] ); ?>" placeholder="<?php esc_attr_e( 'The short line inboxes show after the subject', 'atelier-irisee-master-plugin' ); ?>">
+				</p>
+				<p>
+					<label for="aimp_nl_lang"><strong><?php esc_html_e( 'Language of this newsletter', 'atelier-irisee-master-plugin' ); ?></strong></label><br>
+					<select id="aimp_nl_lang" name="aimp_nl_lang">
+						<?php if ( '' === $nl['lang'] ) : ?>
+							<option value="" selected><?php esc_html_e( 'Each subscriber\'s own language', 'atelier-irisee-master-plugin' ); ?></option>
+						<?php endif; ?>
+						<?php foreach ( AIMP_I18n::languages() as $code => $language ) : ?>
+							<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $nl['lang'], $code ); ?>><?php echo esc_html( $language['name'] ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<span class="description"><?php esc_html_e( 'The buttons, links and "Let\'s connect" at the end follow the language you write in.', 'atelier-irisee-master-plugin' ); ?></span>
 				</p>
 				<fieldset class="aimp-nl-source">
 					<legend><strong><?php esc_html_e( 'Content', 'atelier-irisee-master-plugin' ); ?></strong></legend>
