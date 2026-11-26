@@ -51,9 +51,20 @@ if ( ! class_exists( 'AIMP_Email_Newsletter' ) && class_exists( 'WC_Email' ) ) {
 			return ( '' !== $file && file_exists( $file ) ) ? array( $file ) : array();
 		}
 
+		/**
+		 * Always HTML with a plain-text version beside it (multipart): mail programs and spam filters (Outlook,
+		 * Hotmail) trust a newsletter more with both.
+		 *
+		 * @return string
+		 */
+		public function get_email_type() {
+			return 'multipart';
+		}
+
 		public function get_headers() {
 			$headers = parent::get_headers();
-			if ( ! empty( $this->newsletter['unsubscribe'] ) ) {
+			// Only a real subscriber gets the unsubscribe headers (a test has no unsubscribe address of its own).
+			if ( ! empty( $this->newsletter['unsubscribe'] ) && empty( $this->newsletter['test'] ) ) {
 				$headers .= 'List-Unsubscribe: <' . esc_url_raw( $this->newsletter['unsubscribe'] ) . ">\r\n";
 				// One-click unsubscribe (required by Gmail and Yahoo for bulk mail).
 				$headers .= "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n";

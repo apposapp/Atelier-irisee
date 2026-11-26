@@ -238,6 +238,8 @@ class AIMP_Newsletter {
 			'button_url'  => $nl['button_url'],
 			'attachment'  => $nl['attachment_id'] ? (string) get_attached_file( $nl['attachment_id'] ) : '',
 			'unsubscribe' => $subscriber_id ? AIMP_Footer::unsubscribe_url( $subscriber_id ) : home_url( '/' ),
+			// A test or preview (no subscriber): no unsubscribe headers.
+			'test'        => ! $subscriber_id,
 			'view_url'    => self::view_url( $nl ),
 			'source'      => isset( $nl['source'] ) ? $nl['source'] : 'editor',
 			'rows'        => isset( $nl['rows'] ) ? $nl['rows'] : array(),

@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.94.2
+Stable tag: 3.94.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.94.3 =
+* Newsletter deliverability: always sent as HTML with a plain-text version (multipart), which spam filters such as Outlook and Hotmail trust more; test emails no longer carry unsubscribe headers that point to the home page.
 
 = 3.94.2 =
 * Emails: no subject line at the top any more (it is already the email's subject), and the logo in the middle in every email in the shop's style, also WooCommerce's own test emails.
