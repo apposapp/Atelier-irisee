@@ -3731,4 +3731,11 @@ return array(
 	// 3.94.1: test address
 	'The test email has been sent to %s (the email address of your WordPress account).' => 'De testmail is verstuurd naar %s (het e-mailadres van je WordPress-account).',
 	'Send a test to me (%s)' => 'Stuur een test naar mij (%s)',
+	// 3.95.0: resend to one subscriber
+	'The newsletter has been sent again to %s.' => 'De nieuwsbrief is opnieuw verstuurd naar %s.',
+	'The newsletter could not be sent to this subscriber. Check that they are still subscribed and that "Newsletter" is on under WooCommerce → Settings → Emails.' => 'De nieuwsbrief kon niet naar deze abonnee verstuurd worden. Controleer of ze nog ingeschreven is en of "Nieuwsbrief" aan staat onder WooCommerce → Instellingen → E-mails.',
+	'Send to one subscriber' => 'Naar één abonnee sturen',
+	'Subscriber' => 'Abonnee',
+	'Send' => 'Versturen',
+	'Only this subscriber gets the newsletter again, in their language and with their own unsubscribe link.' => 'Alleen deze abonnee krijgt de nieuwsbrief opnieuw, in de eigen taal en met de eigen uitschrijflink.',
 );

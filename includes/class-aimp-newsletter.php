@@ -26,6 +26,7 @@ class AIMP_Newsletter {
 		add_action( 'aimp_newsletter_admin_top', array( __CLASS__, 'render_composer' ) );
 		add_action( 'admin_post_aimp_newsletter_save', array( __CLASS__, 'handle_save' ) );
 		add_action( 'admin_post_aimp_newsletter_preview', array( __CLASS__, 'handle_preview' ) );
+		add_action( 'admin_post_aimp_newsletter_resend', array( __CLASS__, 'handle_resend' ) );
 		add_action( self::HOOK, array( __CLASS__, 'send_batch' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'web_version' ) );
@@ -503,6 +504,8 @@ class AIMP_Newsletter {
 	private static function notice() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- message after a redirect.
 		$code     = isset( $_GET['aimp_msg'] ) ? sanitize_key( wp_unslash( $_GET['aimp_msg'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only names whom a newsletter went to.
+		$to       = isset( $_GET['aimp_to'] ) ? (string) get_post_field( 'post_title', absint( $_GET['aimp_to'] ), 'raw' ) : '';
 		$messages = array(
 			'nl_saved'       => array( 'success', __( 'Newsletter saved.', 'atelier-irisee-master-plugin' ) ),
 			/* translators: %s: email address of the person logged in */
@@ -510,6 +513,9 @@ class AIMP_Newsletter {
 			'nl_test_failed' => array( 'error', __( 'The test email could not be sent. Check that "Newsletter" is on under WooCommerce → Settings → Emails.', 'atelier-irisee-master-plugin' ) ),
 			'nl_sending'     => array( 'success', __( 'The newsletter is being sent in the background, a few emails per minute. You can follow it in the list below.', 'atelier-irisee-master-plugin' ) ),
 			'nl_nobody'      => array( 'error', __( 'There are no confirmed subscribers yet.', 'atelier-irisee-master-plugin' ) ),
+			/* translators: %s: email address of the subscriber */
+			'nl_resent'        => array( 'success', sprintf( __( 'The newsletter has been sent again to %s.', 'atelier-irisee-master-plugin' ), $to ) ),
+			'nl_resend_failed' => array( 'error', __( 'The newsletter could not be sent to this subscriber. Check that they are still subscribed and that "Newsletter" is on under WooCommerce → Settings → Emails.', 'atelier-irisee-master-plugin' ) ),
 		);
 		if ( isset( $messages[ $code ] ) ) {
 			printf( '<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>', esc_attr( $messages[ $code ][0] ), esc_html( $messages[ $code ][1] ) );
@@ -634,6 +640,67 @@ class AIMP_Newsletter {
 		<?php
 	}
 
+	/**
+	 * "Send to one subscriber" under a sent newsletter: a confirmed subscriber and a button.
+	 *
+	 * @param int   $id     Newsletter.
+	 * @param array $people Subscriber id => address.
+	 * @return string
+	 */
+	private static function resend_form( $id, $people ) {
+		if ( ! $people ) {
+			return '';
+		}
+		$options = '';
+		foreach ( $people as $sid => $address ) {
+			$options .= '<option value="' . (int) $sid . '">' . esc_html( $address ) . '</option>';
+		}
+		// No field called "action": admin-post.php would read it instead of the address's.
+		return '<details class="aimp-nl-resend" style="margin-top:6px"><summary>' . esc_html__( 'Send to one subscriber', 'atelier-irisee-master-plugin' ) . '</summary>' .
+			'<form method="post" action="' . esc_url( admin_url( 'admin-post.php?action=aimp_newsletter_resend' ) ) . '" style="margin-top:6px">' .
+			wp_nonce_field( 'aimp_newsletter_resend_' . (int) $id, '_wpnonce', true, false ) .
+			'<input type="hidden" name="aimp_nl_id" value="' . (int) $id . '">' .
+			'<select name="aimp_nl_subscriber" aria-label="' . esc_attr__( 'Subscriber', 'atelier-irisee-master-plugin' ) . '">' . $options . '</select> ' .
+			'<button type="submit" class="button">' . esc_html__( 'Send', 'atelier-irisee-master-plugin' ) . '</button>' .
+			'<p class="description">' . esc_html__( 'Only this subscriber gets the newsletter again, in their language and with their own unsubscribe link.', 'atelier-irisee-master-plugin' ) . '</p>' .
+			'</form></details>';
+	}
+
+	/**
+	 * Send a sent newsletter again to one confirmed subscriber.
+	 */
+	public static function handle_resend() {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked right below.
+		$id  = isset( $_POST['aimp_nl_id'] ) ? absint( $_POST['aimp_nl_id'] ) : 0;
+		$sid = isset( $_POST['aimp_nl_subscriber'] ) ? absint( $_POST['aimp_nl_subscriber'] ) : 0;
+		// phpcs:enable
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! check_admin_referer( 'aimp_newsletter_resend_' . $id ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'atelier-irisee-master-plugin' ) );
+		}
+		$nl      = self::get( $id );
+		$address = (string) get_post_field( 'post_title', $sid, 'raw' );
+		$ok      = false;
+		if ( $nl['id'] && 'draft' !== $nl['status'] && in_array( $sid, AIMP_Footer::confirmed_subscriber_ids(), true ) && is_email( $address ) ) {
+			$email = self::mailer_email();
+			$ok    = $email && AIMP_I18n::with_language(
+				self::language( $nl, $sid ),
+				function () use ( $email, $address, $nl, $sid ) {
+					return $email->trigger( $address, self::email_parts( $nl, $sid ) );
+				}
+			);
+		}
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'aimp_msg' => $ok ? 'nl_resent' : 'nl_resend_failed',
+					'aimp_to'  => $sid,
+				),
+				admin_url( 'admin.php?page=' . AIMP_Footer::ADMIN_PAGE )
+			)
+		);
+		exit;
+	}
+
 	private static function render_list() {
 		$items = get_posts(
 			array(
@@ -649,6 +716,12 @@ class AIMP_Newsletter {
 			return;
 		}
 		$base = admin_url( 'admin.php?page=' . AIMP_Footer::ADMIN_PAGE );
+		// The confirmed subscribers, for "Send to one subscriber" (A to Z).
+		$people = array();
+		foreach ( AIMP_Footer::confirmed_subscriber_ids() as $sid ) {
+			$people[ $sid ] = (string) get_post_field( 'post_title', $sid, 'raw' );
+		}
+		natcasesort( $people );
 		echo '<h3>' . esc_html__( 'Newsletters', 'atelier-irisee-master-plugin' ) . '</h3><table class="widefat striped" style="max-width:900px"><thead><tr><th>' . esc_html__( 'Subject', 'atelier-irisee-master-plugin' ) . '</th><th>' . esc_html__( 'Status', 'atelier-irisee-master-plugin' ) . '</th><th></th></tr></thead><tbody>';
 		foreach ( $items as $id ) {
 			$nl = self::get( $id );
@@ -662,11 +735,12 @@ class AIMP_Newsletter {
 				$status = __( 'Draft', 'atelier-irisee-master-plugin' );
 			}
 			printf(
-				'<tr><td>%1$s</td><td>%2$s</td><td><a href="%3$s">%4$s</a></td></tr>',
+				'<tr><td>%1$s</td><td>%2$s</td><td><a href="%3$s">%4$s</a>%5$s</td></tr>',
 				esc_html( $nl['subject'] ),
 				esc_html( $status ),
 				esc_url( add_query_arg( 'draft' === $nl['status'] ? 'aimp_nl' : 'aimp_nl_copy', $id, $base ) ),
-				esc_html( 'draft' === $nl['status'] ? __( 'Open', 'atelier-irisee-master-plugin' ) : __( 'Use as a copy', 'atelier-irisee-master-plugin' ) )
+				esc_html( 'draft' === $nl['status'] ? __( 'Open', 'atelier-irisee-master-plugin' ) : __( 'Use as a copy', 'atelier-irisee-master-plugin' ) ),
+				'draft' !== $nl['status'] ? self::resend_form( $id, $people ) : '' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in resend_form().
 			);
 		}
 		echo '</tbody></table>';

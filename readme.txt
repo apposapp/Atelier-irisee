@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.94.4
+Stable tag: 3.95.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.95.0 =
+* Newsletter: "Send to one subscriber" under every sent newsletter (Atelier Irisee → Newsletter → the list): choose a confirmed subscriber and only they get the newsletter again, in their language and with their own unsubscribe link.
 
 = 3.94.4 =
 * Emails, deliverability: the hidden preview line now sits inside the email's body (it came before the HTML document, which spam filters count as malformed), without the rows of invisible spacer characters that Outlook and Hotmail count against an email; the charset line moves into the head.
