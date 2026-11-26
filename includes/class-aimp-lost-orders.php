@@ -33,6 +33,9 @@ class AIMP_Lost_Orders {
 		add_filter( 'woocommerce_reports_order_statuses', array( __CLASS__, 'paid_statuses' ) );
 		add_action( 'add_meta_boxes', array( __CLASS__, 'meta_box' ), 31 );
 		add_action( 'admin_post_aimp_replacement', array( __CLASS__, 'create' ) );
+		// The button is inside the order form, whose own "action" field (edit_order) wins over the address's: the
+		// request is picked up here, before admin-post.php looks at "action".
+		add_action( 'admin_init', array( __CLASS__, 'maybe_create' ) );
 		add_action( 'admin_head', array( __CLASS__, 'list_style' ) );
 		add_filter( 'woocommerce_email_classes', array( __CLASS__, 'email_class' ) );
 		// The replacement order: its own email instead of WooCommerce's order emails to the customer.
@@ -212,6 +215,15 @@ class AIMP_Lost_Orders {
 	/* ------------------------------------------------------------------
 	 * The replacement order
 	 * ------------------------------------------------------------------ */
+
+	public static function maybe_create() {
+		global $pagenow;
+		// phpcs:disable WordPress.Security.NonceVerification -- create() checks the nonce.
+		if ( 'admin-post.php' === $pagenow && isset( $_GET['action'], $_POST['aimp_repl_order'] ) && 'aimp_replacement' === $_GET['action'] ) {
+			self::create();
+		}
+		// phpcs:enable
+	}
 
 	public static function create() {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- checked right here.
