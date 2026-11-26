@@ -1107,7 +1107,6 @@ return array(
 	'Price and stock' => 'Prix et stock',
 	'Recommendation' => 'Recommandation',
 	'Save draft' => 'Enregistrer le brouillon',
-	'Send a test to me' => 'M\'envoyer un test',
 	'Send this newsletter to %d confirmed subscribers now?' => 'Envoyer cette newsletter maintenant à %d inscrits confirmés ?',
 	'Send to all confirmed subscribers (%d)' => 'Envoyer à tous les inscrits confirmés (%d)',
 	'Sending: %1$d of %2$d' => 'Envoi en cours : %1$d sur %2$d',
@@ -1121,7 +1120,6 @@ return array(
 	'The newsletter is being sent in the background, a few emails per minute. You can follow it in the list below.' => 'La newsletter est envoyée en arrière-plan, quelques e-mails par minute. Vous pouvez suivre l\'envoi dans la liste ci-dessous.',
 	'The price is per 10 cm.' => 'Le prix est par 10 cm.',
 	'The test email could not be sent. Check that "Newsletter" is on under WooCommerce → Settings → Emails.' => 'L\'e-mail de test n\'a pas pu être envoyé. Vérifiez que « Newsletter » est activé sous WooCommerce → Réglages → E-mails.',
-	'The test email has been sent to you.' => 'L\'e-mail de test vous a été envoyé.',
 	'There are no confirmed subscribers yet.' => 'Il n\'y a pas encore d\'inscrits confirmés.',
 	'Use as a copy' => 'Utiliser comme copie',
 	'Write a newsletter' => 'Rédiger une newsletter',
@@ -3730,4 +3728,7 @@ return array(
 	'Fills the shape (edges cut off)' => 'Remplit la forme (bords coupés)',
 	'The shape follows the photo (nothing cut off)' => 'La forme suit la photo (rien de coupé)',
 	'The whole photo inside the shape' => 'Toute la photo dans la forme',
+	// 3.94.1: test address
+	'The test email has been sent to %s (the email address of your WordPress account).' => 'L\'e-mail de test a été envoyé à %s (l\'adresse e-mail de votre compte WordPress).',
+	'Send a test to me (%s)' => 'M\'envoyer un test (%s)',
 );

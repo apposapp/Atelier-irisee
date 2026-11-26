@@ -99,7 +99,7 @@ class AIMP_Email_Connect {
 		$brown = class_exists( 'AIMP_Emails' ) ? AIMP_Emails::brown() : '#613907';
 		$bg    = class_exists( 'AIMP_Emails' ) ? AIMP_Emails::background() : '#faf6ef';
 		$img   = AIMP_PLUGIN_URL . 'assets/img/email/';
-		$font  = "'Trajan Pro','Cinzel',Georgia,'Times New Roman',serif";
+		$font  = "'Cinzel','Trajan Pro',Georgia,'Times New Roman',serif";
 		$p     = 'margin:0;font-size:14px;line-height:1.6;color:' . $brown . ';text-align:center';
 
 		$html  = '<table role="presentation" class="aimp-connect" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:40px 0 0;border-collapse:separate"><tr>';

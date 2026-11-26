@@ -503,7 +503,8 @@ class AIMP_Newsletter {
 		$code     = isset( $_GET['aimp_msg'] ) ? sanitize_key( wp_unslash( $_GET['aimp_msg'] ) ) : '';
 		$messages = array(
 			'nl_saved'       => array( 'success', __( 'Newsletter saved.', 'atelier-irisee-master-plugin' ) ),
-			'nl_test_sent'   => array( 'success', __( 'The test email has been sent to you.', 'atelier-irisee-master-plugin' ) ),
+			/* translators: %s: email address of the person logged in */
+			'nl_test_sent'   => array( 'success', sprintf( __( 'The test email has been sent to %s (the email address of your WordPress account).', 'atelier-irisee-master-plugin' ), wp_get_current_user()->user_email ) ),
 			'nl_test_failed' => array( 'error', __( 'The test email could not be sent. Check that "Newsletter" is on under WooCommerce → Settings → Emails.', 'atelier-irisee-master-plugin' ) ),
 			'nl_sending'     => array( 'success', __( 'The newsletter is being sent in the background, a few emails per minute. You can follow it in the list below.', 'atelier-irisee-master-plugin' ) ),
 			'nl_nobody'      => array( 'error', __( 'There are no confirmed subscribers yet.', 'atelier-irisee-master-plugin' ) ),
@@ -613,7 +614,10 @@ class AIMP_Newsletter {
 				<p class="aimp-nl-actions">
 					<button type="submit" class="button" name="aimp_nl_do" value="save"><?php esc_html_e( 'Save draft', 'atelier-irisee-master-plugin' ); ?></button>
 					<button type="submit" class="button" formaction="<?php echo esc_url( admin_url( 'admin-post.php?action=aimp_newsletter_preview' ) ); ?>" formtarget="_blank" name="aimp_nl_do" value="preview"><?php esc_html_e( 'Preview', 'atelier-irisee-master-plugin' ); ?></button>
-					<button type="submit" class="button" name="aimp_nl_do" value="test"><?php esc_html_e( 'Send a test to me', 'atelier-irisee-master-plugin' ); ?></button>
+					<button type="submit" class="button" name="aimp_nl_do" value="test"><?php
+					/* translators: %s: email address of the person logged in */
+					echo esc_html( sprintf( __( 'Send a test to me (%s)', 'atelier-irisee-master-plugin' ), wp_get_current_user()->user_email ) );
+					?></button>
 					<button type="submit" class="button button-primary" name="aimp_nl_do" value="send" data-aimp-nl-send<?php echo $count ? '' : ' disabled'; ?>>
 						<?php
 						/* translators: %d: number of confirmed subscribers */

@@ -324,7 +324,7 @@ class AIMP_Newsletter_Render {
 	private static function title( $text, $tag, $align ) {
 		$size  = 'h3' === $tag ? 18 : 24;
 		$gold  = self::gold();
-		$html  = '<' . $tag . ' style="margin:0;padding:0;font-family:\'Trajan Pro\',\'Cinzel\',Georgia,\'Times New Roman\',serif;font-size:' . $size . 'px;line-height:1.3;font-weight:bold;color:' . $gold . ';text-align:' . esc_attr( $align ) . '">' . esc_html( $text ) . '</' . $tag . '>';
+		$html  = '<' . $tag . ' style="margin:0;padding:0;font-family:\'Cinzel\',\'Trajan Pro\',Georgia,\'Times New Roman\',serif;font-size:' . $size . 'px;line-height:1.3;font-weight:bold;color:' . $gold . ';text-align:' . esc_attr( $align ) . '">' . esc_html( $text ) . '</' . $tag . '>';
 		if ( 'h2' === $tag ) {
 			// The gold double line under a large title, as on the blog.
 			$margin = 'center' === $align ? '10px auto 14px' : ( 'right' === $align ? '10px 0 14px auto' : '10px 0 14px' );

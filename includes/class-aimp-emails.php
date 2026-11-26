@@ -40,6 +40,13 @@ class AIMP_Emails {
 				}
 			);
 		}
+		// The logo in the middle (WooCommerce's own "header alignment" setting, and the CSS below for older mails).
+		add_filter(
+			'pre_option_woocommerce_email_header_alignment',
+			function () {
+				return 'center';
+			}
+		);
 		add_filter( 'option_woocommerce_email_header_image', array( __CLASS__, 'header_image' ) );
 		add_filter( 'default_option_woocommerce_email_header_image', array( __CLASS__, 'header_image' ) );
 		add_filter( 'woocommerce_email_footer_text', array( __CLASS__, 'footer_text' ), 20 );
@@ -238,11 +245,19 @@ class AIMP_Emails {
 	public static function styles( $css ) {
 		$gold  = self::gold();
 		$brown = self::brown();
-		return $css . "
+		// The site's title font (Cinzel, served by the plugin): mail programs that load fonts (Apple Mail, iPhone,
+		// Outlook for Mac, Thunderbird, Samsung…) show it; the others show Georgia.
+		$fonts = AIMP_PLUGIN_URL . 'assets/fonts/';
+		$face  = "@font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 400 900; src: url('{$fonts}cinzel-latin.woff2') format('woff2'), url('{$fonts}Cinzel-Bold.ttf') format('truetype'); }";
+		$title = "'Cinzel', 'Trajan Pro', Georgia, 'Times New Roman', serif";
+		return $face . $css . "
 			#template_header { background-color: #ffffff !important; border-bottom: 5px double {$gold}; }
-			#template_header h1, #template_header h1 a { color: {$gold} !important; text-shadow: none; font-family: 'Trajan Pro', 'Cinzel', Georgia, 'Times New Roman', serif; letter-spacing: 0.04em; }
+			#template_header h1, #template_header h1 a, #header_wrapper h1 { color: {$gold} !important; text-shadow: none; font-family: {$title} !important; font-weight: 700 !important; letter-spacing: 0.04em; text-align: center !important; }
+			#header_wrapper { text-align: center !important; }
+			#template_header_image, #template_header_image p { text-align: center !important; }
+			#template_header_image img { margin-left: auto !important; margin-right: auto !important; }
 			#template_container { border: 5px double {$gold} !important; border-radius: 24px !important; box-shadow: none !important; overflow: hidden; }
-			h2, h3 { color: {$gold} !important; font-family: 'Trajan Pro', 'Cinzel', Georgia, 'Times New Roman', serif; }
+			h2, h3 { color: {$gold} !important; font-family: {$title}; }
 			body, #body_content_inner, td, th { color: {$brown}; }
 			a { color: {$gold}; }
 			.td, .address { border-color: rgba(179, 143, 79, 0.35) !important; color: {$brown}; }

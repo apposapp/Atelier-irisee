@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.94.0
+Stable tag: 3.94.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,10 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.94.1 =
+* Emails: the logo at the top in the middle, and the subject centred in the site's title font (Cinzel, gold). Mail programs that load fonts show Cinzel; Gmail and Outlook on Windows show Georgia.
+* Newsletter: the test button shows the address it goes to (the email address of the WordPress account that is logged in), also in the message afterwards.
 
 = 3.94.0 =
 * Pictures in blog posts and newsletters: with a shape (arch, round, rounded corners) a new choice "The photo in the shape": fills the shape (edges cut off, as before), the shape follows the photo (nothing cut off), or the whole photo inside the shape.

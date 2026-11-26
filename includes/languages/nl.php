@@ -1107,7 +1107,6 @@ return array(
 	'Price and stock' => 'Prijs en voorraad',
 	'Recommendation' => 'Aanbeveling',
 	'Save draft' => 'Concept opslaan',
-	'Send a test to me' => 'Stuur mij een test',
 	'Send this newsletter to %d confirmed subscribers now?' => 'Deze nieuwsbrief nu naar %d bevestigde inschrijvers sturen?',
 	'Send to all confirmed subscribers (%d)' => 'Versturen naar alle bevestigde inschrijvers (%d)',
 	'Sending: %1$d of %2$d' => 'Bezig met versturen: %1$d van %2$d',
@@ -1121,7 +1120,6 @@ return array(
 	'The newsletter is being sent in the background, a few emails per minute. You can follow it in the list below.' => 'De nieuwsbrief wordt op de achtergrond verstuurd, een paar e-mails per minuut. Je kunt het volgen in de lijst hieronder.',
 	'The price is per 10 cm.' => 'De prijs is per 10 cm.',
 	'The test email could not be sent. Check that "Newsletter" is on under WooCommerce → Settings → Emails.' => 'De testmail kon niet worden verstuurd. Controleer of \'Nieuwsbrief\' aan staat onder WooCommerce → Instellingen → E-mails.',
-	'The test email has been sent to you.' => 'De testmail is naar je verstuurd.',
 	'There are no confirmed subscribers yet.' => 'Er zijn nog geen bevestigde inschrijvers.',
 	'Use as a copy' => 'Gebruiken als kopie',
 	'Write a newsletter' => 'Schrijf een nieuwsbrief',
@@ -3730,4 +3728,7 @@ return array(
 	'Fills the shape (edges cut off)' => 'Vult de vorm (randen weggesneden)',
 	'The shape follows the photo (nothing cut off)' => 'De vorm volgt de foto (niets weggesneden)',
 	'The whole photo inside the shape' => 'De hele foto binnen de vorm',
+	// 3.94.1: test address
+	'The test email has been sent to %s (the email address of your WordPress account).' => 'De testmail is verstuurd naar %s (het e-mailadres van je WordPress-account).',
+	'Send a test to me (%s)' => 'Stuur een test naar mij (%s)',
 );
