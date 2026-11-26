@@ -3723,4 +3723,6 @@ return array(
 	'Gold double line' => 'Double ligne dorée',
 	'Filled gold' => 'Rempli d\'or',
 	'Open in a new tab' => 'Ouvrir dans un nouvel onglet',
+	// 3.93.1: button label
+	'Link button' => 'Bouton',
 );

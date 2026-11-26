@@ -4,7 +4,7 @@ Tags: woocommerce, configurator, sewing, patterns, fabric
 Requires at least: 6.3
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 3.93.0
+Stable tag: 3.93.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,9 @@ Pattern configurator for WooCommerce: pattern and size, matching fabric, buttons
 5. Add `[atelier_irisee_configurator]` to a page.
 
 == Changelog ==
+
+= 3.93.1 =
+* The button block is called "Knop" in Dutch (not "Knoop").
 
 = 3.93.0 =
 * New block "Button" for blog posts and newsletters: your own text and link (a web address or a page such as /winkel), the gold double line or filled gold, left, centered or right, optionally in a new tab. In emails it is a button that works in every mail program.

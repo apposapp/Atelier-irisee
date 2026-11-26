@@ -3723,4 +3723,6 @@ return array(
 	'Gold double line' => 'Gouden dubbele lijn',
 	'Filled gold' => 'Goud gevuld',
 	'Open in a new tab' => 'In een nieuw tabblad openen',
+	// 3.93.1: button label
+	'Link button' => 'Knop',
 );

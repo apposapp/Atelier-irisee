@@ -256,7 +256,7 @@ class AIMP_Blog_Builder {
 					'lijn'        => __( 'Line with a star', 'atelier-irisee-master-plugin' ),
 					'addLijn'     => __( '+ Line with a star', 'atelier-irisee-master-plugin' ),
 					'lijnWidth'   => __( 'Width', 'atelier-irisee-master-plugin' ),
-					'button'      => __( 'Button', 'atelier-irisee-master-plugin' ),
+					'button'      => __( 'Link button', 'atelier-irisee-master-plugin' ),
 					'addButton'   => __( '+ Button', 'atelier-irisee-master-plugin' ),
 					'buttonText'  => __( 'Text on the button', 'atelier-irisee-master-plugin' ),
 					'buttonUrl'   => __( 'Link (a web address or a page of the site)', 'atelier-irisee-master-plugin' ),
